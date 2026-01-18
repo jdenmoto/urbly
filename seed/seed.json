@@ -1,0 +1,45 @@
+{
+  "management_companies": [
+    {
+      "id": "mgmt-aurora",
+      "name": "Aurora Gestion",
+      "contactPhone": "+57 300 111 2233",
+      "email": "contacto@aurora.com",
+      "nit": "900123456",
+      "address": "Carrera 10 # 21-30"
+    }
+  ],
+  "buildings": [
+    {
+      "id": "bldg-solaris",
+      "name": "Solaris 18",
+      "porterPhone": "+57 310 222 3344",
+      "managementCompanyId": "mgmt-aurora",
+      "addressText": "Calle 85 # 15-20",
+      "location": { "lat": 4.667, "lng": -74.053 },
+      "googlePlaceId": "PLACE_ID"
+    }
+  ],
+  "employees": [
+    {
+      "id": "emp-juan",
+      "fullName": "Juan Gomez",
+      "phone": "+57 315 555 6677",
+      "email": "juan@urbly.co",
+      "role": "Supervisor",
+      "active": true,
+      "buildingId": "bldg-solaris"
+    }
+  ],
+  "appointments": [
+    {
+      "id": "apt-001",
+      "buildingId": "bldg-solaris",
+      "title": "Mantenimiento ascensor",
+      "description": "Revision preventiva",
+      "startAt": "2024-10-10T10:00:00.000Z",
+      "endAt": "2024-10-10T11:30:00.000Z",
+      "status": "programado"
+    }
+  ]
+}
