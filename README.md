@@ -42,6 +42,11 @@ Plataforma SaaS para gestion inteligente de edificios, agenda y dashboard. Este 
    - Puedes copiar `.env.example` y completar los valores.
    - Para Firebase: toma `apiKey` y `projectId` desde la configuracion web en Firebase Console.
    - Para Google Maps: habilita Places API y usa la API key en `VITE_GOOGLE_MAPS_API_KEY`.
+   - Habilitar Places API:
+     - Google Cloud Console -> APIs & Services -> Library -> Places API -> Enable.
+     - APIs & Services -> Credentials -> API Key -> Restrict key.
+     - API restrictions: habilita Places API y Maps JavaScript API.
+     - Application restrictions: agrega `http://localhost:5173` y tu dominio de produccion.
 3. Ejecutar en desarrollo:
    ```bash
    npm run dev
@@ -50,6 +55,29 @@ Plataforma SaaS para gestion inteligente de edificios, agenda y dashboard. Este 
 ## Deploy
 - Configura `FIREBASE_SERVICE_ACCOUNT` y `FIREBASE_PROJECT_ID` en GitHub Actions.
 - Merge a `main` para deploy automatico (hosting + functions + rules + indexes).
+
+### Deploy manual de Functions
+1. Instala Firebase CLI:
+   ```bash
+   npm install -g firebase-tools
+   ```
+2. Inicia sesion:
+   ```bash
+   firebase login
+   ```
+3. Selecciona el proyecto (si no tienes `.firebaserc`):
+   ```bash
+   firebase use urbly-2bae2
+   ```
+4. Instala dependencias y compila:
+   ```bash
+   npm --prefix functions install
+   npm --prefix functions run build
+   ```
+5. Despliega:
+   ```bash
+   firebase deploy --only functions
+   ```
 
 ## Datos seed
 Ejemplo en `seed/seed.json`. Se puede importar manualmente via Firebase console o scripts propios.

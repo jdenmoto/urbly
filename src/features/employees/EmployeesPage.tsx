@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import PageHeader from '@/components/PageHeader';
@@ -28,6 +29,7 @@ type FormValues = z.infer<typeof schema>;
 export default function EmployeesPage() {
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -55,6 +57,7 @@ export default function EmployeesPage() {
       active: values.active === 'true',
       buildingId: values.buildingId || null
     });
+    await queryClient.invalidateQueries({ queryKey: ['employees'] });
     reset();
   };
 
@@ -67,8 +70,13 @@ export default function EmployeesPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
             <Input label="Nombre completo" error={errors.fullName?.message} {...register('fullName')} />
             <Input label="Telefono" error={errors.phone?.message} {...register('phone')} />
-            <Input label="Email" error={errors.email?.message} {...register('email')} />
-            <Input label="Rol" error={errors.role?.message} {...register('role')} />
+            <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
+            <Select label="Rol" error={errors.role?.message} {...register('role')}>
+              <option value="">Selecciona</option>
+              <option value="Administrador">Administrador</option>
+              <option value="Tecnico">Tecnico</option>
+              <option value="Usuario">Usuario</option>
+            </Select>
             <Select label="Activo" error={errors.active?.message} {...register('active')}>
               <option value="true">Si</option>
               <option value="false">No</option>

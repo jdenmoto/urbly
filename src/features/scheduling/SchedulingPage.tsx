@@ -4,7 +4,9 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
+import multiMonthPlugin from '@fullcalendar/multimonth';
 import { useForm } from 'react-hook-form';
+import { useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import PageHeader from '@/components/PageHeader';
@@ -16,6 +18,7 @@ import DataTable from '@/components/DataTable';
 import EmptyState from '@/components/EmptyState';
 import useBreakpoint from '@/components/useBreakpoint';
 import type { Appointment, Building } from '@/core/models';
+import { recurrenceOptions } from '@/core/appointments';
 import { createDoc, updateDocById } from '@/lib/api/firestore';
 import { useList } from '@/lib/api/queries';
 import { assertValidDateRange } from '@/core/validators';
@@ -27,7 +30,8 @@ const schema = z.object({
   description: z.string().optional(),
   startAt: z.string().min(1, 'Requerido'),
   endAt: z.string().min(1, 'Requerido'),
-  status: z.string().min(1, 'Requerido')
+  status: z.string().min(1, 'Requerido'),
+  recurrence: z.string().optional()
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -36,13 +40,17 @@ export default function SchedulingPage() {
   const { isMobile } = useBreakpoint();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: appointments = [] } = useList<Appointment>('appointments', 'appointments');
+  const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ buildingId: '', date: '', from: '', to: '' });
+  const [selected, setSelected] = useState<Appointment | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset
+    reset,
+    setValue
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const filtered = appointments.filter((item) => {
@@ -65,15 +73,36 @@ export default function SchedulingPage() {
 
   const onSubmit = async (values: FormValues) => {
     assertValidDateRange(values.startAt, values.endAt);
-    await createDoc('appointments', {
+    const payload = {
       buildingId: values.buildingId,
       title: values.title,
       description: values.description ?? '',
       startAt: values.startAt,
       endAt: values.endAt,
-      status: values.status
-    });
+      status: values.status,
+      recurrence: values.recurrence || null
+    };
+    if (editingId) {
+      await updateDocById('appointments', editingId, payload);
+    } else {
+      await createDoc('appointments', payload);
+    }
+    await queryClient.invalidateQueries({ queryKey: ['appointments'] });
     reset();
+    setEditingId(null);
+  };
+
+  const startEdit = (appointment: Appointment) => {
+    setEditingId(appointment.id);
+    setValue('buildingId', appointment.buildingId);
+    setValue('title', appointment.title);
+    setValue('description', appointment.description ?? '');
+    setValue('startAt', appointment.startAt.slice(0, 16));
+    setValue('endAt', appointment.endAt.slice(0, 16));
+    setValue('status', appointment.status);
+    setValue('recurrence', appointment.recurrence ?? '');
+    setSelected(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -101,8 +130,16 @@ export default function SchedulingPage() {
               <option value="completado">Completado</option>
               <option value="cancelado">Cancelado</option>
             </Select>
+            <Select label="Recurrencia" error={errors.recurrence?.message} {...register('recurrence')}>
+              <option value="">No se repite</option>
+              {recurrenceOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Guardando...' : 'Crear agendamiento'}
+              {isSubmitting ? 'Guardando...' : editingId ? 'Actualizar agendamiento' : 'Crear agendamiento'}
             </Button>
           </form>
         </Card>
@@ -111,30 +148,44 @@ export default function SchedulingPage() {
             <h3 className="text-sm font-semibold text-ink-800">Calendario</h3>
             <div className="mt-4">
               <FullCalendar
-                plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+                plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, multiMonthPlugin]}
                 initialView={isMobile ? 'listWeek' : 'timeGridWeek'}
                 height="auto"
                 editable
                 selectable
+                headerToolbar={{
+                  left: 'prev,next today',
+                  center: 'title',
+                  right: 'timeGridDay,dayGridMonth,multiMonthQuarter,multiMonthSemester,multiMonthYear'
+                }}
+                views={{
+                  multiMonthQuarter: { type: 'multiMonth', duration: { months: 3 }, titleFormat: { month: 'short', year: 'numeric' } },
+                  multiMonthSemester: { type: 'multiMonth', duration: { months: 6 }, titleFormat: { month: 'short', year: 'numeric' } },
+                  multiMonthYear: { type: 'multiMonth', duration: { months: 12 }, titleFormat: { month: 'short', year: 'numeric' } }
+                }}
                 events={filtered.map((item) => ({
                   id: item.id,
                   title: item.title,
                   start: item.startAt,
                   end: item.endAt
                 }))}
+                eventClick={(info) => {
+                  const appointment = appointments.find((item) => item.id === info.event.id);
+                  if (appointment) setSelected(appointment);
+                }}
                 eventDrop={(info) => {
                   if (!info.event.start || !info.event.end) return;
                   void updateDocById('appointments', info.event.id, {
                     startAt: info.event.start.toISOString(),
                     endAt: info.event.end.toISOString()
-                  });
+                  }).then(() => queryClient.invalidateQueries({ queryKey: ['appointments'] }));
                 }}
                 eventResize={(info) => {
                   if (!info.event.start || !info.event.end) return;
                   void updateDocById('appointments', info.event.id, {
                     startAt: info.event.start.toISOString(),
                     endAt: info.event.end.toISOString()
-                  });
+                  }).then(() => queryClient.invalidateQueries({ queryKey: ['appointments'] }));
                 }}
               />
             </div>
@@ -181,6 +232,35 @@ export default function SchedulingPage() {
           />
         </div>
       </div>
+      {selected ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-soft">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-semibold text-ink-900">{selected.title}</h3>
+                <p className="text-sm text-ink-600">Detalle de agendamiento</p>
+              </div>
+              <button className="text-sm text-ink-500" onClick={() => setSelected(null)}>
+                Cerrar
+              </button>
+            </div>
+            <div className="mt-4 space-y-2 text-sm text-ink-700">
+              <p><span className="font-semibold text-ink-900">Edificio:</span> {buildings.find((b) => b.id === selected.buildingId)?.name ?? 'N/A'}</p>
+              <p><span className="font-semibold text-ink-900">Inicio:</span> {selected.startAt}</p>
+              <p><span className="font-semibold text-ink-900">Fin:</span> {selected.endAt}</p>
+              <p><span className="font-semibold text-ink-900">Estado:</span> {selected.status}</p>
+              <p><span className="font-semibold text-ink-900">Recurrencia:</span> {selected.recurrence ?? 'No se repite'}</p>
+              {selected.description ? (
+                <p><span className="font-semibold text-ink-900">Descripcion:</span> {selected.description}</p>
+              ) : null}
+            </div>
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <Button variant="secondary" onClick={() => setSelected(null)}>Cerrar</Button>
+              <Button onClick={() => startEdit(selected)}>Editar</Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

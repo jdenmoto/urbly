@@ -7,11 +7,11 @@
     "lint": "echo 'no lint configured'"
   },
   "engines": {
-    "node": "18"
+    "node": "20"
   },
   "dependencies": {
     "firebase-admin": "^12.7.0",
-    "firebase-functions": "^4.7.0",
+    "firebase-functions": "^7.0.3",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

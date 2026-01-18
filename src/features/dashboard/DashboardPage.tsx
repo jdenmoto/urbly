@@ -3,7 +3,7 @@ import StatCard from '@/components/StatCard';
 import Card from '@/components/Card';
 import { useList } from '@/lib/api/queries';
 import type { Appointment, Building, Employee, ManagementCompany } from '@/core/models';
-import { format, isAfter, isBefore, startOfDay, addDays } from 'date-fns';
+import { format, isAfter, isBefore, startOfDay, addDays, subDays } from 'date-fns';
 
 export default function DashboardPage() {
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
@@ -41,6 +41,23 @@ export default function DashboardPage() {
     acc[key] = (acc[key] ?? 0) + 1;
     return acc;
   }, {});
+
+  const lastSevenDays = Array.from({ length: 7 }, (_, idx) => {
+    const date = subDays(today, 6 - idx);
+    return format(date, 'MMM d');
+  });
+
+  const completedByDay = lastSevenDays.map((label) => {
+    return appointments.filter(
+      (item) => format(new Date(item.startAt), 'MMM d') === label && item.status === 'completado'
+    ).length;
+  });
+
+  const scheduledByDay = lastSevenDays.map((label) => {
+    return appointments.filter(
+      (item) => format(new Date(item.startAt), 'MMM d') === label && item.status !== 'completado'
+    ).length;
+  });
 
   return (
     <div className="space-y-6">
@@ -86,6 +103,45 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+      <Card>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold text-ink-800">Agendamientos completados vs agendados</h3>
+          <div className="flex items-center gap-3 text-xs text-ink-600">
+            <span className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Completados
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-sky-500" />
+              Agendados
+            </span>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-7">
+          {lastSevenDays.map((label, index) => {
+            const completed = completedByDay[index];
+            const scheduled = scheduledByDay[index];
+            const max = Math.max(completed, scheduled, 1);
+            return (
+              <div key={label} className="flex flex-col items-center gap-2 rounded-xl bg-fog-100 p-3">
+                <div className="flex h-24 w-full items-end justify-center gap-2">
+                  <div
+                    className="w-3 rounded-full bg-emerald-500"
+                    style={{ height: `${(completed / max) * 100}%` }}
+                    title={`Completados: ${completed}`}
+                  />
+                  <div
+                    className="w-3 rounded-full bg-sky-500"
+                    style={{ height: `${(scheduled / max) * 100}%` }}
+                    title={`Agendados: ${scheduled}`}
+                  />
+                </div>
+                <span className="text-xs text-ink-600">{label}</span>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
       <Card>
         <h3 className="text-sm font-semibold text-ink-800">Top edificios con mas actividad</h3>
         <div className="mt-4 grid gap-3 md:grid-cols-2">

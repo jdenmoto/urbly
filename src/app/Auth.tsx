@@ -20,6 +20,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser);
       setLoading(false);
+      if (nextUser) {
+        nextUser
+          .getIdTokenResult(true)
+          .then((result) => console.log('Auth claims:', result.claims))
+          .catch(() => undefined);
+      }
     });
     return () => unsubscribe();
   }, []);

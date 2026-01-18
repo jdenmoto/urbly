@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,7 @@ import Card from '@/components/Card';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
 import { useAuth } from '@/app/Auth';
+import { useNavigate } from 'react-router-dom';
 
 const schema = z.object({
   email: z.string().email('Email invalido'),
@@ -15,7 +16,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+  const navigate = useNavigate();
   const [error, setError] = useState('');
   const {
     register,
@@ -31,6 +33,10 @@ export default function LoginPage() {
       setError('No fue posible iniciar sesion.');
     }
   };
+
+  useEffect(() => {
+    if (user) navigate('/');
+  }, [user, navigate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">

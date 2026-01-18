@@ -1,8 +1,11 @@
 import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import { navItems } from '@/app/nav';
+import { useAuth } from '@/app/Auth';
 
 export default function Sidebar({ collapsed }: { collapsed?: boolean }) {
+  const { logout } = useAuth();
+
   return (
     <aside
       className={clsx(
@@ -37,8 +40,16 @@ export default function Sidebar({ collapsed }: { collapsed?: boolean }) {
         ))}
       </nav>
       {!collapsed ? (
-        <div className="rounded-xl bg-fog-100 px-4 py-3 text-xs text-ink-600">
-          Plan MVP - Admin
+        <div className="space-y-3">
+          <button
+            className="w-full rounded-xl border border-fog-200 bg-white px-4 py-2 text-left text-xs font-semibold text-ink-700 hover:border-ink-900"
+            onClick={() => void logout()}
+          >
+            Salir
+          </button>
+          <div className="rounded-xl bg-fog-100 px-4 py-3 text-xs text-ink-600">
+            Plan MVP - Admin
+          </div>
         </div>
       ) : null}
     </aside>

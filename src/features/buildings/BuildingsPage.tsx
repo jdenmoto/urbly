@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createDoc } from '@/lib/api/firestore';
+import { useQueryClient } from '@tanstack/react-query';
 import { useList } from '@/lib/api/queries';
 import type { Building, ManagementCompany } from '@/core/models';
 import PageHeader from '@/components/PageHeader';
@@ -37,6 +38,7 @@ type PreviewRow = {
 export default function BuildingsPage() {
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
+  const queryClient = useQueryClient();
   const [place, setPlace] = useState<PlaceResult | null>(null);
   const [uploading, setUploading] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
@@ -86,6 +88,7 @@ export default function BuildingsPage() {
       googlePlaceId: place.placeId,
       location: place.location
     });
+    await queryClient.invalidateQueries({ queryKey: ['buildings'] });
     reset();
     setPlace(null);
   };
@@ -117,6 +120,7 @@ export default function BuildingsPage() {
     try {
       const result = await importBuildingsFile(file);
       setImportResult(result);
+      await queryClient.invalidateQueries({ queryKey: ['buildings'] });
       if (errorUrl) URL.revokeObjectURL(errorUrl);
       if (result.errors.length) {
         const csv = ['row,message', ...result.errors.map((err) => `${err.row},\"${err.message}\"`)].join('\\n');

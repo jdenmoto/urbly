@@ -39,5 +39,6 @@ export type Appointment = {
   startAt: string;
   endAt: string;
   status: AppointmentStatus;
+  recurrence?: string;
   createdAt?: string;
 };
