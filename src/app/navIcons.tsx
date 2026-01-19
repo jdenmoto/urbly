@@ -53,3 +53,13 @@ export function CalendarDays(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function ShieldUser(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M12 2l7 3v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V5l7-3z" />
+      <path d="M9 11a3 3 0 1 0 6 0" />
+      <path d="M7 18a5 5 0 0 1 10 0" />
+    </svg>
+  );
+}

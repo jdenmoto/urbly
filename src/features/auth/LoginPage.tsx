@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Card from '@/components/Card';
@@ -8,12 +9,16 @@ import Button from '@/components/Button';
 import { useAuth } from '@/app/Auth';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '@/lib/i18n';
+import { useToast } from '@/components/ToastProvider';
+import { auth } from '@/lib/firebase/client';
 
 export default function LoginPage() {
   const { t } = useI18n();
   const { login, user } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [error, setError] = useState('');
+  const [resetOpen, setResetOpen] = useState(false);
   const schema = z.object({
     email: z.string().email(t('auth.errorEmail')),
     password: z.string().min(6, t('auth.errorPassword'))
@@ -25,12 +30,34 @@ export default function LoginPage() {
     formState: { errors, isSubmitting }
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
+  const resetSchema = z.object({
+    email: z.string().email(t('auth.errorEmail'))
+  });
+  type ResetValues = z.infer<typeof resetSchema>;
+  const {
+    register: resetRegister,
+    handleSubmit: handleResetSubmit,
+    formState: { errors: resetErrors, isSubmitting: resetSubmitting },
+    reset: resetForm
+  } = useForm<ResetValues>({ resolver: zodResolver(resetSchema) });
+
   const onSubmit = async (values: FormValues) => {
     setError('');
     try {
       await login(values.email, values.password);
     } catch (err) {
       setError(t('auth.error'));
+    }
+  };
+
+  const onReset = async (values: ResetValues) => {
+    try {
+      await sendPasswordResetEmail(auth, values.email);
+      toast(t('auth.resetSent'), 'success');
+      resetForm();
+      setResetOpen(false);
+    } catch (err) {
+      toast(t('auth.resetError'), 'error');
     }
   };
 
@@ -59,6 +86,26 @@ export default function LoginPage() {
               {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </Button>
           </form>
+          <button
+            className="text-xs font-semibold text-ink-600 underline"
+            type="button"
+            onClick={() => setResetOpen((prev) => !prev)}
+          >
+            {t('auth.resetPassword')}
+          </button>
+          {resetOpen ? (
+            <form onSubmit={handleResetSubmit(onReset)} className="space-y-3">
+              <Input
+                label={t('auth.resetEmail')}
+                type="email"
+                error={resetErrors.email?.message}
+                {...resetRegister('email')}
+              />
+              <Button type="submit" className="w-full" disabled={resetSubmitting}>
+                {resetSubmitting ? t('auth.sendingReset') : t('auth.sendReset')}
+              </Button>
+            </form>
+          ) : null}
         </div>
       </Card>
     </div>

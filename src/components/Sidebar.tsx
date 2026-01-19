@@ -5,9 +5,9 @@ import { useAuth } from '@/app/Auth';
 import { useI18n } from '@/lib/i18n';
 
 export default function Sidebar({ collapsed }: { collapsed?: boolean }) {
-  const { logout } = useAuth();
+  const { logout, role } = useAuth();
   const { t } = useI18n();
-  const navItems = useNavItems();
+  const navItems = useNavItems(role);
 
   return (
     <aside

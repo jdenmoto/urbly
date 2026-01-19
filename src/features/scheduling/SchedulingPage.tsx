@@ -18,7 +18,8 @@ import DataTable from '@/components/DataTable';
 import EmptyState from '@/components/EmptyState';
 import useBreakpoint from '@/components/useBreakpoint';
 import Modal from '@/components/Modal';
-import type { Appointment, Building } from '@/core/models';
+import type { Appointment } from '@/core/models/appointment';
+import type { Building } from '@/core/models/building';
 import { recurrenceOptions } from '@/core/appointments';
 import { createDoc, updateDocById } from '@/lib/api/firestore';
 import { useList } from '@/lib/api/queries';
@@ -26,10 +27,13 @@ import { isValidDateRange } from '@/core/validators';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
 import { useToast } from '@/components/ToastProvider';
+import { useAuth } from '@/app/Auth';
 
 export default function SchedulingPage() {
   const { t } = useI18n();
   const { toast } = useToast();
+  const { role } = useAuth();
+  const canEdit = role !== 'view';
   const { isMobile } = useBreakpoint();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: appointments = [] } = useList<Appointment>('appointments', 'appointments');
@@ -94,6 +98,10 @@ export default function SchedulingPage() {
   );
 
   const onSubmit = async (values: FormValues) => {
+    if (!canEdit) {
+      toast(t('common.actionError'), 'error');
+      return;
+    }
     if (!isValidDateRange(values.startAt, values.endAt)) {
       setError('endAt', { message: t('errors.invalidDateRange') });
       return;
@@ -176,7 +184,7 @@ export default function SchedulingPage() {
               <option value="calendar">{t('scheduling.viewCalendar')}</option>
               <option value="list">{t('scheduling.viewList')}</option>
             </Select>
-            <Button onClick={startCreate}>{t('common.add')}</Button>
+            {canEdit ? <Button onClick={startCreate}>{t('common.add')}</Button> : null}
           </>
         }
       />
@@ -189,7 +197,7 @@ export default function SchedulingPage() {
                 plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, multiMonthPlugin]}
                 initialView={isMobile ? 'listWeek' : 'timeGridWeek'}
                 height="auto"
-                editable
+                editable={canEdit}
                 selectable
                 headerToolbar={{
                   left: 'prev,next today',
@@ -232,6 +240,7 @@ export default function SchedulingPage() {
                   if (appointment) setSelected(appointment);
                 }}
                 eventDrop={(info) => {
+                  if (!canEdit) return;
                   if (!info.event.start || !info.event.end) return;
                   void updateDocById('appointments', info.event.id, {
                     startAt: info.event.start.toISOString(),
@@ -242,6 +251,7 @@ export default function SchedulingPage() {
                     .catch(() => toast(t('common.actionError'), 'error'));
                 }}
                 eventResize={(info) => {
+                  if (!canEdit) return;
                   if (!info.event.start || !info.event.end) return;
                   void updateDocById('appointments', info.event.id, {
                     startAt: info.event.start.toISOString(),
@@ -338,48 +348,60 @@ export default function SchedulingPage() {
             </div>
             <div className="mt-6 flex items-center justify-end gap-2">
               <Button variant="secondary" onClick={() => setSelected(null)}>{t('common.close')}</Button>
-              <Button onClick={() => startEdit(selected)}>{t('common.edit')}</Button>
+              {canEdit ? <Button onClick={() => startEdit(selected)}>{t('common.edit')}</Button> : null}
             </div>
           </div>
         </div>
       ) : null}
-      <Modal
-        open={modalOpen}
-        title={editingId ? t('scheduling.update') : t('scheduling.create')}
-        onClose={() => setModalOpen(false)}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Select label={t('scheduling.building')} error={errors.buildingId?.message} {...register('buildingId')}>
-            <option value="">{t('common.select')}</option>
-            {buildings.map((building) => (
-              <option key={building.id} value={building.id}>
-                {building.name}
-              </option>
-            ))}
-          </Select>
-          <Input label={t('scheduling.titleLabel')} error={errors.title?.message} {...register('title')} />
-          <Input label={t('scheduling.description')} {...register('description')} />
-          <Input label={t('scheduling.startAt')} type="datetime-local" error={errors.startAt?.message} {...register('startAt')} />
-          <Input label={t('scheduling.endAt')} type="datetime-local" error={errors.endAt?.message} {...register('endAt')} />
-          <Select label={t('scheduling.status')} error={errors.status?.message} {...register('status')}>
-            <option value="programado">{t('scheduling.statusProgrammed')}</option>
-            <option value="confirmado">{t('scheduling.statusConfirmed')}</option>
-            <option value="completado">{t('scheduling.statusCompleted')}</option>
-            <option value="cancelado">{t('scheduling.statusCanceled')}</option>
-          </Select>
-          <Select label={t('scheduling.recurrence')} error={errors.recurrence?.message} {...register('recurrence')}>
-            <option value="">{t('scheduling.noRecurrence')}</option>
-            {recurrenceOptions.map((option) => (
-              <option key={option} value={option}>
-                {t(`scheduling.recurrenceOptions.${option}`)}
-              </option>
-            ))}
-          </Select>
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? t('scheduling.saving') : editingId ? t('scheduling.update') : t('scheduling.create')}
-          </Button>
-        </form>
-      </Modal>
+      {canEdit ? (
+        <Modal
+          open={modalOpen}
+          title={editingId ? t('scheduling.update') : t('scheduling.create')}
+          onClose={() => setModalOpen(false)}
+        >
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <Select label={t('scheduling.building')} error={errors.buildingId?.message} {...register('buildingId')}>
+              <option value="">{t('common.select')}</option>
+              {buildings.map((building) => (
+                <option key={building.id} value={building.id}>
+                  {building.name}
+                </option>
+              ))}
+            </Select>
+            <Input label={t('scheduling.titleLabel')} error={errors.title?.message} {...register('title')} />
+            <Input label={t('scheduling.description')} {...register('description')} />
+            <Input
+              label={t('scheduling.startAt')}
+              type="datetime-local"
+              error={errors.startAt?.message}
+              {...register('startAt')}
+            />
+            <Input
+              label={t('scheduling.endAt')}
+              type="datetime-local"
+              error={errors.endAt?.message}
+              {...register('endAt')}
+            />
+            <Select label={t('scheduling.status')} error={errors.status?.message} {...register('status')}>
+              <option value="programado">{t('scheduling.statusProgrammed')}</option>
+              <option value="confirmado">{t('scheduling.statusConfirmed')}</option>
+              <option value="completado">{t('scheduling.statusCompleted')}</option>
+              <option value="cancelado">{t('scheduling.statusCanceled')}</option>
+            </Select>
+            <Select label={t('scheduling.recurrence')} error={errors.recurrence?.message} {...register('recurrence')}>
+              <option value="">{t('scheduling.noRecurrence')}</option>
+              {recurrenceOptions.map((option) => (
+                <option key={option} value={option}>
+                  {t(`scheduling.recurrenceOptions.${option}`)}
+                </option>
+              ))}
+            </Select>
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? t('scheduling.saving') : editingId ? t('scheduling.update') : t('scheduling.create')}
+            </Button>
+          </form>
+        </Modal>
+      ) : null}
     </div>
   );
 }

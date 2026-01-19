@@ -47,6 +47,7 @@ nav:
   management: Administraciones
   employees: Empleados
   scheduling: Agendamientos
+  users: Usuarios
 auth:
   title: Bienvenido a Urbly
   subtitle: Ingresa con tu cuenta de administrador.
@@ -57,6 +58,12 @@ auth:
   error: No fue posible iniciar sesion.
   errorEmail: Email invalido
   errorPassword: Minimo 6 caracteres
+  resetPassword: Olvidaste tu contrasena?
+  resetEmail: Email para reiniciar
+  sendReset: Enviar enlace
+  sendingReset: Enviando...
+  resetSent: Enlace enviado. Revisa tu correo.
+  resetError: No fue posible enviar el enlace.
 management:
   title: Administraciones
   subtitle: Empresas administradoras registradas
@@ -137,6 +144,38 @@ employees:
     admin: Administrador
     tech: Tecnico
     user: Usuario
+users:
+  title: Usuarios
+  subtitle: Gestiona accesos de la plataforma
+  add: Agregar usuario
+  email: Email
+  role: Rol
+  status: Estado
+  active: Activo
+  disabled: Deshabilitado
+  enable: Habilitar
+  disable: Deshabilitar
+  emptyTitle: Sin usuarios
+  emptySubtitle: Agrega el primer usuario para empezar.
+  createTitle: Crear usuario
+  editTitle: Editar usuario
+  deleteTitle: Eliminar usuario
+  deleteConfirm: Estas seguro de eliminar este usuario?
+  create: Crear usuario
+  creating: Creando...
+  update: Actualizar usuario
+  saving: Guardando...
+  generatedPasswordTitle: Contrasena generada
+  toastCreated: Usuario creado
+  toastUpdated: Usuario actualizado
+  toastDeleted: Usuario eliminado
+  toastEnabled: Usuario habilitado
+  toastDisabled: Usuario deshabilitado
+  unauthorized: No tienes permisos para administrar usuarios.
+  roles:
+    view: Ver
+    editor: Editor
+    admin: Administrador
 scheduling:
   title: Agendamientos
   subtitle: Calendario y agenda operativa

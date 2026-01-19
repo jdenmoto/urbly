@@ -1,9 +1,11 @@
 import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import { useNavItems } from '@/app/nav';
+import { useAuth } from '@/app/Auth';
 
 export default function BottomNav() {
-  const navItems = useNavItems();
+  const { role } = useAuth();
+  const navItems = useNavItems(role);
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-fog-200 bg-white/90 px-3 py-2 backdrop-blur md:hidden">
       <div className="flex items-center justify-between">

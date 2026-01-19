@@ -15,7 +15,8 @@
     "deploy:backend": "firebase deploy --only functions,firestore:rules,firestore:indexes",
     "deploy:frontend": "npm run build && firebase deploy --only hosting",
     "seed": "node scripts/seed-firestore.mjs",
-    "clear:buildings": "node scripts/clear-buildings.mjs"
+    "clear:buildings": "node scripts/clear-buildings.mjs",
+    "sync:users": "node scripts/sync-users.mjs"
   },
   "dependencies": {
     "@fullcalendar/daygrid": "^6.1.11",

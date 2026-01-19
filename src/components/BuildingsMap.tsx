@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useI18n } from '@/lib/i18n';
-import type { Building } from '@/core/models';
+import type { Building } from '@/core/models/building';
 
 const DEFAULT_CENTER = { lat: 4.711, lng: -74.0721 };
 

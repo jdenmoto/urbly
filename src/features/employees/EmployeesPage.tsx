@@ -10,7 +10,8 @@ import Select from '@/components/Select';
 import Button from '@/components/Button';
 import DataTable from '@/components/DataTable';
 import EmptyState from '@/components/EmptyState';
-import type { Employee, Building } from '@/core/models';
+import type { Employee } from '@/core/models/employee';
+import type { Building } from '@/core/models/building';
 import { createDoc, updateDocById, deleteDocById } from '@/lib/api/firestore';
 import { useList } from '@/lib/api/queries';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -18,10 +19,13 @@ import { useI18n } from '@/lib/i18n';
 import Modal from '@/components/Modal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useToast } from '@/components/ToastProvider';
+import { useAuth } from '@/app/Auth';
 
 export default function EmployeesPage() {
   const { t } = useI18n();
   const { toast } = useToast();
+  const { role } = useAuth();
+  const canEdit = role !== 'view';
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const queryClient = useQueryClient();
@@ -51,12 +55,16 @@ export default function EmployeesPage() {
     reset: resetEdit
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
-  const columns = useMemo<ColumnDef<Employee>[]>(
-    () => [
+  const columns = useMemo<ColumnDef<Employee>[]>(() => {
+    const base: ColumnDef<Employee>[] = [
       { header: t('employees.fullName'), accessorKey: 'fullName' },
       { header: t('employees.role'), accessorKey: 'role' },
       { header: t('employees.phone'), accessorKey: 'phone' },
-      { header: t('employees.active'), accessorKey: 'active' },
+      { header: t('employees.active'), accessorKey: 'active' }
+    ];
+    if (!canEdit) return base;
+    return [
+      ...base,
       {
         header: t('common.actions'),
         cell: ({ row }) => (
@@ -70,9 +78,8 @@ export default function EmployeesPage() {
           </div>
         )
       }
-    ],
-    [t]
-  );
+    ];
+  }, [t, canEdit]);
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -141,79 +148,89 @@ export default function EmployeesPage() {
   return (
     <div className="space-y-8">
       <PageHeader title={t('employees.title')} subtitle={t('employees.subtitle')} />
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card>
-          <h3 className="text-sm font-semibold text-ink-800">{t('employees.newTitle')}</h3>
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
-            <Input label={t('employees.fullName')} error={errors.fullName?.message} {...register('fullName')} />
-            <Input label={t('employees.phone')} error={errors.phone?.message} {...register('phone')} />
-            <Input label={t('employees.email')} type="email" error={errors.email?.message} {...register('email')} />
-            <Select label={t('employees.role')} error={errors.role?.message} {...register('role')}>
-              <option value="">{t('common.select')}</option>
-              <option value={t('employees.roles.admin')}>{t('employees.roles.admin')}</option>
-              <option value={t('employees.roles.tech')}>{t('employees.roles.tech')}</option>
-              <option value={t('employees.roles.user')}>{t('employees.roles.user')}</option>
-            </Select>
-            <Select label={t('employees.active')} error={errors.active?.message} {...register('active')}>
-              <option value="true">{t('common.yes')}</option>
-              <option value="false">{t('common.no')}</option>
-            </Select>
-            <Select label={`${t('employees.building')} (${t('common.optional')})`} {...register('buildingId')}>
-              <option value="">{t('common.unassigned')}</option>
-              {buildings.map((building) => (
-                <option key={building.id} value={building.id}>
-                  {building.name}
-                </option>
-              ))}
-            </Select>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? t('employees.saving') : t('employees.create')}
-            </Button>
-          </form>
-        </Card>
-        <div className="lg:col-span-2">
-          <DataTable
-            columns={columns}
-            data={employees}
-            emptyState={<EmptyState title={t('employees.emptyTitle')} description={t('employees.emptySubtitle')} />}
+      {canEdit ? (
+        <>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card>
+              <h3 className="text-sm font-semibold text-ink-800">{t('employees.newTitle')}</h3>
+              <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
+                <Input label={t('employees.fullName')} error={errors.fullName?.message} {...register('fullName')} />
+                <Input label={t('employees.phone')} error={errors.phone?.message} {...register('phone')} />
+                <Input label={t('employees.email')} type="email" error={errors.email?.message} {...register('email')} />
+                <Select label={t('employees.role')} error={errors.role?.message} {...register('role')}>
+                  <option value="">{t('common.select')}</option>
+                  <option value={t('employees.roles.admin')}>{t('employees.roles.admin')}</option>
+                  <option value={t('employees.roles.tech')}>{t('employees.roles.tech')}</option>
+                  <option value={t('employees.roles.user')}>{t('employees.roles.user')}</option>
+                </Select>
+                <Select label={t('employees.active')} error={errors.active?.message} {...register('active')}>
+                  <option value="true">{t('common.yes')}</option>
+                  <option value="false">{t('common.no')}</option>
+                </Select>
+                <Select label={`${t('employees.building')} (${t('common.optional')})`} {...register('buildingId')}>
+                  <option value="">{t('common.unassigned')}</option>
+                  {buildings.map((building) => (
+                    <option key={building.id} value={building.id}>
+                      {building.name}
+                    </option>
+                  ))}
+                </Select>
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? t('employees.saving') : t('employees.create')}
+                </Button>
+              </form>
+            </Card>
+            <div className="lg:col-span-2">
+              <DataTable
+                columns={columns}
+                data={employees}
+                emptyState={<EmptyState title={t('employees.emptyTitle')} description={t('employees.emptySubtitle')} />}
+              />
+            </div>
+          </div>
+          <Modal open={editOpen} title={t('employees.editTitle')} onClose={() => setEditOpen(false)}>
+            <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
+              <Input label={t('employees.fullName')} error={editErrors.fullName?.message} {...editRegister('fullName')} />
+              <Input label={t('employees.phone')} error={editErrors.phone?.message} {...editRegister('phone')} />
+              <Input label={t('employees.email')} type="email" error={editErrors.email?.message} {...editRegister('email')} />
+              <Select label={t('employees.role')} error={editErrors.role?.message} {...editRegister('role')}>
+                <option value="">{t('common.select')}</option>
+                <option value={t('employees.roles.admin')}>{t('employees.roles.admin')}</option>
+                <option value={t('employees.roles.tech')}>{t('employees.roles.tech')}</option>
+                <option value={t('employees.roles.user')}>{t('employees.roles.user')}</option>
+              </Select>
+              <Select label={t('employees.active')} error={editErrors.active?.message} {...editRegister('active')}>
+                <option value="true">{t('common.yes')}</option>
+                <option value="false">{t('common.no')}</option>
+              </Select>
+              <Select label={`${t('employees.building')} (${t('common.optional')})`} {...editRegister('buildingId')}>
+                <option value="">{t('common.unassigned')}</option>
+                {buildings.map((building) => (
+                  <option key={building.id} value={building.id}>
+                    {building.name}
+                  </option>
+                ))}
+              </Select>
+              <Button type="submit" className="w-full" disabled={editSubmitting}>
+                {editSubmitting ? t('employees.saving') : t('employees.update')}
+              </Button>
+            </form>
+          </Modal>
+          <ConfirmModal
+            open={Boolean(deleteTarget)}
+            title={t('employees.deleteTitle')}
+            description={t('employees.deleteConfirm')}
+            onConfirm={confirmDelete}
+            onClose={() => setDeleteTarget(null)}
           />
-        </div>
-      </div>
-      <Modal open={editOpen} title={t('employees.editTitle')} onClose={() => setEditOpen(false)}>
-        <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
-          <Input label={t('employees.fullName')} error={editErrors.fullName?.message} {...editRegister('fullName')} />
-          <Input label={t('employees.phone')} error={editErrors.phone?.message} {...editRegister('phone')} />
-          <Input label={t('employees.email')} type="email" error={editErrors.email?.message} {...editRegister('email')} />
-          <Select label={t('employees.role')} error={editErrors.role?.message} {...editRegister('role')}>
-            <option value="">{t('common.select')}</option>
-            <option value={t('employees.roles.admin')}>{t('employees.roles.admin')}</option>
-            <option value={t('employees.roles.tech')}>{t('employees.roles.tech')}</option>
-            <option value={t('employees.roles.user')}>{t('employees.roles.user')}</option>
-          </Select>
-          <Select label={t('employees.active')} error={editErrors.active?.message} {...editRegister('active')}>
-            <option value="true">{t('common.yes')}</option>
-            <option value="false">{t('common.no')}</option>
-          </Select>
-          <Select label={`${t('employees.building')} (${t('common.optional')})`} {...editRegister('buildingId')}>
-            <option value="">{t('common.unassigned')}</option>
-            {buildings.map((building) => (
-              <option key={building.id} value={building.id}>
-                {building.name}
-              </option>
-            ))}
-          </Select>
-          <Button type="submit" className="w-full" disabled={editSubmitting}>
-            {editSubmitting ? t('employees.saving') : t('employees.update')}
-          </Button>
-        </form>
-      </Modal>
-      <ConfirmModal
-        open={Boolean(deleteTarget)}
-        title={t('employees.deleteTitle')}
-        description={t('employees.deleteConfirm')}
-        onConfirm={confirmDelete}
-        onClose={() => setDeleteTarget(null)}
-      />
+        </>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={employees}
+          emptyState={<EmptyState title={t('employees.emptyTitle')} description={t('employees.emptySubtitle')} />}
+        />
+      )}
     </div>
   );
 }

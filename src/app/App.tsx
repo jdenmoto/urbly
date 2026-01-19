@@ -7,6 +7,7 @@ import ManagementPage from '@/features/management/ManagementPage';
 import EmployeesPage from '@/features/employees/EmployeesPage';
 import SchedulingPage from '@/features/scheduling/SchedulingPage';
 import LoginPage from '@/features/auth/LoginPage';
+import UsersPage from '@/features/users/UsersPage';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="management" element={<ManagementPage />} />
           <Route path="employees" element={<EmployeesPage />} />
           <Route path="scheduling" element={<SchedulingPage />} />
+          <Route path="users" element={<UsersPage />} />
         </Route>
       </Routes>
     </AuthProvider>

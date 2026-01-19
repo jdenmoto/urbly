@@ -5,7 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createDoc, updateDocById, deleteDocById } from '@/lib/api/firestore';
 import { useQueryClient } from '@tanstack/react-query';
 import { useList } from '@/lib/api/queries';
-import type { Building, ManagementCompany } from '@/core/models';
+import type { Building } from '@/core/models/building';
+import type { ManagementCompany } from '@/core/models/managementCompany';
 import PageHeader from '@/components/PageHeader';
 import Card from '@/components/Card';
 import Input from '@/components/Input';
@@ -24,6 +25,7 @@ import BuildingsMap from '@/components/BuildingsMap';
 import Modal from '@/components/Modal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useToast } from '@/components/ToastProvider';
+import { useAuth } from '@/app/Auth';
 
 type PreviewRow = {
   building_name: string;
@@ -35,6 +37,8 @@ type PreviewRow = {
 export default function BuildingsPage() {
   const { t } = useI18n();
   const { toast } = useToast();
+  const { role } = useAuth();
+  const canEdit = role !== 'view';
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
   const queryClient = useQueryClient();
@@ -79,33 +83,30 @@ export default function BuildingsPage() {
     }
   }, []);
 
-  const columns = useMemo<ColumnDef<Building>[]>(
-    () => [
+  const columns = useMemo<ColumnDef<Building>[]>(() => {
+    const base: ColumnDef<Building>[] = [
       { header: t('buildings.name'), accessorKey: 'name' },
       { header: t('buildings.porterPhone'), accessorKey: 'porterPhone' },
-      { header: t('buildings.address'), accessorKey: 'addressText' },
+      { header: t('buildings.address'), accessorKey: 'addressText' }
+    ];
+    if (!canEdit) return base;
+    return [
+      ...base,
       {
         header: t('common.actions'),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <button
-              className="text-xs font-semibold text-ink-700"
-              onClick={() => startEdit(row.original)}
-            >
+            <button className="text-xs font-semibold text-ink-700" onClick={() => startEdit(row.original)}>
               {t('common.edit')}
             </button>
-            <button
-              className="text-xs font-semibold text-rose-600"
-              onClick={() => setDeleteTarget(row.original)}
-            >
+            <button className="text-xs font-semibold text-rose-600" onClick={() => setDeleteTarget(row.original)}>
               {t('common.delete')}
             </button>
           </div>
         )
       }
-    ],
-    [t]
-  );
+    ];
+  }, [t, canEdit]);
 
   const previewColumns = useMemo<ColumnDef<PreviewRow>[]>(
     () => [
@@ -126,7 +127,6 @@ export default function BuildingsPage() {
   );
 
   const onSubmit = async (values: FormValues) => {
-    console.log("aca")
     if (!place) return;
     try {
       await createDoc('buildings', {
@@ -247,122 +247,130 @@ export default function BuildingsPage() {
     <div className="space-y-8">
       <PageHeader title={t('buildings.title')} subtitle={t('buildings.subtitle')} />
       <BuildingsMap buildings={buildings} ready={mapsReady} />
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
-          <h3 className="text-sm font-semibold text-ink-800">{t('buildings.newTitle')}</h3>
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
-            <Input label={t('buildings.name')} error={errors.name?.message} {...register('name')} />
-            <Input label={t('buildings.porterPhone')} error={errors.porterPhone?.message} {...register('porterPhone')} />
-            <Select
-              label={t('buildings.managementCompany')}
-              error={errors.managementCompanyId?.message}
-              {...register('managementCompanyId')}
-            >
-              <option value="">{t('common.select')}</option>
-              {managements.map((company) => (
-                <option key={company.id} value={company.id}>
-                  {company.name}
-                </option>
-              ))}
-            </Select>
-            <PlacesAutocomplete
-              label={t('buildings.address')}
-              onSelect={(next) => setPlace(next)}
-              ready={mapsReady}
-              error={place != null ? t('buildings.addressRequired') : undefined}
-            />
-            <Button type="submit" disabled={isSubmitting || !place} className="w-full">
-              {isSubmitting ? t('buildings.saving') : t('buildings.create')}
-            </Button>
-          </form>
-        </Card>
-        <div className="lg:col-span-2 space-y-4">
-          <DataTable
-            columns={columns}
-            data={buildings}
-            emptyState={<EmptyState title={t('buildings.emptyTitle')} description={t('buildings.emptySubtitle')} />}
-          />
-          <Card>
-            <h3 className="text-sm font-semibold text-ink-800">{t('buildings.bulkTitle')}</h3>
-            <p className="text-xs text-ink-500">{t('buildings.bulkHint')}</p>
-            <div className="mt-4 flex flex-col gap-4">
-              <input
-                type="file"
-                accept=".csv,.xlsx,.xls"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) {
-                    void handleFile(file);
-                    void handleImport(file);
-                  }
-                }}
-              />
-              {uploading ? <p className="text-sm text-ink-600">{t('buildings.uploading')}</p> : null}
-              {importResult ? (
-                <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
-                  <p>
-                    {t('buildings.created')}: {importResult.created}
-                  </p>
-                  <p>
-                    {t('buildings.failed')}: {importResult.failed}
-                  </p>
-                </div>
-              ) : null}
-              {importResult?.errors.length ? (
-                <div className="space-y-3">
-                  <p className="text-sm font-semibold text-ink-800">{t('buildings.errorTableTitle')}</p>
-                  <DataTable columns={errorColumns} data={importResult.errors} pageSize={5} />
-                </div>
-              ) : null}
-              {errorUrl ? (
-                <a
-                  className="text-sm font-semibold text-ink-900 underline"
-                  href={errorUrl}
-                  download={t('buildings.errorsFileName')}
+      {canEdit ? (
+        <>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card className="lg:col-span-1">
+              <h3 className="text-sm font-semibold text-ink-800">{t('buildings.newTitle')}</h3>
+              <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
+                <Input label={t('buildings.name')} error={errors.name?.message} {...register('name')} />
+                <Input label={t('buildings.porterPhone')} error={errors.porterPhone?.message} {...register('porterPhone')} />
+                <Select
+                  label={t('buildings.managementCompany')}
+                  error={errors.managementCompanyId?.message}
+                  {...register('managementCompanyId')}
                 >
-                  {t('common.downloadErrors')}
-                </a>
-              ) : null}
-              {previewRows.length ? (
-                <DataTable columns={previewColumns} data={previewRows.slice(0, 5)} />
-              ) : null}
+                  <option value="">{t('common.select')}</option>
+                  {managements.map((company) => (
+                    <option key={company.id} value={company.id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </Select>
+                <PlacesAutocomplete
+                  label={t('buildings.address')}
+                  onSelect={(next) => setPlace(next)}
+                  ready={mapsReady}
+                  error={place != null ? t('buildings.addressRequired') : undefined}
+                />
+                <Button type="submit" disabled={isSubmitting || !place} className="w-full">
+                  {isSubmitting ? t('buildings.saving') : t('buildings.create')}
+                </Button>
+              </form>
+            </Card>
+            <div className="lg:col-span-2 space-y-4">
+              <DataTable
+                columns={columns}
+                data={buildings}
+                emptyState={<EmptyState title={t('buildings.emptyTitle')} description={t('buildings.emptySubtitle')} />}
+              />
+              <Card>
+                <h3 className="text-sm font-semibold text-ink-800">{t('buildings.bulkTitle')}</h3>
+                <p className="text-xs text-ink-500">{t('buildings.bulkHint')}</p>
+                <div className="mt-4 flex flex-col gap-4">
+                  <input
+                    type="file"
+                    accept=".csv,.xlsx,.xls"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) {
+                        void handleFile(file);
+                        void handleImport(file);
+                      }
+                    }}
+                  />
+                  {uploading ? <p className="text-sm text-ink-600">{t('buildings.uploading')}</p> : null}
+                  {importResult ? (
+                    <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
+                      <p>
+                        {t('buildings.created')}: {importResult.created}
+                      </p>
+                      <p>
+                        {t('buildings.failed')}: {importResult.failed}
+                      </p>
+                    </div>
+                  ) : null}
+                  {importResult?.errors.length ? (
+                    <div className="space-y-3">
+                      <p className="text-sm font-semibold text-ink-800">{t('buildings.errorTableTitle')}</p>
+                      <DataTable columns={errorColumns} data={importResult.errors} pageSize={5} />
+                    </div>
+                  ) : null}
+                  {errorUrl ? (
+                    <a
+                      className="text-sm font-semibold text-ink-900 underline"
+                      href={errorUrl}
+                      download={t('buildings.errorsFileName')}
+                    >
+                      {t('common.downloadErrors')}
+                    </a>
+                  ) : null}
+                  {previewRows.length ? <DataTable columns={previewColumns} data={previewRows.slice(0, 5)} /> : null}
+                </div>
+              </Card>
             </div>
-          </Card>
-        </div>
-      </div>
-      <Modal open={editOpen} title={t('buildings.editTitle')} onClose={() => setEditOpen(false)}>
-        <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
-          <Input label={t('buildings.name')} error={editErrors.name?.message} {...editRegister('name')} />
-          <Input label={t('buildings.porterPhone')} error={editErrors.porterPhone?.message} {...editRegister('porterPhone')} />
-          <Select
-            label={t('buildings.managementCompany')}
-            error={editErrors.managementCompanyId?.message}
-            {...editRegister('managementCompanyId')}
-          >
-            <option value="">{t('common.select')}</option>
-            {managements.map((company) => (
-              <option key={company.id} value={company.id}>
-                {company.name}
-              </option>
-            ))}
-          </Select>
-          <PlacesAutocomplete
-            label={t('buildings.address')}
-            onSelect={(next) => setEditPlace(next)}
-            ready={mapsReady}
+          </div>
+          <Modal open={editOpen} title={t('buildings.editTitle')} onClose={() => setEditOpen(false)}>
+            <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
+              <Input label={t('buildings.name')} error={editErrors.name?.message} {...editRegister('name')} />
+              <Input
+                label={t('buildings.porterPhone')}
+                error={editErrors.porterPhone?.message}
+                {...editRegister('porterPhone')}
+              />
+              <Select
+                label={t('buildings.managementCompany')}
+                error={editErrors.managementCompanyId?.message}
+                {...editRegister('managementCompanyId')}
+              >
+                <option value="">{t('common.select')}</option>
+                {managements.map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {company.name}
+                  </option>
+                ))}
+              </Select>
+              <PlacesAutocomplete label={t('buildings.address')} onSelect={(next) => setEditPlace(next)} ready={mapsReady} />
+              <Button type="submit" className="w-full" disabled={editSubmitting}>
+                {editSubmitting ? t('buildings.saving') : t('buildings.update')}
+              </Button>
+            </form>
+          </Modal>
+          <ConfirmModal
+            open={Boolean(deleteTarget)}
+            title={t('buildings.deleteTitle')}
+            description={t('buildings.deleteConfirm')}
+            onConfirm={confirmDelete}
+            onClose={() => setDeleteTarget(null)}
           />
-          <Button type="submit" className="w-full" disabled={editSubmitting}>
-            {editSubmitting ? t('buildings.saving') : t('buildings.update')}
-          </Button>
-        </form>
-      </Modal>
-      <ConfirmModal
-        open={Boolean(deleteTarget)}
-        title={t('buildings.deleteTitle')}
-        description={t('buildings.deleteConfirm')}
-        onConfirm={confirmDelete}
-        onClose={() => setDeleteTarget(null)}
-      />
+        </>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={buildings}
+          emptyState={<EmptyState title={t('buildings.emptyTitle')} description={t('buildings.emptySubtitle')} />}
+        />
+      )}
     </div>
   );
 }

@@ -2,7 +2,10 @@ import PageHeader from '@/components/PageHeader';
 import StatCard from '@/components/StatCard';
 import Card from '@/components/Card';
 import { useList } from '@/lib/api/queries';
-import type { Appointment, Building, Employee, ManagementCompany } from '@/core/models';
+import type { Appointment } from '@/core/models/appointment';
+import type { Building } from '@/core/models/building';
+import type { Employee } from '@/core/models/employee';
+import type { ManagementCompany } from '@/core/models/managementCompany';
 import { format, isAfter, isBefore, startOfDay, addDays, subDays } from 'date-fns';
 import { useI18n } from '@/lib/i18n';
 

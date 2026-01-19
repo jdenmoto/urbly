@@ -7,6 +7,7 @@ import { useI18n } from '@/lib/i18n';
 type AuthState = {
   user: User | null;
   loading: boolean;
+  role: 'admin' | 'editor' | 'view';
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -16,11 +17,23 @@ const AuthContext = createContext<AuthState | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<'admin' | 'editor' | 'view'>('view');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser);
-      setLoading(false);
+      if (!nextUser) {
+        setRole('view');
+        setLoading(false);
+        return;
+      }
+      nextUser
+        .getIdTokenResult(true)
+        .then((result) => {
+          const claimRole = (result.claims.role as 'admin' | 'editor' | 'view') || 'view';
+          setRole(claimRole);
+        })
+        .finally(() => setLoading(false));
     });
     return () => unsubscribe();
   }, []);
@@ -29,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       loading,
+      role,
       login: async (email: string, password: string) => {
         await signInWithEmailAndPassword(auth, email, password);
       },
@@ -36,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await signOut(auth);
       }
     }),
-    [user, loading]
+    [user, loading, role]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
