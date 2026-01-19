@@ -19,7 +19,7 @@ export default function BuildingsMap({ buildings, ready }: { buildings: Building
     let cancelled = false;
 
     const loadMap = async () => {
-      const { Map } = (await window.google.maps.importLibrary('maps')) as google.maps.MapsLibrary;
+      const { Map } = (await window.google.maps.importLibrary('maps')) as { Map: typeof window.google.maps.Map };
       await window.google.maps.importLibrary('marker');
       if (cancelled) return;
 
