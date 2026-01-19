@@ -7,7 +7,9 @@ const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`
+  storageBucket:
+    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
+    `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`
 };
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);

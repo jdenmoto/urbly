@@ -4,8 +4,10 @@ import Card from '@/components/Card';
 import { useList } from '@/lib/api/queries';
 import type { Appointment, Building, Employee, ManagementCompany } from '@/core/models';
 import { format, isAfter, isBefore, startOfDay, addDays, subDays } from 'date-fns';
+import { useI18n } from '@/lib/i18n';
 
 export default function DashboardPage() {
+  const { t } = useI18n();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
@@ -30,7 +32,7 @@ export default function DashboardPage() {
 
   const topBuildings = Object.entries(byBuilding)
     .map(([buildingId, count]) => ({
-      building: buildings.find((b) => b.id === buildingId)?.name ?? 'Sin nombre',
+      building: buildings.find((b) => b.id === buildingId)?.name ?? t('common.unnamed'),
       count
     }))
     .sort((a, b) => b.count - a.count)
@@ -61,19 +63,16 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Dashboard"
-        subtitle="Pulso operativo del portafolio"
-      />
+      <PageHeader title={t('dashboard.title')} subtitle={t('dashboard.subtitle')} />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Edificios" value={buildings.length} hint="Activos" />
-        <StatCard label="Administraciones" value={managements.length} hint="Registradas" />
-        <StatCard label="Empleados activos" value={activeEmployees.length} hint="En servicio" />
-        <StatCard label="Agendamientos hoy" value={appointmentsToday.length} hint="Calendario" />
+        <StatCard label={t('dashboard.buildings')} value={buildings.length} hint={t('dashboard.activeBuildingsHint')} />
+        <StatCard label={t('dashboard.managements')} value={managements.length} hint={t('dashboard.registeredHint')} />
+        <StatCard label={t('dashboard.employees')} value={activeEmployees.length} hint={t('dashboard.activeHint')} />
+        <StatCard label={t('dashboard.appointmentsToday')} value={appointmentsToday.length} hint={t('dashboard.upcomingHint')} />
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <h3 className="text-sm font-semibold text-ink-800">Agendamientos por dia</h3>
+          <h3 className="text-sm font-semibold text-ink-800">{t('dashboard.byDay')}</h3>
           <div className="mt-4 flex flex-wrap gap-3">
             {Object.entries(daily).length ? (
               Object.entries(daily).map(([label, value]) => (
@@ -83,12 +82,12 @@ export default function DashboardPage() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-ink-600">Sin datos de agendamientos.</p>
+              <p className="text-sm text-ink-600">{t('dashboard.dailyEmpty')}</p>
             )}
           </div>
         </Card>
         <Card>
-          <h3 className="text-sm font-semibold text-ink-800">Proximos 7 dias</h3>
+          <h3 className="text-sm font-semibold text-ink-800">{t('dashboard.nextDays')}</h3>
           <div className="mt-4 space-y-3">
             {appointmentsNext7.length ? (
               appointmentsNext7.slice(0, 5).map((item) => (
@@ -98,22 +97,22 @@ export default function DashboardPage() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-ink-600">No hay agendamientos proximos.</p>
+              <p className="text-sm text-ink-600">{t('dashboard.nextEmpty')}</p>
             )}
           </div>
         </Card>
       </div>
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-sm font-semibold text-ink-800">Agendamientos completados vs agendados</h3>
+          <h3 className="text-sm font-semibold text-ink-800">{t('dashboard.chartTitle')}</h3>
           <div className="flex items-center gap-3 text-xs text-ink-600">
             <span className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              Completados
+              {t('scheduling.completed')}
             </span>
             <span className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-sky-500" />
-              Agendados
+              {t('scheduling.scheduled')}
             </span>
           </div>
         </div>
@@ -128,12 +127,12 @@ export default function DashboardPage() {
                   <div
                     className="w-3 rounded-full bg-emerald-500"
                     style={{ height: `${(completed / max) * 100}%` }}
-                    title={`Completados: ${completed}`}
+                    title={`${t('scheduling.completed')}: ${completed}`}
                   />
                   <div
                     className="w-3 rounded-full bg-sky-500"
                     style={{ height: `${(scheduled / max) * 100}%` }}
-                    title={`Agendados: ${scheduled}`}
+                    title={`${t('scheduling.scheduled')}: ${scheduled}`}
                   />
                 </div>
                 <span className="text-xs text-ink-600">{label}</span>
@@ -143,17 +142,19 @@ export default function DashboardPage() {
         </div>
       </Card>
       <Card>
-        <h3 className="text-sm font-semibold text-ink-800">Top edificios con mas actividad</h3>
+        <h3 className="text-sm font-semibold text-ink-800">{t('dashboard.topBuildings')}</h3>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {topBuildings.length ? (
             topBuildings.map((item) => (
               <div key={item.building} className="rounded-xl border border-fog-100 bg-fog-50 p-4">
                 <p className="text-sm font-medium text-ink-900">{item.building}</p>
-                <p className="text-xs text-ink-500">{item.count} actividades</p>
+                <p className="text-xs text-ink-500">
+                  {item.count} {t('dashboard.activities')}
+                </p>
               </div>
             ))
           ) : (
-            <p className="text-sm text-ink-600">Aun no hay actividad registrada.</p>
+            <p className="text-sm text-ink-600">{t('dashboard.topEmpty')}</p>
           )}
         </div>
       </Card>

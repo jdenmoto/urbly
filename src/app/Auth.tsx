@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
 import { Navigate } from 'react-router-dom';
+import { useI18n } from '@/lib/i18n';
 
 type AuthState = {
   user: User | null;
@@ -20,12 +21,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser);
       setLoading(false);
-      if (nextUser) {
-        nextUser
-          .getIdTokenResult(true)
-          .then((result) => console.log('Auth claims:', result.claims))
-          .catch(() => undefined);
-      }
     });
     return () => unsubscribe();
   }, []);
@@ -55,7 +50,8 @@ export function useAuth() {
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="p-8 text-sm text-ink-600">Cargando sesion...</div>;
+  const { t } = useI18n();
+  if (loading) return <div className="p-8 text-sm text-ink-600">{t('common.loadingSession')}</div>;
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }

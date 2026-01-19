@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import Input from './Input';
+import { useI18n } from '@/lib/i18n';
 
 export type PlaceResult = {
   address: string;
@@ -10,74 +10,104 @@ export type PlaceResult = {
 export default function PlacesAutocomplete({
   label,
   onSelect,
-  error
+  error,
+  ready
 }: {
   label: string;
   onSelect: (place: PlaceResult) => void;
   error?: string;
+  ready?: boolean;
 }) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [useNewElement, setUseNewElement] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
+  const { t } = useI18n();
 
   useEffect(() => {
-    if (!window.google?.maps?.places) return;
-    const hasNewElement = typeof window.google.maps.places.PlaceAutocompleteElement === 'function';
-    setUseNewElement(hasNewElement);
+    if (!ready) return;
+    if (!window.google?.maps?.importLibrary) return;
+    let cancelled = false;
 
-    if (hasNewElement && containerRef.current) {
+    const setup = async () => {
+      await window.google.maps.importLibrary('places');
+      if (cancelled) return;
+      const hasNewElement = typeof window.google.maps.places.PlaceAutocompleteElement === 'function';
+      setUnavailable(!hasNewElement);
+      console.log('PlacesAutocomplete init', { ready, hasNewElement });
+
+      if (!hasNewElement || !containerRef.current) return;
       const element = new window.google.maps.places.PlaceAutocompleteElement();
-      element.setAttribute('placeholder', 'Buscar direccion');
+      element.setAttribute('placeholder', t('common.addressSearch'));
       element.className =
         'w-full rounded-lg border border-fog-200 bg-white px-3 py-2 text-sm text-ink-900 shadow-sm outline-none transition focus:border-ink-900';
+      element.style.display = 'block';
+      element.style.width = '100%';
       containerRef.current.innerHTML = '';
       containerRef.current.appendChild(element);
+      console.log('PlacesAutocomplete element attached');
 
       element.addEventListener('gmp-placeselect', async (event: any) => {
+        console.log('gmp-placeselect event', event);
         const place = event.place;
         if (!place) return;
-        await place.fetchFields({ fields: ['formattedAddress', 'location', 'id'] });
-        if (!place.location || !place.formattedAddress || !place.id) return;
+        const fetchable = typeof place.fetchFields === 'function';
+        if (fetchable) {
+          await place.fetchFields({ fields: ['formattedAddress', 'location', 'id'] });
+        }
+        const formatted = place.formattedAddress || place.formatted_address;
+        const location = place.location || place.geometry?.location;
+        const placeId = place.id || place.place_id;
+        if (!location || !formatted || !placeId) return;
+        console.log('Place selected', { formatted, placeId, location });
         onSelect({
-          address: place.formattedAddress,
-          placeId: place.id,
+          address: formatted,
+          placeId,
           location: {
-            lat: place.location.lat(),
-            lng: place.location.lng()
+            lat: typeof location.lat === 'function' ? location.lat() : location.lat,
+            lng: typeof location.lng === 'function' ? location.lng() : location.lng
           }
         });
       });
-      return;
-    }
 
-    if (!inputRef.current) return;
-    const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
-      fields: ['formatted_address', 'place_id', 'geometry']
-    });
+      const geocoder = new window.google.maps.Geocoder();
 
-    autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace();
-      if (!place.geometry?.location || !place.formatted_address || !place.place_id) return;
-      onSelect({
-        address: place.formatted_address,
-        placeId: place.place_id,
-        location: {
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng()
-        }
+      element.addEventListener('change', () => {
+        console.log('PlaceAutocomplete change', element.value);
       });
-    });
-  }, [onSelect]);
 
-  if (useNewElement) {
-    return (
-      <label className="flex w-full flex-col gap-1 text-sm text-ink-700">
-        <span className="font-medium text-ink-800">{label}</span>
-        <div ref={containerRef} />
-        {error ? <span className="text-xs text-red-500">{error}</span> : null}
-      </label>
-    );
-  }
+      element.addEventListener('blur', () => {
+        const value = element.value?.trim();
+        if (!value) return;
+        geocoder.geocode({ address: value }, (results: string | any[], status: string) => {
+          if (status !== 'OK' || !results?.length) {
+            console.log('Geocode fallback failed', status);
+            return;
+          }
+          const result = results[0];
+          onSelect({
+            address: result.formatted_address,
+            placeId: result.place_id,
+            location: {
+              lat: result.geometry.location.lat(),
+              lng: result.geometry.location.lng()
+            }
+          });
+        });
+      });
+    };
 
-  return <Input label={label} ref={inputRef} placeholder="Buscar direccion" error={error} />;
+    void setup();
+    return () => {
+      cancelled = true;
+    };
+  }, [onSelect, t, ready]);
+
+  return (
+    <label className="flex w-full flex-col gap-1 text-sm text-ink-700">
+      <span className="font-medium text-ink-800">{label}</span>
+      <div ref={containerRef} />
+      {!ready ? <span className="text-xs text-ink-500">{t('common.loading')}</span> : null}
+      {ready && unavailable ? <span className="text-xs text-red-500">{t('common.mapsUnavailable')}</span> : null}
+      {ready && !unavailable && error ? <span className="text-xs text-red-500">{error}</span> : null}
+    </label>
+  );
 }

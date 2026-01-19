@@ -5,6 +5,7 @@ import {
   query,
   updateDoc,
   doc,
+  deleteDoc,
   where,
   orderBy,
   limit,
@@ -19,6 +20,10 @@ export async function createDoc<T extends Record<string, unknown>>(path: string,
 
 export async function updateDocById<T extends Record<string, unknown>>(path: string, id: string, data: T) {
   return updateDoc(doc(db, path, id), data);
+}
+
+export async function deleteDocById(path: string, id: string) {
+  return deleteDoc(doc(db, path, id));
 }
 
 export async function listDocs<T>(path: string, constraints: QueryConstraint[] = []) {

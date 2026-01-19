@@ -7,18 +7,18 @@ import Input from '@/components/Input';
 import Button from '@/components/Button';
 import { useAuth } from '@/app/Auth';
 import { useNavigate } from 'react-router-dom';
-
-const schema = z.object({
-  email: z.string().email('Email invalido'),
-  password: z.string().min(6, 'Minimo 6 caracteres')
-});
-
-type FormValues = z.infer<typeof schema>;
+import { useI18n } from '@/lib/i18n';
 
 export default function LoginPage() {
+  const { t } = useI18n();
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
+  const schema = z.object({
+    email: z.string().email(t('auth.errorEmail')),
+    password: z.string().min(6, t('auth.errorPassword'))
+  });
+  type FormValues = z.infer<typeof schema>;
   const {
     register,
     handleSubmit,
@@ -30,7 +30,7 @@ export default function LoginPage() {
     try {
       await login(values.email, values.password);
     } catch (err) {
-      setError('No fue posible iniciar sesion.');
+      setError(t('auth.error'));
     }
   };
 
@@ -43,15 +43,20 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <div className="space-y-4">
           <div>
-            <h1 className="text-2xl font-semibold text-ink-900">Bienvenido a Urbly</h1>
-            <p className="text-sm text-ink-600">Ingresa con tu cuenta de administrador.</p>
+            <h1 className="text-2xl font-semibold text-ink-900">{t('auth.title')}</h1>
+            <p className="text-sm text-ink-600">{t('auth.subtitle')}</p>
           </div>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
-            <Input label="Password" type="password" error={errors.password?.message} {...register('password')} />
+            <Input label={t('auth.email')} type="email" error={errors.email?.message} {...register('email')} />
+            <Input
+              label={t('auth.password')}
+              type="password"
+              error={errors.password?.message}
+              {...register('password')}
+            />
             {error ? <p className="text-sm text-red-500">{error}</p> : null}
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Entrando...' : 'Entrar'}
+              {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </Button>
           </form>
         </div>

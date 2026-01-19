@@ -1,9 +1,3 @@
-export const recurrenceOptions = [
-  { value: 'semanal', label: 'Semanal' },
-  { value: 'quincenal', label: 'Quincenal' },
-  { value: 'mensual', label: 'Mensual' },
-  { value: 'bimensual', label: 'Bimensual' },
-  { value: 'semestral', label: 'Semestral' }
-] as const;
+export const recurrenceOptions = ['semanal', 'quincenal', 'mensual', 'bimensual', 'semestral'] as const;
 
-export type RecurrenceValue = (typeof recurrenceOptions)[number]['value'];
+export type RecurrenceValue = (typeof recurrenceOptions)[number];

@@ -8,13 +8,13 @@ import useBreakpoint from '@/components/useBreakpoint';
 export default function AppLayout() {
   const { isDesktop, isTablet } = useBreakpoint();
   const [collapsed, setCollapsed] = useState(false);
+  const showSidebar = isDesktop || isTablet;
 
   return (
     <div className="flex min-h-screen">
-      {isDesktop ? <Sidebar /> : null}
-      {isTablet ? <Sidebar collapsed={collapsed} /> : null}
+      {showSidebar ? <Sidebar collapsed={collapsed} /> : null}
       <div className="flex min-h-screen flex-1 flex-col">
-        <TopBar onToggle={isTablet ? () => setCollapsed((prev) => !prev) : undefined} />
+        <TopBar onToggle={showSidebar ? () => setCollapsed((prev) => !prev) : undefined} />
         <main className="flex-1 space-y-8 px-4 py-6 pb-24 md:px-6">
           <Outlet />
         </main>

@@ -1,0 +1,211 @@
+common:
+  appName: Urbly
+  panelTitle: Panel Urbly
+  panelSubtitle: Gestion inteligente de edificios
+  tagline: Smart building ops
+  menu: Menu
+  new: Nuevo
+  add: Agregar
+  invite: Invitar
+  logout: Salir
+  close: Cerrar
+  cancel: Cancelar
+  confirm: Confirmar
+  edit: Editar
+  delete: Eliminar
+  save: Guardar
+  update: Actualizar
+  loading: Cargando...
+  loadingSession: Cargando sesion...
+  actionSuccess: Accion completada
+  actionError: Ocurrio un error
+  yes: Si
+  no: No
+  all: Todos
+  optional: Opcional
+  select: Selecciona
+  filters: Filtros
+  showFilters: Mostrar filtros
+  hideFilters: Ocultar filtros
+  today: Hoy
+  planLabel: Plan MVP - Admin
+  addressSearch: Buscar direccion
+  mapsUnavailable: Google Maps no disponible. Revisa la API key y habilita Places (nuevo).
+  mapsGeocodeError: No se pudo validar la direccion. Intenta otra.
+  downloadErrors: Descargar errores
+  noData: Sin datos
+  noResults: Sin resultados
+  required: Requerido
+  actions: Acciones
+  prev: Anterior
+  next: Siguiente
+  unassigned: Sin asignar
+  unnamed: Sin nombre
+nav:
+  dashboard: Dashboard
+  buildings: Edificios
+  management: Administraciones
+  employees: Empleados
+  scheduling: Agendamientos
+auth:
+  title: Bienvenido a Urbly
+  subtitle: Ingresa con tu cuenta de administrador.
+  email: Email
+  password: Password
+  signIn: Entrar
+  signingIn: Entrando...
+  error: No fue posible iniciar sesion.
+  errorEmail: Email invalido
+  errorPassword: Minimo 6 caracteres
+management:
+  title: Administraciones
+  subtitle: Empresas administradoras registradas
+  newTitle: Nueva administracion
+  name: Nombre
+  contactPhone: Telefono
+  email: Email
+  nit: NIT
+  address: Direccion
+  create: Crear administracion
+  update: Actualizar administracion
+  saving: Guardando...
+  emptyTitle: Sin administraciones
+  emptySubtitle: Registra tu primera empresa.
+  nitFormat: "Formato NIT invalido (ej: 900123456-7)"
+  nitPlaceholder: 900123456-7
+  nitUnique: El NIT ya existe
+  editTitle: Editar administracion
+  deleteTitle: Eliminar administracion
+  deleteConfirm: Estas seguro de eliminar esta administracion?
+  toastCreated: Administracion creada
+  toastUpdated: Administracion actualizada
+  toastDeleted: Administracion eliminada
+buildings:
+  title: Edificios
+  subtitle: Gestiona tu portafolio de edificios
+  newTitle: Nuevo edificio
+  name: Nombre
+  porterPhone: Telefono porteria
+  managementCompany: Administracion
+  address: Direccion (Google Maps)
+  managementRequired: Selecciona una administracion
+  addressRequired: Selecciona una direccion valida
+  create: Crear edificio
+  update: Actualizar edificio
+  saving: Guardando...
+  emptyTitle: Sin edificios
+  emptySubtitle: Crea el primer edificio para empezar.
+  bulkTitle: Importacion masiva
+  bulkHint: CSV o XLSX con columnas building_name, address, porter_phone, management_name.
+  uploading: Subiendo...
+  created: Creado
+  failed: Fallidos
+  errorsFileName: errores-importacion.csv
+  errorFileHeader: fila,mensaje
+  mapTitle: Mapa de edificios
+  errorTableTitle: Filas con error
+  errorRow: Fila
+  errorMessage: Error
+  editTitle: Editar edificio
+  deleteTitle: Eliminar edificio
+  deleteConfirm: Estas seguro de eliminar este edificio?
+  toastCreated: Edificio creado
+  toastUpdated: Edificio actualizado
+  toastDeleted: Edificio eliminado
+employees:
+  title: Empleados
+  subtitle: Equipo operativo
+  newTitle: Nuevo empleado
+  fullName: Nombre completo
+  phone: Telefono
+  email: Email
+  role: Rol
+  active: Activo
+  building: Edificio
+  create: Crear empleado
+  update: Actualizar empleado
+  saving: Guardando...
+  emptyTitle: Sin empleados
+  emptySubtitle: Agrega el equipo operativo.
+  editTitle: Editar empleado
+  deleteTitle: Eliminar empleado
+  deleteConfirm: Estas seguro de eliminar este empleado?
+  toastCreated: Empleado creado
+  toastUpdated: Empleado actualizado
+  toastDeleted: Empleado eliminado
+  roles:
+    admin: Administrador
+    tech: Tecnico
+    user: Usuario
+scheduling:
+  title: Agendamientos
+  subtitle: Calendario y agenda operativa
+  newTitle: Nuevo agendamiento
+  building: Edificio
+  titleLabel: Titulo
+  description: Descripcion
+  startAt: Inicio
+  endAt: Fin
+  status: Estado
+  recurrence: Recurrencia
+  noRecurrence: No se repite
+  create: Crear agendamiento
+  update: Actualizar agendamiento
+  saving: Guardando...
+  calendar: Calendario
+  viewLabel: Vista
+  viewCalendar: Calendario
+  viewList: Lista
+  toastCreated: Agendamiento creado
+  toastUpdated: Agendamiento actualizado
+  exactDate: Fecha exacta
+  from: Desde
+  to: Hasta
+  emptyTitle: Sin agendamientos
+  emptySubtitle: Crea el primer evento.
+  scheduled: Agendados
+  completed: Completados
+  detailTitle: Detalle de agendamiento
+  buildingLabel: Edificio
+  statusLabel: Estado
+  recurrenceLabel: Recurrencia
+  descriptionLabel: Descripcion
+  filtersTitle: Filtros
+  buildingRequired: Selecciona un edificio
+  statusProgrammed: Programado
+  statusConfirmed: Confirmado
+  statusCompleted: Completado
+  statusCanceled: Cancelado
+  views:
+    day: Dia
+    month: Mes
+    quarter: Trimestre
+    semester: Semestre
+    year: Ano
+  recurrenceOptions:
+    semanal: Semanal
+    quincenal: Quincenal
+    mensual: Mensual
+    bimensual: Bimensual
+    semestral: Semestral
+dashboard:
+  title: Dashboard
+  subtitle: Pulso operativo del portafolio
+  buildings: Edificios
+  managements: Administraciones
+  employees: Empleados activos
+  appointmentsToday: Agendamientos hoy
+  byDay: Agendamientos por dia
+  nextDays: Proximos 7 dias
+  nextEmpty: No hay agendamientos proximos.
+  dailyEmpty: Sin datos de agendamientos.
+  topBuildings: Top edificios con mas actividad
+  topEmpty: Aun no hay actividad registrada.
+  chartTitle: Agendamientos completados vs agendados
+  upcomingHint: Calendario
+  activeHint: En servicio
+  registeredHint: Registradas
+  activeBuildingsHint: Activos
+  activities: actividades
+errors:
+  invalidDateRange: La fecha de fin debe ser mayor que la fecha de inicio
