@@ -74,11 +74,12 @@ export default function LoginPage() {
             <p className="text-sm text-ink-600">{t('auth.subtitle')}</p>
           </div>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Input label={t('auth.email')} type="email" error={errors.email?.message} {...register('email')} />
+            <Input label={t('auth.email')} type="email" error={errors.email?.message} required {...register('email')} />
             <Input
               label={t('auth.password')}
               type="password"
               error={errors.password?.message}
+              required
               {...register('password')}
             />
             {error ? <p className="text-sm text-red-500">{error}</p> : null}
@@ -99,6 +100,7 @@ export default function LoginPage() {
                 label={t('auth.resetEmail')}
                 type="email"
                 error={resetErrors.email?.message}
+                required
                 {...resetRegister('email')}
               />
               <Button type="submit" className="w-full" disabled={resetSubmitting}>

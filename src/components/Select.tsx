@@ -6,10 +6,16 @@ type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
   error?: string;
 };
 
-const Select = forwardRef<HTMLSelectElement, SelectProps>(({ label, error, className, children, ...props }, ref) => {
+const Select = forwardRef<HTMLSelectElement, SelectProps>(
+  ({ label, error, className, children, required, ...props }, ref) => {
   return (
     <label className="flex w-full flex-col gap-1 text-sm text-ink-700">
-      {label ? <span className="font-medium text-ink-800">{label}</span> : null}
+      {label ? (
+        <span className="font-medium text-ink-800">
+          {label}
+          {required ? <span className="ml-1 text-red-500">*</span> : null}
+        </span>
+      ) : null}
       <select
         ref={ref}
         className={clsx(
@@ -17,6 +23,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({ label, error, class
           error && 'border-red-400 focus:border-red-500',
           className
         )}
+        required={required}
         {...props}
       >
         {children}

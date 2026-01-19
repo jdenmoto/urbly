@@ -253,11 +253,17 @@ export default function BuildingsPage() {
             <Card className="lg:col-span-1">
               <h3 className="text-sm font-semibold text-ink-800">{t('buildings.newTitle')}</h3>
               <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
-                <Input label={t('buildings.name')} error={errors.name?.message} {...register('name')} />
-                <Input label={t('buildings.porterPhone')} error={errors.porterPhone?.message} {...register('porterPhone')} />
+                <Input label={t('buildings.name')} error={errors.name?.message} required {...register('name')} />
+                <Input
+                  label={t('buildings.porterPhone')}
+                  error={errors.porterPhone?.message}
+                  required
+                  {...register('porterPhone')}
+                />
                 <Select
                   label={t('buildings.managementCompany')}
                   error={errors.managementCompanyId?.message}
+                  required
                   {...register('managementCompanyId')}
                 >
                   <option value="">{t('common.select')}</option>
@@ -271,6 +277,7 @@ export default function BuildingsPage() {
                   label={t('buildings.address')}
                   onSelect={(next) => setPlace(next)}
                   ready={mapsReady}
+                  required
                   error={place != null ? t('buildings.addressRequired') : undefined}
                 />
                 <Button type="submit" disabled={isSubmitting || !place} className="w-full">
@@ -332,15 +339,17 @@ export default function BuildingsPage() {
           </div>
           <Modal open={editOpen} title={t('buildings.editTitle')} onClose={() => setEditOpen(false)}>
             <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
-              <Input label={t('buildings.name')} error={editErrors.name?.message} {...editRegister('name')} />
+              <Input label={t('buildings.name')} error={editErrors.name?.message} required {...editRegister('name')} />
               <Input
                 label={t('buildings.porterPhone')}
                 error={editErrors.porterPhone?.message}
+                required
                 {...editRegister('porterPhone')}
               />
               <Select
                 label={t('buildings.managementCompany')}
                 error={editErrors.managementCompanyId?.message}
+                required
                 {...editRegister('managementCompanyId')}
               >
                 <option value="">{t('common.select')}</option>

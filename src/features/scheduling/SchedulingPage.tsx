@@ -360,7 +360,7 @@ export default function SchedulingPage() {
           onClose={() => setModalOpen(false)}
         >
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Select label={t('scheduling.building')} error={errors.buildingId?.message} {...register('buildingId')}>
+            <Select label={t('scheduling.building')} error={errors.buildingId?.message} required {...register('buildingId')}>
               <option value="">{t('common.select')}</option>
               {buildings.map((building) => (
                 <option key={building.id} value={building.id}>
@@ -368,21 +368,23 @@ export default function SchedulingPage() {
                 </option>
               ))}
             </Select>
-            <Input label={t('scheduling.titleLabel')} error={errors.title?.message} {...register('title')} />
+            <Input label={t('scheduling.titleLabel')} error={errors.title?.message} required {...register('title')} />
             <Input label={t('scheduling.description')} {...register('description')} />
             <Input
               label={t('scheduling.startAt')}
               type="datetime-local"
               error={errors.startAt?.message}
+              required
               {...register('startAt')}
             />
             <Input
               label={t('scheduling.endAt')}
               type="datetime-local"
               error={errors.endAt?.message}
+              required
               {...register('endAt')}
             />
-            <Select label={t('scheduling.status')} error={errors.status?.message} {...register('status')}>
+            <Select label={t('scheduling.status')} error={errors.status?.message} required {...register('status')}>
               <option value="programado">{t('scheduling.statusProgrammed')}</option>
               <option value="confirmado">{t('scheduling.statusConfirmed')}</option>
               <option value="completado">{t('scheduling.statusCompleted')}</option>

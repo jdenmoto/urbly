@@ -155,21 +155,23 @@ export default function ManagementPage() {
             <Card>
               <h3 className="text-sm font-semibold text-ink-800">{t('management.newTitle')}</h3>
               <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
-                <Input label={t('management.name')} error={errors.name?.message} {...register('name')} />
+                <Input label={t('management.name')} error={errors.name?.message} required {...register('name')} />
                 <Input
                   label={t('management.contactPhone')}
                   error={errors.contactPhone?.message}
+                  required
                   {...register('contactPhone')}
                 />
-                <Input label={t('management.email')} type="email" error={errors.email?.message} {...register('email')} />
+                <Input label={t('management.email')} type="email" error={errors.email?.message} required {...register('email')} />
                 <Input
                   label={t('management.nit')}
                   placeholder={t('management.nitPlaceholder')}
                   pattern="^\\d{6,12}-\\d$"
                   error={errors.nit?.message}
+                  required
                   {...register('nit')}
                 />
-                <Input label={t('management.address')} error={errors.address?.message} {...register('address')} />
+                <Input label={t('management.address')} error={errors.address?.message} required {...register('address')} />
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? t('management.saving') : t('management.create')}
                 </Button>
@@ -185,16 +187,18 @@ export default function ManagementPage() {
           </div>
           <Modal open={editOpen} title={t('management.editTitle')} onClose={() => setEditOpen(false)}>
             <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
-              <Input label={t('management.name')} error={editErrors.name?.message} {...editRegister('name')} />
+              <Input label={t('management.name')} error={editErrors.name?.message} required {...editRegister('name')} />
               <Input
                 label={t('management.contactPhone')}
                 error={editErrors.contactPhone?.message}
+                required
                 {...editRegister('contactPhone')}
               />
               <Input
                 label={t('management.email')}
                 type="email"
                 error={editErrors.email?.message}
+                required
                 {...editRegister('email')}
               />
               <Input
@@ -202,9 +206,10 @@ export default function ManagementPage() {
                 placeholder={t('management.nitPlaceholder')}
                 pattern="^\\d{6,12}-\\d$"
                 error={editErrors.nit?.message}
+                required
                 {...editRegister('nit')}
               />
-              <Input label={t('management.address')} error={editErrors.address?.message} {...editRegister('address')} />
+              <Input label={t('management.address')} error={editErrors.address?.message} required {...editRegister('address')} />
               <Button type="submit" className="w-full" disabled={editSubmitting}>
                 {editSubmitting ? t('management.saving') : t('management.update')}
               </Button>

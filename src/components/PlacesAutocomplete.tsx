@@ -11,12 +11,14 @@ export default function PlacesAutocomplete({
   label,
   onSelect,
   error,
-  ready
+  ready,
+  required
 }: {
   label: string;
   onSelect: (place: PlaceResult) => void;
   error?: string;
   ready?: boolean;
+  required?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [unavailable, setUnavailable] = useState(false);
@@ -103,7 +105,10 @@ export default function PlacesAutocomplete({
 
   return (
     <label className="flex w-full flex-col gap-1 text-sm text-ink-700">
-      <span className="font-medium text-ink-800">{label}</span>
+      <span className="font-medium text-ink-800">
+        {label}
+        {required ? <span className="ml-1 text-red-500">*</span> : null}
+      </span>
       <div ref={containerRef} />
       {!ready ? <span className="text-xs text-ink-500">{t('common.loading')}</span> : null}
       {ready && unavailable ? <span className="text-xs text-red-500">{t('common.mapsUnavailable')}</span> : null}

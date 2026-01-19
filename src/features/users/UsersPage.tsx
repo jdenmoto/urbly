@@ -193,8 +193,8 @@ export default function UsersPage() {
         }}
       >
         <form onSubmit={handleSubmit(onCreate)} className="space-y-4">
-          <Input label={t('users.email')} type="email" error={errors.email?.message} {...register('email')} />
-          <Select label={t('users.role')} error={errors.role?.message} {...register('role')}>
+          <Input label={t('users.email')} type="email" error={errors.email?.message} required {...register('email')} />
+          <Select label={t('users.role')} error={errors.role?.message} required {...register('role')}>
             {roleOptions.map((option) => (
               <option key={option} value={option}>
                 {t(`users.roles.${option}`)}
@@ -222,8 +222,8 @@ export default function UsersPage() {
         }}
       >
         <form onSubmit={handleEditSubmit(onEdit)} className="space-y-4">
-          <Input label={t('users.email')} type="email" error={editErrors.email?.message} {...editRegister('email')} />
-          <Select label={t('users.role')} error={editErrors.role?.message} {...editRegister('role')}>
+          <Input label={t('users.email')} type="email" error={editErrors.email?.message} required {...editRegister('email')} />
+          <Select label={t('users.role')} error={editErrors.role?.message} required {...editRegister('role')}>
             {roleOptions.map((option) => (
               <option key={option} value={option}>
                 {t(`users.roles.${option}`)}

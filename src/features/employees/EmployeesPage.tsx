@@ -154,16 +154,16 @@ export default function EmployeesPage() {
             <Card>
               <h3 className="text-sm font-semibold text-ink-800">{t('employees.newTitle')}</h3>
               <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
-                <Input label={t('employees.fullName')} error={errors.fullName?.message} {...register('fullName')} />
-                <Input label={t('employees.phone')} error={errors.phone?.message} {...register('phone')} />
-                <Input label={t('employees.email')} type="email" error={errors.email?.message} {...register('email')} />
-                <Select label={t('employees.role')} error={errors.role?.message} {...register('role')}>
+                <Input label={t('employees.fullName')} error={errors.fullName?.message} required {...register('fullName')} />
+                <Input label={t('employees.phone')} error={errors.phone?.message} required {...register('phone')} />
+                <Input label={t('employees.email')} type="email" error={errors.email?.message} required {...register('email')} />
+                <Select label={t('employees.role')} error={errors.role?.message} required {...register('role')}>
                   <option value="">{t('common.select')}</option>
                   <option value={t('employees.roles.admin')}>{t('employees.roles.admin')}</option>
                   <option value={t('employees.roles.tech')}>{t('employees.roles.tech')}</option>
                   <option value={t('employees.roles.user')}>{t('employees.roles.user')}</option>
                 </Select>
-                <Select label={t('employees.active')} error={errors.active?.message} {...register('active')}>
+                <Select label={t('employees.active')} error={errors.active?.message} required {...register('active')}>
                   <option value="true">{t('common.yes')}</option>
                   <option value="false">{t('common.no')}</option>
                 </Select>
@@ -190,16 +190,16 @@ export default function EmployeesPage() {
           </div>
           <Modal open={editOpen} title={t('employees.editTitle')} onClose={() => setEditOpen(false)}>
             <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
-              <Input label={t('employees.fullName')} error={editErrors.fullName?.message} {...editRegister('fullName')} />
-              <Input label={t('employees.phone')} error={editErrors.phone?.message} {...editRegister('phone')} />
-              <Input label={t('employees.email')} type="email" error={editErrors.email?.message} {...editRegister('email')} />
-              <Select label={t('employees.role')} error={editErrors.role?.message} {...editRegister('role')}>
+              <Input label={t('employees.fullName')} error={editErrors.fullName?.message} required {...editRegister('fullName')} />
+              <Input label={t('employees.phone')} error={editErrors.phone?.message} required {...editRegister('phone')} />
+              <Input label={t('employees.email')} type="email" error={editErrors.email?.message} required {...editRegister('email')} />
+              <Select label={t('employees.role')} error={editErrors.role?.message} required {...editRegister('role')}>
                 <option value="">{t('common.select')}</option>
                 <option value={t('employees.roles.admin')}>{t('employees.roles.admin')}</option>
                 <option value={t('employees.roles.tech')}>{t('employees.roles.tech')}</option>
                 <option value={t('employees.roles.user')}>{t('employees.roles.user')}</option>
               </Select>
-              <Select label={t('employees.active')} error={editErrors.active?.message} {...editRegister('active')}>
+              <Select label={t('employees.active')} error={editErrors.active?.message} required {...editRegister('active')}>
                 <option value="true">{t('common.yes')}</option>
                 <option value="false">{t('common.no')}</option>
               </Select>
