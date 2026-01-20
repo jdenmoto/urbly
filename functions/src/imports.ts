@@ -1,7 +1,8 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { Readable } from 'stream';
 import { db, FieldValue } from './admin';
 
 type ImportRow = {
@@ -69,19 +70,34 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
   }
 
   const arrayBuffer = await response.arrayBuffer();
-  let workbook: XLSX.WorkBook;
+  const workbook = new ExcelJS.Workbook();
   const extension = fileName.split('.').pop()?.toLowerCase();
-
   if (extension === 'csv') {
-    const csvText = Buffer.from(arrayBuffer).toString('utf8');
-    workbook = XLSX.read(csvText, { type: 'string' });
+    const csvBuffer = Buffer.from(arrayBuffer);
+    await workbook.csv.read(Readable.from([csvBuffer]));
   } else {
-    workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    await workbook.xlsx.load(arrayBuffer);
   }
-
-  const sheetName = workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json<ImportRow>(sheet, { defval: '' });
+  const worksheet = workbook.worksheets[0];
+  if (!worksheet) {
+    throw new HttpsError('invalid-argument', 'Archivo sin datos.');
+  }
+  const headerRow = worksheet.getRow(1);
+  const headers = Array.from({ length: headerRow.cellCount }, (_, index) => {
+    const cell = headerRow.getCell(index + 1).value;
+    return String(cell ?? '').trim();
+  });
+  const rows: ImportRow[] = [];
+  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    if (rowNumber === 1) return;
+    const entry: ImportRow = {};
+    headers.forEach((header, idx) => {
+      if (!header) return;
+      const value = row.getCell(idx + 1).value;
+      entry[header as keyof ImportRow] = value ? String(value) : '';
+    });
+    rows.push(entry);
+  });
   logger.info('Import rows parsed', { count: rows.length });
 
   const managementSnapshot = await db.collection('management_companies').get();

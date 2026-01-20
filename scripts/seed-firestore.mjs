@@ -41,7 +41,7 @@ async function writeCollection(name, items) {
   console.log(`Seeded ${name}: ${items.length}`);
 }
 
-const collections = ['management_companies', 'buildings', 'employees', 'appointments'];
+const collections = ['management_companies', 'buildings', 'employees', 'appointments', 'feature_flags'];
 for (const collection of collections) {
   const items = seed[collection] || [];
   if (!items.length) continue;

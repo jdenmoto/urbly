@@ -41,5 +41,16 @@
       "endAt": "2024-10-10T11:30:00.000Z",
       "status": "programado"
     }
+  ],
+  "feature_flags": [
+    {
+      "id": "app",
+      "dashboard": true,
+      "buildings": true,
+      "management": true,
+      "employees": true,
+      "scheduling": true,
+      "users": true
+    }
   ]
 }

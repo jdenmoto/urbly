@@ -41,6 +41,8 @@ common:
   next: Siguiente
   unassigned: Sin asignar
   unnamed: Sin nombre
+  featureDisabledTitle: Funcionalidad deshabilitada
+  featureDisabledSubtitle: Esta seccion no esta disponible en este momento.
 nav:
   dashboard: Dashboard
   buildings: Edificios

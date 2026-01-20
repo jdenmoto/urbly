@@ -8,6 +8,7 @@ import EmployeesPage from '@/features/employees/EmployeesPage';
 import SchedulingPage from '@/features/scheduling/SchedulingPage';
 import LoginPage from '@/features/auth/LoginPage';
 import UsersPage from '@/features/users/UsersPage';
+import FeatureGuard from '@/components/FeatureGuard';
 
 export default function App() {
   return (
@@ -22,12 +23,54 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<DashboardPage />} />
-          <Route path="buildings" element={<BuildingsPage />} />
-          <Route path="management" element={<ManagementPage />} />
-          <Route path="employees" element={<EmployeesPage />} />
-          <Route path="scheduling" element={<SchedulingPage />} />
-          <Route path="users" element={<UsersPage />} />
+          <Route
+            index
+            element={
+              <FeatureGuard feature="dashboard">
+                <DashboardPage />
+              </FeatureGuard>
+            }
+          />
+          <Route
+            path="buildings"
+            element={
+              <FeatureGuard feature="buildings">
+                <BuildingsPage />
+              </FeatureGuard>
+            }
+          />
+          <Route
+            path="management"
+            element={
+              <FeatureGuard feature="management">
+                <ManagementPage />
+              </FeatureGuard>
+            }
+          />
+          <Route
+            path="employees"
+            element={
+              <FeatureGuard feature="employees">
+                <EmployeesPage />
+              </FeatureGuard>
+            }
+          />
+          <Route
+            path="scheduling"
+            element={
+              <FeatureGuard feature="scheduling">
+                <SchedulingPage />
+              </FeatureGuard>
+            }
+          />
+          <Route
+            path="users"
+            element={
+              <FeatureGuard feature="users">
+                <UsersPage />
+              </FeatureGuard>
+            }
+          />
         </Route>
       </Routes>
     </AuthProvider>

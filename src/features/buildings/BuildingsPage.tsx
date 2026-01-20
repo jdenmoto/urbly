@@ -18,7 +18,7 @@ import PlacesAutocomplete, { type PlaceResult } from '@/components/PlacesAutocom
 import { loadGoogleMaps } from '@/lib/googleMaps';
 import { importBuildingsFile, type ImportResult } from '@/lib/api/functions';
 import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
 import BuildingsMap from '@/components/BuildingsMap';
@@ -212,10 +212,29 @@ export default function BuildingsPage() {
     }
     if (extension === 'xlsx' || extension === 'xls') {
       const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data);
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const rows = XLSX.utils.sheet_to_json<PreviewRow>(sheet);
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(data);
+      const worksheet = workbook.worksheets[0];
+      if (!worksheet) {
+        setPreviewRows([]);
+        return;
+      }
+      const headerRow = worksheet.getRow(1);
+      const headers = Array.from({ length: headerRow.cellCount }, (_, index) => {
+        const cell = headerRow.getCell(index + 1).value;
+        return String(cell ?? '').trim();
+      });
+      const rows: PreviewRow[] = [];
+      worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+        if (rowNumber === 1) return;
+        const entry = {} as PreviewRow;
+        headers.forEach((header, idx) => {
+          if (!header) return;
+          const value = row.getCell(idx + 1).value;
+          entry[header as keyof PreviewRow] = value ? String(value) : '';
+        });
+        rows.push(entry);
+      });
       setPreviewRows(rows);
     }
   };
