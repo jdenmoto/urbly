@@ -81,7 +81,7 @@ export default function DashboardPage() {
       name: employees.find((employee) => employee.id === employeeId)?.fullName ?? t('common.unnamed'),
       valor: count
     }))
-    .sort((a, b) => b.value - a.value)
+    .sort((a, b) => b.valor - a.valor)
     .slice(0, 5);
 
   const byCanceledBuilding = appointments.reduce<Record<string, number>>((acc, item) => {
@@ -94,7 +94,7 @@ export default function DashboardPage() {
       name: buildings.find((building) => building.id === buildingId)?.name ?? t('common.unnamed'),
       valor: count
     }))
-    .sort((a, b) => b.value - a.value)
+    .sort((a, b) => b.valor - a.valor)
     .slice(0, 5);
 
   const lastSevenDays = Array.from({ length: 7 }, (_, idx) => {
