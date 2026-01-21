@@ -21,13 +21,24 @@ export default function PlacesAutocomplete({
   required?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const elementRef = useRef<any>(null);
+  const onSelectRef = useRef(onSelect);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [selectedValue, setSelectedValue] = useState<PlaceResult | null>(null);
   const { t } = useI18n();
+  const minChars = 3;
+
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+  }, [onSelect]);
 
   useEffect(() => {
     if (!ready) return;
     if (!window.google?.maps?.importLibrary) return;
     let cancelled = false;
+    let cleanup: (() => void) | undefined;
 
     const setup = async () => {
       await window.google.maps.importLibrary('places');
@@ -37,17 +48,23 @@ export default function PlacesAutocomplete({
       console.log('PlacesAutocomplete init', { ready, hasNewElement });
 
       if (!hasNewElement || !containerRef.current) return;
-      const element = new window.google.maps.places.PlaceAutocompleteElement();
-      element.setAttribute('placeholder', t('common.addressSearch'));
-      element.className =
-        'w-full rounded-lg border border-fog-200 bg-white px-3 py-2 text-sm text-ink-900 shadow-sm outline-none transition focus:border-ink-900';
-      element.style.display = 'block';
-      element.style.width = '100%';
+      if (!elementRef.current) {
+        const element = new window.google.maps.places.PlaceAutocompleteElement();
+        element.setAttribute('placeholder', t('common.addressSearch'));
+        element.className =
+          'w-full rounded-lg border border-fog-200 bg-white px-3 py-2 text-sm text-ink-900 shadow-sm outline-none transition focus:border-ink-900';
+        element.style.display = 'block';
+        element.style.width = '100%';
+        elementRef.current = element;
+      }
+      if (!containerRef.current || !elementRef.current) return;
       containerRef.current.innerHTML = '';
-      containerRef.current.appendChild(element);
+      containerRef.current.appendChild(elementRef.current);
       console.log('PlacesAutocomplete element attached');
 
-      element.addEventListener('gmp-placeselect', async (event: any) => {
+      const element = elementRef.current;
+
+      const onPlaceSelect = async (event: any) => {
         console.log('gmp-placeselect event', event);
         const place = event.place;
         if (!place) return;
@@ -60,48 +77,91 @@ export default function PlacesAutocomplete({
         const placeId = place.id || place.place_id;
         if (!location || !formatted || !placeId) return;
         console.log('Place selected', { formatted, placeId, location });
-        onSelect({
+        const result = {
           address: formatted,
           placeId,
           location: {
             lat: typeof location.lat === 'function' ? location.lat() : location.lat,
             lng: typeof location.lng === 'function' ? location.lng() : location.lng
           }
-        });
-      });
+        };
+        setInputValue(formatted);
+        setSelectedValue(result);
+        onSelectRef.current(result);
+      };
 
       const geocoder = new window.google.maps.Geocoder();
 
-      element.addEventListener('change', () => {
+      const onChange = () => {
         console.log('PlaceAutocomplete change', element.value);
-      });
+        setInputValue(element.value || '');
+      };
 
-      element.addEventListener('blur', () => {
+      const onBlur = () => {
         const value = element.value?.trim();
-        if (!value) return;
+        if (!value) {
+          if (selectedValue?.address) {
+            element.value = selectedValue.address;
+          }
+          return;
+        }
+        if (value.length < minChars) return;
         geocoder.geocode({ address: value }, (results: string | any[], status: string) => {
           if (status !== 'OK' || !results?.length) {
             console.log('Geocode fallback failed', status);
             return;
           }
           const result = results[0];
-          onSelect({
+          const selected = {
             address: result.formatted_address,
             placeId: result.place_id,
             location: {
               lat: result.geometry.location.lat(),
               lng: result.geometry.location.lng()
             }
-          });
+          };
+          setInputValue(result.formatted_address);
+          setSelectedValue(selected);
+          onSelectRef.current(selected);
         });
-      });
+      };
+
+      const onInput = () => {
+        setInputValue(element.value || '');
+      };
+
+      element.addEventListener('gmp-placeselect', onPlaceSelect);
+      element.addEventListener('change', onChange);
+      element.addEventListener('blur', onBlur);
+      element.addEventListener('input', onInput);
+
+      return () => {
+        element.removeEventListener('gmp-placeselect', onPlaceSelect);
+        element.removeEventListener('change', onChange);
+        element.removeEventListener('blur', onBlur);
+        element.removeEventListener('input', onInput);
+      };
     };
 
-    void setup();
+    void setup().then((fn) => {
+      cleanup = fn;
+    });
     return () => {
       cancelled = true;
+      if (cleanup) cleanup();
     };
-  }, [onSelect, t, ready]);
+  }, [t, ready, selectedValue?.address]);
+
+  const showAutocomplete = ready && !unavailable && inputValue.length >= minChars;
+
+  useEffect(() => {
+    if (showAutocomplete && elementRef.current) {
+      elementRef.current.value = inputValue;
+      if (document.activeElement === inputRef.current) {
+        elementRef.current.focus?.();
+      }
+    }
+  }, [showAutocomplete, inputValue]);
 
   return (
     <label className="flex w-full flex-col gap-1 text-sm text-ink-700">
@@ -109,8 +169,22 @@ export default function PlacesAutocomplete({
         {label}
         {required ? <span className="ml-1 text-red-500">*</span> : null}
       </span>
-      <div ref={containerRef} />
+      {!showAutocomplete ? (
+        <input
+          ref={inputRef}
+          value={inputValue}
+          onChange={(event) => setInputValue(event.target.value)}
+          className="w-full rounded-lg border border-fog-200 bg-white px-3 py-2 text-sm text-ink-900 shadow-sm outline-none transition focus:border-ink-900"
+          placeholder={t('common.addressSearch')}
+        />
+      ) : null}
+      <div ref={containerRef} className={showAutocomplete ? 'block' : 'hidden'} />
       {!ready ? <span className="text-xs text-ink-500">{t('common.loading')}</span> : null}
+      {ready && !unavailable && inputValue.length > 0 && inputValue.length < minChars ? (
+        <span className="text-xs text-ink-500">
+          {t('common.addressMinChars')}
+        </span>
+      ) : null}
       {ready && unavailable ? <span className="text-xs text-red-500">{t('common.mapsUnavailable')}</span> : null}
       {ready && !unavailable && error ? <span className="text-xs text-red-500">{error}</span> : null}
     </label>

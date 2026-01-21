@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import type { Building } from '@/core/models/building';
 
@@ -6,10 +6,20 @@ const DEFAULT_CENTER = { lat: 4.711, lng: -74.0721 };
 
 export default function BuildingsMap({ buildings, ready }: { buildings: Building[]; ready: boolean }) {
   const { t } = useI18n();
+  const [expanded, setExpanded] = useState(false);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const infoRef = useRef<any>(null);
+  const boundsRef = useRef<any>(null);
+
+  const wrapperClasses = useMemo(
+    () =>
+      expanded
+        ? 'fixed inset-4 z-50 flex flex-col overflow-hidden rounded-2xl border border-fog-200 bg-white shadow-soft'
+        : 'overflow-hidden rounded-2xl border border-fog-200 bg-white shadow-soft',
+    [expanded]
+  );
 
   useEffect(() => {
     if (!ready) return;
@@ -44,6 +54,7 @@ export default function BuildingsMap({ buildings, ready }: { buildings: Building
       const withLocation = buildings.filter((building) => building.location);
       if (!withLocation.length) {
         mapInstance.current.setCenter(DEFAULT_CENTER);
+        boundsRef.current = null;
         return;
       }
 
@@ -79,6 +90,7 @@ export default function BuildingsMap({ buildings, ready }: { buildings: Building
         markersRef.current.push(marker);
       });
 
+      boundsRef.current = bounds;
       mapInstance.current.fitBounds(bounds);
     };
 
@@ -89,15 +101,33 @@ export default function BuildingsMap({ buildings, ready }: { buildings: Building
     };
   }, [buildings, t, ready]);
 
+  useEffect(() => {
+    if (!expanded) return;
+    if (!mapInstance.current || !window.google?.maps?.event) return;
+    window.google.maps.event.trigger(mapInstance.current, 'resize');
+    if (boundsRef.current) {
+      mapInstance.current.fitBounds(boundsRef.current);
+    }
+  }, [expanded]);
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-fog-200 bg-white shadow-soft">
-      <div className="border-b border-fog-200 px-4 py-3 text-sm font-semibold text-ink-800">
-        {t('buildings.mapTitle')}
-      </div>
-      <div ref={mapRef} className="h-[320px] w-full" />
-      {!ready ? (
-        <div className="px-4 py-3 text-xs text-ink-500">{t('common.loading')}</div>
+    <>
+      {expanded ? (
+        <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setExpanded(false)} />
       ) : null}
-    </div>
+      <div className={wrapperClasses} onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-fog-200 px-4 py-3 text-sm font-semibold text-ink-800">
+          <span>{t('buildings.mapTitle')}</span>
+          <button
+            className="text-xs font-semibold text-ink-600 underline"
+            onClick={() => setExpanded((prev) => !prev)}
+          >
+            {expanded ? t('common.collapse') : t('common.expand')}
+          </button>
+        </div>
+        <div ref={mapRef} className={expanded ? 'flex-1' : 'h-[320px] w-full'} />
+        {!ready ? <div className="px-4 py-3 text-xs text-ink-500">{t('common.loading')}</div> : null}
+      </div>
+    </>
   );
 }

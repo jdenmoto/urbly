@@ -6,5 +6,6 @@ export type Building = {
   addressText: string;
   location: { lat: number; lng: number };
   googlePlaceId: string;
+  active?: boolean;
   createdAt?: string;
 };

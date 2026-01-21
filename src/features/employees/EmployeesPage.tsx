@@ -20,6 +20,7 @@ import Modal from '@/components/Modal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/app/Auth';
+import { EditIcon, TrashIcon } from '@/components/ActionIcons';
 
 export default function EmployeesPage() {
   const { t } = useI18n();
@@ -32,12 +33,13 @@ export default function EmployeesPage() {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const schema = z.object({
     fullName: z.string().min(2, t('common.required')),
     phone: z.string().min(7, t('common.required')),
     email: z.string().email(t('auth.errorEmail')),
     role: z.string().min(2, t('common.required')),
-    active: z.string(),
+    active: z.string().min(1, t('common.required')),
     buildingId: z.string().optional()
   });
   type FormValues = z.infer<typeof schema>;
@@ -57,23 +59,34 @@ export default function EmployeesPage() {
 
   const columns = useMemo<ColumnDef<Employee>[]>(() => {
     const base: ColumnDef<Employee>[] = [
-      { header: t('employees.fullName'), accessorKey: 'fullName' },
-      { header: t('employees.role'), accessorKey: 'role' },
-      { header: t('employees.phone'), accessorKey: 'phone' },
-      { header: t('employees.active'), accessorKey: 'active' }
+      { header: t('employees.fullName'), accessorKey: 'fullName', enableSorting: true },
+      { header: t('employees.role'), accessorKey: 'role', enableSorting: false },
+      { header: t('employees.phone'), accessorKey: 'phone', enableSorting: false },
+      { header: t('employees.active'), accessorKey: 'active', enableSorting: true }
     ];
     if (!canEdit) return base;
     return [
       ...base,
       {
         header: t('common.actions'),
+        enableSorting: false,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <button className="text-xs font-semibold text-ink-700" onClick={() => startEdit(row.original)}>
-              {t('common.edit')}
+            <button
+              className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-ink-700 hover:bg-fog-100"
+              onClick={() => startEdit(row.original)}
+              title={t('common.edit')}
+              aria-label={t('common.edit')}
+            >
+              <EditIcon className="h-4 w-4" aria-hidden />
             </button>
-            <button className="text-xs font-semibold text-rose-600" onClick={() => setDeleteTarget(row.original)}>
-              {t('common.delete')}
+            <button
+              className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-rose-600 hover:bg-rose-50"
+              onClick={() => setDeleteTarget(row.original)}
+              title={t('common.delete')}
+              aria-label={t('common.delete')}
+            >
+              <TrashIcon className="h-4 w-4" aria-hidden />
             </button>
           </div>
         )
@@ -112,6 +125,18 @@ export default function EmployeesPage() {
     setEditOpen(true);
   };
 
+  const startCreate = () => {
+    reset({
+      fullName: '',
+      phone: '',
+      email: '',
+      role: '',
+      active: 'true',
+      buildingId: ''
+    });
+    setCreateOpen(true);
+  };
+
   const onEditSubmit = async (values: FormValues) => {
     if (!editingEmployee) return;
     try {
@@ -147,49 +172,48 @@ export default function EmployeesPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title={t('employees.title')} subtitle={t('employees.subtitle')} />
+      <PageHeader
+        title={t('employees.title')}
+        subtitle={t('employees.subtitle')}
+        actions={canEdit ? <Button onClick={startCreate}>{t('common.add')}</Button> : null}
+      />
       {canEdit ? (
         <>
-          <div className="grid gap-6 lg:grid-cols-3">
-            <Card>
-              <h3 className="text-sm font-semibold text-ink-800">{t('employees.newTitle')}</h3>
-              <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
-                <Input label={t('employees.fullName')} error={errors.fullName?.message} required {...register('fullName')} />
-                <Input label={t('employees.phone')} error={errors.phone?.message} required {...register('phone')} />
-                <Input label={t('employees.email')} type="email" error={errors.email?.message} required {...register('email')} />
-                <Select label={t('employees.role')} error={errors.role?.message} required {...register('role')}>
-                  <option value="">{t('common.select')}</option>
-                  <option value={t('employees.roles.admin')}>{t('employees.roles.admin')}</option>
-                  <option value={t('employees.roles.tech')}>{t('employees.roles.tech')}</option>
-                  <option value={t('employees.roles.user')}>{t('employees.roles.user')}</option>
-                </Select>
-                <Select label={t('employees.active')} error={errors.active?.message} required {...register('active')}>
-                  <option value="true">{t('common.yes')}</option>
-                  <option value="false">{t('common.no')}</option>
-                </Select>
-                <Select label={`${t('employees.building')} (${t('common.optional')})`} {...register('buildingId')}>
-                  <option value="">{t('common.unassigned')}</option>
-                  {buildings.map((building) => (
-                    <option key={building.id} value={building.id}>
-                      {building.name}
-                    </option>
-                  ))}
-                </Select>
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? t('employees.saving') : t('employees.create')}
-                </Button>
-              </form>
-            </Card>
-            <div className="lg:col-span-2">
-              <DataTable
-                columns={columns}
-                data={employees}
-                emptyState={<EmptyState title={t('employees.emptyTitle')} description={t('employees.emptySubtitle')} />}
-              />
-            </div>
-          </div>
+          <DataTable
+            columns={columns}
+            data={employees}
+            emptyState={<EmptyState title={t('employees.emptyTitle')} description={t('employees.emptySubtitle')} />}
+          />
+          <Modal open={createOpen} title={t('employees.newTitle')} onClose={() => setCreateOpen(false)}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+              <Input label={t('employees.fullName')} error={errors.fullName?.message} required {...register('fullName')} />
+              <Input label={t('employees.phone')} error={errors.phone?.message} required {...register('phone')} />
+              <Input label={t('employees.email')} type="email" error={errors.email?.message} required {...register('email')} />
+              <Select label={t('employees.role')} error={errors.role?.message} required {...register('role')}>
+                <option value="">{t('common.select')}</option>
+                <option value={t('employees.roles.admin')}>{t('employees.roles.admin')}</option>
+                <option value={t('employees.roles.tech')}>{t('employees.roles.tech')}</option>
+                <option value={t('employees.roles.user')}>{t('employees.roles.user')}</option>
+              </Select>
+              <Select label={t('employees.active')} error={errors.active?.message} required {...register('active')}>
+                <option value="true">{t('common.yes')}</option>
+                <option value="false">{t('common.no')}</option>
+              </Select>
+              <Select label={`${t('employees.building')} (${t('common.optional')})`} {...register('buildingId')}>
+                <option value="">{t('common.unassigned')}</option>
+                {buildings.map((building) => (
+                  <option key={building.id} value={building.id}>
+                    {building.name}
+                  </option>
+                ))}
+              </Select>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? t('employees.saving') : t('employees.create')}
+              </Button>
+            </form>
+          </Modal>
           <Modal open={editOpen} title={t('employees.editTitle')} onClose={() => setEditOpen(false)}>
-            <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
+            <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4" noValidate>
               <Input label={t('employees.fullName')} error={editErrors.fullName?.message} required {...editRegister('fullName')} />
               <Input label={t('employees.phone')} error={editErrors.phone?.message} required {...editRegister('phone')} />
               <Input label={t('employees.email')} type="email" error={editErrors.email?.message} required {...editRegister('email')} />

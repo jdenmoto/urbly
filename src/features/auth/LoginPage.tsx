@@ -73,7 +73,7 @@ export default function LoginPage() {
             <h1 className="text-2xl font-semibold text-ink-900">{t('auth.title')}</h1>
             <p className="text-sm text-ink-600">{t('auth.subtitle')}</p>
           </div>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <Input label={t('auth.email')} type="email" error={errors.email?.message} required {...register('email')} />
             <Input
               label={t('auth.password')}
@@ -95,7 +95,7 @@ export default function LoginPage() {
             {t('auth.resetPassword')}
           </button>
           {resetOpen ? (
-            <form onSubmit={handleResetSubmit(onReset)} className="space-y-3">
+            <form onSubmit={handleResetSubmit(onReset)} className="space-y-3" noValidate>
               <Input
                 label={t('auth.resetEmail')}
                 type="email"

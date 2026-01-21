@@ -8,6 +8,10 @@ export type Appointment = {
   startAt: string;
   endAt: string;
   status: AppointmentStatus;
+  type: string;
+  employeeId?: string | null;
+  cancelReason?: string | null;
+  cancelNote?: string | null;
   recurrence?: string;
   createdAt?: string;
 };

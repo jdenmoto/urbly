@@ -31,14 +31,16 @@ const seedPath = path.resolve('seed/seed.json');
 const seed = JSON.parse(fs.readFileSync(seedPath, 'utf-8'));
 
 async function writeCollection(name, items) {
-  const batch = db.batch();
-  items.forEach((item) => {
+  let created = 0;
+  for (const item of items) {
     const { id, ...data } = item;
     const docRef = db.collection(name).doc(id);
-    batch.set(docRef, data, { merge: true });
-  });
-  await batch.commit();
-  console.log(`Seeded ${name}: ${items.length}`);
+    const snapshot = await docRef.get();
+    if (snapshot.exists) continue;
+    await docRef.set(data);
+    created += 1;
+  }
+  console.log(`Seeded ${name}: ${created} created, ${items.length - created} skipped`);
 }
 
 const collections = ['management_companies', 'buildings', 'employees', 'appointments', 'feature_flags'];
@@ -46,6 +48,51 @@ for (const collection of collections) {
   const items = seed[collection] || [];
   if (!items.length) continue;
   await writeCollection(collection, items);
+}
+
+const appointmentTypes = ['mantenimiento', 'inspeccion', 'servicio', 'emergencia', 'otro'];
+const appointmentStatuses = ['programado', 'confirmado'];
+const weekStart = (() => {
+  const today = new Date();
+  const day = today.getDay();
+  const diff = (day === 0 ? -6 : 1) - day;
+  const start = new Date(today);
+  start.setDate(today.getDate() + diff);
+  start.setHours(0, 0, 0, 0);
+  return start;
+})();
+
+const seedEmployees = seed.employees || [];
+const seedBuildings = seed.buildings || [];
+const employeeIds = seedEmployees.map((item) => item.id);
+const buildingIds = seedBuildings.map((item) => item.id);
+
+if (employeeIds.length && buildingIds.length) {
+  const slots = [8, 10, 12, 14, 16];
+  const totalAppointments = 30;
+  const appointments = Array.from({ length: totalAppointments }, (_, index) => {
+    const dayOffset = Math.floor(index / slots.length);
+    const slotOffset = index % slots.length;
+    const start = new Date(weekStart);
+    start.setDate(weekStart.getDate() + dayOffset);
+    start.setHours(slots[slotOffset], 0, 0, 0);
+    const end = new Date(start);
+    end.setHours(start.getHours() + 1);
+    return {
+      id: `apt-${String(index + 100).padStart(3, '0')}`,
+      buildingId: buildingIds[index % buildingIds.length],
+      title: `Servicio ${index + 1}`,
+      description: 'Agendamiento semanal',
+      startAt: start.toISOString(),
+      endAt: end.toISOString(),
+      status: appointmentStatuses[index % appointmentStatuses.length],
+      type: appointmentTypes[index % appointmentTypes.length],
+      employeeId: employeeIds[index % employeeIds.length],
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+  });
+
+  await writeCollection('appointments', appointments);
 }
 
 console.log('Seed completed.');

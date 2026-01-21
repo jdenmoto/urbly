@@ -20,6 +20,7 @@ import type { AppUser } from '@/core/models/appUser';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createAppUser, updateAppUser, setAppUserDisabled, deleteAppUser } from '@/lib/api/functions';
 import { useToast } from '@/components/ToastProvider';
+import { EditIcon, TrashIcon, PowerIcon } from '@/components/ActionIcons';
 
 const roleOptions = ['view', 'editor', 'admin'] as const;
 
@@ -44,7 +45,9 @@ export default function UsersPage() {
 
   const schema = z.object({
     email: z.string().email(t('auth.errorEmail')),
-    role: z.enum(roleOptions)
+    role: z.enum(roleOptions, {
+      errorMap: () => ({ message: t('common.required') })
+    })
   });
 
   const {
@@ -69,30 +72,42 @@ export default function UsersPage() {
 
   const columns = useMemo<ColumnDef<AppUser>[]>(
     () => [
-      { header: t('users.email'), accessorKey: 'email' },
-      { header: t('users.role'), accessorKey: 'role' },
-      { header: t('users.status'), accessorFn: (row) => (row.active ? t('users.active') : t('users.disabled')) },
+      { header: t('users.email'), accessorKey: 'email', enableSorting: false },
+      { header: t('users.role'), accessorKey: 'role', enableSorting: false },
+      {
+        header: t('users.status'),
+        accessorKey: 'active',
+        enableSorting: true,
+        cell: ({ row }) => (row.original.active ? t('users.active') : t('users.disabled'))
+      },
       {
         header: t('common.actions'),
+        enableSorting: false,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <button
-              className="text-xs font-semibold text-ink-700"
+              className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-ink-700 hover:bg-fog-100"
               onClick={() => startEdit(row.original)}
+              title={t('common.edit')}
+              aria-label={t('common.edit')}
             >
-              {t('common.edit')}
+              <EditIcon className="h-4 w-4" aria-hidden />
             </button>
             <button
-              className="text-xs font-semibold text-amber-600"
+              className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-amber-600 hover:bg-amber-50"
               onClick={() => toggleDisabled(row.original)}
+              title={row.original.active ? t('users.disable') : t('users.enable')}
+              aria-label={row.original.active ? t('users.disable') : t('users.enable')}
             >
-              {row.original.active ? t('users.disable') : t('users.enable')}
+              <PowerIcon className="h-4 w-4" aria-hidden />
             </button>
             <button
-              className="text-xs font-semibold text-rose-600"
+              className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-rose-600 hover:bg-rose-50"
               onClick={() => setDeleteTarget(row.original)}
+              title={t('common.delete')}
+              aria-label={t('common.delete')}
             >
-              {t('common.delete')}
+              <TrashIcon className="h-4 w-4" aria-hidden />
             </button>
           </div>
         )
@@ -192,7 +207,7 @@ export default function UsersPage() {
           setGeneratedPassword(null);
         }}
       >
-        <form onSubmit={handleSubmit(onCreate)} className="space-y-4">
+        <form onSubmit={handleSubmit(onCreate)} className="space-y-4" noValidate>
           <Input label={t('users.email')} type="email" error={errors.email?.message} required {...register('email')} />
           <Select label={t('users.role')} error={errors.role?.message} required {...register('role')}>
             {roleOptions.map((option) => (
@@ -221,7 +236,7 @@ export default function UsersPage() {
           setEditingUser(null);
         }}
       >
-        <form onSubmit={handleEditSubmit(onEdit)} className="space-y-4">
+        <form onSubmit={handleEditSubmit(onEdit)} className="space-y-4" noValidate>
           <Input label={t('users.email')} type="email" error={editErrors.email?.message} required {...editRegister('email')} />
           <Select label={t('users.role')} error={editErrors.role?.message} required {...editRegister('role')}>
             {roleOptions.map((option) => (

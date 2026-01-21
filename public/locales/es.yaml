@@ -32,6 +32,7 @@ common:
   addressSearch: Buscar direccion
   mapsUnavailable: Google Maps no disponible. Revisa la API key y habilita Places (nuevo).
   mapsGeocodeError: No se pudo validar la direccion. Intenta otra.
+  addressMinChars: Escribe al menos 3 caracteres para buscar.
   downloadErrors: Descargar errores
   noData: Sin datos
   noResults: Sin resultados
@@ -41,6 +42,8 @@ common:
   next: Siguiente
   unassigned: Sin asignar
   unnamed: Sin nombre
+  expand: Ampliar
+  collapse: Reducir
   featureDisabledTitle: Funcionalidad deshabilitada
   featureDisabledSubtitle: Esta seccion no esta disponible en este momento.
 nav:
@@ -75,6 +78,19 @@ management:
   email: Email
   nit: NIT
   address: Direccion
+  viewBuildings: Ver edificios
+  buildingsTitle: Edificios asociados
+  buildingsEmptyTitle: Sin edificios asociados
+  buildingsEmptySubtitle: Esta administracion aun no tiene edificios.
+  buildingsSelect: Edificios (opcional)
+  buildingsOptional: Puedes seleccionar uno o mas edificios.
+  buildingsEmpty: No hay edificios disponibles.
+  searchBuildings: Buscar edificios
+  availableBuildings: Disponibles
+  selectAll: Seleccionar todos
+  selectedBuildings: Seleccionados
+  selectedEmptyTitle: Sin edificios seleccionados
+  selectedEmptySubtitle: Selecciona uno o mas edificios para asociar.
   create: Crear administracion
   update: Actualizar administracion
   saving: Guardando...
@@ -99,6 +115,11 @@ buildings:
   address: Direccion (Google Maps)
   managementRequired: Selecciona una administracion
   addressRequired: Selecciona una direccion valida
+  status: Estado
+  active: Activo
+  disabled: Deshabilitado
+  enable: Habilitar
+  disable: Deshabilitar
   create: Crear edificio
   update: Actualizar edificio
   saving: Guardando...
@@ -121,6 +142,8 @@ buildings:
   toastCreated: Edificio creado
   toastUpdated: Edificio actualizado
   toastDeleted: Edificio eliminado
+  toastEnabled: Edificio habilitado
+  toastDisabled: Edificio deshabilitado
 employees:
   title: Empleados
   subtitle: Equipo operativo
@@ -183,11 +206,14 @@ scheduling:
   subtitle: Calendario y agenda operativa
   newTitle: Nuevo agendamiento
   building: Edificio
+  searchBuilding: Buscar edificio
   titleLabel: Titulo
   description: Descripcion
   startAt: Inicio
   endAt: Fin
   status: Estado
+  type: Tipo
+  employee: Empleado
   recurrence: Recurrencia
   noRecurrence: No se repite
   create: Crear agendamiento
@@ -199,6 +225,8 @@ scheduling:
   viewList: Lista
   toastCreated: Agendamiento creado
   toastUpdated: Agendamiento actualizado
+  toastCanceled: Agendamiento cancelado
+  toastDeleted: Agendamiento eliminado
   exactDate: Fecha exacta
   from: Desde
   to: Hasta
@@ -217,18 +245,40 @@ scheduling:
   statusConfirmed: Confirmado
   statusCompleted: Completado
   statusCanceled: Cancelado
+  cancel: Cancelar
+  cancelTitle: Cancelar agendamiento
+  cancelReason: Razon de cancelacion
+  cancelNote: Nota de cancelacion
+  cancelling: Cancelando...
+  confirmCancel: Confirmar cancelacion
+  deleteTitle: Eliminar agendamiento
+  deleteConfirm: Estas seguro de eliminar este agendamiento?
   views:
     day: Dia
+    week: Semana
     month: Mes
     quarter: Trimestre
     semester: Semestre
-    year: Ano
+    year: Año
+  allDay: Todo el dia
   recurrenceOptions:
     semanal: Semanal
     quincenal: Quincenal
     mensual: Mensual
     bimensual: Bimensual
     semestral: Semestral
+  types:
+    mantenimiento: Mantenimiento
+    inspeccion: Inspeccion
+    servicio: Servicio
+    emergencia: Emergencia
+    otro: Otro
+  cancelReasons:
+    cliente: Cliente
+    personal: Personal
+    clima: Clima
+    reprogramado: Reprogramado
+    otro: Otro
 dashboard:
   title: Dashboard
   subtitle: Pulso operativo del portafolio
@@ -237,6 +287,11 @@ dashboard:
   employees: Empleados activos
   appointmentsToday: Agendamientos hoy
   byDay: Agendamientos por dia
+  byType: Agendamientos por tipo
+  weeklyCompliance: Cumplimiento semanal
+  topEmployees: Top empleados con mas servicios
+  topCanceledBuildings: Edificios con mas cancelaciones
+  avgDuration: Duracion promedio por tipo (min)
   nextDays: Proximos 7 dias
   nextEmpty: No hay agendamientos proximos.
   dailyEmpty: Sin datos de agendamientos.

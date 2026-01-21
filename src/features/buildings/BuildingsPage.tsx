@@ -26,6 +26,7 @@ import Modal from '@/components/Modal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/app/Auth';
+import { EditIcon, TrashIcon, PowerIcon } from '@/components/ActionIcons';
 
 type PreviewRow = {
   building_name: string;
@@ -51,6 +52,8 @@ export default function BuildingsPage() {
   const [editPlace, setEditPlace] = useState<PlaceResult | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Building | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const schema = z.object({
     name: z.string().min(2, t('common.required')),
@@ -85,22 +88,47 @@ export default function BuildingsPage() {
 
   const columns = useMemo<ColumnDef<Building>[]>(() => {
     const base: ColumnDef<Building>[] = [
-      { header: t('buildings.name'), accessorKey: 'name' },
-      { header: t('buildings.porterPhone'), accessorKey: 'porterPhone' },
-      { header: t('buildings.address'), accessorKey: 'addressText' }
+      { header: t('buildings.name'), accessorKey: 'name', enableSorting: true },
+      { header: t('buildings.porterPhone'), accessorKey: 'porterPhone', enableSorting: false },
+      { header: t('buildings.address'), accessorKey: 'addressText', enableSorting: true },
+      {
+        header: t('buildings.status'),
+        accessorKey: 'active',
+        enableSorting: true,
+        cell: ({ row }) => (row.original.active === false ? t('buildings.disabled') : t('buildings.active'))
+      }
     ];
     if (!canEdit) return base;
     return [
       ...base,
       {
         header: t('common.actions'),
+        enableSorting: false,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <button className="text-xs font-semibold text-ink-700" onClick={() => startEdit(row.original)}>
-              {t('common.edit')}
+            <button
+              className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-ink-700 hover:bg-fog-100"
+              onClick={() => startEdit(row.original)}
+              title={t('common.edit')}
+              aria-label={t('common.edit')}
+            >
+              <EditIcon className="h-4 w-4" aria-hidden />
             </button>
-            <button className="text-xs font-semibold text-rose-600" onClick={() => setDeleteTarget(row.original)}>
-              {t('common.delete')}
+            <button
+              className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-amber-600 hover:bg-amber-50"
+              onClick={() => toggleActive(row.original)}
+              title={row.original.active === false ? t('buildings.enable') : t('buildings.disable')}
+              aria-label={row.original.active === false ? t('buildings.enable') : t('buildings.disable')}
+            >
+              <PowerIcon className="h-4 w-4" aria-hidden />
+            </button>
+            <button
+              className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-rose-600 hover:bg-rose-50"
+              onClick={() => setDeleteTarget(row.original)}
+              title={t('common.delete')}
+              aria-label={t('common.delete')}
+            >
+              <TrashIcon className="h-4 w-4" aria-hidden />
             </button>
           </div>
         )
@@ -110,18 +138,18 @@ export default function BuildingsPage() {
 
   const previewColumns = useMemo<ColumnDef<PreviewRow>[]>(
     () => [
-      { header: t('buildings.name'), accessorKey: 'building_name' },
-      { header: t('buildings.address'), accessorKey: 'address' },
-      { header: t('buildings.porterPhone'), accessorKey: 'porter_phone' },
-      { header: t('buildings.managementCompany'), accessorKey: 'management_name' }
+      { header: t('buildings.name'), accessorKey: 'building_name', enableSorting: false },
+      { header: t('buildings.address'), accessorKey: 'address', enableSorting: false },
+      { header: t('buildings.porterPhone'), accessorKey: 'porter_phone', enableSorting: false },
+      { header: t('buildings.managementCompany'), accessorKey: 'management_name', enableSorting: false }
     ],
     [t]
   );
 
   const errorColumns = useMemo<ColumnDef<{ row: number; message: string }>[]>( 
     () => [
-      { header: t('buildings.errorRow'), accessorKey: 'row' },
-      { header: t('buildings.errorMessage'), accessorKey: 'message' }
+      { header: t('buildings.errorRow'), accessorKey: 'row', enableSorting: false },
+      { header: t('buildings.errorMessage'), accessorKey: 'message', enableSorting: false }
     ],
     [t]
   );
@@ -135,9 +163,11 @@ export default function BuildingsPage() {
         managementCompanyId: values.managementCompanyId,
         addressText: place.address,
         googlePlaceId: place.placeId,
-        location: place.location
+        location: place.location,
+        active: true
       });
       await queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      await queryClient.refetchQueries({ queryKey: ['buildings'] });
       reset();
       setPlace(null);
       toast(t('buildings.toastCreated'), 'success');
@@ -199,6 +229,17 @@ export default function BuildingsPage() {
     }
   };
 
+  const toggleActive = async (building: Building) => {
+    const nextActive = building.active === false;
+    try {
+      await updateDocById('buildings', building.id, { active: nextActive });
+      await queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      toast(nextActive ? t('buildings.toastEnabled') : t('buildings.toastDisabled'), 'success');
+    } catch (error) {
+      toast(t('common.actionError'), 'error');
+    }
+  };
+
   const handleFile = async (file: File) => {
     setImportResult(null);
     const extension = file.name.split('.').pop()?.toLowerCase();
@@ -246,6 +287,7 @@ export default function BuildingsPage() {
       const result = await importBuildingsFile(file);
       setImportResult(result);
       await queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      await queryClient.refetchQueries({ queryKey: ['buildings'] });
       if (errorUrl) URL.revokeObjectURL(errorUrl);
       if (result.errors.length) {
         const csv = [
@@ -262,102 +304,117 @@ export default function BuildingsPage() {
     }
   };
 
+  const startCreate = () => {
+    setPlace(null);
+    reset({ name: '', porterPhone: '', managementCompanyId: '' });
+    setCreateOpen(true);
+  };
+
   return (
     <div className="space-y-8">
-      <PageHeader title={t('buildings.title')} subtitle={t('buildings.subtitle')} />
+      <PageHeader
+        title={t('buildings.title')}
+        subtitle={t('buildings.subtitle')}
+        actions={
+          canEdit ? (
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" onClick={() => setImportOpen(true)}>
+                {t('buildings.bulkTitle')}
+              </Button>
+              <Button onClick={startCreate}>{t('common.add')}</Button>
+            </div>
+          ) : null
+        }
+      />
       <BuildingsMap buildings={buildings} ready={mapsReady} />
       {canEdit ? (
         <>
-          <div className="grid gap-6 lg:grid-cols-3">
-            <Card className="lg:col-span-1">
-              <h3 className="text-sm font-semibold text-ink-800">{t('buildings.newTitle')}</h3>
-              <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
-                <Input label={t('buildings.name')} error={errors.name?.message} required {...register('name')} />
-                <Input
-                  label={t('buildings.porterPhone')}
-                  error={errors.porterPhone?.message}
-                  required
-                  {...register('porterPhone')}
-                />
-                <Select
-                  label={t('buildings.managementCompany')}
-                  error={errors.managementCompanyId?.message}
-                  required
-                  {...register('managementCompanyId')}
-                >
-                  <option value="">{t('common.select')}</option>
-                  {managements.map((company) => (
-                    <option key={company.id} value={company.id}>
-                      {company.name}
-                    </option>
-                  ))}
-                </Select>
-                <PlacesAutocomplete
-                  label={t('buildings.address')}
-                  onSelect={(next) => setPlace(next)}
-                  ready={mapsReady}
-                  required
-                  error={place != null ? t('buildings.addressRequired') : undefined}
-                />
-                <Button type="submit" disabled={isSubmitting || !place} className="w-full">
-                  {isSubmitting ? t('buildings.saving') : t('buildings.create')}
-                </Button>
-              </form>
-            </Card>
-            <div className="lg:col-span-2 space-y-4">
-              <DataTable
-                columns={columns}
-                data={buildings}
-                emptyState={<EmptyState title={t('buildings.emptyTitle')} description={t('buildings.emptySubtitle')} />}
-              />
-              <Card>
-                <h3 className="text-sm font-semibold text-ink-800">{t('buildings.bulkTitle')}</h3>
-                <p className="text-xs text-ink-500">{t('buildings.bulkHint')}</p>
-                <div className="mt-4 flex flex-col gap-4">
-                  <input
-                    type="file"
-                    accept=".csv,.xlsx,.xls"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      if (file) {
-                        void handleFile(file);
-                        void handleImport(file);
-                      }
-                    }}
-                  />
-                  {uploading ? <p className="text-sm text-ink-600">{t('buildings.uploading')}</p> : null}
-                  {importResult ? (
-                    <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
-                      <p>
-                        {t('buildings.created')}: {importResult.created}
-                      </p>
-                      <p>
-                        {t('buildings.failed')}: {importResult.failed}
-                      </p>
-                    </div>
-                  ) : null}
-                  {importResult?.errors.length ? (
-                    <div className="space-y-3">
-                      <p className="text-sm font-semibold text-ink-800">{t('buildings.errorTableTitle')}</p>
-                      <DataTable columns={errorColumns} data={importResult.errors} pageSize={5} />
-                    </div>
-                  ) : null}
-                  {errorUrl ? (
-                    <a
-                      className="text-sm font-semibold text-ink-900 underline"
-                      href={errorUrl}
-                      download={t('buildings.errorsFileName')}
-                    >
-                      {t('common.downloadErrors')}
-                    </a>
-                  ) : null}
-                  {previewRows.length ? <DataTable columns={previewColumns} data={previewRows.slice(0, 5)} /> : null}
-                </div>
-              </Card>
-            </div>
+          <div className="space-y-4">
+            <DataTable
+              columns={columns}
+              data={buildings}
+              emptyState={<EmptyState title={t('buildings.emptyTitle')} description={t('buildings.emptySubtitle')} />}
+            />
           </div>
+          <Modal open={importOpen} title={t('buildings.bulkTitle')} onClose={() => setImportOpen(false)}>
+            <div className="space-y-4">
+              <p className="text-xs text-ink-500">{t('buildings.bulkHint')}</p>
+              <input
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) {
+                    void handleFile(file);
+                    void handleImport(file);
+                  }
+                }}
+              />
+              {uploading ? <p className="text-sm text-ink-600">{t('buildings.uploading')}</p> : null}
+              {importResult ? (
+                <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
+                  <p>
+                    {t('buildings.created')}: {importResult.created}
+                  </p>
+                  <p>
+                    {t('buildings.failed')}: {importResult.failed}
+                  </p>
+                </div>
+              ) : null}
+              {importResult?.errors.length ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-ink-800">{t('buildings.errorTableTitle')}</p>
+                  <DataTable columns={errorColumns} data={importResult.errors} pageSize={5} />
+                </div>
+              ) : null}
+              {errorUrl ? (
+                <a
+                  className="text-sm font-semibold text-ink-900 underline"
+                  href={errorUrl}
+                  download={t('buildings.errorsFileName')}
+                >
+                  {t('common.downloadErrors')}
+                </a>
+              ) : null}
+              {previewRows.length ? <DataTable columns={previewColumns} data={previewRows.slice(0, 5)} /> : null}
+            </div>
+          </Modal>
+          <Modal open={createOpen} title={t('buildings.newTitle')} onClose={() => setCreateOpen(false)}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+              <Input label={t('buildings.name')} error={errors.name?.message} required {...register('name')} />
+              <Input
+                label={t('buildings.porterPhone')}
+                error={errors.porterPhone?.message}
+                required
+                {...register('porterPhone')}
+              />
+              <Select
+                label={t('buildings.managementCompany')}
+                error={errors.managementCompanyId?.message}
+                required
+                {...register('managementCompanyId')}
+              >
+                <option value="">{t('common.select')}</option>
+                {managements.map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {company.name}
+                  </option>
+                ))}
+              </Select>
+              <PlacesAutocomplete
+                label={t('buildings.address')}
+                onSelect={(next) => setPlace(next)}
+                ready={mapsReady}
+                required
+                error={place != null ? t('buildings.addressRequired') : undefined}
+              />
+              <Button type="submit" disabled={isSubmitting || !place} className="w-full">
+                {isSubmitting ? t('buildings.saving') : t('buildings.create')}
+              </Button>
+            </form>
+          </Modal>
           <Modal open={editOpen} title={t('buildings.editTitle')} onClose={() => setEditOpen(false)}>
-            <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
+            <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4" noValidate>
               <Input label={t('buildings.name')} error={editErrors.name?.message} required {...editRegister('name')} />
               <Input
                 label={t('buildings.porterPhone')}

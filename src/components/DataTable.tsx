@@ -1,10 +1,12 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
-  type ColumnDef
+  type ColumnDef,
+  type SortingState
 } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
 
@@ -21,6 +23,7 @@ export default function DataTable<T>({
 }) {
   const { t } = useI18n();
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize });
+  const [sorting, setSorting] = useState<SortingState>([]);
   const pageCount = Math.ceil(data.length / pagination.pageSize);
   const pageInfo = useMemo(() => {
     const start = pagination.pageIndex * pagination.pageSize + 1;
@@ -31,12 +34,22 @@ export default function DataTable<T>({
   const table = useReactTable({
     data,
     columns,
-    state: { pagination },
+    state: { pagination, sorting },
     onPaginationChange: setPagination,
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    manualPagination: false
+    getSortedRowModel: getSortedRowModel(),
+    manualPagination: false,
+    autoResetPageIndex: false
   });
+
+  useEffect(() => {
+    const maxPageIndex = Math.max(Math.ceil(data.length / pagination.pageSize) - 1, 0);
+    if (pagination.pageIndex > maxPageIndex) {
+      setPagination((prev) => ({ ...prev, pageIndex: maxPageIndex }));
+    }
+  }, [data.length, pagination.pageIndex, pagination.pageSize]);
 
   if (!data.length && emptyState) {
     return <div>{emptyState}</div>;
@@ -48,11 +61,31 @@ export default function DataTable<T>({
         <thead className="bg-fog-100 text-xs uppercase tracking-[0.16em] text-ink-500">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th key={header.id} className="px-4 py-3">
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
-              ))}
+              {headerGroup.headers.map((header) => {
+                const canSort = header.column.getCanSort();
+                const sorted = header.column.getIsSorted();
+                const indicator = sorted === 'asc' ? '^' : sorted === 'desc' ? 'v' : '^';
+                const indicatorMuted = !sorted;
+                return (
+                  <th key={header.id} className="px-4 py-3">
+                    {header.isPlaceholder ? null : canSort ? (
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 text-left text-xs font-semibold uppercase tracking-[0.16em] text-ink-500"
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
+                        <span className={indicatorMuted ? 'text-[10px] text-ink-300' : 'text-[10px] text-ink-600'}>
+                          {indicator}
+                          {sorted ? '' : <span className="ml-0.5">v</span>}
+                        </span>
+                      </button>
+                    ) : (
+                      flexRender(header.column.columnDef.header, header.getContext())
+                    )}
+                  </th>
+                );
+              })}
             </tr>
           ))}
         </thead>

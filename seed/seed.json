@@ -5,8 +5,48 @@
       "name": "Aurora Gestion",
       "contactPhone": "+57 300 111 2233",
       "email": "contacto@aurora.com",
-      "nit": "900123456",
+      "nit": "900123456-7",
       "address": "Carrera 10 # 21-30"
+    },
+    {
+      "id": "mgmt-nova",
+      "name": "Nova Admin",
+      "contactPhone": "+57 300 111 2244",
+      "email": "hola@nova.com",
+      "nit": "900223456-1",
+      "address": "Calle 93 # 15-18"
+    },
+    {
+      "id": "mgmt-orion",
+      "name": "Orion Group",
+      "contactPhone": "+57 300 111 2255",
+      "email": "info@orion.com",
+      "nit": "900323456-2",
+      "address": "Carrera 7 # 72-10"
+    },
+    {
+      "id": "mgmt-skyline",
+      "name": "Skyline Admin",
+      "contactPhone": "+57 300 111 2266",
+      "email": "contacto@skyline.com",
+      "nit": "900423456-3",
+      "address": "Avenida Caracas # 26-20"
+    },
+    {
+      "id": "mgmt-pulse",
+      "name": "Pulse Management",
+      "contactPhone": "+57 300 111 2277",
+      "email": "servicios@pulse.com",
+      "nit": "900523456-4",
+      "address": "Calle 45 # 13-60"
+    },
+    {
+      "id": "mgmt-nucleo",
+      "name": "Nucleo Administracion",
+      "contactPhone": "+57 300 111 2288",
+      "email": "soporte@nucleo.com",
+      "nit": "900623456-5",
+      "address": "Carrera 15 # 88-30"
     }
   ],
   "buildings": [
@@ -17,6 +57,51 @@
       "managementCompanyId": "mgmt-aurora",
       "addressText": "Calle 85 # 15-20",
       "location": { "lat": 4.667, "lng": -74.053 },
+      "googlePlaceId": "PLACE_ID"
+    },
+    {
+      "id": "bldg-lumen",
+      "name": "Lumen 12",
+      "porterPhone": "+57 310 222 3355",
+      "managementCompanyId": "mgmt-nova",
+      "addressText": "Calle 94 # 11-40",
+      "location": { "lat": 4.673, "lng": -74.046 },
+      "googlePlaceId": "PLACE_ID"
+    },
+    {
+      "id": "bldg-terra",
+      "name": "Terra 22",
+      "porterPhone": "+57 310 222 3366",
+      "managementCompanyId": "mgmt-orion",
+      "addressText": "Carrera 13 # 74-25",
+      "location": { "lat": 4.666, "lng": -74.056 },
+      "googlePlaceId": "PLACE_ID"
+    },
+    {
+      "id": "bldg-aurum",
+      "name": "Aurum 05",
+      "porterPhone": "+57 310 222 3377",
+      "managementCompanyId": "mgmt-skyline",
+      "addressText": "Avenida Caracas # 39-25",
+      "location": { "lat": 4.629, "lng": -74.073 },
+      "googlePlaceId": "PLACE_ID"
+    },
+    {
+      "id": "bldg-rivera",
+      "name": "Rivera 30",
+      "porterPhone": "+57 310 222 3388",
+      "managementCompanyId": "mgmt-pulse",
+      "addressText": "Carrera 24 # 63-10",
+      "location": { "lat": 4.653, "lng": -74.075 },
+      "googlePlaceId": "PLACE_ID"
+    },
+    {
+      "id": "bldg-vista",
+      "name": "Vista 17",
+      "porterPhone": "+57 310 222 3399",
+      "managementCompanyId": "mgmt-nucleo",
+      "addressText": "Calle 100 # 7-15",
+      "location": { "lat": 4.689, "lng": -74.045 },
       "googlePlaceId": "PLACE_ID"
     }
   ],
@@ -29,6 +114,33 @@
       "role": "Supervisor",
       "active": true,
       "buildingId": "bldg-solaris"
+    },
+    {
+      "id": "emp-lina",
+      "fullName": "Lina Perez",
+      "phone": "+57 315 555 6688",
+      "email": "lina@urbly.co",
+      "role": "Tecnico",
+      "active": true,
+      "buildingId": "bldg-lumen"
+    },
+    {
+      "id": "emp-camilo",
+      "fullName": "Camilo Ruiz",
+      "phone": "+57 315 555 6699",
+      "email": "camilo@urbly.co",
+      "role": "Tecnico",
+      "active": true,
+      "buildingId": "bldg-terra"
+    },
+    {
+      "id": "emp-diana",
+      "fullName": "Diana Ortiz",
+      "phone": "+57 315 555 6700",
+      "email": "diana@urbly.co",
+      "role": "Coordinador",
+      "active": true,
+      "buildingId": "bldg-aurum"
     }
   ],
   "appointments": [
@@ -37,8 +149,8 @@
       "buildingId": "bldg-solaris",
       "title": "Mantenimiento ascensor",
       "description": "Revision preventiva",
-      "startAt": "2024-10-10T10:00:00.000Z",
-      "endAt": "2024-10-10T11:30:00.000Z",
+      "startAt": "2025-02-10T10:00:00.000Z",
+      "endAt": "2025-02-10T11:30:00.000Z",
       "status": "programado"
     }
   ],

@@ -12,9 +12,9 @@ export default function AppLayout() {
 
   return (
     <div className="flex min-h-screen">
-      {showSidebar ? <Sidebar collapsed={collapsed} /> : null}
+      {showSidebar ? <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} /> : null}
       <div className="flex min-h-screen flex-1 flex-col">
-        <TopBar onToggle={showSidebar ? () => setCollapsed((prev) => !prev) : undefined} />
+        <TopBar />
         <main className="flex-1 space-y-8 px-4 py-6 pb-24 md:px-6">
           <Outlet />
         </main>

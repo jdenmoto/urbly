@@ -3,8 +3,9 @@ import clsx from 'clsx';
 import { useNavItems } from '@/app/nav';
 import { useAuth } from '@/app/Auth';
 import { useI18n } from '@/lib/i18n';
+import { ChevronLeft, ChevronRight } from './ActionIcons';
 
-export default function Sidebar({ collapsed }: { collapsed?: boolean }) {
+export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
   const { logout, role } = useAuth();
   const { t } = useI18n();
   const navItems = useNavItems(role);
@@ -16,13 +17,25 @@ export default function Sidebar({ collapsed }: { collapsed?: boolean }) {
         collapsed ? 'w-20' : 'w-64'
       )}
     >
-        <div className="flex items-center gap-3 px-2">
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-900 text-white">U</div>
           {!collapsed ? (
             <div>
             <p className="text-base font-semibold text-ink-900">{t('common.appName')}</p>
             <p className="text-xs text-ink-500">{t('common.tagline')}</p>
             </div>
+          ) : null}
+          </div>
+          {onToggle ? (
+            <button
+              className="rounded-lg border border-fog-200 p-1 text-ink-700 hover:border-ink-900"
+              onClick={onToggle}
+              aria-label={collapsed ? t('common.expand') : t('common.collapse')}
+              title={collapsed ? t('common.expand') : t('common.collapse')}
+            >
+              {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </button>
           ) : null}
         </div>
       <nav className="flex flex-1 flex-col gap-2">

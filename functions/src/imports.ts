@@ -152,6 +152,7 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
       addressText: geocode.formattedAddress,
       googlePlaceId: geocode.placeId,
       location: geocode.location,
+      active: true,
       createdAt: FieldValue.serverTimestamp()
     });
     created += 1;
