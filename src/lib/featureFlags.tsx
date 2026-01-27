@@ -10,6 +10,7 @@ export type FeatureFlags = {
   employees: boolean;
   scheduling: boolean;
   users: boolean;
+  settings: boolean;
 };
 
 const defaultFlags: FeatureFlags = {
@@ -18,7 +19,8 @@ const defaultFlags: FeatureFlags = {
   management: true,
   employees: true,
   scheduling: true,
-  users: true
+  users: true,
+  settings: true
 };
 
 type FeatureFlagsContextValue = {
@@ -38,7 +40,8 @@ function normalizeFlags(payload: Record<string, unknown> | null | undefined): Fe
     management: typeof payload?.management === 'boolean' ? payload.management : defaultFlags.management,
     employees: typeof payload?.employees === 'boolean' ? payload.employees : defaultFlags.employees,
     scheduling: typeof payload?.scheduling === 'boolean' ? payload.scheduling : defaultFlags.scheduling,
-    users: typeof payload?.users === 'boolean' ? payload.users : defaultFlags.users
+    users: typeof payload?.users === 'boolean' ? payload.users : defaultFlags.users,
+    settings: typeof payload?.settings === 'boolean' ? payload.settings : defaultFlags.settings
   };
 }
 

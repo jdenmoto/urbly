@@ -43,11 +43,18 @@ async function writeCollection(name, items) {
   console.log(`Seeded ${name}: ${created} created, ${items.length - created} skipped`);
 }
 
-const collections = ['management_companies', 'buildings', 'employees', 'appointments', 'feature_flags'];
+const collections = ['management_companies', 'buildings', 'contracts', 'employees', 'appointments', 'feature_flags'];
 for (const collection of collections) {
   const items = seed[collection] || [];
   if (!items.length) continue;
   await writeCollection(collection, items);
+}
+
+const settings = seed.settings || {};
+for (const [docId, payload] of Object.entries(settings)) {
+  if (!payload || typeof payload !== 'object') continue;
+  await db.collection('settings').doc(docId).set(payload, { merge: true });
+  console.log(`Seeded settings/${docId}`);
 }
 
 const appointmentTypes = ['mantenimiento', 'inspeccion', 'servicio', 'emergencia', 'otro'];

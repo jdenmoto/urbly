@@ -7,7 +7,7 @@ import { useI18n } from '@/lib/i18n';
 type AuthState = {
   user: User | null;
   loading: boolean;
-  role: 'admin' | 'editor' | 'view';
+  role: 'admin' | 'editor' | 'view' | 'building_admin' | 'emergency_scheduler';
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -17,7 +17,7 @@ const AuthContext = createContext<AuthState | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState<'admin' | 'editor' | 'view'>('view');
+  const [role, setRole] = useState<'admin' | 'editor' | 'view' | 'building_admin' | 'emergency_scheduler'>('view');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
@@ -30,7 +30,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       nextUser
         .getIdTokenResult(true)
         .then((result) => {
-          const claimRole = (result.claims.role as 'admin' | 'editor' | 'view') || 'view';
+          const claimRole =
+            (result.claims.role as 'admin' | 'editor' | 'view' | 'building_admin' | 'emergency_scheduler') || 'view';
           setRole(claimRole);
         })
         .finally(() => setLoading(false));
@@ -67,5 +68,21 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   if (loading) return <div className="p-8 text-sm text-ink-600">{t('common.loadingSession')}</div>;
   if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
+export function RoleGuard({
+  allow,
+  children
+}: {
+  allow: Array<'admin' | 'editor' | 'view' | 'building_admin' | 'emergency_scheduler'>;
+  children: ReactNode;
+}) {
+  const { role, loading } = useAuth();
+  const { t } = useI18n();
+  if (loading) return <div className="p-8 text-sm text-ink-600">{t('common.loadingSession')}</div>;
+  if (!allow.includes(role)) {
+    return <div className="p-8 text-sm text-ink-600">{t('common.notAuthorized')}</div>;
+  }
   return <>{children}</>;
 }

@@ -7,9 +7,11 @@ import interactionPlugin from '@fullcalendar/interaction';
 import multiMonthPlugin from '@fullcalendar/multimonth';
 import esLocale from '@fullcalendar/core/locales/es';
 import { useForm } from 'react-hook-form';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, getDoc } from 'firebase/firestore';
 import PageHeader from '@/components/PageHeader';
 import Card from '@/components/Card';
 import Input from '@/components/Input';
@@ -22,8 +24,15 @@ import Modal from '@/components/Modal';
 import type { Appointment } from '@/core/models/appointment';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
-import { recurrenceOptions, appointmentTypeOptions, cancelReasonOptions } from '@/core/appointments';
+import {
+  recurrenceOptions,
+  appointmentTypeOptions,
+  cancelReasonOptions,
+  issueTypeOptions,
+  issueCategoryOptions
+} from '@/core/appointments';
 import { createDoc, updateDocById, deleteDocById } from '@/lib/api/firestore';
+import { generateAppointmentsPdf } from '@/lib/api/functions';
 import { useList } from '@/lib/api/queries';
 import { isValidDateRange } from '@/core/validators';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -31,17 +40,48 @@ import { useI18n } from '@/lib/i18n';
 import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/app/Auth';
 import ConfirmModal from '@/components/ConfirmModal';
-import { CancelIcon, TrashIcon } from '@/components/ActionIcons';
+import { CancelIcon, TrashIcon, CheckIcon } from '@/components/ActionIcons';
+import { storage, db } from '@/lib/firebase/client';
 
 export default function SchedulingPage() {
   const { t } = useI18n();
   const { toast } = useToast();
   const { role } = useAuth();
-  const canEdit = role !== 'view';
+  const canEdit = role === 'admin' || role === 'editor';
+  const canScheduleEmergency = role === 'admin' || role === 'editor' || role === 'emergency_scheduler';
+  const canCreate = canEdit || role === 'emergency_scheduler';
   const { isMobile } = useBreakpoint();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: appointments = [] } = useList<Appointment>('appointments', 'appointments');
+  const { data: issueSettings } = useQuery({
+    queryKey: ['issueSettings'],
+    queryFn: async () => {
+      const snapshot = await getDoc(doc(db, 'settings', 'issues'));
+      return snapshot.exists() ? (snapshot.data() as { types?: string[]; categories?: Record<string, string[]> }) : null;
+    },
+    staleTime: 60_000
+  });
+  const { data: groupSettings } = useQuery({
+    queryKey: ['buildingGroups'],
+    queryFn: async () => {
+      const snapshot = await getDoc(doc(db, 'settings', 'building_groups'));
+      return snapshot.exists()
+        ? (snapshot.data() as { groups?: Array<{ id: string; name: string; color: string }> })
+        : null;
+    },
+    staleTime: 60_000
+  });
+  const { data: calendarSettings } = useQuery({
+    queryKey: ['calendarSettings'],
+    queryFn: async () => {
+      const snapshot = await getDoc(doc(db, 'settings', 'calendar'));
+      return snapshot.exists()
+        ? (snapshot.data() as { holidays?: Array<{ date: string }>; nonWorkingDays?: Array<{ date: string }> })
+        : null;
+    },
+    staleTime: 60_000
+  });
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ buildingId: '', date: '', from: '', to: '' });
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -54,6 +94,28 @@ export default function SchedulingPage() {
   const [buildingDropdownOpen, setBuildingDropdownOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Appointment | null>(null);
+  const [calendarRange, setCalendarRange] = useState<{ start: string; end: string } | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [completeTarget, setCompleteTarget] = useState<Appointment | null>(null);
+  const [hasIssues, setHasIssues] = useState<'yes' | 'no' | ''>('');
+  const [issues, setIssues] = useState<
+    Array<{
+      id: string;
+      type: string;
+      category: string;
+      description: string;
+      photos: File[];
+    }>
+  >([]);
+  const [issueDraft, setIssueDraft] = useState({
+    id: '',
+    type: '',
+    category: '',
+    description: '',
+    photos: [] as File[]
+  });
+  const [issueError, setIssueError] = useState<string | null>(null);
+  const [completeSubmitting, setCompleteSubmitting] = useState(false);
 
   const schema = z.object({
     buildingId: z.string().min(1, t('scheduling.buildingRequired')),
@@ -121,10 +183,38 @@ export default function SchedulingPage() {
     return true;
   });
 
+  const restrictedDates = useMemo(() => {
+    const dates = new Set<string>();
+    (calendarSettings?.holidays ?? []).forEach((item) => item.date && dates.add(item.date));
+    (calendarSettings?.nonWorkingDays ?? []).forEach((item) => item.date && dates.add(item.date));
+    return dates;
+  }, [calendarSettings]);
+
+  const isRestrictedDate = (value?: string) => {
+    if (!value) return false;
+    const date = value.slice(0, 10);
+    return restrictedDates.has(date);
+  };
+
   const activeBuildings = useMemo(
     () => buildings.filter((building) => building.active !== false),
     [buildings]
   );
+
+  const dynamicIssueTypes = useMemo(
+    () => (issueSettings?.types?.length ? issueSettings.types : issueTypeOptions),
+    [issueSettings]
+  );
+  const dynamicIssueCategories = useMemo(
+    () => (issueSettings?.categories ? issueSettings.categories : issueCategoryOptions),
+    [issueSettings]
+  );
+
+  const groupColors = useMemo(() => {
+    const map = new Map<string, string>();
+    (groupSettings?.groups ?? []).forEach((group) => map.set(group.name, group.color));
+    return map;
+  }, [groupSettings]);
   const filteredBuildings = useMemo(
     () => activeBuildings.filter((building) => building.name.toLowerCase().includes(buildingSearch.trim().toLowerCase())),
     [activeBuildings, buildingSearch]
@@ -170,6 +260,16 @@ export default function SchedulingPage() {
         enableSorting: false,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
+            {row.original.status !== 'completado' && row.original.status !== 'cancelado' ? (
+              <button
+                className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-emerald-600 hover:bg-emerald-50"
+                onClick={() => startComplete(row.original)}
+                title={t('scheduling.complete')}
+                aria-label={t('scheduling.complete')}
+              >
+                <CheckIcon className="h-4 w-4" aria-hidden />
+              </button>
+            ) : null}
             {row.original.status !== 'cancelado' ? (
               <button
                 className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-amber-600 hover:bg-amber-50"
@@ -195,12 +295,25 @@ export default function SchedulingPage() {
   }, [buildings, employees, t, canEdit]);
 
   const onSubmit = async (values: FormValues) => {
-    if (!canEdit) {
+    if (!canCreate) {
       toast(t('common.actionError'), 'error');
+      return;
+    }
+    if (role === 'emergency_scheduler' && values.type !== 'emergencia') {
+      setError('type', { message: t('scheduling.emergencyOnly') });
       return;
     }
     if (!isValidDateRange(values.startAt, values.endAt)) {
       setError('endAt', { message: t('errors.invalidDateRange') });
+      return;
+    }
+    const isEmergency = values.type === 'emergencia';
+    if ((isRestrictedDate(values.startAt) || isRestrictedDate(values.endAt)) && !isEmergency) {
+      setError('startAt', { message: t('scheduling.dateBlocked') });
+      return;
+    }
+    if ((isRestrictedDate(values.startAt) || isRestrictedDate(values.endAt)) && isEmergency && !canScheduleEmergency) {
+      setError('type', { message: t('scheduling.emergencyPermission') });
       return;
     }
     const payload = {
@@ -269,6 +382,87 @@ export default function SchedulingPage() {
     resetCancel({ reason: '', note: '' });
   };
 
+  const startComplete = (appointment: Appointment) => {
+    setCompleteTarget(appointment);
+    setHasIssues('');
+    setIssues([]);
+    setIssueDraft({ id: '', type: '', category: '', description: '', photos: [] });
+    setIssueError(null);
+  };
+
+  const addIssue = () => {
+    setIssueError(null);
+    if (!issueDraft.type || !issueDraft.category) {
+      setIssueError(t('scheduling.issueRequired'));
+      return;
+    }
+    if (issueDraft.photos.length !== 2) {
+      setIssueError(t('scheduling.issuePhotosRequired'));
+      return;
+    }
+    const id = issueDraft.id || (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
+    setIssues((prev) => [...prev, { ...issueDraft, id }]);
+    setIssueDraft({ id: '', type: '', category: '', description: '', photos: [] });
+  };
+
+  const removeIssue = (id: string) => {
+    setIssues((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const uploadIssuePhotos = async (appointmentId: string, issueId: string, photos: File[]) => {
+    const uploads = await Promise.all(
+      photos.map(async (file, index) => {
+        const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${file.name}`);
+        await uploadBytes(storageRef, file);
+        return getDownloadURL(storageRef);
+      })
+    );
+    return uploads;
+  };
+
+  const completeService = async () => {
+    if (!completeTarget) return;
+    if (!hasIssues) {
+      setIssueError(t('scheduling.issueDecisionRequired'));
+      return;
+    }
+    if (hasIssues === 'yes' && issues.length === 0) {
+      setIssueError(t('scheduling.issueAtLeastOne'));
+      return;
+    }
+    setCompleteSubmitting(true);
+    try {
+      let payload: Record<string, unknown> = {
+        status: 'completado',
+        completedAt: new Date().toISOString()
+      };
+      if (hasIssues === 'yes') {
+        const resolvedIssues = await Promise.all(
+          issues.map(async (issue) => {
+            const photoUrls = await uploadIssuePhotos(completeTarget.id, issue.id, issue.photos);
+            return {
+              id: issue.id,
+              type: issue.type,
+              category: issue.category,
+              description: issue.description?.trim() || null,
+              photos: photoUrls,
+              createdAt: new Date().toISOString()
+            };
+          })
+        );
+        payload = { ...payload, issues: resolvedIssues };
+      }
+      await updateDocById('appointments', completeTarget.id, payload);
+      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      toast(t('scheduling.toastCompleted'), 'success');
+      setCompleteTarget(null);
+    } catch (error) {
+      toast(t('common.actionError'), 'error');
+    } finally {
+      setCompleteSubmitting(false);
+    }
+  };
+
   const onCancel = async (values: CancelValues) => {
     if (!cancelTarget) return;
     try {
@@ -308,6 +502,60 @@ export default function SchedulingPage() {
     return map[status] ?? status;
   };
 
+  const resolveIssueLabel = (prefix: 'scheduling.issueTypes' | 'scheduling.issueCategories', value: string) => {
+    const key = `${prefix}.${value}`;
+    const label = t(key);
+    return label === key ? value : label;
+  };
+
+  const resolvePdfRange = () => {
+    if (filters.date) {
+      const start = new Date(`${filters.date}T00:00:00`);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 1);
+      return { rangeStart: start.toISOString(), rangeEnd: end.toISOString() };
+    }
+    if (filters.from && filters.to) {
+      const start = new Date(`${filters.from}T00:00:00`);
+      const end = new Date(`${filters.to}T00:00:00`);
+      end.setDate(end.getDate() + 1);
+      return { rangeStart: start.toISOString(), rangeEnd: end.toISOString() };
+    }
+    if (calendarRange) {
+      return { rangeStart: calendarRange.start, rangeEnd: calendarRange.end };
+    }
+    const start = new Date();
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+    return { rangeStart: start.toISOString(), rangeEnd: end.toISOString() };
+  };
+
+  const handleGeneratePdf = async () => {
+    if (!filters.buildingId) return;
+    try {
+      setPdfLoading(true);
+      const { rangeStart, rangeEnd } = resolvePdfRange();
+      const response = await generateAppointmentsPdf({
+        buildingId: filters.buildingId,
+        rangeStart,
+        rangeEnd
+      });
+      const bytes = Uint8Array.from(atob(response.contentBase64), (char) => char.charCodeAt(0));
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = response.filename;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast(t('scheduling.pdfReady'), 'success');
+    } catch (error) {
+      toast(t('scheduling.pdfError'), 'error');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -324,7 +572,14 @@ export default function SchedulingPage() {
               <option value="calendar">{t('scheduling.viewCalendar')}</option>
               <option value="list">{t('scheduling.viewList')}</option>
             </Select>
-            {canEdit ? <Button onClick={startCreate}>{t('common.add')}</Button> : null}
+            <Button
+              variant="secondary"
+              disabled={!filters.buildingId || pdfLoading}
+              onClick={handleGeneratePdf}
+            >
+              {pdfLoading ? t('scheduling.pdfGenerating') : t('scheduling.pdfGenerate')}
+            </Button>
+            {canCreate ? <Button onClick={startCreate}>{t('common.add')}</Button> : null}
           </div>
         }
       />
@@ -430,12 +685,24 @@ export default function SchedulingPage() {
                     titleFormat: { month: 'short', year: 'numeric' }
                   }
                 }}
-                events={filtered.map((item) => ({
-                  id: item.id,
-                  title: item.title,
-                  start: item.startAt,
-                  end: item.endAt
-                }))}
+                datesSet={(info) => {
+                  setCalendarRange({ start: info.start.toISOString(), end: info.end.toISOString() });
+                }}
+                events={filtered.map((item) => {
+                  const building = buildings.find((b) => b.id === item.buildingId);
+                  const color = building?.group ? groupColors.get(building.group) : undefined;
+                  return {
+                    id: item.id,
+                    title: item.title,
+                    start: item.startAt,
+                    end: item.endAt,
+                    backgroundColor: color,
+                    borderColor: color,
+                    extendedProps: {
+                      type: item.type
+                    }
+                  };
+                })}
                 eventClick={(info) => {
                   const appointment = appointments.find((item) => item.id === info.event.id);
                   if (appointment) setSelected(appointment);
@@ -443,6 +710,15 @@ export default function SchedulingPage() {
                 eventDrop={(info) => {
                   if (!canEdit) return;
                   if (!info.event.start || !info.event.end) return;
+                  const type = (info.event.extendedProps as { type?: string }).type;
+                  if (
+                    (isRestrictedDate(info.event.start.toISOString()) || isRestrictedDate(info.event.end.toISOString())) &&
+                    type !== 'emergencia'
+                  ) {
+                    toast(t('scheduling.dateBlocked'), 'error');
+                    info.revert();
+                    return;
+                  }
                   void updateDocById('appointments', info.event.id, {
                     startAt: info.event.start.toISOString(),
                     endAt: info.event.end.toISOString()
@@ -454,6 +730,15 @@ export default function SchedulingPage() {
                 eventResize={(info) => {
                   if (!canEdit) return;
                   if (!info.event.start || !info.event.end) return;
+                  const type = (info.event.extendedProps as { type?: string }).type;
+                  if (
+                    (isRestrictedDate(info.event.start.toISOString()) || isRestrictedDate(info.event.end.toISOString())) &&
+                    type !== 'emergencia'
+                  ) {
+                    toast(t('scheduling.dateBlocked'), 'error');
+                    info.revert();
+                    return;
+                  }
                   void updateDocById('appointments', info.event.id, {
                     startAt: info.event.start.toISOString(),
                     endAt: info.event.end.toISOString()
@@ -508,6 +793,18 @@ export default function SchedulingPage() {
                 <span className="font-semibold text-ink-900">{t('scheduling.recurrenceLabel')}:</span>{' '}
                 {selected.recurrence ? t(`scheduling.recurrenceOptions.${selected.recurrence}`) : t('scheduling.noRecurrence')}
               </p>
+              {selected.issues?.length ? (
+                <div className="space-y-2">
+                  <p className="font-semibold text-ink-900">{t('scheduling.issuesTitle')}</p>
+                  {selected.issues.map((issue) => (
+                    <div key={issue.id} className="rounded-lg border border-fog-200 bg-fog-50 p-2 text-xs text-ink-700">
+                      <p className="font-semibold text-ink-900">{resolveIssueLabel('scheduling.issueTypes', issue.type)}</p>
+                      <p>{resolveIssueLabel('scheduling.issueCategories', issue.category)}</p>
+                      {issue.description ? <p>{issue.description}</p> : null}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               {selected.status === 'cancelado' ? (
                 <>
                   <p>
@@ -527,6 +824,9 @@ export default function SchedulingPage() {
             <div className="mt-6 flex items-center justify-end gap-2">
               <Button variant="secondary" onClick={() => setSelected(null)}>{t('common.close')}</Button>
               {canEdit ? <Button onClick={() => startEdit(selected)}>{t('common.edit')}</Button> : null}
+              {canEdit && selected.status !== 'completado' && selected.status !== 'cancelado' ? (
+                <Button variant="secondary" onClick={() => startComplete(selected)}>{t('scheduling.complete')}</Button>
+              ) : null}
               {canEdit && selected.status !== 'cancelado' ? (
                 <Button variant="secondary" onClick={() => openCancel(selected)}>{t('scheduling.cancel')}</Button>
               ) : null}
@@ -675,6 +975,158 @@ export default function SchedulingPage() {
         onConfirm={confirmDelete}
         onClose={() => setDeleteTarget(null)}
       />
+      <Modal
+        open={Boolean(completeTarget)}
+        title={t('scheduling.completeTitle')}
+        onClose={() => setCompleteTarget(null)}
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <p className="text-sm font-semibold text-ink-800">{t('scheduling.issueQuestion')}</p>
+            <Button
+              variant={hasIssues === 'yes' ? 'primary' : 'secondary'}
+              onClick={() => {
+                setIssueError(null);
+                setHasIssues('yes');
+              }}
+              type="button"
+            >
+              {t('common.yes')}
+            </Button>
+            <Button
+              variant={hasIssues === 'no' ? 'primary' : 'secondary'}
+              onClick={() => {
+                setIssueError(null);
+                setHasIssues('no');
+              }}
+              type="button"
+            >
+              {t('common.no')}
+            </Button>
+          </div>
+          {issueError && hasIssues !== 'yes' ? (
+            <p className="text-xs text-red-500">{issueError}</p>
+          ) : null}
+          {hasIssues === 'yes' ? (
+            <div className="space-y-4 rounded-xl border border-fog-200 bg-fog-50 p-4">
+              <Select
+                label={t('scheduling.issueType')}
+                required
+                value={issueDraft.type}
+                onChange={(event) =>
+                  setIssueDraft((prev) => ({
+                    ...prev,
+                    type: event.target.value,
+                    category: ''
+                  }))
+                }
+              >
+                <option value="">{t('common.select')}</option>
+                {dynamicIssueTypes.map((option: string) => (
+                  <option key={option} value={option}>
+                    {resolveIssueLabel('scheduling.issueTypes', option)}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                label={t('scheduling.issueCategory')}
+                required
+                value={issueDraft.category}
+                onChange={(event) =>
+                  setIssueDraft((prev) => ({
+                    ...prev,
+                    category: event.target.value
+                  }))
+                }
+                disabled={!issueDraft.type}
+              >
+                <option value="">{t('common.select')}</option>
+                {(issueDraft.type ? dynamicIssueCategories[issueDraft.type] ?? [] : []).map((option: string) => (
+                  <option key={option} value={option}>
+                    {resolveIssueLabel('scheduling.issueCategories', option)}
+                  </option>
+                ))}
+              </Select>
+              <Input
+                label={t('scheduling.issueDescription')}
+                value={issueDraft.description}
+                onChange={(event) => setIssueDraft((prev) => ({ ...prev, description: event.target.value }))}
+                maxLength={300}
+              />
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-ink-800">
+                  {t('scheduling.issuePhotos')}
+                  <span className="ml-1 text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[0, 1].map((index) => {
+                    const file = issueDraft.photos[index];
+                    return (
+                      <label
+                        key={index}
+                        className="flex h-28 cursor-pointer items-center justify-center rounded-xl border border-dashed border-fog-300 bg-white text-ink-500 hover:border-ink-900"
+                      >
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(event) => {
+                            const next = Array.from(issueDraft.photos);
+                            const selected = event.target.files?.[0];
+                            if (selected) {
+                              next[index] = selected;
+                              setIssueDraft((prev) => ({ ...prev, photos: next }));
+                            }
+                          }}
+                        />
+                        {file ? (
+                          <div className="flex flex-col items-center gap-1 px-2 text-center text-xs text-ink-700">
+                            <span className="text-lg">✓</span>
+                            <span className="truncate">{file.name}</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-1 text-xs">
+                            <span className="text-lg">＋</span>
+                            <span>{t('scheduling.addPhoto')}</span>
+                          </div>
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-ink-500">{t('scheduling.issuePhotosHint')}</p>
+              </div>
+              {issueError ? <p className="text-xs text-red-500">{issueError}</p> : null}
+              <Button type="button" variant="secondary" onClick={addIssue}>
+                {t('scheduling.addIssue')}
+              </Button>
+              {issues.length ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-ink-700">{t('scheduling.issueList')}</p>
+                  {issues.map((issue) => (
+                    <div key={issue.id} className="flex items-center justify-between rounded-lg bg-white p-2 text-xs text-ink-700">
+                      <div>
+                        <p className="font-semibold">{t(`scheduling.issueTypes.${issue.type}`)}</p>
+                        <p>{t(`scheduling.issueCategories.${issue.category}`)}</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="text-rose-600"
+                        onClick={() => removeIssue(issue.id)}
+                      >
+                        {t('common.delete')}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+          <Button type="button" className="w-full" disabled={completeSubmitting} onClick={completeService}>
+            {completeSubmitting ? t('scheduling.completing') : t('scheduling.complete')}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

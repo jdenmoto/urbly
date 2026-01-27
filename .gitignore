@@ -35,6 +35,7 @@ coverage/
 
 *.tsbuildinfo
 *.map
+~*.xlsx
 
 dist.zip
 

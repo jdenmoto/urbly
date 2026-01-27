@@ -26,7 +26,7 @@ export default function EmployeesPage() {
   const { t } = useI18n();
   const { toast } = useToast();
   const { role } = useAuth();
-  const canEdit = role !== 'view';
+  const canEdit = role === 'admin' || role === 'editor';
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const queryClient = useQueryClient();

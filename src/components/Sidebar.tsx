@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
-import { useNavItems } from '@/app/nav';
+import { useNavGroups } from '@/app/nav';
 import { useAuth } from '@/app/Auth';
 import { useI18n } from '@/lib/i18n';
 import { ChevronLeft, ChevronRight } from './ActionIcons';
@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight } from './ActionIcons';
 export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
   const { logout, role } = useAuth();
   const { t } = useI18n();
-  const navItems = useNavItems(role);
+  const navGroups = useNavGroups(role);
 
   return (
     <aside
@@ -38,21 +38,32 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
             </button>
           ) : null}
         </div>
-      <nav className="flex flex-1 flex-col gap-2">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              clsx(
-                'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition',
-                isActive ? 'bg-ink-900 text-white' : 'text-ink-700 hover:bg-fog-100'
-              )
-            }
-          >
-            <item.icon className="h-5 w-5" />
-            {!collapsed ? item.label : null}
-          </NavLink>
+      <nav className="flex flex-1 flex-col gap-4">
+        {navGroups.map((group) => (
+          <div key={group.label} className="space-y-2">
+            {!collapsed ? (
+              <p className="px-2 text-[11px] font-semibold uppercase tracking-wide text-ink-400">
+                {group.label}
+              </p>
+            ) : null}
+            <div className="space-y-1">
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    clsx(
+                      'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition',
+                      isActive ? 'bg-ink-900 text-white' : 'text-ink-700 hover:bg-fog-100'
+                    )
+                  }
+                >
+                  <item.icon className="h-5 w-5" />
+                  {!collapsed ? item.label : null}
+                </NavLink>
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
       {!collapsed ? (

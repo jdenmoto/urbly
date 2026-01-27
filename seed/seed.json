@@ -5,6 +5,12 @@
       "name": "Aurora Gestion",
       "contactPhone": "+57 300 111 2233",
       "email": "contacto@aurora.com",
+      "billingEmail": "facturacion@aurora.com",
+      "legalRepresentative": "Laura Mejia",
+      "group": "Norte",
+      "type": "EDIFICIO",
+      "delegateName": "Camilo Perez",
+      "delegatePhone": "+57 312 111 2233",
       "nit": "900123456-7",
       "address": "Carrera 10 # 21-30"
     },
@@ -13,6 +19,12 @@
       "name": "Nova Admin",
       "contactPhone": "+57 300 111 2244",
       "email": "hola@nova.com",
+      "billingEmail": "facturacion@nova.com",
+      "legalRepresentative": "Juan Carlos Soto",
+      "group": "Centro",
+      "type": "CONJUNTO_RESIDENCIAL",
+      "delegateName": "Paola Ruiz",
+      "delegatePhone": "+57 312 111 2244",
       "nit": "900223456-1",
       "address": "Calle 93 # 15-18"
     },
@@ -21,6 +33,12 @@
       "name": "Orion Group",
       "contactPhone": "+57 300 111 2255",
       "email": "info@orion.com",
+      "billingEmail": "facturacion@orion.com",
+      "legalRepresentative": "Mateo Alvarez",
+      "group": "Sur",
+      "type": "UNIDAD",
+      "delegateName": "Sofia Torres",
+      "delegatePhone": "+57 312 111 2255",
       "nit": "900323456-2",
       "address": "Carrera 7 # 72-10"
     },
@@ -29,6 +47,12 @@
       "name": "Skyline Admin",
       "contactPhone": "+57 300 111 2266",
       "email": "contacto@skyline.com",
+      "billingEmail": "facturacion@skyline.com",
+      "legalRepresentative": "Nicolas Peña",
+      "group": "Norte",
+      "type": "EDIFICIO",
+      "delegateName": "Daniela Mora",
+      "delegatePhone": "+57 312 111 2266",
       "nit": "900423456-3",
       "address": "Avenida Caracas # 26-20"
     },
@@ -37,6 +61,12 @@
       "name": "Pulse Management",
       "contactPhone": "+57 300 111 2277",
       "email": "servicios@pulse.com",
+      "billingEmail": "facturacion@pulse.com",
+      "legalRepresentative": "Julian Castro",
+      "group": "Centro",
+      "type": "CONJUNTO_RESIDENCIAL",
+      "delegateName": "Valentina Diaz",
+      "delegatePhone": "+57 312 111 2277",
       "nit": "900523456-4",
       "address": "Calle 45 # 13-60"
     },
@@ -45,6 +75,12 @@
       "name": "Nucleo Administracion",
       "contactPhone": "+57 300 111 2288",
       "email": "soporte@nucleo.com",
+      "billingEmail": "facturacion@nucleo.com",
+      "legalRepresentative": "Maria Rojas",
+      "group": "Sur",
+      "type": "UNIDAD",
+      "delegateName": "Andres Luna",
+      "delegatePhone": "+57 312 111 2288",
       "nit": "900623456-5",
       "address": "Carrera 15 # 88-30"
     }
@@ -53,56 +89,244 @@
     {
       "id": "bldg-solaris",
       "name": "Solaris 18",
+      "group": "Norte",
+      "type": "EDIFICIO",
+      "delegateName": "Camilo Perez",
+      "delegatePhone": "+57 312 111 2233",
+      "nit": "901111111-1",
+      "email": "admin@solaris18.com",
+      "billingEmail": "facturacion@solaris18.com",
       "porterPhone": "+57 310 222 3344",
       "managementCompanyId": "mgmt-aurora",
+      "contractId": "ctr-solaris",
       "addressText": "Calle 85 # 15-20",
       "location": { "lat": 4.667, "lng": -74.053 },
       "googlePlaceId": "PLACE_ID"
     },
     {
-      "id": "bldg-lumen",
-      "name": "Lumen 12",
+      "id": "bldg-sirius",
+      "name": "Sirius Towers",
+      "group": "Norte",
+      "type": "EDIFICIO",
+      "delegateName": "Daniela Mora",
+      "delegatePhone": "+57 312 111 2266",
+      "nit": "901111112-2",
+      "email": "admin@sirius.com",
+      "billingEmail": "facturacion@sirius.com",
       "porterPhone": "+57 310 222 3355",
-      "managementCompanyId": "mgmt-nova",
-      "addressText": "Calle 94 # 11-40",
-      "location": { "lat": 4.673, "lng": -74.046 },
-      "googlePlaceId": "PLACE_ID"
-    },
-    {
-      "id": "bldg-terra",
-      "name": "Terra 22",
-      "porterPhone": "+57 310 222 3366",
-      "managementCompanyId": "mgmt-orion",
-      "addressText": "Carrera 13 # 74-25",
-      "location": { "lat": 4.666, "lng": -74.056 },
-      "googlePlaceId": "PLACE_ID"
-    },
-    {
-      "id": "bldg-aurum",
-      "name": "Aurum 05",
-      "porterPhone": "+57 310 222 3377",
       "managementCompanyId": "mgmt-skyline",
-      "addressText": "Avenida Caracas # 39-25",
-      "location": { "lat": 4.629, "lng": -74.073 },
+      "contractId": "ctr-sirius",
+      "addressText": "Carrera 19 # 98-15",
+      "location": { "lat": 4.701, "lng": -74.042 },
       "googlePlaceId": "PLACE_ID"
     },
     {
-      "id": "bldg-rivera",
-      "name": "Rivera 30",
-      "porterPhone": "+57 310 222 3388",
+      "id": "bldg-orion",
+      "name": "Orion Plaza",
+      "group": "Centro",
+      "type": "CONJUNTO_RESIDENCIAL",
+      "delegateName": "Paola Ruiz",
+      "delegatePhone": "+57 312 111 2244",
+      "nit": "901111113-3",
+      "email": "admin@orionplaza.com",
+      "billingEmail": "facturacion@orionplaza.com",
+      "porterPhone": "+57 310 222 3366",
+      "managementCompanyId": "mgmt-nova",
+      "contractId": "ctr-orion",
+      "addressText": "Calle 72 # 9-45",
+      "location": { "lat": 4.662, "lng": -74.06 },
+      "googlePlaceId": "PLACE_ID"
+    },
+    {
+      "id": "bldg-zenith",
+      "name": "Zenith Residencial",
+      "group": "Centro",
+      "type": "CONJUNTO_RESIDENCIAL",
+      "delegateName": "Valentina Diaz",
+      "delegatePhone": "+57 312 111 2277",
+      "nit": "901111114-4",
+      "email": "admin@zenith.com",
+      "billingEmail": "facturacion@zenith.com",
+      "porterPhone": "+57 310 222 3377",
       "managementCompanyId": "mgmt-pulse",
-      "addressText": "Carrera 24 # 63-10",
-      "location": { "lat": 4.653, "lng": -74.075 },
+      "contractId": "ctr-zenith",
+      "addressText": "Avenida 19 # 110-35",
+      "location": { "lat": 4.708, "lng": -74.052 },
+      "googlePlaceId": "PLACE_ID"
+    },
+    {
+      "id": "bldg-lumen",
+      "name": "Lumen 92",
+      "group": "Sur",
+      "type": "UNIDAD",
+      "delegateName": "Sofia Torres",
+      "delegatePhone": "+57 312 111 2255",
+      "nit": "901111115-5",
+      "email": "admin@lumen92.com",
+      "billingEmail": "facturacion@lumen92.com",
+      "porterPhone": "+57 310 222 3388",
+      "managementCompanyId": "mgmt-orion",
+      "contractId": "ctr-lumen",
+      "addressText": "Carrera 50 # 20-10",
+      "location": { "lat": 4.626, "lng": -74.11 },
       "googlePlaceId": "PLACE_ID"
     },
     {
       "id": "bldg-vista",
-      "name": "Vista 17",
+      "name": "Vista Sur",
+      "group": "Sur",
+      "type": "UNIDAD",
+      "delegateName": "Andres Luna",
+      "delegatePhone": "+57 312 111 2288",
+      "nit": "901111116-6",
+      "email": "admin@vistasur.com",
+      "billingEmail": "facturacion@vistasur.com",
       "porterPhone": "+57 310 222 3399",
       "managementCompanyId": "mgmt-nucleo",
-      "addressText": "Calle 100 # 7-15",
-      "location": { "lat": 4.689, "lng": -74.045 },
+      "contractId": "ctr-vista",
+      "addressText": "Calle 21 Sur # 12-40",
+      "location": { "lat": 4.6, "lng": -74.12 },
       "googlePlaceId": "PLACE_ID"
+    }
+  ],
+  "contracts": [
+    {
+      "id": "ctr-solaris",
+      "name": "Contrato Solaris 18",
+      "administrationId": "mgmt-aurora",
+      "maintenanceTypeId": "maint-basic",
+      "maintenanceTypeName": "Basico",
+      "labAnalysisTypeId": "lab-agua",
+      "labAnalysisTypeName": "Analisis Agua Potable",
+      "maintenancePrices": {
+        "valor_lavado_tanque_agua_potable_sem1": 640382,
+        "valor_lavado_tanque_agua_potable_sem2": 640382,
+        "valor_lavado_pozos_eyectores_aguas_lluvias": 520000,
+        "valor_lavado_pozos_eyectores_aguas_negras": 520000,
+        "valor_pruebas_hidraulias_red_contra_incendios": 1049724,
+        "valor_limpieza_sistema_drenaje_sotanos": 0,
+        "valor_lavado_tanque_red_contra_incendios": 0,
+        "valor_contrato_mantenimiento": 309962
+      },
+      "labAnalysisPrice": 198000,
+      "startAt": "2025-01-01",
+      "endAt": "2025-12-31",
+      "status": "activo"
+    },
+    {
+      "id": "ctr-sirius",
+      "name": "Contrato Sirius Towers",
+      "administrationId": "mgmt-skyline",
+      "maintenanceTypeId": "maint-premium",
+      "maintenanceTypeName": "Premium",
+      "labAnalysisTypeId": "lab-bacter",
+      "labAnalysisTypeName": "Analisis Microbiologico",
+      "maintenancePrices": {
+        "valor_lavado_tanque_agua_potable_sem1": 740000,
+        "valor_lavado_tanque_agua_potable_sem2": 740000,
+        "valor_lavado_pozos_eyectores_aguas_lluvias": 620000,
+        "valor_lavado_pozos_eyectores_aguas_negras": 620000,
+        "valor_pruebas_hidraulias_red_contra_incendios": 1190000,
+        "valor_limpieza_sistema_drenaje_sotanos": 450000,
+        "valor_lavado_tanque_red_contra_incendios": 520000,
+        "valor_contrato_mantenimiento": 420000
+      },
+      "labAnalysisPrice": 235000,
+      "startAt": "2025-02-01",
+      "endAt": "2026-01-31",
+      "status": "activo"
+    },
+    {
+      "id": "ctr-orion",
+      "name": "Contrato Orion Plaza",
+      "administrationId": "mgmt-nova",
+      "maintenanceTypeId": "maint-basic",
+      "maintenanceTypeName": "Basico",
+      "labAnalysisTypeId": "lab-agua",
+      "labAnalysisTypeName": "Analisis Agua Potable",
+      "maintenancePrices": {
+        "valor_lavado_tanque_agua_potable_sem1": 640382,
+        "valor_lavado_tanque_agua_potable_sem2": 640382,
+        "valor_lavado_pozos_eyectores_aguas_lluvias": 520000,
+        "valor_lavado_pozos_eyectores_aguas_negras": 520000,
+        "valor_pruebas_hidraulias_red_contra_incendios": 1049724,
+        "valor_limpieza_sistema_drenaje_sotanos": 0,
+        "valor_lavado_tanque_red_contra_incendios": 0,
+        "valor_contrato_mantenimiento": 309962
+      },
+      "labAnalysisPrice": 198000,
+      "startAt": "2025-03-01",
+      "endAt": "2026-02-28",
+      "status": "activo"
+    },
+    {
+      "id": "ctr-zenith",
+      "name": "Contrato Zenith Residencial",
+      "administrationId": "mgmt-pulse",
+      "maintenanceTypeId": "maint-premium",
+      "maintenanceTypeName": "Premium",
+      "labAnalysisTypeId": "lab-agua",
+      "labAnalysisTypeName": "Analisis Agua Potable",
+      "maintenancePrices": {
+        "valor_lavado_tanque_agua_potable_sem1": 720000,
+        "valor_lavado_tanque_agua_potable_sem2": 720000,
+        "valor_lavado_pozos_eyectores_aguas_lluvias": 590000,
+        "valor_lavado_pozos_eyectores_aguas_negras": 590000,
+        "valor_pruebas_hidraulias_red_contra_incendios": 1125000,
+        "valor_limpieza_sistema_drenaje_sotanos": 410000,
+        "valor_lavado_tanque_red_contra_incendios": 500000,
+        "valor_contrato_mantenimiento": 390000
+      },
+      "labAnalysisPrice": 210000,
+      "startAt": "2025-01-15",
+      "endAt": "2025-12-15",
+      "status": "activo"
+    },
+    {
+      "id": "ctr-lumen",
+      "name": "Contrato Lumen 92",
+      "administrationId": "mgmt-orion",
+      "maintenanceTypeId": "maint-basic",
+      "maintenanceTypeName": "Basico",
+      "labAnalysisTypeId": "lab-bacter",
+      "labAnalysisTypeName": "Analisis Microbiologico",
+      "maintenancePrices": {
+        "valor_lavado_tanque_agua_potable_sem1": 640382,
+        "valor_lavado_tanque_agua_potable_sem2": 640382,
+        "valor_lavado_pozos_eyectores_aguas_lluvias": 520000,
+        "valor_lavado_pozos_eyectores_aguas_negras": 520000,
+        "valor_pruebas_hidraulias_red_contra_incendios": 1049724,
+        "valor_limpieza_sistema_drenaje_sotanos": 0,
+        "valor_lavado_tanque_red_contra_incendios": 0,
+        "valor_contrato_mantenimiento": 309962
+      },
+      "labAnalysisPrice": 198000,
+      "startAt": "2025-02-15",
+      "endAt": "2026-02-14",
+      "status": "activo"
+    },
+    {
+      "id": "ctr-vista",
+      "name": "Contrato Vista Sur",
+      "administrationId": "mgmt-nucleo",
+      "maintenanceTypeId": "maint-basic",
+      "maintenanceTypeName": "Basico",
+      "labAnalysisTypeId": "lab-agua",
+      "labAnalysisTypeName": "Analisis Agua Potable",
+      "maintenancePrices": {
+        "valor_lavado_tanque_agua_potable_sem1": 640382,
+        "valor_lavado_tanque_agua_potable_sem2": 640382,
+        "valor_lavado_pozos_eyectores_aguas_lluvias": 520000,
+        "valor_lavado_pozos_eyectores_aguas_negras": 520000,
+        "valor_pruebas_hidraulias_red_contra_incendios": 1049724,
+        "valor_limpieza_sistema_drenaje_sotanos": 0,
+        "valor_lavado_tanque_red_contra_incendios": 0,
+        "valor_contrato_mantenimiento": 309962
+      },
+      "labAnalysisPrice": 198000,
+      "startAt": "2025-04-01",
+      "endAt": "2026-03-31",
+      "status": "activo"
     }
   ],
   "employees": [
@@ -117,52 +341,110 @@
     },
     {
       "id": "emp-lina",
-      "fullName": "Lina Perez",
+      "fullName": "Lina Herrera",
       "phone": "+57 315 555 6688",
       "email": "lina@urbly.co",
       "role": "Tecnico",
       "active": true,
-      "buildingId": "bldg-lumen"
+      "buildingId": "bldg-orion"
     },
     {
-      "id": "emp-camilo",
-      "fullName": "Camilo Ruiz",
+      "id": "emp-carlos",
+      "fullName": "Carlos Nieto",
       "phone": "+57 315 555 6699",
-      "email": "camilo@urbly.co",
-      "role": "Tecnico",
+      "email": "carlos@urbly.co",
+      "role": "Operador",
       "active": true,
-      "buildingId": "bldg-terra"
-    },
-    {
-      "id": "emp-diana",
-      "fullName": "Diana Ortiz",
-      "phone": "+57 315 555 6700",
-      "email": "diana@urbly.co",
-      "role": "Coordinador",
-      "active": true,
-      "buildingId": "bldg-aurum"
+      "buildingId": "bldg-zenith"
     }
   ],
   "appointments": [
     {
       "id": "apt-001",
       "buildingId": "bldg-solaris",
-      "title": "Mantenimiento ascensor",
-      "description": "Revision preventiva",
-      "startAt": "2025-02-10T10:00:00.000Z",
-      "endAt": "2025-02-10T11:30:00.000Z",
-      "status": "programado"
+      "title": "Mantenimiento semestral",
+      "description": "Agendamiento de prueba",
+      "startAt": "2025-01-20T09:00:00.000Z",
+      "endAt": "2025-01-20T10:00:00.000Z",
+      "status": "programado",
+      "type": "mantenimiento",
+      "employeeId": "emp-juan"
     }
   ],
   "feature_flags": [
     {
-      "id": "app",
+      "id": "default",
       "dashboard": true,
-      "buildings": true,
       "management": true,
+      "buildings": true,
       "employees": true,
       "scheduling": true,
-      "users": true
+      "imports": true,
+      "users": true,
+      "settings": true
     }
-  ]
+  ],
+  "settings": {
+    "building_groups": {
+      "groups": [
+        { "id": "group-norte", "name": "Norte", "color": "#2563eb" },
+        { "id": "group-centro", "name": "Centro", "color": "#16a34a" },
+        { "id": "group-sur", "name": "Sur", "color": "#dc2626" }
+      ]
+    },
+    "maintenance_contract_types": {
+      "types": [
+        {
+          "id": "maint-basic",
+          "name": "Basico",
+          "prices": {
+            "valor_lavado_tanque_agua_potable_sem1": 640382,
+            "valor_lavado_tanque_agua_potable_sem2": 640382,
+            "valor_lavado_pozos_eyectores_aguas_lluvias": 520000,
+            "valor_lavado_pozos_eyectores_aguas_negras": 520000,
+            "valor_pruebas_hidraulias_red_contra_incendios": 1049724,
+            "valor_limpieza_sistema_drenaje_sotanos": 0,
+            "valor_lavado_tanque_red_contra_incendios": 0,
+            "valor_contrato_mantenimiento": 309962
+          }
+        },
+        {
+          "id": "maint-premium",
+          "name": "Premium",
+          "prices": {
+            "valor_lavado_tanque_agua_potable_sem1": 740000,
+            "valor_lavado_tanque_agua_potable_sem2": 740000,
+            "valor_lavado_pozos_eyectores_aguas_lluvias": 620000,
+            "valor_lavado_pozos_eyectores_aguas_negras": 620000,
+            "valor_pruebas_hidraulias_red_contra_incendios": 1190000,
+            "valor_limpieza_sistema_drenaje_sotanos": 450000,
+            "valor_lavado_tanque_red_contra_incendios": 520000,
+            "valor_contrato_mantenimiento": 420000
+          }
+        }
+      ]
+    },
+    "lab_analysis_types": {
+      "types": [
+        {
+          "id": "lab-agua",
+          "name": "Analisis Agua Potable",
+          "description": "Fisicoquimico",
+          "type": "AGUA",
+          "active": true
+        },
+        {
+          "id": "lab-bacter",
+          "name": "Analisis Microbiologico",
+          "description": "Bacteriologico",
+          "type": "MICRO",
+          "active": true
+        }
+      ]
+    },
+    "calendar": {
+      "holidays": [],
+      "nonWorkingDays": []
+    }
+  }
 }

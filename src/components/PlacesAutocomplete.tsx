@@ -12,13 +12,15 @@ export default function PlacesAutocomplete({
   onSelect,
   error,
   ready,
-  required
+  required,
+  value
 }: {
   label: string;
   onSelect: (place: PlaceResult) => void;
   error?: string;
   ready?: boolean;
   required?: boolean;
+  value?: PlaceResult | null;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const elementRef = useRef<any>(null);
@@ -33,6 +35,15 @@ export default function PlacesAutocomplete({
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
+
+  useEffect(() => {
+    if (!value) return;
+    setInputValue(value.address);
+    setSelectedValue(value);
+    if (elementRef.current) {
+      elementRef.current.value = value.address;
+    }
+  }, [value?.address, value?.placeId]);
 
   useEffect(() => {
     if (!ready) return;

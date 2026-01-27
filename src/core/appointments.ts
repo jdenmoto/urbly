@@ -15,3 +15,13 @@ export const cancelReasonOptions = [
 ] as const;
 
 export type CancelReasonValue = (typeof cancelReasonOptions)[number];
+
+export const issueTypeOptions = ['operativo', 'seguridad', 'infraestructura', 'otro'] as const;
+export type IssueTypeValue = (typeof issueTypeOptions)[number];
+
+export const issueCategoryOptions: Record<IssueTypeValue, string[]> = {
+  operativo: ['limpieza', 'mantenimiento', 'logistica'],
+  seguridad: ['acceso', 'incidente', 'prevencion'],
+  infraestructura: ['electricidad', 'plomeria', 'estructura'],
+  otro: ['general']
+};

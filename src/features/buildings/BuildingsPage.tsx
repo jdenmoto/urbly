@@ -3,9 +3,10 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createDoc, updateDocById, deleteDocById } from '@/lib/api/firestore';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useList } from '@/lib/api/queries';
 import type { Building } from '@/core/models/building';
+import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import PageHeader from '@/components/PageHeader';
 import Card from '@/components/Card';
@@ -27,6 +28,8 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/app/Auth';
 import { EditIcon, TrashIcon, PowerIcon } from '@/components/ActionIcons';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/client';
 
 type PreviewRow = {
   building_name: string;
@@ -39,9 +42,20 @@ export default function BuildingsPage() {
   const { t } = useI18n();
   const { toast } = useToast();
   const { role } = useAuth();
-  const canEdit = role !== 'view';
+  const canEdit = role === 'admin' || role === 'editor';
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
+  const { data: contracts = [] } = useList<Contract>('contracts', 'contracts');
+  const { data: groupSettings } = useQuery({
+    queryKey: ['buildingGroups'],
+    queryFn: async () => {
+      const snapshot = await getDoc(doc(db, 'settings', 'building_groups'));
+      return snapshot.exists()
+        ? (snapshot.data() as { groups?: Array<{ id: string; name: string; color: string }> })
+        : null;
+    },
+    staleTime: 60_000
+  });
   const queryClient = useQueryClient();
   const [place, setPlace] = useState<PlaceResult | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -54,11 +68,20 @@ export default function BuildingsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Building | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const buildingGroups = useMemo(() => groupSettings?.groups ?? [], [groupSettings]);
 
   const schema = z.object({
     name: z.string().min(2, t('common.required')),
+    group: z.string().min(1, t('common.required')),
+    type: z.enum(['EDIFICIO', 'CONJUNTO_RESIDENCIAL', 'UNIDAD']),
+    delegateName: z.string().min(2, t('common.required')),
+    delegatePhone: z.string().min(7, t('common.required')),
+    nit: z.string().regex(/^\d{6,12}-\d$/, t('management.nitFormat')),
+    email: z.string().email(t('auth.errorEmail')),
+    billingEmail: z.string().email(t('auth.errorEmail')),
     porterPhone: z.string().min(7, t('common.required')),
-    managementCompanyId: z.string().min(1, t('buildings.managementRequired'))
+    managementCompanyId: z.string().min(1, t('buildings.managementRequired')),
+    contractId: z.string().min(1, t('buildings.contractRequired'))
   });
   type FormValues = z.infer<typeof schema>;
 
@@ -66,14 +89,23 @@ export default function BuildingsPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset
+    reset,
+    watch,
+    setValue
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
   const {
     register: editRegister,
     handleSubmit: handleEditSubmit,
     formState: { errors: editErrors, isSubmitting: editSubmitting },
-    reset: resetEdit
+    reset: resetEdit,
+    watch: editWatch,
+    setValue: setEditValue
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
+
+  const selectedManagementId = watch('managementCompanyId');
+  const selectedContractId = watch('contractId');
+  const editManagementId = editWatch('managementCompanyId');
+  const editContractId = editWatch('contractId');
 
   const [mapsReady, setMapsReady] = useState(false);
 
@@ -91,6 +123,14 @@ export default function BuildingsPage() {
       { header: t('buildings.name'), accessorKey: 'name', enableSorting: true },
       { header: t('buildings.porterPhone'), accessorKey: 'porterPhone', enableSorting: false },
       { header: t('buildings.address'), accessorKey: 'addressText', enableSorting: true },
+      {
+        header: t('buildings.contract'),
+        enableSorting: false,
+        accessorFn: (row) => {
+          const contract = contracts.find((item) => item.id === row.contractId);
+          return contract?.name ?? t('buildings.noContract');
+        }
+      },
       {
         header: t('buildings.status'),
         accessorKey: 'active',
@@ -134,7 +174,7 @@ export default function BuildingsPage() {
         )
       }
     ];
-  }, [t, canEdit]);
+  }, [t, canEdit, contracts]);
 
   const previewColumns = useMemo<ColumnDef<PreviewRow>[]>(
     () => [
@@ -156,11 +196,24 @@ export default function BuildingsPage() {
 
   const onSubmit = async (values: FormValues) => {
     if (!place) return;
+    const contract = contracts.find((item) => item.id === values.contractId);
+    if (!contract || contract.administrationId !== values.managementCompanyId) {
+      toast(t('buildings.contractMismatch'), 'error');
+      return;
+    }
     try {
       await createDoc('buildings', {
         name: values.name,
+        group: values.group,
+        type: values.type,
+        delegateName: values.delegateName,
+        delegatePhone: values.delegatePhone,
+        nit: values.nit,
+        email: values.email,
+        billingEmail: values.billingEmail,
         porterPhone: values.porterPhone,
         managementCompanyId: values.managementCompanyId,
+        contractId: values.contractId,
         addressText: place.address,
         googlePlaceId: place.placeId,
         location: place.location,
@@ -185,8 +238,16 @@ export default function BuildingsPage() {
     });
     resetEdit({
       name: building.name,
+      group: building.group ?? '',
+      type: building.type ?? 'EDIFICIO',
+      delegateName: building.delegateName ?? '',
+      delegatePhone: building.delegatePhone ?? '',
+      nit: building.nit ?? '',
+      email: building.email ?? '',
+      billingEmail: building.billingEmail ?? '',
       porterPhone: building.porterPhone,
-      managementCompanyId: building.managementCompanyId
+      managementCompanyId: building.managementCompanyId,
+      contractId: building.contractId ?? ''
     });
     setEditOpen(true);
   };
@@ -198,11 +259,24 @@ export default function BuildingsPage() {
       placeId: editingBuilding.googlePlaceId,
       location: editingBuilding.location
     };
+    const contract = contracts.find((item) => item.id === values.contractId);
+    if (!contract || contract.administrationId !== values.managementCompanyId) {
+      toast(t('buildings.contractMismatch'), 'error');
+      return;
+    }
     try {
       await updateDocById('buildings', editingBuilding.id, {
         name: values.name,
+        group: values.group,
+        type: values.type,
+        delegateName: values.delegateName,
+        delegatePhone: values.delegatePhone,
+        nit: values.nit,
+        email: values.email,
+        billingEmail: values.billingEmail,
         porterPhone: values.porterPhone,
         managementCompanyId: values.managementCompanyId,
+        contractId: values.contractId,
         addressText: updatedPlace.address,
         googlePlaceId: updatedPlace.placeId,
         location: updatedPlace.location
@@ -306,9 +380,48 @@ export default function BuildingsPage() {
 
   const startCreate = () => {
     setPlace(null);
-    reset({ name: '', porterPhone: '', managementCompanyId: '' });
+    reset({
+      name: '',
+      group: '',
+      type: 'EDIFICIO',
+      delegateName: '',
+      delegatePhone: '',
+      nit: '',
+      email: '',
+      billingEmail: '',
+      porterPhone: '',
+      managementCompanyId: '',
+      contractId: ''
+    });
     setCreateOpen(true);
   };
+
+  const contractOptions = useMemo(
+    () => contracts.filter((item) => item.administrationId === selectedManagementId),
+    [contracts, selectedManagementId]
+  );
+  const editContractOptions = useMemo(
+    () => contracts.filter((item) => item.administrationId === editManagementId),
+    [contracts, editManagementId]
+  );
+
+  useEffect(() => {
+    if (selectedContractId) {
+      const contract = contracts.find((item) => item.id === selectedContractId);
+      if (!contract || contract.administrationId !== selectedManagementId) {
+        setValue('contractId', '');
+      }
+    }
+  }, [contracts, selectedContractId, selectedManagementId, setValue]);
+
+  useEffect(() => {
+    if (editContractId) {
+      const contract = contracts.find((item) => item.id === editContractId);
+      if (!contract || contract.administrationId !== editManagementId) {
+        setEditValue('contractId', '');
+      }
+    }
+  }, [contracts, editContractId, editManagementId, setEditValue]);
 
   return (
     <div className="space-y-8">
@@ -382,6 +495,40 @@ export default function BuildingsPage() {
           <Modal open={createOpen} title={t('buildings.newTitle')} onClose={() => setCreateOpen(false)}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
               <Input label={t('buildings.name')} error={errors.name?.message} required {...register('name')} />
+              <Select label={t('buildings.group')} error={errors.group?.message} required {...register('group')}>
+                <option value="">{t('common.select')}</option>
+                {buildingGroups.map((group) => (
+                  <option key={group.id} value={group.name}>
+                    {group.name}
+                  </option>
+                ))}
+              </Select>
+              <Select label={t('buildings.type')} error={errors.type?.message} required {...register('type')}>
+                <option value="EDIFICIO">{t('buildings.types.EDIFICIO')}</option>
+                <option value="CONJUNTO_RESIDENCIAL">{t('buildings.types.CONJUNTO_RESIDENCIAL')}</option>
+                <option value="UNIDAD">{t('buildings.types.UNIDAD')}</option>
+              </Select>
+              <Input
+                label={t('buildings.delegateName')}
+                error={errors.delegateName?.message}
+                required
+                {...register('delegateName')}
+              />
+              <Input
+                label={t('buildings.delegatePhone')}
+                error={errors.delegatePhone?.message}
+                required
+                {...register('delegatePhone')}
+              />
+              <Input label={t('buildings.nit')} error={errors.nit?.message} required {...register('nit')} />
+              <Input label={t('buildings.email')} type="email" error={errors.email?.message} required {...register('email')} />
+              <Input
+                label={t('buildings.billingEmail')}
+                type="email"
+                error={errors.billingEmail?.message}
+                required
+                {...register('billingEmail')}
+              />
               <Input
                 label={t('buildings.porterPhone')}
                 error={errors.porterPhone?.message}
@@ -401,6 +548,19 @@ export default function BuildingsPage() {
                   </option>
                 ))}
               </Select>
+              <Select
+                label={t('buildings.contract')}
+                error={errors.contractId?.message}
+                required
+                {...register('contractId')}
+              >
+                <option value="">{t('common.select')}</option>
+                {contractOptions.map((contract) => (
+                  <option key={contract.id} value={contract.id}>
+                    {contract.name}
+                  </option>
+                ))}
+              </Select>
               <PlacesAutocomplete
                 label={t('buildings.address')}
                 onSelect={(next) => setPlace(next)}
@@ -416,6 +576,49 @@ export default function BuildingsPage() {
           <Modal open={editOpen} title={t('buildings.editTitle')} onClose={() => setEditOpen(false)}>
             <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4" noValidate>
               <Input label={t('buildings.name')} error={editErrors.name?.message} required {...editRegister('name')} />
+              <Select label={t('buildings.group')} error={editErrors.group?.message} required {...editRegister('group')}>
+                <option value="">{t('common.select')}</option>
+                {buildingGroups.map((group) => (
+                  <option key={group.id} value={group.name}>
+                    {group.name}
+                  </option>
+                ))}
+                {buildingGroups.some((group) => group.name === editWatch('group')) ? null : editWatch('group') ? (
+                  <option value={editWatch('group')}>{editWatch('group')}</option>
+                ) : null}
+              </Select>
+              <Select label={t('buildings.type')} error={editErrors.type?.message} required {...editRegister('type')}>
+                <option value="EDIFICIO">{t('buildings.types.EDIFICIO')}</option>
+                <option value="CONJUNTO_RESIDENCIAL">{t('buildings.types.CONJUNTO_RESIDENCIAL')}</option>
+                <option value="UNIDAD">{t('buildings.types.UNIDAD')}</option>
+              </Select>
+              <Input
+                label={t('buildings.delegateName')}
+                error={editErrors.delegateName?.message}
+                required
+                {...editRegister('delegateName')}
+              />
+              <Input
+                label={t('buildings.delegatePhone')}
+                error={editErrors.delegatePhone?.message}
+                required
+                {...editRegister('delegatePhone')}
+              />
+              <Input label={t('buildings.nit')} error={editErrors.nit?.message} required {...editRegister('nit')} />
+              <Input
+                label={t('buildings.email')}
+                type="email"
+                error={editErrors.email?.message}
+                required
+                {...editRegister('email')}
+              />
+              <Input
+                label={t('buildings.billingEmail')}
+                type="email"
+                error={editErrors.billingEmail?.message}
+                required
+                {...editRegister('billingEmail')}
+              />
               <Input
                 label={t('buildings.porterPhone')}
                 error={editErrors.porterPhone?.message}
@@ -435,7 +638,25 @@ export default function BuildingsPage() {
                   </option>
                 ))}
               </Select>
-              <PlacesAutocomplete label={t('buildings.address')} onSelect={(next) => setEditPlace(next)} ready={mapsReady} />
+              <Select
+                label={t('buildings.contract')}
+                error={editErrors.contractId?.message}
+                required
+                {...editRegister('contractId')}
+              >
+                <option value="">{t('common.select')}</option>
+                {editContractOptions.map((contract) => (
+                  <option key={contract.id} value={contract.id}>
+                    {contract.name}
+                  </option>
+                ))}
+              </Select>
+              <PlacesAutocomplete
+                label={t('buildings.address')}
+                onSelect={(next) => setEditPlace(next)}
+                ready={mapsReady}
+                value={editPlace}
+              />
               <Button type="submit" className="w-full" disabled={editSubmitting}>
                 {editSubmitting ? t('buildings.saving') : t('buildings.update')}
               </Button>

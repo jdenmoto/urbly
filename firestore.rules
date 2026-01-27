@@ -1,26 +1,192 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function role() {
+      return request.auth.token.role;
+    }
+
     function isAdmin() {
-      return request.auth != null && request.auth.token.role == 'admin';
+      return isSignedIn() && role() == 'admin';
     }
 
     function isEditor() {
-      return request.auth != null && request.auth.token.role == 'editor';
+      return isSignedIn() && role() == 'editor';
+    }
+
+    function isViewer() {
+      return isSignedIn() && role() == 'view';
+    }
+
+    function isBuildingAdmin() {
+      return isSignedIn() && role() == 'building_admin';
+    }
+
+    function isEmergencyScheduler() {
+      return isSignedIn() && role() == 'emergency_scheduler';
+    }
+
+    function isStaff() {
+      return isAdmin() || isEditor() || isViewer() || isEmergencyScheduler();
+    }
+
+    function hasFields(data, fields) {
+      return data.keys().hasAll(fields);
+    }
+
+    function isNonEmptyString(value) {
+      return value is string && value.size() > 0;
+    }
+
+    function validManagement(data) {
+      return hasFields(data, [
+        'name',
+        'contactPhone',
+        'email',
+        'billingEmail',
+        'legalRepresentative',
+        'group',
+        'type',
+        'delegateName',
+        'delegatePhone',
+        'nit',
+        'address'
+      ])
+      && isNonEmptyString(data.name)
+      && isNonEmptyString(data.contactPhone)
+      && isNonEmptyString(data.email)
+      && isNonEmptyString(data.billingEmail)
+      && isNonEmptyString(data.legalRepresentative)
+      && isNonEmptyString(data.group)
+      && (data.type == 'EDIFICIO' || data.type == 'CONJUNTO_RESIDENCIAL' || data.type == 'UNIDAD')
+      && isNonEmptyString(data.delegateName)
+      && isNonEmptyString(data.delegatePhone)
+      && isNonEmptyString(data.nit)
+      && isNonEmptyString(data.address);
+    }
+
+    function validContract(data) {
+      return hasFields(data, [
+        'name',
+        'administrationId',
+        'maintenanceTypeId',
+        'labAnalysisTypeId',
+        'labAnalysisPrice',
+        'maintenancePrices',
+        'startAt',
+        'endAt',
+        'status'
+      ])
+      && isNonEmptyString(data.name)
+      && isNonEmptyString(data.administrationId)
+      && isNonEmptyString(data.maintenanceTypeId)
+      && isNonEmptyString(data.labAnalysisTypeId)
+      && data.labAnalysisPrice is number
+      && data.maintenancePrices is map
+      && data.maintenancePrices.valor_lavado_tanque_agua_potable_sem1 is number
+      && data.maintenancePrices.valor_lavado_tanque_agua_potable_sem2 is number
+      && data.maintenancePrices.valor_lavado_pozos_eyectores_aguas_lluvias is number
+      && data.maintenancePrices.valor_lavado_pozos_eyectores_aguas_negras is number
+      && data.maintenancePrices.valor_pruebas_hidraulias_red_contra_incendios is number
+      && data.maintenancePrices.valor_limpieza_sistema_drenaje_sotanos is number
+      && data.maintenancePrices.valor_lavado_tanque_red_contra_incendios is number
+      && data.maintenancePrices.valor_contrato_mantenimiento is number
+      && isNonEmptyString(data.startAt)
+      && isNonEmptyString(data.endAt)
+      && (data.status == 'activo' || data.status == 'inactivo');
+    }
+
+    function validBuilding(data) {
+      return hasFields(data, [
+        'name',
+        'group',
+        'type',
+        'delegateName',
+        'delegatePhone',
+        'nit',
+        'email',
+        'billingEmail',
+        'porterPhone',
+        'managementCompanyId',
+        'contractId',
+        'addressText',
+        'googlePlaceId',
+        'location'
+      ])
+      && isNonEmptyString(data.name)
+      && isNonEmptyString(data.group)
+      && (data.type == 'EDIFICIO' || data.type == 'CONJUNTO_RESIDENCIAL' || data.type == 'UNIDAD')
+      && isNonEmptyString(data.delegateName)
+      && isNonEmptyString(data.delegatePhone)
+      && isNonEmptyString(data.nit)
+      && isNonEmptyString(data.email)
+      && isNonEmptyString(data.billingEmail)
+      && isNonEmptyString(data.porterPhone)
+      && isNonEmptyString(data.managementCompanyId)
+      && isNonEmptyString(data.contractId)
+      && isNonEmptyString(data.addressText)
+      && isNonEmptyString(data.googlePlaceId)
+      && data.location is map
+      && data.location.lat is number
+      && data.location.lng is number
+      && get(/databases/$(database)/documents/contracts/$(data.contractId)).data.administrationId == data.managementCompanyId;
     }
 
     match /users/{userId} {
-      allow read: if isAdmin();
+      allow read: if isAdmin() || (isBuildingAdmin() && request.auth.uid == userId);
       allow write: if isAdmin();
     }
 
     match /feature_flags/{docId} {
-      allow read: if request.auth != null;
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
+    match /settings/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || isEditor();
+    }
+
+    match /management_companies/{companyId} {
+      allow read: if isStaff()
+        || (isBuildingAdmin() && request.auth.token.administrationId == companyId);
+      allow write: if (isAdmin() || isEditor()) && validManagement(request.resource.data);
+    }
+
+    match /contracts/{contractId} {
+      allow read: if isStaff()
+        || (isBuildingAdmin() && resource.data.administrationId == request.auth.token.administrationId);
+      allow write: if (isAdmin() || isEditor()) && validContract(request.resource.data);
+    }
+
+    match /buildings/{buildingId} {
+      allow read: if isStaff()
+        || (
+          isBuildingAdmin()
+          && resource.data.managementCompanyId == request.auth.token.administrationId
+          && resource.data.contractId is string
+        );
+      allow write: if (isAdmin() || isEditor()) && validBuilding(request.resource.data);
+    }
+
+    match /appointments/{appointmentId} {
+      allow read: if isStaff()
+        || (
+          isBuildingAdmin()
+          && get(/databases/$(database)/documents/buildings/$(resource.data.buildingId)).data.managementCompanyId
+            == request.auth.token.administrationId
+          && get(/databases/$(database)/documents/buildings/$(resource.data.buildingId)).data.contractId is string
+        );
+      allow write: if isAdmin()
+        || isEditor()
+        || (isEmergencyScheduler() && request.resource.data.type == 'emergencia');
+    }
+
     match /{document=**} {
-      allow read: if request.auth != null;
+      allow read: if isStaff();
       allow write: if isAdmin() || isEditor();
     }
   }

@@ -17,16 +17,18 @@ import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/app/Auth';
 import { useList } from '@/lib/api/queries';
 import type { AppUser } from '@/core/models/appUser';
+import type { ManagementCompany } from '@/core/models/managementCompany';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createAppUser, updateAppUser, setAppUserDisabled, deleteAppUser } from '@/lib/api/functions';
 import { useToast } from '@/components/ToastProvider';
 import { EditIcon, TrashIcon, PowerIcon } from '@/components/ActionIcons';
 
-const roleOptions = ['view', 'editor', 'admin'] as const;
+const roleOptions = ['view', 'editor', 'admin', 'building_admin', 'emergency_scheduler'] as const;
 
 type FormValues = {
   email: string;
-  role: 'admin' | 'editor' | 'view';
+  role: 'admin' | 'editor' | 'view' | 'building_admin' | 'emergency_scheduler';
+  administrationId?: string;
 };
 
 export default function UsersPage() {
@@ -42,38 +44,74 @@ export default function UsersPage() {
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
 
   const { data: users = [] } = useList<AppUser>('users', 'users');
+  const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
 
-  const schema = z.object({
-    email: z.string().email(t('auth.errorEmail')),
-    role: z.enum(roleOptions, {
-      errorMap: () => ({ message: t('common.required') })
+  const schema = z
+    .object({
+      email: z.string().email(t('auth.errorEmail')),
+      role: z.enum(roleOptions, {
+        errorMap: () => ({ message: t('common.required') })
+      }),
+      administrationId: z.string().optional()
     })
-  });
+    .superRefine((values, ctx) => {
+      if (values.role === 'building_admin' && !values.administrationId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['administrationId'],
+          message: t('common.required')
+        });
+      }
+    });
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset
+    reset,
+    resetField,
+    watch
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { role: 'view' }
+    defaultValues: { role: 'view', administrationId: '' }
   });
 
   const {
     register: editRegister,
     handleSubmit: handleEditSubmit,
     formState: { errors: editErrors, isSubmitting: editSubmitting },
-    reset: resetEdit
+    reset: resetEdit,
+    resetField: resetEditField,
+    watch: editWatch
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { role: 'view' }
+    defaultValues: { role: 'view', administrationId: '' }
   });
+
+  const roleValue = watch('role');
+  const editRoleValue = editWatch('role');
+
+  useEffect(() => {
+    if (roleValue !== 'building_admin') {
+      resetField('administrationId');
+    }
+  }, [roleValue, resetField]);
+
+  useEffect(() => {
+    if (editRoleValue !== 'building_admin') {
+      resetEditField('administrationId');
+    }
+  }, [editRoleValue, resetEditField]);
 
   const columns = useMemo<ColumnDef<AppUser>[]>(
     () => [
       { header: t('users.email'), accessorKey: 'email', enableSorting: false },
-      { header: t('users.role'), accessorKey: 'role', enableSorting: false },
+      {
+        header: t('users.role'),
+        accessorKey: 'role',
+        enableSorting: false,
+        cell: ({ row }) => t(`users.roles.${row.original.role}`) ?? row.original.role
+      },
       {
         header: t('users.status'),
         accessorKey: 'active',
@@ -134,11 +172,11 @@ export default function UsersPage() {
 
   const onCreate = async (values: FormValues) => {
     try {
-      const result = await createAppUser(values.email, values.role);
+      const result = await createAppUser(values.email, values.role, values.administrationId || null);
       setGeneratedPassword(result.password);
       await queryClient.invalidateQueries({ queryKey: ['users'] });
       toast(t('users.toastCreated'), 'success');
-      reset({ email: '', role: 'view' });
+      reset({ email: '', role: 'view', administrationId: '' });
     } catch (error) {
       toast(t('common.actionError'), 'error');
     }
@@ -146,14 +184,22 @@ export default function UsersPage() {
 
   const startEdit = (user: AppUser) => {
     setEditingUser(user);
-    resetEdit({ email: user.email, role: user.role });
+    resetEdit({
+      email: user.email,
+      role: user.role,
+      administrationId: user.administrationId ?? ''
+    });
     setEditOpen(true);
   };
 
   const onEdit = async (values: FormValues) => {
     if (!editingUser) return;
     try {
-      await updateAppUser(editingUser.id, { email: values.email, role: values.role });
+      await updateAppUser(editingUser.id, {
+        email: values.email,
+        role: values.role,
+        administrationId: values.administrationId || null
+      });
       await queryClient.invalidateQueries({ queryKey: ['users'] });
       toast(t('users.toastUpdated'), 'success');
       setEditOpen(false);
@@ -216,6 +262,21 @@ export default function UsersPage() {
               </option>
             ))}
           </Select>
+          {roleValue === 'building_admin' ? (
+            <Select
+              label={t('users.administration')}
+              error={errors.administrationId?.message}
+              required
+              {...register('administrationId')}
+            >
+              <option value="">{t('common.select')}</option>
+              {managements.map((company) => (
+                <option key={company.id} value={company.id}>
+                  {company.name}
+                </option>
+              ))}
+            </Select>
+          ) : null}
           {generatedPassword ? (
             <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
               <p className="font-semibold text-ink-900">{t('users.generatedPasswordTitle')}</p>
@@ -245,6 +306,21 @@ export default function UsersPage() {
               </option>
             ))}
           </Select>
+          {editRoleValue === 'building_admin' ? (
+            <Select
+              label={t('users.administration')}
+              error={editErrors.administrationId?.message}
+              required
+              {...editRegister('administrationId')}
+            >
+              <option value="">{t('common.select')}</option>
+              {managements.map((company) => (
+                <option key={company.id} value={company.id}>
+                  {company.name}
+                </option>
+              ))}
+            </Select>
+          ) : null}
           <Button type="submit" className="w-full" disabled={editSubmitting}>
             {editSubmitting ? t('users.saving') : t('users.update')}
           </Button>

@@ -11,6 +11,9 @@ Urbly is a SaaS platform for modern building management. This repository contain
 - Functions and deploy: `docs/functions.md`
 - Seed and cleanup: `docs/seed.md`
 - Bulk import: `docs/import.md`
+- Trello cards: `docs/trello.md`
+- Security notes: `docs/security-notes.md`
+- Risks: `docs/risks.md`
 
 ## Quick Start
 ```
