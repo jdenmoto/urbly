@@ -2,6 +2,11 @@ import PageHeader from '@/components/PageHeader';
 import StatCard from '@/components/StatCard';
 import Card from '@/components/Card';
 import Input from '@/components/Input';
+import Select from '@/components/Select';
+import Button from '@/components/Button';
+import Modal from '@/components/Modal';
+import ConfirmModal from '@/components/ConfirmModal';
+import { CheckIcon, CancelIcon } from '@/components/ActionIcons';
 import { useList } from '@/lib/api/queries';
 import type { Appointment } from '@/core/models/appointment';
 import type { Building } from '@/core/models/building';
@@ -26,15 +31,59 @@ import {
   PieChart,
   Pie
 } from 'recharts';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useToast } from '@/components/ToastProvider';
+import { updateDocById } from '@/lib/api/firestore';
+import { useQueryClient } from '@tanstack/react-query';
+import { cancelReasonOptions, issueCategoryOptions, issueTypeOptions } from '@/core/appointments';
+import { useQuery } from '@tanstack/react-query';
+import { doc, getDoc } from 'firebase/firestore';
+import { db, storage } from '@/lib/firebase/client';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function DashboardPage() {
   const { t } = useI18n();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: appointments = [] } = useList<Appointment>('appointments', 'appointments');
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
+  const [now, setNow] = useState(() => new Date());
+  const [pendingTarget, setPendingTarget] = useState<Appointment | null>(null);
+  const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelNote, setCancelNote] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+  const [pendingCompleteOpen, setPendingCompleteOpen] = useState(false);
+  const [pendingHasIssues, setPendingHasIssues] = useState<'yes' | 'no' | ''>('');
+  const [pendingIssues, setPendingIssues] = useState<
+    Array<{
+      id: string;
+      type: string;
+      category: string;
+      description: string;
+      photos: File[];
+    }>
+  >([]);
+  const [pendingIssueDraft, setPendingIssueDraft] = useState({
+    id: '',
+    type: '',
+    category: '',
+    description: '',
+    photos: [] as File[]
+  });
+  const [pendingIssueError, setPendingIssueError] = useState<string | null>(null);
+  const { data: issueSettings } = useQuery({
+    queryKey: ['issueSettings'],
+    queryFn: async () => {
+      const snapshot = await getDoc(doc(db, 'settings', 'issues'));
+      return snapshot.exists() ? (snapshot.data() as { types?: string[]; categories?: Record<string, string[]> }) : null;
+    },
+    staleTime: 60_000
+  });
 
   const today = startOfDay(new Date());
   const rangeStart = dateRange.from ? startOfDay(new Date(`${dateRange.from}T00:00:00`)) : null;
@@ -162,10 +211,10 @@ export default function DashboardPage() {
     };
   });
 
-  const totalAppointments = filteredAppointments.length;
-  const completionRate = totalAppointments
-    ? Math.round((completedCount / totalAppointments) * 100)
-    : 0;
+  const totalToDate = filteredAppointments.filter(
+    (item) => new Date(item.startAt) <= now && item.status !== 'cancelado'
+  ).length;
+  const completionRate = totalToDate ? Math.round((completedCount / totalToDate) * 100) : 0;
   const completionChart = [
     { name: t('dashboard.completed'), value: completionRate },
     { name: t('dashboard.pending'), value: 100 - completionRate }
@@ -188,6 +237,142 @@ export default function DashboardPage() {
     name: t(`scheduling.types.${key}`),
     valor: value.count ? Math.round(value.total / value.count) : 0
   }));
+
+  const pendingAppointments = useMemo(() => {
+    const current = now;
+    return filteredAppointments
+      .filter((item) => {
+        if (item.status === 'completado' || item.status === 'cancelado') return false;
+        const start = new Date(item.startAt);
+        return start < current;
+      })
+      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+  }, [filteredAppointments, now]);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const dynamicIssueTypes = useMemo(
+    () => (issueSettings?.types?.length ? issueSettings.types : issueTypeOptions),
+    [issueSettings]
+  );
+  const dynamicIssueCategories = useMemo(
+    () => (issueSettings?.categories ? issueSettings.categories : issueCategoryOptions),
+    [issueSettings]
+  );
+
+  const resolveIssueLabel = (prefix: 'scheduling.issueTypes' | 'scheduling.issueCategories', value: string) => {
+    const key = `${prefix}.${value}`;
+    const label = t(key);
+    return label === key ? value : label;
+  };
+
+  const uploadIssuePhotos = async (appointmentId: string, issueId: string, photos: File[]) => {
+    const uploads = await Promise.all(
+      photos.map(async (file, index) => {
+        const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${file.name}`);
+        await uploadBytes(storageRef, file);
+        return getDownloadURL(storageRef);
+      })
+    );
+    return uploads;
+  };
+
+  const addPendingIssue = () => {
+    setPendingIssueError(null);
+    if (!pendingIssueDraft.type || !pendingIssueDraft.category) {
+      setPendingIssueError(t('scheduling.issueRequired'));
+      return;
+    }
+    if (pendingIssueDraft.photos.length !== 2) {
+      setPendingIssueError(t('scheduling.issuePhotosRequired'));
+      return;
+    }
+    const id = pendingIssueDraft.id || (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
+    setPendingIssues((prev) => [...prev, { ...pendingIssueDraft, id }]);
+    setPendingIssueDraft({ id: '', type: '', category: '', description: '', photos: [] });
+  };
+
+  const removePendingIssue = (id: string) => {
+    setPendingIssues((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const completePending = async () => {
+    if (!pendingTarget) return;
+    if (!pendingHasIssues) {
+      setPendingIssueError(t('scheduling.issueDecisionRequired'));
+      return;
+    }
+    if (pendingHasIssues === 'yes' && pendingIssues.length === 0) {
+      setPendingIssueError(t('scheduling.issueAtLeastOne'));
+      return;
+    }
+    setActionLoading(true);
+    try {
+      let payload: Record<string, unknown> = {
+        status: 'completado',
+        completedAt: new Date().toISOString()
+      };
+      if (pendingHasIssues === 'yes') {
+        const resolvedIssues = await Promise.all(
+          pendingIssues.map(async (issue) => {
+            const photoUrls = await uploadIssuePhotos(pendingTarget.id, issue.id, issue.photos);
+            return {
+              id: issue.id,
+              type: issue.type,
+              category: issue.category,
+              description: issue.description?.trim() || null,
+              photos: photoUrls,
+              createdAt: new Date().toISOString()
+            };
+          })
+        );
+        payload = { ...payload, issues: resolvedIssues };
+      }
+      await updateDocById('appointments', pendingTarget.id, payload);
+      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      toast(t('dashboard.pendingCompleted'), 'success');
+      setPendingTarget(null);
+      setCompleteConfirmOpen(false);
+      setPendingCompleteOpen(false);
+      setPendingHasIssues('');
+      setPendingIssues([]);
+      setPendingIssueDraft({ id: '', type: '', category: '', description: '', photos: [] });
+      setPendingIssueError(null);
+    } catch (error) {
+      toast(t('common.actionError'), 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const cancelPending = async () => {
+    if (!pendingTarget) return;
+    if (!cancelReason && !cancelNote.trim()) {
+      toast(t('dashboard.pendingCancelRequired'), 'error');
+      return;
+    }
+    setActionLoading(true);
+    try {
+      await updateDocById('appointments', pendingTarget.id, {
+        status: 'cancelado',
+        cancelReason: cancelReason || null,
+        cancelNote: cancelNote.trim() || null
+      });
+      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      toast(t('dashboard.pendingCanceled'), 'success');
+      setPendingTarget(null);
+      setCancelOpen(false);
+      setCancelReason('');
+      setCancelNote('');
+    } catch (error) {
+      toast(t('common.actionError'), 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -275,6 +460,39 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+      <Card>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold text-ink-800">{t('dashboard.pendingTitle')}</h3>
+          <span className="text-xs text-ink-500">
+            {t('dashboard.pendingCount', { count: pendingAppointments.length })}
+          </span>
+        </div>
+        <div className="mt-4 space-y-3">
+          {pendingAppointments.length ? (
+            pendingAppointments.slice(0, 8).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className="flex w-full items-center justify-between rounded-xl border border-fog-200 bg-fog-50 px-4 py-3 text-left text-sm text-ink-700 hover:border-ink-900"
+                onClick={() => setPendingTarget(item)}
+              >
+                <div>
+                  <p className="font-medium text-ink-900">{item.title}</p>
+                  <p className="text-xs text-ink-500">
+                    {buildings.find((b) => b.id === item.buildingId)?.name ?? t('common.unnamed')} ·{' '}
+                    {format(new Date(item.startAt), 'PPP h:mm a', { locale: es })}
+                  </p>
+                </div>
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-[11px] font-semibold text-amber-700">
+                  {t('dashboard.pendingLabel')}
+                </span>
+              </button>
+            ))
+          ) : (
+            <p className="text-sm text-ink-600">{t('dashboard.pendingEmpty')}</p>
+          )}
+        </div>
+      </Card>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <h3 className="text-sm font-semibold text-ink-800">{t('dashboard.byType')}</h3>
@@ -389,6 +607,208 @@ export default function DashboardPage() {
           )}
         </div>
       </Card>
+      <Modal
+        open={Boolean(pendingTarget)}
+        title={t('dashboard.pendingActionsTitle')}
+        onClose={() => setPendingTarget(null)}
+      >
+        {pendingTarget ? (
+          <div className="space-y-4 text-sm text-ink-700">
+            <div className="rounded-xl border border-fog-200 bg-fog-50 p-4">
+              <p className="text-base font-semibold text-ink-900">{pendingTarget.title}</p>
+              <p className="text-xs text-ink-500">
+                {buildings.find((b) => b.id === pendingTarget.buildingId)?.name ?? t('common.unnamed')}
+              </p>
+              <p className="mt-2 text-sm text-ink-700">
+                {format(new Date(pendingTarget.startAt), 'PPP h:mm a', { locale: es })}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-2 py-1 text-xs text-emerald-700 hover:border-emerald-400"
+                onClick={() => {
+                  setPendingIssueError(null);
+                  setPendingCompleteOpen(true);
+                }}
+                disabled={actionLoading}
+              >
+                <CheckIcon className="h-3.5 w-3.5" />
+                {t('scheduling.complete')}
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 rounded-md border border-amber-200 px-2 py-1 text-xs text-amber-700 hover:border-amber-400"
+                onClick={() => setCancelOpen(true)}
+                disabled={actionLoading}
+              >
+                <CancelIcon className="h-3.5 w-3.5" />
+                {t('scheduling.cancel')}
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
+      <Modal
+        open={pendingCompleteOpen}
+        title={t('scheduling.completeTitle')}
+        onClose={() => setPendingCompleteOpen(false)}
+      >
+        <div className="space-y-4">
+          <div className="space-y-2 text-sm text-ink-700">
+            <label className="font-medium text-ink-800">{t('scheduling.issueQuestion')}</label>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className={`rounded-lg border px-3 py-2 text-sm ${
+                  pendingHasIssues === 'yes' ? 'border-ink-900 text-ink-900' : 'border-fog-200 text-ink-600'
+                }`}
+                onClick={() => setPendingHasIssues('yes')}
+              >
+                {t('common.yes')}
+              </button>
+              <button
+                type="button"
+                className={`rounded-lg border px-3 py-2 text-sm ${
+                  pendingHasIssues === 'no' ? 'border-ink-900 text-ink-900' : 'border-fog-200 text-ink-600'
+                }`}
+                onClick={() => setPendingHasIssues('no')}
+              >
+                {t('common.no')}
+              </button>
+            </div>
+          </div>
+          {pendingHasIssues === 'yes' ? (
+            <div className="space-y-4 rounded-xl border border-fog-200 bg-fog-50 p-4">
+              <Select
+                label={t('scheduling.issueType')}
+                required
+                value={pendingIssueDraft.type}
+                onChange={(event) =>
+                  setPendingIssueDraft((prev) => ({
+                    ...prev,
+                    type: event.target.value,
+                    category: ''
+                  }))
+                }
+              >
+                <option value="">{t('common.select')}</option>
+                {dynamicIssueTypes.map((option: string) => (
+                  <option key={option} value={option}>
+                    {resolveIssueLabel('scheduling.issueTypes', option)}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                label={t('scheduling.issueCategory')}
+                required
+                value={pendingIssueDraft.category}
+                onChange={(event) =>
+                  setPendingIssueDraft((prev) => ({
+                    ...prev,
+                    category: event.target.value
+                  }))
+                }
+                disabled={!pendingIssueDraft.type}
+              >
+                <option value="">{t('common.select')}</option>
+                {(pendingIssueDraft.type
+                  ? (dynamicIssueCategories as Record<string, string[]>)[pendingIssueDraft.type] ?? []
+                  : []
+                ).map((option: string) => (
+                  <option key={option} value={option}>
+                    {resolveIssueLabel('scheduling.issueCategories', option)}
+                  </option>
+                ))}
+              </Select>
+              <Input
+                label={t('scheduling.issueDescription')}
+                value={pendingIssueDraft.description}
+                onChange={(event) =>
+                  setPendingIssueDraft((prev) => ({ ...prev, description: event.target.value }))
+                }
+                maxLength={300}
+              />
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-ink-800">
+                  {t('scheduling.issuePhotos')}
+                  <span className="ml-1 text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[0, 1].map((index) => (
+                    <label
+                      key={index}
+                      className="flex h-20 cursor-pointer items-center justify-center rounded-xl border border-dashed border-fog-300 bg-white text-xs text-ink-500"
+                    >
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(event) => {
+                          const selected = event.target.files?.[0];
+                          if (selected) {
+                            setPendingIssueDraft((prev) => {
+                              const next = [...prev.photos];
+                              next[index] = selected;
+                              return { ...prev, photos: next };
+                            });
+                          }
+                        }}
+                      />
+                      {pendingIssueDraft.photos[index] ? pendingIssueDraft.photos[index].name : '+'}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {pendingIssueError ? <p className="text-xs text-rose-500">{pendingIssueError}</p> : null}
+              <div className="flex items-center justify-between">
+                <Button variant="secondary" onClick={addPendingIssue}>
+                  {t('scheduling.addIssue')}
+                </Button>
+              </div>
+              {pendingIssues.length ? (
+                <div className="space-y-2">
+                  {pendingIssues.map((issue) => (
+                    <div key={issue.id} className="flex items-center justify-between rounded-lg border border-fog-200 bg-white p-2 text-xs text-ink-700">
+                      <div>
+                        <p className="font-semibold text-ink-900">{resolveIssueLabel('scheduling.issueTypes', issue.type)}</p>
+                        <p>{resolveIssueLabel('scheduling.issueCategories', issue.category)}</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="text-rose-500"
+                        onClick={() => removePendingIssue(issue.id)}
+                      >
+                        {t('common.delete')}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+          {pendingIssueError ? <p className="text-xs text-rose-500">{pendingIssueError}</p> : null}
+          <Button onClick={completePending} disabled={actionLoading}>
+            {t('scheduling.complete')}
+          </Button>
+        </div>
+      </Modal>
+      <Modal open={cancelOpen} title={t('scheduling.cancelTitle')} onClose={() => setCancelOpen(false)}>
+        <div className="space-y-4">
+          <Select label={t('scheduling.cancelReason')} value={cancelReason} onChange={(e) => setCancelReason(e.target.value)}>
+            <option value="">{t('common.select')}</option>
+            {cancelReasonOptions.map((option) => (
+              <option key={option} value={option}>
+                {t(`scheduling.cancelReasons.${option}`)}
+              </option>
+            ))}
+          </Select>
+          <Input label={t('scheduling.cancelNote')} value={cancelNote} onChange={(e) => setCancelNote(e.target.value)} />
+          <Button onClick={cancelPending} disabled={actionLoading}>
+            {t('scheduling.confirmCancel')}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

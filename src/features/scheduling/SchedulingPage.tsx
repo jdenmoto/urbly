@@ -748,6 +748,18 @@ export default function SchedulingPage() {
       await updateDocById('appointments', completeTarget.id, payload);
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
       toast(t('scheduling.toastCompleted'), 'success');
+      if (selected?.id === completeTarget.id) {
+        setSelected((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: 'completado',
+                completedAt: payload.completedAt as string,
+                issues: payload.issues as Appointment['issues']
+              }
+            : prev
+        );
+      }
       setCompleteTarget(null);
     } catch (error) {
       toast(t('common.actionError'), 'error');
@@ -1210,44 +1222,46 @@ export default function SchedulingPage() {
                 <p><span className="font-semibold text-ink-900">{t('scheduling.descriptionLabel')}:</span> {selected.description}</p>
               ) : null}
             </div>
-            <div className="mt-6 flex items-center justify-end gap-2">
-              {canEdit ? (
-                <button
-                  className="inline-flex items-center gap-1 rounded-md border border-fog-200 px-2 py-1 text-xs text-ink-700 hover:border-ink-900"
-                  onClick={() => startEdit(selected)}
-                >
-                  <EditIcon className="h-3.5 w-3.5" />
-                  {t('common.edit')}
-                </button>
-              ) : null}
-              {canEdit && selected.status !== 'completado' && selected.status !== 'cancelado' ? (
-                <button
-                  className="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-2 py-1 text-xs text-emerald-700 hover:border-emerald-400"
-                  onClick={() => startComplete(selected)}
-                >
-                  <CheckIcon className="h-3.5 w-3.5" />
-                  {t('scheduling.complete')}
-                </button>
-              ) : null}
-              {canEdit && selected.status !== 'cancelado' ? (
-                <button
-                  className="inline-flex items-center gap-1 rounded-md border border-amber-200 px-2 py-1 text-xs text-amber-700 hover:border-amber-400"
-                  onClick={() => openCancel(selected)}
-                >
-                  <CancelIcon className="h-3.5 w-3.5" />
-                  {t('scheduling.cancel')}
-                </button>
-              ) : null}
-              {canEdit ? (
-                <button
-                  className="inline-flex items-center gap-1 rounded-md border border-rose-200 px-2 py-1 text-xs text-rose-700 hover:border-rose-400"
-                  onClick={() => setDeleteTarget(selected)}
-                >
-                  <TrashIcon className="h-3.5 w-3.5" />
-                  {t('common.delete')}
-                </button>
-              ) : null}
-            </div>
+            {selected.status === 'completado' ? null : (
+              <div className="mt-6 flex items-center justify-end gap-2">
+                {canEdit ? (
+                  <button
+                    className="inline-flex items-center gap-1 rounded-md border border-fog-200 px-2 py-1 text-xs text-ink-700 hover:border-ink-900"
+                    onClick={() => startEdit(selected)}
+                  >
+                    <EditIcon className="h-3.5 w-3.5" />
+                    {t('common.edit')}
+                  </button>
+                ) : null}
+                {canEdit && selected.status !== 'cancelado' ? (
+                  <button
+                    className="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-2 py-1 text-xs text-emerald-700 hover:border-emerald-400"
+                    onClick={() => startComplete(selected)}
+                  >
+                    <CheckIcon className="h-3.5 w-3.5" />
+                    {t('scheduling.complete')}
+                  </button>
+                ) : null}
+                {canEdit && selected.status !== 'cancelado' ? (
+                  <button
+                    className="inline-flex items-center gap-1 rounded-md border border-amber-200 px-2 py-1 text-xs text-amber-700 hover:border-amber-400"
+                    onClick={() => openCancel(selected)}
+                  >
+                    <CancelIcon className="h-3.5 w-3.5" />
+                    {t('scheduling.cancel')}
+                  </button>
+                ) : null}
+                {canEdit ? (
+                  <button
+                    className="inline-flex items-center gap-1 rounded-md border border-rose-200 px-2 py-1 text-xs text-rose-700 hover:border-rose-400"
+                    onClick={() => setDeleteTarget(selected)}
+                  >
+                    <TrashIcon className="h-3.5 w-3.5" />
+                    {t('common.delete')}
+                  </button>
+                ) : null}
+              </div>
+            )}
           </div>
         </div>
       ) : null}

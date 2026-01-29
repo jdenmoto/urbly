@@ -535,6 +535,13 @@ dashboard:
   completedRate: Tasa de cumplimiento
   completed: Completados
   pending: Pendientes
+  pendingTitle: Pendientes
+  pendingLabel: Pendiente
+  pendingEmpty: No hay pendientes vencidos.
+  pendingCount: "{count} pendientes"
+  pendingCompleted: Pendiente completado
+  pendingCanceled: Pendiente cancelado
+  pendingCancelRequired: Selecciona una razon o escribe una nota.
   buildings: Edificios
   managements: Administraciones
   employees: Empleados activos

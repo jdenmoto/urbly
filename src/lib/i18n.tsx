@@ -4,7 +4,7 @@ import yaml from 'js-yaml';
 type Dictionary = Record<string, unknown>;
 
 type I18nState = {
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
   loading: boolean;
 };
 
@@ -45,9 +45,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const value = useMemo<I18nState>(() => {
     return {
       loading,
-      t: (key: string) => {
+      t: (key: string, params?: Record<string, string | number>) => {
         const result = getValue(dictionary, key);
-        return typeof result === 'string' ? result : key;
+        if (typeof result !== 'string') return key;
+        if (!params) return result;
+        return Object.entries(params).reduce((text, [paramKey, paramValue]) => {
+          return text.replaceAll(`{${paramKey}}`, String(paramValue));
+        }, result);
       }
     };
   }, [dictionary, loading]);

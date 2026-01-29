@@ -15,6 +15,7 @@
     "deploy:functions": "firebase deploy --only functions",
     "deploy:backend": "npm --prefix functions run build && firebase deploy --only functions,firestore:rules,firestore:indexes",
     "deploy:frontend": "npm run build && firebase deploy --only hosting",
+    "functions:logs": "firebase functions:log",
     "firestore:seed": "node scripts/seed-firestore.mjs",
     "firestore:clear:buildings": "node scripts/clear-buildings.mjs",
     "firestore:clear": "node scripts/clear-firestore.mjs",

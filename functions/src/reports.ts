@@ -155,7 +155,8 @@ export const generateAppointmentsPdf = onCall(async (request) => {
   logger.info('PDF maintenance dates export', {
     count: maintenanceForYear.length,
     buildingId,
-    reportYear
+    reportYear,
+    samples: maintenanceForYear.slice(0, 3).map((item) => ({ startAt: item.startAt, type: item.type }))
   });
 
   const templatePath = path.resolve(process.cwd(), 'assets', 'template_sin_datos.pdf');
@@ -247,6 +248,9 @@ export const generateAppointmentsPdf = onCall(async (request) => {
   monthPlaceholders.forEach(([month, key]) => {
     const date = maintenanceDatesByMonth.get(month);
     placeholderValues[key] = date ? String(date.getDate()).padStart(2, '0') : '';
+    if (!date) {
+      logger.debug('PDF month missing', { month, key });
+    }
   });
 
   if (contract?.maintenanceRecommendedDates) {
