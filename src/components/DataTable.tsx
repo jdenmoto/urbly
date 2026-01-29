@@ -64,7 +64,6 @@ export default function DataTable<T>({
               {headerGroup.headers.map((header) => {
                 const canSort = header.column.getCanSort();
                 const sorted = header.column.getIsSorted();
-                const indicator = sorted === 'asc' ? '^' : sorted === 'desc' ? 'v' : '^';
                 const indicatorMuted = !sorted;
                 return (
                   <th key={header.id} className="px-4 py-3">
@@ -75,9 +74,13 @@ export default function DataTable<T>({
                         onClick={header.column.getToggleSortingHandler()}
                       >
                         <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
-                        <span className={indicatorMuted ? 'text-[10px] text-ink-300' : 'text-[10px] text-ink-600'}>
-                          {indicator}
-                          {sorted ? '' : <span className="ml-0.5">v</span>}
+                        <span
+                          className={`flex flex-col items-center leading-[10px] ${
+                            indicatorMuted ? 'text-[10px] text-ink-300' : 'text-[10px] text-ink-600'
+                          }`}
+                        >
+                          <span className={sorted === 'asc' ? 'text-ink-700' : ''}>▲</span>
+                          <span className={sorted === 'desc' ? 'text-ink-700' : ''}>▼</span>
                         </span>
                       </button>
                     ) : (

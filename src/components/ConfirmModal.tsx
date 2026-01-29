@@ -18,7 +18,7 @@ export default function ConfirmModal({
 }) {
   const { t } = useI18n();
   return (
-    <Modal open={open} title={title} onClose={onClose}>
+    <Modal open={open} title={title} onClose={onClose} layer="confirm">
       {description ? <p className="text-sm text-ink-700">{description}</p> : null}
       <div className="mt-6 flex items-center justify-end gap-2">
         <Button variant="secondary" onClick={onClose}>

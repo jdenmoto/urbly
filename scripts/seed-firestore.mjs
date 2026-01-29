@@ -57,7 +57,7 @@ for (const [docId, payload] of Object.entries(settings)) {
   console.log(`Seeded settings/${docId}`);
 }
 
-const appointmentTypes = ['mantenimiento', 'inspeccion', 'servicio', 'emergencia', 'otro'];
+const appointmentTypes = ['mantenimiento', 'lavado_tanque', 'emergencia', 'interventoria'];
 const appointmentStatuses = ['programado', 'confirmado'];
 const weekStart = (() => {
   const today = new Date();
@@ -100,6 +100,27 @@ if (employeeIds.length && buildingIds.length) {
   });
 
   await writeCollection('appointments', appointments);
+}
+
+if (buildingIds.length) {
+  const year = new Date().getFullYear();
+  const maintenanceAppointments = Array.from({ length: 12 }, (_, index) => {
+    const start = new Date(Date.UTC(year, index, 15, 14, 0, 0));
+    const end = new Date(Date.UTC(year, index, 15, 15, 0, 0));
+    return {
+      id: `maint-${year}-${String(index + 1).padStart(2, '0')}`,
+      buildingId: buildingIds[index % buildingIds.length],
+      title: `Mantenimiento ${index + 1}`,
+      description: 'Mantenimiento mensual',
+      startAt: start.toISOString(),
+      endAt: end.toISOString(),
+      status: 'programado',
+      type: 'mantenimiento',
+      employeeId: employeeIds[index % (employeeIds.length || 1)] || null,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+  });
+  await writeCollection('appointments', maintenanceAppointments);
 }
 
 console.log('Seed completed.');

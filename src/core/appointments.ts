@@ -2,7 +2,12 @@ export const recurrenceOptions = ['semanal', 'quincenal', 'mensual', 'bimensual'
 
 export type RecurrenceValue = (typeof recurrenceOptions)[number];
 
-export const appointmentTypeOptions = ['mantenimiento', 'inspeccion', 'servicio', 'emergencia', 'otro'] as const;
+export const appointmentTypeOptions = [
+  'mantenimiento',
+  'lavado_tanque',
+  'emergencia',
+  'interventoria'
+] as const;
 
 export type AppointmentTypeValue = (typeof appointmentTypeOptions)[number];
 

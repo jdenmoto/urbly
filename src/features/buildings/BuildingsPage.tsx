@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,7 @@ import { createDoc, updateDocById, deleteDocById } from '@/lib/api/firestore';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useList } from '@/lib/api/queries';
 import type { Building } from '@/core/models/building';
+import type { Appointment } from '@/core/models/appointment';
 import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import PageHeader from '@/components/PageHeader';
@@ -27,7 +28,7 @@ import Modal from '@/components/Modal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/app/Auth';
-import { EditIcon, TrashIcon, PowerIcon } from '@/components/ActionIcons';
+import { EditIcon, TrashIcon, PowerIcon, EyeIcon } from '@/components/ActionIcons';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 
@@ -46,6 +47,7 @@ export default function BuildingsPage() {
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
   const { data: contracts = [] } = useList<Contract>('contracts', 'contracts');
+  const { data: appointments = [] } = useList<Appointment>('appointments', 'appointments');
   const { data: groupSettings } = useQuery({
     queryKey: ['buildingGroups'],
     queryFn: async () => {
@@ -66,9 +68,30 @@ export default function BuildingsPage() {
   const [editPlace, setEditPlace] = useState<PlaceResult | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Building | null>(null);
+  const [detailTarget, setDetailTarget] = useState<Building | null>(null);
+  const [contractDetailOpen, setContractDetailOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const buildingGroups = useMemo(() => groupSettings?.groups ?? [], [groupSettings]);
+  const statusLabels = useMemo(
+    () => ({
+      programado: t('scheduling.statusProgrammed'),
+      confirmado: t('scheduling.statusConfirmed'),
+      completado: t('scheduling.statusCompleted'),
+      cancelado: t('scheduling.statusCanceled')
+    }),
+    [t]
+  );
+  const formatDateTime = useCallback((value?: string | number | Date | null) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleString('es-CO', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      hour12: true
+    });
+  }, []);
 
   const schema = z.object({
     name: z.string().min(2, t('common.required')),
@@ -138,41 +161,55 @@ export default function BuildingsPage() {
         cell: ({ row }) => (row.original.active === false ? t('buildings.disabled') : t('buildings.active'))
       }
     ];
-    if (!canEdit) return base;
+    const actionsColumn: ColumnDef<Building> = {
+      header: t('common.actions'),
+      enableSorting: false,
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <button
+            className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-ink-700 hover:bg-fog-100"
+            onClick={() => setDetailTarget(row.original)}
+            title={t('common.view')}
+            aria-label={t('common.view')}
+          >
+            <EyeIcon className="h-4 w-4" aria-hidden />
+          </button>
+          {canEdit ? (
+            <>
+              <button
+                className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-ink-700 hover:bg-fog-100"
+                onClick={() => startEdit(row.original)}
+                title={t('common.edit')}
+                aria-label={t('common.edit')}
+              >
+                <EditIcon className="h-4 w-4" aria-hidden />
+              </button>
+              <button
+                className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-amber-600 hover:bg-amber-50"
+                onClick={() => toggleActive(row.original)}
+                title={row.original.active === false ? t('buildings.enable') : t('buildings.disable')}
+                aria-label={row.original.active === false ? t('buildings.enable') : t('buildings.disable')}
+              >
+                <PowerIcon className="h-4 w-4" aria-hidden />
+              </button>
+              <button
+                className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-rose-600 hover:bg-rose-50"
+                onClick={() => setDeleteTarget(row.original)}
+                title={t('common.delete')}
+                aria-label={t('common.delete')}
+              >
+                <TrashIcon className="h-4 w-4" aria-hidden />
+              </button>
+            </>
+          ) : null}
+        </div>
+      )
+    };
+
+    if (!canEdit) return [...base, actionsColumn];
     return [
       ...base,
-      {
-        header: t('common.actions'),
-        enableSorting: false,
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <button
-              className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-ink-700 hover:bg-fog-100"
-              onClick={() => startEdit(row.original)}
-              title={t('common.edit')}
-              aria-label={t('common.edit')}
-            >
-              <EditIcon className="h-4 w-4" aria-hidden />
-            </button>
-            <button
-              className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-amber-600 hover:bg-amber-50"
-              onClick={() => toggleActive(row.original)}
-              title={row.original.active === false ? t('buildings.enable') : t('buildings.disable')}
-              aria-label={row.original.active === false ? t('buildings.enable') : t('buildings.disable')}
-            >
-              <PowerIcon className="h-4 w-4" aria-hidden />
-            </button>
-            <button
-              className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-rose-600 hover:bg-rose-50"
-              onClick={() => setDeleteTarget(row.original)}
-              title={t('common.delete')}
-              aria-label={t('common.delete')}
-            >
-              <TrashIcon className="h-4 w-4" aria-hidden />
-            </button>
-          </div>
-        )
-      }
+      actionsColumn
     ];
   }, [t, canEdit, contracts]);
 
@@ -193,6 +230,42 @@ export default function BuildingsPage() {
     ],
     [t]
   );
+  const maintenanceColumns = useMemo<ColumnDef<Appointment>[]>(
+    () => [
+      { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: false },
+      {
+        header: t('scheduling.startAt'),
+        accessorKey: 'startAt',
+        enableSorting: false,
+        cell: ({ row }) => formatDateTime(row.original.startAt)
+      },
+      {
+        header: t('scheduling.endAt'),
+        accessorKey: 'endAt',
+        enableSorting: false,
+        cell: ({ row }) => formatDateTime(row.original.endAt)
+      },
+      {
+        header: t('scheduling.status'),
+        accessorKey: 'status',
+        enableSorting: false,
+        cell: ({ row }) => statusLabels[row.original.status] ?? row.original.status
+      }
+    ],
+    [statusLabels, t, formatDateTime]
+  );
+
+  const maintenanceAppointments = useMemo(() => {
+    if (!detailTarget) return [];
+    return appointments
+      .filter((appointment) => appointment.buildingId === detailTarget.id && appointment.type === 'mantenimiento')
+      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+  }, [appointments, detailTarget]);
+  const detailContract = useMemo(() => {
+    if (!detailTarget?.contractId) return null;
+    return contracts.find((contract) => contract.id === detailTarget.contractId) ?? null;
+  }, [contracts, detailTarget]);
+
 
   const onSubmit = async (values: FormValues) => {
     if (!place) return;
@@ -669,6 +742,122 @@ export default function BuildingsPage() {
             onConfirm={confirmDelete}
             onClose={() => setDeleteTarget(null)}
           />
+          <Modal
+            open={Boolean(detailTarget)}
+            title={t('buildings.detailTitle')}
+            onClose={() => {
+              setDetailTarget(null);
+              setContractDetailOpen(false);
+            }}
+          >
+            {detailTarget ? (
+              <div className="space-y-4">
+                <div className="rounded-xl border border-fog-200 bg-fog-50 p-4 text-sm text-ink-700">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.name')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.address')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.addressText}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.managementCompany')}</p>
+                      <p className="text-sm font-semibold text-ink-900">
+                        {managements.find((company) => company.id === detailTarget.managementCompanyId)?.name ??
+                          t('common.notAvailable')}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.contract')}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-ink-900">
+                          {contracts.find((contract) => contract.id === detailTarget.contractId)?.name ??
+                            t('buildings.noContract')}
+                        </p>
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-ink-700 hover:bg-fog-100 disabled:cursor-not-allowed disabled:text-ink-300"
+                          onClick={() => setContractDetailOpen(true)}
+                          title={t('buildings.viewContract')}
+                          aria-label={t('buildings.viewContract')}
+                          disabled={!detailContract}
+                        >
+                          <EyeIcon className="h-4 w-4" aria-hidden />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold text-ink-900">{t('buildings.maintenanceTitle')}</h3>
+                  <DataTable
+                    columns={maintenanceColumns}
+                    data={maintenanceAppointments}
+                    pageSize={5}
+                    emptyState={
+                      <EmptyState
+                        title={t('buildings.maintenanceEmptyTitle')}
+                        description={t('buildings.maintenanceEmptySubtitle')}
+                      />
+                    }
+                  />
+                </div>
+              </div>
+            ) : null}
+          </Modal>
+          <Modal
+            open={contractDetailOpen}
+            title={t('contracts.detailTitle')}
+            onClose={() => setContractDetailOpen(false)}
+            layer="confirm"
+          >
+            {detailContract ? (
+              <div className="space-y-4">
+                <div className="rounded-xl border border-fog-200 bg-fog-50 p-4 text-sm text-ink-700">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('contracts.name')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailContract.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('contracts.status')}</p>
+                      <p className="text-sm font-semibold text-ink-900">
+                        {detailContract.status === 'inactivo' ? t('contracts.statusInactive') : t('contracts.statusActive')}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('contracts.startAt')}</p>
+                      <p className="text-sm font-semibold text-ink-900">
+                        {formatDateTime(detailContract.startAt)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('contracts.endAt')}</p>
+                      <p className="text-sm font-semibold text-ink-900">
+                        {formatDateTime(detailContract.endAt)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('contracts.maintenanceType')}</p>
+                      <p className="text-sm font-semibold text-ink-900">
+                        {detailContract.maintenanceTypeName ?? t('common.notAvailable')}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('contracts.labAnalysisType')}</p>
+                      <p className="text-sm font-semibold text-ink-900">
+                        {detailContract.labAnalysisTypeName ?? t('common.notAvailable')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <EmptyState title={t('buildings.noContract')} description={t('buildings.contractRequired')} />
+            )}
+          </Modal>
         </>
       ) : (
         <DataTable

@@ -198,12 +198,30 @@
       "maintenanceTypeName": "Basico",
       "labAnalysisTypeId": "lab-agua",
       "labAnalysisTypeName": "Analisis Agua Potable",
+      "maintenanceApplies": {
+        "valor_lavado_tanque_agua_potable_sem1": true,
+        "valor_lavado_tanque_agua_potable_sem2": true,
+        "valor_lavado_pozos_eyectores_aguas_lluvias": true,
+        "valor_lavado_pozos_eyectores_aguas_negras": false,
+        "valor_pruebas_hidraulicas_red_contra_incendios": true,
+        "valor_limpieza_sistema_drenaje_sotanos": false,
+        "valor_lavado_tanque_red_contra_incendios": true,
+        "valor_contrato_mantenimiento": true
+      },
+      "maintenanceRecommendedDates": {
+        "fecha_rec_agua_potable_1": "2026-01-15",
+        "fecha_rec_agua_potable_2": "2026-07-15",
+        "fecha_rec_pozo_aguas_lluvias": "2026-03-10",
+        "fecha_rec_pozo_aguas_negras": "2026-09-10",
+        "fecha_rec_tanque_rci": "2026-05-20",
+        "fecha_rec_pruebas_rci": "2026-11-20"
+      },
       "maintenancePrices": {
         "valor_lavado_tanque_agua_potable_sem1": 640382,
         "valor_lavado_tanque_agua_potable_sem2": 640382,
         "valor_lavado_pozos_eyectores_aguas_lluvias": 520000,
         "valor_lavado_pozos_eyectores_aguas_negras": 520000,
-        "valor_pruebas_hidraulias_red_contra_incendios": 1049724,
+        "valor_pruebas_hidraulicas_red_contra_incendios": 1049724,
         "valor_limpieza_sistema_drenaje_sotanos": 0,
         "valor_lavado_tanque_red_contra_incendios": 0,
         "valor_contrato_mantenimiento": 309962
@@ -221,12 +239,30 @@
       "maintenanceTypeName": "Premium",
       "labAnalysisTypeId": "lab-bacter",
       "labAnalysisTypeName": "Analisis Microbiologico",
+      "maintenanceApplies": {
+        "valor_lavado_tanque_agua_potable_sem1": true,
+        "valor_lavado_tanque_agua_potable_sem2": true,
+        "valor_lavado_pozos_eyectores_aguas_lluvias": true,
+        "valor_lavado_pozos_eyectores_aguas_negras": true,
+        "valor_pruebas_hidraulicas_red_contra_incendios": true,
+        "valor_limpieza_sistema_drenaje_sotanos": true,
+        "valor_lavado_tanque_red_contra_incendios": true,
+        "valor_contrato_mantenimiento": true
+      },
+      "maintenanceRecommendedDates": {
+        "fecha_rec_agua_potable_1": "2026-02-12",
+        "fecha_rec_agua_potable_2": "2026-08-12",
+        "fecha_rec_pozo_aguas_lluvias": "2026-04-05",
+        "fecha_rec_pozo_aguas_negras": "2026-10-05",
+        "fecha_rec_tanque_rci": "2026-06-18",
+        "fecha_rec_pruebas_rci": "2026-12-18"
+      },
       "maintenancePrices": {
         "valor_lavado_tanque_agua_potable_sem1": 740000,
         "valor_lavado_tanque_agua_potable_sem2": 740000,
         "valor_lavado_pozos_eyectores_aguas_lluvias": 620000,
         "valor_lavado_pozos_eyectores_aguas_negras": 620000,
-        "valor_pruebas_hidraulias_red_contra_incendios": 1190000,
+        "valor_pruebas_hidraulicas_red_contra_incendios": 1190000,
         "valor_limpieza_sistema_drenaje_sotanos": 450000,
         "valor_lavado_tanque_red_contra_incendios": 520000,
         "valor_contrato_mantenimiento": 420000
@@ -244,12 +280,30 @@
       "maintenanceTypeName": "Basico",
       "labAnalysisTypeId": "lab-agua",
       "labAnalysisTypeName": "Analisis Agua Potable",
+      "maintenanceApplies": {
+        "valor_lavado_tanque_agua_potable_sem1": true,
+        "valor_lavado_tanque_agua_potable_sem2": false,
+        "valor_lavado_pozos_eyectores_aguas_lluvias": true,
+        "valor_lavado_pozos_eyectores_aguas_negras": false,
+        "valor_pruebas_hidraulicas_red_contra_incendios": true,
+        "valor_limpieza_sistema_drenaje_sotanos": false,
+        "valor_lavado_tanque_red_contra_incendios": false,
+        "valor_contrato_mantenimiento": true
+      },
+      "maintenanceRecommendedDates": {
+        "fecha_rec_agua_potable_1": "2026-01-15",
+        "fecha_rec_agua_potable_2": "2026-07-15",
+        "fecha_rec_pozo_aguas_lluvias": "2026-03-10",
+        "fecha_rec_pozo_aguas_negras": "2026-09-10",
+        "fecha_rec_tanque_rci": "2026-05-20",
+        "fecha_rec_pruebas_rci": "2026-11-20"
+      },
       "maintenancePrices": {
         "valor_lavado_tanque_agua_potable_sem1": 640382,
         "valor_lavado_tanque_agua_potable_sem2": 640382,
         "valor_lavado_pozos_eyectores_aguas_lluvias": 520000,
         "valor_lavado_pozos_eyectores_aguas_negras": 520000,
-        "valor_pruebas_hidraulias_red_contra_incendios": 1049724,
+        "valor_pruebas_hidraulicas_red_contra_incendios": 1049724,
         "valor_limpieza_sistema_drenaje_sotanos": 0,
         "valor_lavado_tanque_red_contra_incendios": 0,
         "valor_contrato_mantenimiento": 309962
@@ -267,12 +321,30 @@
       "maintenanceTypeName": "Premium",
       "labAnalysisTypeId": "lab-agua",
       "labAnalysisTypeName": "Analisis Agua Potable",
+      "maintenanceApplies": {
+        "valor_lavado_tanque_agua_potable_sem1": true,
+        "valor_lavado_tanque_agua_potable_sem2": true,
+        "valor_lavado_pozos_eyectores_aguas_lluvias": true,
+        "valor_lavado_pozos_eyectores_aguas_negras": true,
+        "valor_pruebas_hidraulicas_red_contra_incendios": true,
+        "valor_limpieza_sistema_drenaje_sotanos": true,
+        "valor_lavado_tanque_red_contra_incendios": false,
+        "valor_contrato_mantenimiento": true
+      },
+      "maintenanceRecommendedDates": {
+        "fecha_rec_agua_potable_1": "2026-02-12",
+        "fecha_rec_agua_potable_2": "2026-08-12",
+        "fecha_rec_pozo_aguas_lluvias": "2026-04-05",
+        "fecha_rec_pozo_aguas_negras": "2026-10-05",
+        "fecha_rec_tanque_rci": "2026-06-18",
+        "fecha_rec_pruebas_rci": "2026-12-18"
+      },
       "maintenancePrices": {
         "valor_lavado_tanque_agua_potable_sem1": 720000,
         "valor_lavado_tanque_agua_potable_sem2": 720000,
         "valor_lavado_pozos_eyectores_aguas_lluvias": 590000,
         "valor_lavado_pozos_eyectores_aguas_negras": 590000,
-        "valor_pruebas_hidraulias_red_contra_incendios": 1125000,
+        "valor_pruebas_hidraulicas_red_contra_incendios": 1125000,
         "valor_limpieza_sistema_drenaje_sotanos": 410000,
         "valor_lavado_tanque_red_contra_incendios": 500000,
         "valor_contrato_mantenimiento": 390000
@@ -290,19 +362,37 @@
       "maintenanceTypeName": "Basico",
       "labAnalysisTypeId": "lab-bacter",
       "labAnalysisTypeName": "Analisis Microbiologico",
+      "maintenanceApplies": {
+        "valor_lavado_tanque_agua_potable_sem1": true,
+        "valor_lavado_tanque_agua_potable_sem2": true,
+        "valor_lavado_pozos_eyectores_aguas_lluvias": false,
+        "valor_lavado_pozos_eyectores_aguas_negras": false,
+        "valor_pruebas_hidraulicas_red_contra_incendios": true,
+        "valor_limpieza_sistema_drenaje_sotanos": false,
+        "valor_lavado_tanque_red_contra_incendios": false,
+        "valor_contrato_mantenimiento": true
+      },
+      "maintenanceRecommendedDates": {
+        "fecha_rec_agua_potable_1": "2026-01-15",
+        "fecha_rec_agua_potable_2": "2026-07-15",
+        "fecha_rec_pozo_aguas_lluvias": "2026-03-10",
+        "fecha_rec_pozo_aguas_negras": "2026-09-10",
+        "fecha_rec_tanque_rci": "2026-05-20",
+        "fecha_rec_pruebas_rci": "2026-11-20"
+      },
       "maintenancePrices": {
         "valor_lavado_tanque_agua_potable_sem1": 640382,
         "valor_lavado_tanque_agua_potable_sem2": 640382,
         "valor_lavado_pozos_eyectores_aguas_lluvias": 520000,
         "valor_lavado_pozos_eyectores_aguas_negras": 520000,
-        "valor_pruebas_hidraulias_red_contra_incendios": 1049724,
+        "valor_pruebas_hidraulicas_red_contra_incendios": 1049724,
         "valor_limpieza_sistema_drenaje_sotanos": 0,
         "valor_lavado_tanque_red_contra_incendios": 0,
         "valor_contrato_mantenimiento": 309962
       },
       "labAnalysisPrice": 198000,
-      "startAt": "2025-02-15",
-      "endAt": "2026-02-14",
+      "startAt": "2026-01-15",
+      "endAt": "2027-01-14",
       "status": "activo"
     },
     {
@@ -313,19 +403,37 @@
       "maintenanceTypeName": "Basico",
       "labAnalysisTypeId": "lab-agua",
       "labAnalysisTypeName": "Analisis Agua Potable",
+      "maintenanceApplies": {
+        "valor_lavado_tanque_agua_potable_sem1": true,
+        "valor_lavado_tanque_agua_potable_sem2": true,
+        "valor_lavado_pozos_eyectores_aguas_lluvias": true,
+        "valor_lavado_pozos_eyectores_aguas_negras": true,
+        "valor_pruebas_hidraulicas_red_contra_incendios": true,
+        "valor_limpieza_sistema_drenaje_sotanos": true,
+        "valor_lavado_tanque_red_contra_incendios": false,
+        "valor_contrato_mantenimiento": true
+      },
+      "maintenanceRecommendedDates": {
+        "fecha_rec_agua_potable_1": "2026-01-15",
+        "fecha_rec_agua_potable_2": "2026-07-15",
+        "fecha_rec_pozo_aguas_lluvias": "2026-03-10",
+        "fecha_rec_pozo_aguas_negras": "2026-09-10",
+        "fecha_rec_tanque_rci": "2026-05-20",
+        "fecha_rec_pruebas_rci": "2026-11-20"
+      },
       "maintenancePrices": {
         "valor_lavado_tanque_agua_potable_sem1": 640382,
         "valor_lavado_tanque_agua_potable_sem2": 640382,
         "valor_lavado_pozos_eyectores_aguas_lluvias": 520000,
         "valor_lavado_pozos_eyectores_aguas_negras": 520000,
-        "valor_pruebas_hidraulias_red_contra_incendios": 1049724,
+        "valor_pruebas_hidraulicas_red_contra_incendios": 1049724,
         "valor_limpieza_sistema_drenaje_sotanos": 0,
         "valor_lavado_tanque_red_contra_incendios": 0,
         "valor_contrato_mantenimiento": 309962
       },
       "labAnalysisPrice": 198000,
-      "startAt": "2025-04-01",
-      "endAt": "2026-03-31",
+      "startAt": "2026-01-02",
+      "endAt": "2027-01-01",
       "status": "activo"
     }
   ],
@@ -397,12 +505,20 @@
         {
           "id": "maint-basic",
           "name": "Basico",
+          "recommendedDates": {
+            "fecha_rec_agua_potable_1": "2026-01-15",
+            "fecha_rec_agua_potable_2": "2026-07-15",
+            "fecha_rec_pozo_aguas_lluvias": "2026-03-10",
+            "fecha_rec_pozo_aguas_negras": "2026-09-10",
+            "fecha_rec_tanque_rci": "2026-05-20",
+            "fecha_rec_pruebas_rci": "2026-11-20"
+          },
           "prices": {
             "valor_lavado_tanque_agua_potable_sem1": 640382,
             "valor_lavado_tanque_agua_potable_sem2": 640382,
             "valor_lavado_pozos_eyectores_aguas_lluvias": 520000,
             "valor_lavado_pozos_eyectores_aguas_negras": 520000,
-            "valor_pruebas_hidraulias_red_contra_incendios": 1049724,
+            "valor_pruebas_hidraulicas_red_contra_incendios": 1049724,
             "valor_limpieza_sistema_drenaje_sotanos": 0,
             "valor_lavado_tanque_red_contra_incendios": 0,
             "valor_contrato_mantenimiento": 309962
@@ -411,12 +527,20 @@
         {
           "id": "maint-premium",
           "name": "Premium",
+          "recommendedDates": {
+            "fecha_rec_agua_potable_1": "2026-02-12",
+            "fecha_rec_agua_potable_2": "2026-08-12",
+            "fecha_rec_pozo_aguas_lluvias": "2026-04-05",
+            "fecha_rec_pozo_aguas_negras": "2026-10-05",
+            "fecha_rec_tanque_rci": "2026-06-18",
+            "fecha_rec_pruebas_rci": "2026-12-18"
+          },
           "prices": {
             "valor_lavado_tanque_agua_potable_sem1": 740000,
             "valor_lavado_tanque_agua_potable_sem2": 740000,
             "valor_lavado_pozos_eyectores_aguas_lluvias": 620000,
             "valor_lavado_pozos_eyectores_aguas_negras": 620000,
-            "valor_pruebas_hidraulias_red_contra_incendios": 1190000,
+            "valor_pruebas_hidraulicas_red_contra_incendios": 1190000,
             "valor_limpieza_sistema_drenaje_sotanos": 450000,
             "valor_lavado_tanque_red_contra_incendios": 520000,
             "valor_contrato_mantenimiento": 420000
@@ -441,6 +565,14 @@
           "active": true
         }
       ]
+    },
+    "issues": {
+      "types": ["operativo", "seguridad", "infraestructura"],
+      "categories": {
+        "operativo": ["limpieza", "mantenimiento", "logistica"],
+        "seguridad": ["acceso", "incidente", "prevencion"],
+        "infraestructura": ["electricidad", "plomeria", "estructura"]
+      }
     },
     "calendar": {
       "holidays": [],

@@ -90,10 +90,24 @@ service cloud.firestore {
       && data.maintenancePrices.valor_lavado_tanque_agua_potable_sem2 is number
       && data.maintenancePrices.valor_lavado_pozos_eyectores_aguas_lluvias is number
       && data.maintenancePrices.valor_lavado_pozos_eyectores_aguas_negras is number
-      && data.maintenancePrices.valor_pruebas_hidraulias_red_contra_incendios is number
+      && data.maintenancePrices.valor_pruebas_hidraulicas_red_contra_incendios is number
       && data.maintenancePrices.valor_limpieza_sistema_drenaje_sotanos is number
       && data.maintenancePrices.valor_lavado_tanque_red_contra_incendios is number
       && data.maintenancePrices.valor_contrato_mantenimiento is number
+      && (
+        !('maintenanceApplies' in data)
+        || (
+          data.maintenanceApplies is map
+          && data.maintenanceApplies.valor_lavado_tanque_agua_potable_sem1 is bool
+          && data.maintenanceApplies.valor_lavado_tanque_agua_potable_sem2 is bool
+          && data.maintenanceApplies.valor_lavado_pozos_eyectores_aguas_lluvias is bool
+          && data.maintenanceApplies.valor_lavado_pozos_eyectores_aguas_negras is bool
+          && data.maintenanceApplies.valor_pruebas_hidraulicas_red_contra_incendios is bool
+          && data.maintenanceApplies.valor_limpieza_sistema_drenaje_sotanos is bool
+          && data.maintenanceApplies.valor_lavado_tanque_red_contra_incendios is bool
+          && data.maintenanceApplies.valor_contrato_mantenimiento is bool
+        )
+      )
       && isNonEmptyString(data.startAt)
       && isNonEmptyString(data.endAt)
       && (data.status == 'activo' || data.status == 'inactivo');

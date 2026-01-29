@@ -35,10 +35,28 @@ type MaintenanceType = {
     valor_lavado_tanque_agua_potable_sem2: number;
     valor_lavado_pozos_eyectores_aguas_lluvias: number;
     valor_lavado_pozos_eyectores_aguas_negras: number;
-    valor_pruebas_hidraulias_red_contra_incendios: number;
+    valor_pruebas_hidraulicas_red_contra_incendios: number;
     valor_limpieza_sistema_drenaje_sotanos: number;
     valor_lavado_tanque_red_contra_incendios: number;
     valor_contrato_mantenimiento: number;
+  };
+  applies?: {
+    valor_lavado_tanque_agua_potable_sem1: boolean;
+    valor_lavado_tanque_agua_potable_sem2: boolean;
+    valor_lavado_pozos_eyectores_aguas_lluvias: boolean;
+    valor_lavado_pozos_eyectores_aguas_negras: boolean;
+    valor_pruebas_hidraulicas_red_contra_incendios: boolean;
+    valor_limpieza_sistema_drenaje_sotanos: boolean;
+    valor_lavado_tanque_red_contra_incendios: boolean;
+    valor_contrato_mantenimiento: boolean;
+  };
+  recommendedDates?: {
+    fecha_rec_agua_potable_1?: string;
+    fecha_rec_agua_potable_2?: string;
+    fecha_rec_pozo_aguas_lluvias?: string;
+    fecha_rec_pozo_aguas_negras?: string;
+    fecha_rec_tanque_rci?: string;
+    fecha_rec_pruebas_rci?: string;
   };
 };
 
@@ -97,9 +115,13 @@ export default function ManagementPage() {
   }, [buildings, editingId]);
 
   useEffect(() => {
-    setSelectedBuildingIds((prev) =>
-      prev.filter((id) => availableBuildings.some((building) => building.id === id))
-    );
+    setSelectedBuildingIds((prev) => {
+      const next = prev.filter((id) => availableBuildings.some((building) => building.id === id));
+      if (next.length === prev.length && next.every((id, index) => id === prev[index])) {
+        return prev;
+      }
+      return next;
+    });
   }, [availableBuildings]);
   const schema = z.object({
     name: z.string().min(2, t('common.required')),
@@ -414,6 +436,8 @@ export default function ManagementPage() {
       labAnalysisTypeName: labType.name,
       labAnalysisPrice,
       maintenancePrices: maintenanceType.prices,
+      maintenanceApplies: maintenanceType.applies ?? null,
+      maintenanceRecommendedDates: maintenanceType.recommendedDates ?? null,
       startAt: values.startAt,
       endAt: values.endAt,
       status: values.status
@@ -789,7 +813,7 @@ export default function ManagementPage() {
                     </div>
                     <div>
                       <p className="font-semibold">{t('contracts.priceHidraulicas')}</p>
-                      <p>{selectedMaintenanceType.prices.valor_pruebas_hidraulias_red_contra_incendios}</p>
+                      <p>{selectedMaintenanceType.prices.valor_pruebas_hidraulicas_red_contra_incendios}</p>
                     </div>
                     <div>
                       <p className="font-semibold">{t('contracts.priceDrenaje')}</p>

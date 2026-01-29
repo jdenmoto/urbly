@@ -3,12 +3,18 @@ import clsx from 'clsx';
 import { useNavGroups } from '@/app/nav';
 import { useAuth } from '@/app/Auth';
 import { useI18n } from '@/lib/i18n';
-import { ChevronLeft, ChevronRight } from './ActionIcons';
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from './ActionIcons';
+import { useState } from 'react';
 
 export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
   const { logout, role } = useAuth();
   const { t } = useI18n();
   const navGroups = useNavGroups(role);
+  const [sectionOpen, setSectionOpen] = useState<Record<string, boolean>>({
+    calendar: false,
+    main: true,
+    settings: false
+  });
 
   return (
     <aside
@@ -39,32 +45,79 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
           ) : null}
         </div>
       <nav className="flex flex-1 flex-col gap-4">
-        {navGroups.map((group) => (
+        {navGroups.map((group, index) => {
+          const groupKey = index === 0 ? 'main' : 'settings';
+          const isGroupOpen = sectionOpen[groupKey] ?? true;
+          return (
           <div key={group.label} className="space-y-2">
             {!collapsed ? (
-              <p className="px-2 text-[11px] font-semibold uppercase tracking-wide text-ink-400">
-                {group.label}
-              </p>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between px-2 text-[11px] font-semibold uppercase tracking-wide text-ink-400"
+                onClick={() =>
+                  setSectionOpen((prev) => ({ ...prev, [groupKey]: !isGroupOpen }))
+                }
+              >
+                <span>{group.label}</span>
+                {isGroupOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </button>
             ) : null}
             <div className="space-y-1">
-              {group.items.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    clsx(
-                      'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition',
-                      isActive ? 'bg-ink-900 text-white' : 'text-ink-700 hover:bg-fog-100'
-                    )
-                  }
-                >
-                  <item.icon className="h-5 w-5" />
-                  {!collapsed ? item.label : null}
-                </NavLink>
-              ))}
+              {isGroupOpen
+                ? group.items.map((item) => {
+                const isSectionHeader = item.kind === 'section' && item.sectionId;
+                const isCalendarItem = item.sectionId === 'calendar' && item.kind !== 'section';
+                if (isCalendarItem && sectionOpen.calendar === false) {
+                  return null;
+                }
+                return (
+                item.kind === 'section' ? (
+                  <button
+                    key={`${group.label}-${item.label}`}
+                    type="button"
+                    className={clsx(
+                      'flex w-full items-center justify-between px-3 pt-3 text-[11px] font-semibold uppercase tracking-wide text-ink-400',
+                      collapsed ? 'hidden' : 'flex'
+                    )}
+                    onClick={() =>
+                      item.sectionId
+                        ? setSectionOpen((prev) => ({ ...prev, [item.sectionId!]: !prev[item.sectionId!] }))
+                        : null
+                    }
+                  >
+                    <span>{item.label}</span>
+                    {item.sectionId ? (
+                      sectionOpen[item.sectionId] ? (
+                        <ChevronUp className="h-3 w-3" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3" />
+                      )
+                    ) : null}
+                  </button>
+                ) : (
+                  item.to ? (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={({ isActive }) =>
+                      clsx(
+                        'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition',
+                        isActive ? 'bg-ink-900 text-white' : 'text-ink-700 hover:bg-fog-100'
+                      )
+                    }
+                  >
+                      <item.icon className="h-5 w-5" />
+                      {!collapsed ? item.label : null}
+                    </NavLink>
+                  ) : null
+                )
+                );
+              })
+                : null}
             </div>
           </div>
-        ))}
+        );
+        })}
       </nav>
       {!collapsed ? (
         <div className="space-y-3">

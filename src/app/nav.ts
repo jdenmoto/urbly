@@ -3,11 +3,13 @@ import { useI18n } from '@/lib/i18n';
 import { useFeatureFlags } from '@/lib/featureFlags';
 
 export type NavItem = {
-  to: string;
+  to?: string;
   label: string;
   icon: (props: React.SVGProps<SVGSVGElement>) => JSX.Element;
   enabled: boolean;
   adminOnly?: boolean;
+  kind?: 'link' | 'section';
+  sectionId?: string;
 };
 
 export type NavGroup = {
@@ -78,14 +80,35 @@ export function useNavGroups(
           adminOnly: true,
           enabled: flags.settings
         },
+        { to: '/users', 
+          label: t('nav.users'), 
+          icon: ShieldUser, 
+          adminOnly: true,
+          enabled: flags.users },
         {
-          to: '/settings/calendar',
-          label: t('nav.settingsCalendar'),
+          label: t('nav.settingsCalendarSection'),
           icon: Settings,
           adminOnly: true,
-          enabled: flags.settings
+          enabled: flags.settings,
+          kind: 'section',
+          sectionId: 'calendar'
         },
-        { to: '/users', label: t('nav.users'), icon: ShieldUser, adminOnly: true, enabled: flags.users }
+        {
+          to: '/settings/calendar/holidays',
+          label: t('nav.settingsCalendarHolidays'),
+          icon: Settings,
+          adminOnly: true,
+          enabled: flags.settings,
+          sectionId: 'calendar'
+        },
+        {
+          to: '/settings/calendar/non-working',
+          label: t('nav.settingsCalendarNonWorking'),
+          icon: Settings,
+          adminOnly: true,
+          enabled: flags.settings,
+          sectionId: 'calendar'
+        }
       ]
     }
   ];
@@ -104,5 +127,7 @@ export function useNavGroups(
 export function useNavItems(
   role: 'admin' | 'editor' | 'view' | 'building_admin' | 'emergency_scheduler' = 'view'
 ) {
-  return useNavGroups(role).flatMap((group) => group.items);
+  return useNavGroups(role)
+    .flatMap((group) => group.items)
+    .filter((item) => item.kind !== 'section' && item.to);
 }

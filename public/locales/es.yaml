@@ -38,6 +38,7 @@ common:
   noResults: Sin resultados
   required: Requerido
   actions: Acciones
+  notAvailable: No disponible
   prev: Anterior
   next: Siguiente
   unassigned: Sin asignar
@@ -58,9 +59,11 @@ nav:
   settings: Configuraciones
   settingsGroups: Grupos
   settingsIssues: Novedades
-  settingsContracts: Contratos
+  settingsContracts: Tipos de Contratos
   settingsLabs: Analisis laboratorio
-  settingsCalendar: Calendario
+  settingsCalendarSection: Calendario
+  settingsCalendarHolidays: Festivos
+  settingsCalendarNonWorking: No laborables
   mainSection: Operacion
   adminSection: Administracion
   settingsSection: Configuraciones
@@ -176,6 +179,15 @@ settings:
   priceDrenaje: Limpieza sistema drenaje sotanos
   priceTankRCI: Lavado tanque red contra incendios
   priceMaintenance: Valor contrato mantenimiento
+  appliesYes: Aplica
+  appliesNo: No aplica
+  recommendedDatesTitle: Fechas recomendadas
+  recWaterPotableSem1: Agua potable 1 semestre
+  recWaterPotableSem2: Agua potable 2 semestre
+  recPozoLluvias: Pozo aguas lluvias
+  recPozoNegras: Pozo aguas negras
+  recTankRci: Tanque RCI
+  recPruebasRci: Pruebas RCI
   save: Guardar cambios
   saving: Guardando...
   toastSaved: Configuracion guardada
@@ -232,6 +244,7 @@ management:
 contracts:
   title: Contratos
   subtitle: Gestion de contratos por administracion
+  detailTitle: Detalle de contrato
   name: Nombre
   administration: Administracion
   maintenanceType: Tipo contrato mantenimiento
@@ -321,6 +334,11 @@ buildings:
   toastDeleted: Edificio eliminado
   toastEnabled: Edificio habilitado
   toastDisabled: Edificio deshabilitado
+  detailTitle: Detalle de edificio
+  maintenanceTitle: Mantenimientos programados
+  maintenanceEmptyTitle: Sin mantenimientos
+  maintenanceEmptySubtitle: No hay mantenimientos programados para este edificio.
+  viewContract: Ver contrato
 employees:
   title: Empleados
   subtitle: Equipo operativo
@@ -429,6 +447,13 @@ scheduling:
   dateBlocked: No se puede agendar en dias festivos o no laborables.
   emergencyOnly: Solo puedes agendar servicios de emergencia.
   emergencyPermission: No tienes permisos para agendar emergencias en esos dias.
+  contractRequired: El edificio debe tener un contrato con fechas para programar recurrencias.
+  contractOutOfRange: La fecha seleccionada esta fuera del rango del contrato.
+  seriesConfirmTitle: Regenerar serie
+  seriesConfirmDescription: Esta accion eliminara la serie actual y generara una nueva. Deseas continuar?
+  businessHoursStart: El inicio debe estar entre 8:00 AM y 6:00 PM.
+  businessHoursEnd: La finalizacion debe estar entre 8:00 AM y 6:00 PM.
+  businessHoursToast: Solo puedes programar servicios entre 8:00 AM y 6:00 PM.
   statusProgrammed: Programado
   statusConfirmed: Confirmado
   statusCompleted: Completado
@@ -474,10 +499,9 @@ scheduling:
     semestral: Semestral
   types:
     mantenimiento: Mantenimiento
-    inspeccion: Inspeccion
-    servicio: Servicio
+    lavado_tanque: Lavado de tanque
     emergencia: Emergencia
-    otro: Otro
+    interventoria: Interventoria
   issueTypes:
     operativo: Operativo
     seguridad: Seguridad
@@ -503,6 +527,14 @@ scheduling:
 dashboard:
   title: Dashboard
   subtitle: Pulso operativo del portafolio
+  from: Desde
+  to: Hasta
+  trendTitle: Actividad diaria
+  trendHint: Total vs completados (ultimos 10 dias)
+  completionTitle: Cumplimiento
+  completedRate: Tasa de cumplimiento
+  completed: Completados
+  pending: Pendientes
   buildings: Edificios
   managements: Administraciones
   employees: Empleados activos

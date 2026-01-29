@@ -14,7 +14,7 @@ type MaintenancePrices = {
   valor_lavado_tanque_agua_potable_sem2: number;
   valor_lavado_pozos_eyectores_aguas_lluvias: number;
   valor_lavado_pozos_eyectores_aguas_negras: number;
-  valor_pruebas_hidraulias_red_contra_incendios: number;
+  valor_pruebas_hidraulicas_red_contra_incendios: number;
   valor_limpieza_sistema_drenaje_sotanos: number;
   valor_lavado_tanque_red_contra_incendios: number;
   valor_contrato_mantenimiento: number;
@@ -24,6 +24,15 @@ type MaintenanceType = {
   id: string;
   name: string;
   prices: MaintenancePrices;
+  applies?: Record<keyof MaintenancePrices, boolean>;
+  recommendedDates?: {
+    fecha_rec_agua_potable_1?: string;
+    fecha_rec_agua_potable_2?: string;
+    fecha_rec_pozo_aguas_lluvias?: string;
+    fecha_rec_pozo_aguas_negras?: string;
+    fecha_rec_tanque_rci?: string;
+    fecha_rec_pruebas_rci?: string;
+  };
 };
 
 const emptyPrices: MaintenancePrices = {
@@ -31,10 +40,21 @@ const emptyPrices: MaintenancePrices = {
   valor_lavado_tanque_agua_potable_sem2: 0,
   valor_lavado_pozos_eyectores_aguas_lluvias: 0,
   valor_lavado_pozos_eyectores_aguas_negras: 0,
-  valor_pruebas_hidraulias_red_contra_incendios: 0,
+  valor_pruebas_hidraulicas_red_contra_incendios: 0,
   valor_limpieza_sistema_drenaje_sotanos: 0,
   valor_lavado_tanque_red_contra_incendios: 0,
   valor_contrato_mantenimiento: 0
+};
+
+const defaultApplies: Record<keyof MaintenancePrices, boolean> = {
+  valor_lavado_tanque_agua_potable_sem1: true,
+  valor_lavado_tanque_agua_potable_sem2: true,
+  valor_lavado_pozos_eyectores_aguas_lluvias: true,
+  valor_lavado_pozos_eyectores_aguas_negras: true,
+  valor_pruebas_hidraulicas_red_contra_incendios: true,
+  valor_limpieza_sistema_drenaje_sotanos: true,
+  valor_lavado_tanque_red_contra_incendios: true,
+  valor_contrato_mantenimiento: true
 };
 
 export default function ContractsSettingsPage() {
@@ -46,6 +66,22 @@ export default function ContractsSettingsPage() {
   const [editingMaintenanceId, setEditingMaintenanceId] = useState<string | null>(null);
   const [contractTypeName, setContractTypeName] = useState('');
   const [prices, setPrices] = useState<MaintenancePrices>(emptyPrices);
+  const [applies, setApplies] = useState<Record<keyof MaintenancePrices, boolean>>(defaultApplies);
+  const [recommendedDates, setRecommendedDates] = useState<{
+    fecha_rec_agua_potable_1: string;
+    fecha_rec_agua_potable_2: string;
+    fecha_rec_pozo_aguas_lluvias: string;
+    fecha_rec_pozo_aguas_negras: string;
+    fecha_rec_tanque_rci: string;
+    fecha_rec_pruebas_rci: string;
+  }>({
+    fecha_rec_agua_potable_1: '',
+    fecha_rec_agua_potable_2: '',
+    fecha_rec_pozo_aguas_lluvias: '',
+    fecha_rec_pozo_aguas_negras: '',
+    fecha_rec_tanque_rci: '',
+    fecha_rec_pruebas_rci: ''
+  });
 
   const formatCOP = (value: number) => {
     if (!Number.isFinite(value)) return '$0';
@@ -78,6 +114,15 @@ export default function ContractsSettingsPage() {
     setEditingMaintenanceId(null);
     setContractTypeName('');
     setPrices(emptyPrices);
+    setApplies(defaultApplies);
+    setRecommendedDates({
+      fecha_rec_agua_potable_1: '',
+      fecha_rec_agua_potable_2: '',
+      fecha_rec_pozo_aguas_lluvias: '',
+      fecha_rec_pozo_aguas_negras: '',
+      fecha_rec_tanque_rci: '',
+      fecha_rec_pruebas_rci: ''
+    });
   };
 
   const persistMaintenanceTypes = async (next: MaintenanceType[]) => {
@@ -98,7 +143,7 @@ export default function ContractsSettingsPage() {
     const name = contractTypeName.trim();
     if (!name) return;
     const id = editingMaintenanceId ?? (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
-    const payload: MaintenanceType = { id, name, prices };
+    const payload: MaintenanceType = { id, name, prices, applies, recommendedDates };
     const next = editingMaintenanceId
       ? maintenanceTypes.map((item) => (item.id === editingMaintenanceId ? payload : item))
       : [...maintenanceTypes, payload];
@@ -116,6 +161,15 @@ export default function ContractsSettingsPage() {
     setEditingMaintenanceId(item.id);
     setContractTypeName(item.name);
     setPrices(item.prices);
+    setApplies({ ...defaultApplies, ...(item.applies ?? {}) });
+    setRecommendedDates({
+      fecha_rec_agua_potable_1: item.recommendedDates?.fecha_rec_agua_potable_1 ?? '',
+      fecha_rec_agua_potable_2: item.recommendedDates?.fecha_rec_agua_potable_2 ?? '',
+      fecha_rec_pozo_aguas_lluvias: item.recommendedDates?.fecha_rec_pozo_aguas_lluvias ?? '',
+      fecha_rec_pozo_aguas_negras: item.recommendedDates?.fecha_rec_pozo_aguas_negras ?? '',
+      fecha_rec_tanque_rci: item.recommendedDates?.fecha_rec_tanque_rci ?? '',
+      fecha_rec_pruebas_rci: item.recommendedDates?.fecha_rec_pruebas_rci ?? ''
+    });
   };
 
 
@@ -125,7 +179,7 @@ export default function ContractsSettingsPage() {
       { key: 'valor_lavado_tanque_agua_potable_sem2', label: t('settings.priceWaterTankSem2') },
       { key: 'valor_lavado_pozos_eyectores_aguas_lluvias', label: t('settings.pricePozosLluvias') },
       { key: 'valor_lavado_pozos_eyectores_aguas_negras', label: t('settings.pricePozosNegras') },
-      { key: 'valor_pruebas_hidraulias_red_contra_incendios', label: t('settings.priceHidraulicas') },
+      { key: 'valor_pruebas_hidraulicas_red_contra_incendios', label: t('settings.priceHidraulicas') },
       { key: 'valor_limpieza_sistema_drenaje_sotanos', label: t('settings.priceDrenaje') },
       { key: 'valor_lavado_tanque_red_contra_incendios', label: t('settings.priceTankRCI') },
       { key: 'valor_contrato_mantenimiento', label: t('settings.priceMaintenance') }
@@ -155,19 +209,94 @@ export default function ContractsSettingsPage() {
           />
           <div className="grid gap-2 md:grid-cols-2">
             {priceFields.map((field) => (
+              <div key={field.key} className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-ink-800">{field.label}</span>
+                  <button
+                    type="button"
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      applies[field.key as keyof MaintenancePrices]
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'bg-rose-100 text-rose-700'
+                    }`}
+                    onClick={() =>
+                      setApplies((prev) => ({
+                        ...prev,
+                        [field.key]: !prev[field.key as keyof MaintenancePrices]
+                      }))
+                    }
+                  >
+                    {applies[field.key as keyof MaintenancePrices]
+                      ? t('settings.appliesYes')
+                      : t('settings.appliesNo')}
+                  </button>
+                </div>
+                <Input
+                  label=""
+                  value={formatCOP(prices[field.key as keyof MaintenancePrices] ?? 0)}
+                  inputMode="numeric"
+                  onChange={(event) =>
+                    setPrices((prev) => ({
+                      ...prev,
+                      [field.key]: parseCOP(event.target.value)
+                    }))
+                  }
+                />
+              </div>
+            ))}
+          </div>
+          <div className="rounded-xl border border-fog-200 p-4">
+            <p className="text-sm font-semibold text-ink-900">{t('settings.recommendedDatesTitle')}</p>
+            <div className="mt-3 grid gap-3 md:grid-cols-3">
               <Input
-                key={field.key}
-                label={field.label}
-                value={formatCOP(prices[field.key as keyof MaintenancePrices] ?? 0)}
-                inputMode="numeric"
+                label={t('settings.recWaterPotableSem1')}
+                type="date"
+                value={recommendedDates.fecha_rec_agua_potable_1}
                 onChange={(event) =>
-                  setPrices((prev) => ({
-                    ...prev,
-                    [field.key]: parseCOP(event.target.value)
-                  }))
+                  setRecommendedDates((prev) => ({ ...prev, fecha_rec_agua_potable_1: event.target.value }))
                 }
               />
-            ))}
+              <Input
+                label={t('settings.recWaterPotableSem2')}
+                type="date"
+                value={recommendedDates.fecha_rec_agua_potable_2}
+                onChange={(event) =>
+                  setRecommendedDates((prev) => ({ ...prev, fecha_rec_agua_potable_2: event.target.value }))
+                }
+              />
+              <Input
+                label={t('settings.recPozoLluvias')}
+                type="date"
+                value={recommendedDates.fecha_rec_pozo_aguas_lluvias}
+                onChange={(event) =>
+                  setRecommendedDates((prev) => ({ ...prev, fecha_rec_pozo_aguas_lluvias: event.target.value }))
+                }
+              />
+              <Input
+                label={t('settings.recPozoNegras')}
+                type="date"
+                value={recommendedDates.fecha_rec_pozo_aguas_negras}
+                onChange={(event) =>
+                  setRecommendedDates((prev) => ({ ...prev, fecha_rec_pozo_aguas_negras: event.target.value }))
+                }
+              />
+              <Input
+                label={t('settings.recTankRci')}
+                type="date"
+                value={recommendedDates.fecha_rec_tanque_rci}
+                onChange={(event) =>
+                  setRecommendedDates((prev) => ({ ...prev, fecha_rec_tanque_rci: event.target.value }))
+                }
+              />
+              <Input
+                label={t('settings.recPruebasRci')}
+                type="date"
+                value={recommendedDates.fecha_rec_pruebas_rci}
+                onChange={(event) =>
+                  setRecommendedDates((prev) => ({ ...prev, fecha_rec_pruebas_rci: event.target.value }))
+                }
+              />
+            </div>
           </div>
           <div className="flex items-center justify-end gap-2">
             {editingMaintenanceId ? (
@@ -200,7 +329,11 @@ export default function ContractsSettingsPage() {
                       {priceFields.map((field) => (
                         <div key={field.key} className="flex items-center justify-between gap-2">
                           <span>{field.label}</span>
-                          <span>{formatCOP(item.prices[field.key as keyof MaintenancePrices])}</span>
+                          <span>
+                            {(item.applies?.[field.key as keyof MaintenancePrices] ?? true)
+                              ? formatCOP(item.prices[field.key as keyof MaintenancePrices])
+                              : 'N/A'}
+                          </span>
                         </div>
                       ))}
                     </td>

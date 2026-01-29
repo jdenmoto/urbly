@@ -15,6 +15,8 @@ import IssuesSettingsPage from '@/features/settings/IssuesSettingsPage';
 import ContractsSettingsPage from '@/features/settings/ContractsSettingsPage';
 import LabsSettingsPage from '@/features/settings/LabsSettingsPage';
 import CalendarSettingsPage from '@/features/settings/CalendarSettingsPage';
+import CalendarHolidaysPage from '@/features/settings/CalendarHolidaysPage';
+import CalendarNonWorkingPage from '@/features/settings/CalendarNonWorkingPage';
 
 export default function App() {
   return (
@@ -153,6 +155,26 @@ export default function App() {
               <RoleGuard allow={['admin']}>
                 <FeatureGuard feature="settings">
                   <CalendarSettingsPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="settings/calendar/holidays"
+            element={
+              <RoleGuard allow={['admin']}>
+                <FeatureGuard feature="settings">
+                  <CalendarHolidaysPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="settings/calendar/non-working"
+            element={
+              <RoleGuard allow={['admin']}>
+                <FeatureGuard feature="settings">
+                  <CalendarNonWorkingPage />
                 </FeatureGuard>
               </RoleGuard>
             }

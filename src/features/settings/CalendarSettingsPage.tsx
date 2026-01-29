@@ -20,7 +20,7 @@ type CalendarSettings = {
   nonWorkingDays?: CalendarEntry[];
 };
 
-export default function CalendarSettingsPage() {
+export default function CalendarSettingsPage({ section = 'all' }: { section?: 'all' | 'holidays' | 'nonWorking' }) {
   const { t } = useI18n();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -158,32 +158,26 @@ export default function CalendarSettingsPage() {
         return;
       }
       const mod = await import('festivos-colombianos');
-      const CalendarCtor =
-        (mod as { default?: any; Calendar?: any; FestivosColombia?: any }).default ??
-        (mod as { Calendar?: any }).Calendar ??
-        (mod as { FestivosColombia?: any }).FestivosColombia ??
-        mod;
-      const calendar = typeof CalendarCtor === 'function' ? new CalendarCtor() : CalendarCtor;
-      const holidaysFromLib =
-        typeof calendar?.getHolidaysByYear === 'function'
-          ? calendar.getHolidaysByYear(year)
-          : typeof calendar?.getHolidays === 'function'
-            ? calendar.getHolidays(year)
-            : Array.isArray(calendar)
-              ? calendar
-              : [];
+      if (!mod || typeof mod !== 'object') {
+        toast(t('settings.calendarImportError'), 'error');
+        return;
+      }
+      console.log(year);
+      const defaultFn = (mod as { default?: (year: number) => any }).default;
+      const holidaysFromLib = typeof defaultFn === 'function' ? defaultFn(year) : [];
+      console.log(holidaysFromLib[0])
       if (!Array.isArray(holidaysFromLib)) {
         toast(t('settings.calendarImportError'), 'error');
         return;
       }
       const mapped: CalendarEntry[] = holidaysFromLib
         .map((item: any) => {
-          const date = normalizeDate(String(item.date ?? item.fecha ?? ''));
+          const date = normalizeDate(String(item.holiday ?? item.celebrationDay ?? item.date ?? item.fecha ?? ''));
           if (!date) return null;
           return {
             id: item.id ?? `${date}`,
             date,
-            name: String(item.name ?? item.nombre ?? t('settings.calendarHolidayDefault'))
+            name: String(item.celebration ?? item.name ?? item.nombre ?? t('settings.calendarHolidayDefault'))
           };
         })
         .filter(Boolean) as CalendarEntry[];
@@ -197,6 +191,7 @@ export default function CalendarSettingsPage() {
       await persist(Array.from(existing.values()), nonWorkingDays);
       toast(t('settings.calendarImported'), 'success');
     } catch (error) {
+      console.log(error)
       toast(t('settings.calendarImportError'), 'error');
     }
   };
@@ -213,6 +208,7 @@ export default function CalendarSettingsPage() {
     <div className="space-y-6">
       <PageHeader title={t('settings.calendarTitle')} subtitle={t('settings.calendarSubtitle')} />
       <Card className="space-y-8">
+        {(section === 'all' || section === 'holidays') && (
         <section className="space-y-4">
           <h3 className="text-sm font-semibold text-ink-900">{t('settings.holidaysTitle')}</h3>
           <div className="grid gap-3 md:grid-cols-3">
@@ -289,7 +285,9 @@ export default function CalendarSettingsPage() {
             </table>
           </div>
         </section>
+        )}
 
+        {(section === 'all' || section === 'nonWorking') && (
         <section className="space-y-4">
           <h3 className="text-sm font-semibold text-ink-900">{t('settings.nonWorkingTitle')}</h3>
           <div className="grid gap-3 md:grid-cols-3">
@@ -353,6 +351,7 @@ export default function CalendarSettingsPage() {
             </table>
           </div>
         </section>
+        )}
       </Card>
     </div>
   );

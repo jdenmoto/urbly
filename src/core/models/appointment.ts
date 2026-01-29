@@ -22,6 +22,7 @@ export type Appointment = {
   cancelReason?: string | null;
   cancelNote?: string | null;
   recurrence?: string;
+  seriesId?: string | null;
   completedAt?: string | null;
   issues?: AppointmentIssue[];
   createdAt?: string;

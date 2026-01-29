@@ -7,6 +7,7 @@ import './styles/index.css';
 import { I18nProvider } from './lib/i18n';
 import { ToastProvider } from './components/ToastProvider';
 import { FeatureFlagsProvider } from './lib/featureFlags';
+import GlobalLoaderProvider from './components/GlobalLoader';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,9 +24,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <I18nProvider>
         <ToastProvider>
           <FeatureFlagsProvider>
-            <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-              <App />
-            </BrowserRouter>
+            <GlobalLoaderProvider>
+              <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+                <App />
+              </BrowserRouter>
+            </GlobalLoaderProvider>
           </FeatureFlagsProvider>
         </ToastProvider>
       </I18nProvider>
