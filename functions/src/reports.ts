@@ -37,6 +37,228 @@ const formatCOP = (value?: number) => {
   return `$${Math.round(value ?? 0).toLocaleString('es-CO')}`;
 };
 
+const stripHtml = (value?: string) => {
+  if (!value) return '';
+  return value.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+};
+
+const decodeDataUrl = (value?: string) => {
+  if (!value) return null;
+  const match = value.match(/^data:(image\/\w+);base64,(.+)$/);
+  if (!match) return null;
+  return {
+    mime: match[1],
+    data: Buffer.from(match[2], 'base64')
+  };
+};
+
+type QuoteTemplateElement = {
+  id: string;
+  type: 'text' | 'field' | 'image';
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  fontSize?: number;
+  bold?: boolean;
+  align?: 'left' | 'center' | 'right';
+  text?: string;
+  html?: string;
+  field?: string;
+  src?: string;
+};
+
+type QuoteTemplatePage = {
+  id: string;
+  elements: QuoteTemplateElement[];
+};
+
+type QuoteTemplate = {
+  id: string;
+  name: string;
+  pages: QuoteTemplatePage[];
+  pageSize: 'LETTER';
+};
+
+const LETTER_PAGE = {
+  width: 612,
+  height: 792
+};
+
+const mapPlaceholderValues = (payload: {
+  building?: {
+    name?: string;
+    addressText?: string;
+    type?: string;
+    nit?: string;
+  };
+  management?: { name?: string; contactPhone?: string };
+  contract?: {
+    maintenanceTypeName?: string;
+    maintenancePrices?: Record<string, number>;
+    maintenanceApplies?: Record<string, boolean>;
+    maintenanceRecommendedDates?: {
+      fecha_rec_agua_potable_1?: string;
+      fecha_rec_agua_potable_2?: string;
+      fecha_rec_pozo_aguas_lluvias?: string;
+      fecha_rec_pozo_aguas_negras?: string;
+      fecha_rec_tanque_rci?: string;
+      fecha_rec_pruebas_rci?: string;
+    };
+    labAnalysisTypeName?: string;
+    labAnalysisPrice?: number;
+    endAt?: string;
+  };
+  maintenanceDatesByMonth?: Map<number, Date>;
+}) => {
+  const { building, management, contract } = payload;
+  const placeholderValues: Record<string, string> = {
+    '{tipo_edificio}': building?.type ?? '',
+    '{fecha_generacion}': formatDate(new Date()),
+    '{nombre_edificio}': building?.name ?? '',
+    '{nit_edificio}': building?.nit ?? '',
+    '{direccion_edificio}': building?.addressText ?? '',
+    '{telefono_administracion}': management?.contactPhone ?? '',
+    '{nombre_administracion}': management?.name ?? '',
+    '{tipo_contrato_mantenimiento}': contract?.maintenanceTypeName ?? '',
+    '{fecha_finalizacion_contrato_mantenimiento}': formatDate(contract?.endAt),
+    '{contrato_analisis_lab_tipo}': contract?.labAnalysisTypeName ?? '',
+    '{valor_contrato_mantenimiento}':
+      contract?.maintenanceApplies?.valor_contrato_mantenimiento === false
+        ? 'N/A'
+        : formatCOP(contract?.maintenancePrices?.valor_contrato_mantenimiento),
+    '{valor_analisis_laboratiorio_tipo}': formatCOP(contract?.labAnalysisPrice),
+    '{valor_lavado_tanque_agua_potable_sem1}':
+      contract?.maintenanceApplies?.valor_lavado_tanque_agua_potable_sem1 === false
+        ? 'N/A'
+        : formatCOP(contract?.maintenancePrices?.valor_lavado_tanque_agua_potable_sem1),
+    '{valor_lavado_tanque_agua_potable_sem2}':
+      contract?.maintenanceApplies?.valor_lavado_tanque_agua_potable_sem2 === false
+        ? 'N/A'
+        : formatCOP(contract?.maintenancePrices?.valor_lavado_tanque_agua_potable_sem2),
+    '{valor_lavado_pozos_eyectores_aguas_lluvias}':
+      contract?.maintenanceApplies?.valor_lavado_pozos_eyectores_aguas_lluvias === false
+        ? 'N/A'
+        : formatCOP(contract?.maintenancePrices?.valor_lavado_pozos_eyectores_aguas_lluvias),
+    '{valor_lavado_pozos_eyectores_aguas_negras}':
+      contract?.maintenanceApplies?.valor_lavado_pozos_eyectores_aguas_negras === false
+        ? 'N/A'
+        : formatCOP(contract?.maintenancePrices?.valor_lavado_pozos_eyectores_aguas_negras),
+    '{valor_pruebas_hidraulicas_red_contra_incendios}':
+      contract?.maintenanceApplies?.valor_pruebas_hidraulicas_red_contra_incendios === false
+        ? 'N/A'
+        : formatCOP(contract?.maintenancePrices?.valor_pruebas_hidraulicas_red_contra_incendios),
+    '{valor_limpieza_sistema_drenaje_sotanos}':
+      contract?.maintenanceApplies?.valor_limpieza_sistema_drenaje_sotanos === false
+        ? 'N/A'
+        : formatCOP(contract?.maintenancePrices?.valor_limpieza_sistema_drenaje_sotanos),
+    '{valor_lavado_tanque_red_contra_incendios}':
+      contract?.maintenanceApplies?.valor_lavado_tanque_red_contra_incendios === false
+        ? 'N/A'
+        : formatCOP(contract?.maintenancePrices?.valor_lavado_tanque_red_contra_incendios),
+    '{fecha_rec_agua_potable_1}': '',
+    '{fecha_rec_agua_potable_2}': '',
+    '{fecha_rec_pozo_aguas_lluvias}': '',
+    '{fecha_rec_pozo_aguas_negras}': '',
+    '{fecha_rec_tanque_rci}': '',
+    '{fecha_rec_pruebas_rci}': '',
+    '{anho_anterior}': String(new Date().getFullYear() - 1),
+    '{anho_actual}': String(new Date().getFullYear())
+  };
+
+  if (contract?.maintenanceRecommendedDates) {
+    placeholderValues['{fecha_rec_agua_potable_1}'] = formatDate(contract.maintenanceRecommendedDates.fecha_rec_agua_potable_1);
+    placeholderValues['{fecha_rec_agua_potable_2}'] = formatDate(contract.maintenanceRecommendedDates.fecha_rec_agua_potable_2);
+    placeholderValues['{fecha_rec_pozo_aguas_lluvias}'] = formatDate(
+      contract.maintenanceRecommendedDates.fecha_rec_pozo_aguas_lluvias
+    );
+    placeholderValues['{fecha_rec_pozo_aguas_negras}'] = formatDate(
+      contract.maintenanceRecommendedDates.fecha_rec_pozo_aguas_negras
+    );
+    placeholderValues['{fecha_rec_tanque_rci}'] = formatDate(
+      contract.maintenanceRecommendedDates.fecha_rec_tanque_rci
+    );
+    placeholderValues['{fecha_rec_pruebas_rci}'] = formatDate(
+      contract.maintenanceRecommendedDates.fecha_rec_pruebas_rci
+    );
+  }
+
+  const monthPlaceholders: Array<[number, string]> = [
+    [0, '{dia_mes_enero}'],
+    [1, '{dia_mes_febrero}'],
+    [2, '{dia_mes_marzo}'],
+    [3, '{dia_mes_abril}'],
+    [4, '{dia_mes_mayo}'],
+    [5, '{dia_mes_junio}'],
+    [6, '{dia_mes_julio}'],
+    [7, '{dia_mes_agosto}'],
+    [8, '{dia_mes_septiembre}'],
+    [9, '{dia_mes_octubre}'],
+    [10, '{dia_mes_noviembre}'],
+    [11, '{dia_mes_diciembre}']
+  ];
+  monthPlaceholders.forEach(([month, key]) => {
+    const date = payload.maintenanceDatesByMonth?.get(month);
+    placeholderValues[key] = date ? String(date.getDate()).padStart(2, '0') : '';
+  });
+
+  return placeholderValues;
+};
+
+const renderTemplateToPdf = async (template: QuoteTemplate, values: Record<string, string>) => {
+  const pdfDoc = await PDFDocument.create();
+  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  for (const pageDef of template.pages) {
+    const page = pdfDoc.addPage([LETTER_PAGE.width, LETTER_PAGE.height]);
+    for (const element of pageDef.elements) {
+      if (element.type === 'image' && element.src) {
+        const decoded = decodeDataUrl(element.src);
+        if (decoded) {
+          const image =
+            decoded.mime === 'image/png'
+              ? await pdfDoc.embedPng(decoded.data)
+              : await pdfDoc.embedJpg(decoded.data);
+          const width = element.width ?? image.width;
+          const height = element.height ?? image.height;
+          page.drawImage(image, {
+            x: element.x,
+            y: LETTER_PAGE.height - element.y - height,
+            width,
+            height
+          });
+        }
+        continue;
+      }
+      const fontSize = element.fontSize ?? 11;
+      const font = element.bold ? fontBold : fontRegular;
+      const rawText =
+        element.type === 'text'
+          ? stripHtml(element.html || element.text || '')
+          : values[element.field ?? ''] ?? '';
+      const text = rawText ?? '';
+      const textWidth = font.widthOfTextAtSize(text, fontSize);
+      const width = element.width ?? textWidth;
+      let x = element.x;
+      if (element.align === 'center') {
+        x = element.x + (width - textWidth) / 2;
+      } else if (element.align === 'right') {
+        x = element.x + width - textWidth;
+      }
+      const y = LETTER_PAGE.height - element.y - fontSize;
+      page.drawText(text, {
+        x,
+        y,
+        size: fontSize,
+        font
+      });
+    }
+  }
+
+  return pdfDoc.save();
+};
+
 export const generateAppointmentsPdf = onCall(async (request) => {
   requireAuth(request.auth);
   const role = request.auth?.token?.role as string | undefined;
@@ -166,59 +388,11 @@ export const generateAppointmentsPdf = onCall(async (request) => {
   const templateBytes = fs.readFileSync(templatePath);
   const pdfDoc = await PDFDocument.load(templateBytes);
 
-  const placeholderValues: Record<string, string> = {
-    '{tipo_edificio}': building.type ?? '',
-    '{fecha_generacion}': formatDate(new Date()),
-    '{nombre_edificio}': building.name ?? '',
-    '{nit_edificio}': building.nit ?? '',
-    '{direccion_edificio}': building.addressText ?? '',
-    '{telefono_administracion}': management?.contactPhone ?? '',
-    '{nombre_administracion}': management?.name ?? '',
-    '{tipo_contrato_mantenimiento}': contract?.maintenanceTypeName ?? '',
-    '{fecha_finalizacion_contrato_mantenimiento}': formatDate(contract?.endAt),
-    '{contrato_analisis_lab_tipo}': contract?.labAnalysisTypeName ?? '',
-    '{valor_contrato_mantenimiento}':
-      contract?.maintenanceApplies?.valor_contrato_mantenimiento === false
-        ? 'N/A'
-        : formatCOP(contract?.maintenancePrices?.valor_contrato_mantenimiento),
-    '{valor_analisis_laboratiorio_tipo}': formatCOP(contract?.labAnalysisPrice),
-    '{valor_lavado_tanque_agua_potable_sem1}':
-      contract?.maintenanceApplies?.valor_lavado_tanque_agua_potable_sem1 === false
-        ? 'N/A'
-        : formatCOP(contract?.maintenancePrices?.valor_lavado_tanque_agua_potable_sem1),
-    '{valor_lavado_tanque_agua_potable_sem2}':
-      contract?.maintenanceApplies?.valor_lavado_tanque_agua_potable_sem2 === false
-        ? 'N/A'
-        : formatCOP(contract?.maintenancePrices?.valor_lavado_tanque_agua_potable_sem2),
-    '{valor_lavado_pozos_eyectores_aguas_lluvias}':
-      contract?.maintenanceApplies?.valor_lavado_pozos_eyectores_aguas_lluvias === false
-        ? 'N/A'
-        : formatCOP(contract?.maintenancePrices?.valor_lavado_pozos_eyectores_aguas_lluvias),
-    '{valor_lavado_pozos_eyectores_aguas_negras}':
-      contract?.maintenanceApplies?.valor_lavado_pozos_eyectores_aguas_negras === false
-        ? 'N/A'
-        : formatCOP(contract?.maintenancePrices?.valor_lavado_pozos_eyectores_aguas_negras),
-    '{valor_pruebas_hidraulicas_red_contra_incendios}':
-      contract?.maintenanceApplies?.valor_pruebas_hidraulicas_red_contra_incendios === false
-        ? 'N/A'
-        : formatCOP(contract?.maintenancePrices?.valor_pruebas_hidraulicas_red_contra_incendios),
-    '{valor_limpieza_sistema_drenaje_sotanos}':
-      contract?.maintenanceApplies?.valor_limpieza_sistema_drenaje_sotanos === false
-        ? 'N/A'
-        : formatCOP(contract?.maintenancePrices?.valor_limpieza_sistema_drenaje_sotanos),
-    '{valor_lavado_tanque_red_contra_incendios}':
-      contract?.maintenanceApplies?.valor_lavado_tanque_red_contra_incendios === false
-        ? 'N/A'
-        : formatCOP(contract?.maintenancePrices?.valor_lavado_tanque_red_contra_incendios),
-    '{fecha_rec_agua_potable_1}': '',
-    '{fecha_rec_agua_potable_2}': '',
-    '{fecha_rec_pozo_aguas_lluvias}': '',
-    '{fecha_rec_pozo_aguas_negras}': '',
-    '{fecha_rec_tanque_rci}': '',
-    '{fecha_rec_pruebas_rci}': '',
-    '{anho_anterior}': String(new Date().getFullYear() - 1),
-    '{anho_actual}': String(new Date().getFullYear())
-  };
+  const placeholderValues = mapPlaceholderValues({
+    building,
+    management: management ?? undefined,
+    contract: contract ?? undefined
+  });
 
   const maintenanceDatesByMonth = new Map<number, Date>();
   maintenanceForYear.forEach((item) => {
@@ -253,23 +427,6 @@ export const generateAppointmentsPdf = onCall(async (request) => {
     }
   });
 
-  if (contract?.maintenanceRecommendedDates) {
-    placeholderValues['{fecha_rec_agua_potable_1}'] = formatDate(contract.maintenanceRecommendedDates.fecha_rec_agua_potable_1);
-    placeholderValues['{fecha_rec_agua_potable_2}'] = formatDate(contract.maintenanceRecommendedDates.fecha_rec_agua_potable_2);
-    placeholderValues['{fecha_rec_pozo_aguas_lluvias}'] = formatDate(
-      contract.maintenanceRecommendedDates.fecha_rec_pozo_aguas_lluvias
-    );
-    placeholderValues['{fecha_rec_pozo_aguas_negras}'] = formatDate(
-      contract.maintenanceRecommendedDates.fecha_rec_pozo_aguas_negras
-    );
-    placeholderValues['{fecha_rec_tanque_rci}'] = formatDate(
-      contract.maintenanceRecommendedDates.fecha_rec_tanque_rci
-    );
-    placeholderValues['{fecha_rec_pruebas_rci}'] = formatDate(
-      contract.maintenanceRecommendedDates.fecha_rec_pruebas_rci
-    );
-  }
-
   const form = pdfDoc.getForm();
   Object.entries(placeholderValues).forEach(([key, value]) => {
     const fieldName = key.replace(/[{}]/g, '');
@@ -291,4 +448,124 @@ export const generateAppointmentsPdf = onCall(async (request) => {
     filename: `Agendamientos_${building.name ?? 'Edificio'}_${rangeStart.slice(0, 10)}.pdf`,
     contentBase64: pdfBuffer.toString('base64')
   };
+});
+
+export const generateQuotePdf = onCall(async (request) => {
+  requireAuth(request.auth);
+  const role = request.auth?.token?.role as string | undefined;
+  if (!role || !['admin', 'editor', 'view', 'building_admin'].includes(role)) {
+    throw new HttpsError('permission-denied', 'No autorizado.');
+  }
+
+  const buildingId = request.data?.buildingId as string | undefined;
+  if (!buildingId) {
+    throw new HttpsError('invalid-argument', 'Parametros invalidos.');
+  }
+
+  const buildingSnap = await db.collection('buildings').doc(buildingId).get();
+  if (!buildingSnap.exists) {
+    throw new HttpsError('not-found', 'Edificio no encontrado.');
+  }
+  const building = buildingSnap.data() as {
+    name?: string;
+    managementCompanyId?: string;
+    addressText?: string;
+    type?: string;
+    nit?: string;
+    contractId?: string;
+  };
+  if (role === 'building_admin') {
+    const adminId = request.auth?.token?.administrationId as string | undefined;
+    if (!adminId || building.managementCompanyId !== adminId) {
+      throw new HttpsError('permission-denied', 'No autorizado.');
+    }
+  }
+
+  const managementSnap = building.managementCompanyId
+    ? await db.collection('management_companies').doc(building.managementCompanyId).get()
+    : null;
+  const management = managementSnap?.exists
+    ? (managementSnap.data() as { name?: string; contactPhone?: string })
+    : null;
+
+  type ContractDoc = {
+    maintenanceTypeId?: string;
+    maintenanceTypeName?: string;
+    maintenancePrices?: Record<string, number>;
+    maintenanceApplies?: Record<string, boolean>;
+    maintenanceRecommendedDates?: {
+      fecha_rec_agua_potable_1?: string;
+      fecha_rec_agua_potable_2?: string;
+      fecha_rec_pozo_aguas_lluvias?: string;
+      fecha_rec_pozo_aguas_negras?: string;
+      fecha_rec_tanque_rci?: string;
+      fecha_rec_pruebas_rci?: string;
+    };
+    labAnalysisTypeName?: string;
+    labAnalysisPrice?: number;
+    endAt?: string;
+    administrationId?: string;
+  };
+
+  let contract: ContractDoc | null = null;
+
+  if (building.contractId) {
+    const contractSnap = await db.collection('contracts').doc(building.contractId).get();
+    if (contractSnap.exists) {
+      contract = contractSnap.data() as ContractDoc;
+    }
+  }
+
+  if (!contract && building.managementCompanyId) {
+    const contractsSnap = await db
+      .collection('contracts')
+      .where('administrationId', '==', building.managementCompanyId)
+      .where('status', '==', 'activo')
+      .limit(1)
+      .get();
+    const doc = contractsSnap.docs[0];
+    if (doc) {
+      contract = doc.data() as ContractDoc;
+    }
+  }
+
+  if (!contract?.maintenanceTypeId) {
+    throw new HttpsError('failed-precondition', 'Contrato sin tipo de mantenimiento.');
+  }
+
+  const templatesSnap = await db.collection('settings').doc('quote_templates').get();
+  const templates = templatesSnap.exists
+    ? (templatesSnap.data() as { templates?: Record<string, QuoteTemplate> }).templates
+    : null;
+  const template = templates?.[contract.maintenanceTypeId];
+  if (!template) {
+    throw new HttpsError('failed-precondition', 'Plantilla de cotizacion no configurada.');
+  }
+
+  const maintenanceDatesByMonth = new Map<number, Date>();
+  const appointmentsSnap = await db
+    .collection('appointments')
+    .where('buildingId', '==', buildingId)
+    .orderBy('startAt', 'asc')
+    .get();
+  appointmentsSnap.docs.forEach((doc) => {
+    const data = doc.data() as { startAt?: string; type?: string };
+    if ((data.type ?? '').toString().toLowerCase() !== 'mantenimiento') return;
+    const date = toDate(data.startAt);
+    if (!date) return;
+    const month = date.getMonth();
+    if (!maintenanceDatesByMonth.has(month)) {
+      maintenanceDatesByMonth.set(month, date);
+    }
+  });
+
+  const placeholders = mapPlaceholderValues({
+    building,
+    management: management ?? undefined,
+    contract: contract ?? undefined,
+    maintenanceDatesByMonth
+  });
+  const pdfBytes = await renderTemplateToPdf(template, placeholders);
+  const filename = `Cotizacion_${building.name ?? 'Edificio'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+  return { filename, contentBase64: Buffer.from(pdfBytes).toString('base64') };
 });

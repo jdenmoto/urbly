@@ -62,7 +62,7 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    if (user) navigate('/');
+    if (user) navigate('/app');
   }, [user, navigate]);
 
   return (

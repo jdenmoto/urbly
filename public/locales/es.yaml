@@ -48,6 +48,78 @@ common:
   featureDisabledTitle: Funcionalidad deshabilitada
   featureDisabledSubtitle: Esta seccion no esta disponible en este momento.
   notAuthorized: No tienes permisos para acceder a esta seccion.
+home:
+  navServices: Servicios
+  navPricing: Precios
+  navContact: Contacto
+  navLogin: Ingresar
+  heroTag: Plataforma SaaS
+  heroTitle: Gestion moderna para edificios y administraciones
+  heroSubtitle: Controla operaciones, contratos, novedades y reportes desde un solo lugar con experiencia rápida y clara.
+  heroCta: Entrar al panel
+  heroSecondary: Hablar con ventas
+  heroCard1:
+    title: Operacion en tiempo real
+    body: Agenda, seguimiento y evidencias con flujos claros para equipos operativos.
+  heroCard2:
+    title: Control administrativo
+    body: Contratos, facturacion y novedades integradas para decisiones rápidas.
+  heroCard3:
+    title: Reportes inteligentes
+    body: KPIs y PDF listos para administraciones y comites.
+  heroCard4:
+    title: Escalable a mobile
+    body: Arquitectura lista para apps de clientes y empleados por rol.
+  servicesTag: Servicios
+  servicesTitle: Lo que Urbly hace por ti
+  services1:
+    title: Gestion de edificios
+    body: Portfolio, estados, grupos y mapas en una sola vista.
+  services2:
+    title: Agendamientos y calendario
+    body: Programacion, recurrencias y cumplimiento operativo.
+  services3:
+    title: Novedades y evidencias
+    body: Registros con fotos y categorias configurables.
+  services4:
+    title: Contratos y precios
+    body: Tipos de contratos con valores y fechas recomendadas.
+  services5:
+    title: Portal de administraciones
+    body: Acceso limitado con datos relevantes por edificio.
+  services6:
+    title: Reportes PDF
+    body: Informes listos para compartir con clientes.
+  pricingTag: Precios
+  pricingTitle: Planes simples para crecer
+  pricingStarter:
+    title: Base
+    price: $0
+    body: Ideal para pruebas y validacion del flujo.
+    feature1: Hasta 3 edificios
+    feature2: Agenda basica
+    feature3: Reporte PDF estandar
+  pricingGrowth:
+    title: Crecimiento
+    price: $49/mes
+    body: Para administraciones con operaciones activas.
+    feature1: Edificios ilimitados
+    feature2: Novedades con evidencias
+    feature3: KPIs avanzados
+  pricingScale:
+    title: Escala
+    price: Personalizado
+    body: Integraciones y soporte dedicado.
+    feature1: Multi-empresa
+    feature2: Integraciones CRM
+    feature3: SLA y automatizaciones
+  contactTag: Contacto
+  contactTitle: Conversemos
+  contactBody: Dejanos tus datos y te mostramos como Urbly puede operar tu portafolio.
+  contactName: Nombre completo
+  contactEmail: Correo
+  contactMessage: Cuentanos tu necesidad
+  contactCta: Enviar mensaje
 nav:
   dashboard: Dashboard
   buildings: Edificios
@@ -60,6 +132,7 @@ nav:
   settingsGroups: Grupos
   settingsIssues: Novedades
   settingsContracts: Tipos de Contratos
+  settingsQuoteTemplates: Plantillas PDF
   settingsLabs: Analisis laboratorio
   settingsCalendarSection: Calendario
   settingsCalendarHolidays: Festivos
@@ -191,6 +264,55 @@ settings:
   save: Guardar cambios
   saving: Guardando...
   toastSaved: Configuracion guardada
+  quoteTemplateTitle: Plantillas de cotizacion
+  quoteTemplateSubtitle: Diseña el formato PDF por tipo de contrato
+  quoteTemplateContractType: Tipo de contrato
+  quoteTemplateSave: Guardar plantilla
+  quoteTemplateSaved: Plantilla guardada
+  quoteTemplateDuplicate: Duplicar plantilla
+  quoteTemplateDuplicateTarget: Duplicar a
+  quoteTemplateDuplicated: Plantilla duplicada
+  quoteTemplateDuplicateSame: Selecciona un tipo de contrato diferente.
+  quoteTemplateAddPage: Agregar pagina
+  quoteTemplatePage: Pagina
+  quoteTemplateFields: Campos disponibles
+  quoteTemplateAddText: Agregar texto libre
+  quoteTemplateCanvas: Lienzo (Carta)
+  quoteTemplateInspector: Propiedades
+  quoteTemplateElementType: Tipo de elemento
+  quoteTemplateElementText: Texto
+  quoteTemplateElementField: Campo
+  quoteTemplateElementImage: Imagen
+  quoteTemplateField: Campo
+  quoteTemplateText: Texto
+  quoteTemplateRichText: Editor de texto
+  quoteTemplateImage: Imagen
+  quoteTemplateImageAlt: Imagen de plantilla
+  quoteTemplateFontSize: Tamano de letra
+  quoteTemplateWidth: Ancho
+  quoteTemplateHeight: Alto
+  quoteTemplateAlign: Alineacion
+  quoteTemplateAlignLeft: Izquierda
+  quoteTemplateAlignCenter: Centro
+  quoteTemplateAlignRight: Derecha
+  quoteTemplateBold: Negrita
+  quoteTemplateUnbold: Quitar negrita
+  quoteTemplateRemove: Eliminar elemento
+  quoteTemplateSelectElement: Selecciona un elemento del lienzo para editarlo.
+  quoteTemplatePreview: Previsualizacion
+  quoteTemplateShowPreview: Mostrar preview
+  quoteTemplateHidePreview: Ocultar preview
+  quoteTemplateAddImage: Agregar imagen
+  quoteTemplateZoom: Zoom
+  quoteTemplateDefaultName: Plantilla base
+  quoteTemplateEmptyTypes: Debes crear al menos un tipo de contrato para configurar la plantilla.
+  quoteTemplateGroup:
+    building: Edificio
+    management: Administracion
+    contract: Contrato
+    recommended: Fechas recomendadas
+    dates: Fechas generales
+    month: Dias del mantenimiento
 management:
   title: Administraciones
   subtitle: Empresas administradoras registradas

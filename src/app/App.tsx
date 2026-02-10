@@ -7,6 +7,7 @@ import ManagementPage from '@/features/management/ManagementPage';
 import EmployeesPage from '@/features/employees/EmployeesPage';
 import SchedulingPage from '@/features/scheduling/SchedulingPage';
 import LoginPage from '@/features/auth/LoginPage';
+import HomePage from '@/features/HomePage';
 import UsersPage from '@/features/users/UsersPage';
 import FeatureGuard from '@/components/FeatureGuard';
 import BuildingAdminPage from '@/features/buildingAdmin/BuildingAdminPage';
@@ -17,14 +18,16 @@ import LabsSettingsPage from '@/features/settings/LabsSettingsPage';
 import CalendarSettingsPage from '@/features/settings/CalendarSettingsPage';
 import CalendarHolidaysPage from '@/features/settings/CalendarHolidaysPage';
 import CalendarNonWorkingPage from '@/features/settings/CalendarNonWorkingPage';
+import QuoteTemplatesPage from '@/features/settings/QuoteTemplatesPage';
 
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route
-          path="/"
+          path="/app"
           element={
             <ProtectedRoute>
               <AppLayout />
@@ -104,7 +107,7 @@ export default function App() {
             element={
               <RoleGuard allow={['admin']}>
                 <FeatureGuard feature="settings">
-                  <Navigate to="/settings/groups" replace />
+                  <Navigate to="/app/settings/groups" replace />
                 </FeatureGuard>
               </RoleGuard>
             }
@@ -179,7 +182,18 @@ export default function App() {
               </RoleGuard>
             }
           />
+          <Route
+            path="settings/quote-templates"
+            element={
+              <RoleGuard allow={['admin']}>
+                <FeatureGuard feature="settings">
+                  <QuoteTemplatesPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
   );

@@ -24,15 +24,20 @@ export function useNavGroups(
   const { flags } = useFeatureFlags();
 
   if (role === 'building_admin') {
-    return [{ label: t('nav.portalSection'), items: [{ to: '/portal', label: t('nav.portal'), icon: Building2, enabled: true }] }];
+    return [
+      {
+        label: t('nav.portalSection'),
+        items: [{ to: '/app/portal', label: t('nav.portal'), icon: Building2, enabled: true }]
+      }
+    ];
   }
   if (role === 'emergency_scheduler') {
     return [
       {
         label: t('nav.mainSection'),
         items: [
-          { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, enabled: flags.dashboard },
-          { to: '/scheduling', label: t('nav.scheduling'), icon: CalendarDays, enabled: flags.scheduling }
+          { to: '/app', label: t('nav.dashboard'), icon: LayoutDashboard, enabled: flags.dashboard },
+          { to: '/app/scheduling', label: t('nav.scheduling'), icon: CalendarDays, enabled: flags.scheduling }
         ]
       }
     ];
@@ -42,45 +47,52 @@ export function useNavGroups(
     {
       label: t('nav.mainSection'),
       items: [
-        { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, enabled: flags.dashboard },
-        { to: '/buildings', label: t('nav.buildings'), icon: Building2, enabled: flags.buildings },
-        { to: '/management', label: t('nav.management'), icon: Landmark, enabled: flags.management },
-        { to: '/employees', label: t('nav.employees'), icon: Users, enabled: flags.employees },
-        { to: '/scheduling', label: t('nav.scheduling'), icon: CalendarDays, enabled: flags.scheduling }
+        { to: '/app', label: t('nav.dashboard'), icon: LayoutDashboard, enabled: flags.dashboard },
+        { to: '/app/buildings', label: t('nav.buildings'), icon: Building2, enabled: flags.buildings },
+        { to: '/app/management', label: t('nav.management'), icon: Landmark, enabled: flags.management },
+        { to: '/app/employees', label: t('nav.employees'), icon: Users, enabled: flags.employees },
+        { to: '/app/scheduling', label: t('nav.scheduling'), icon: CalendarDays, enabled: flags.scheduling }
       ]
     },
     {
       label: t('nav.settingsSection'),
       items: [
         {
-          to: '/settings/groups',
+          to: '/app/settings/groups',
           label: t('nav.settingsGroups'),
           icon: Settings,
           adminOnly: true,
           enabled: flags.settings
         },
         {
-          to: '/settings/issues',
+          to: '/app/settings/issues',
           label: t('nav.settingsIssues'),
           icon: Settings,
           adminOnly: true,
           enabled: flags.settings
         },
         {
-          to: '/settings/contracts',
+          to: '/app/settings/contracts',
           label: t('nav.settingsContracts'),
           icon: Settings,
           adminOnly: true,
           enabled: flags.settings
         },
         {
-          to: '/settings/labs',
+          to: '/app/settings/quote-templates',
+          label: t('nav.settingsQuoteTemplates'),
+          icon: Settings,
+          adminOnly: true,
+          enabled: flags.settings
+        },
+        {
+          to: '/app/settings/labs',
           label: t('nav.settingsLabs'),
           icon: Settings,
           adminOnly: true,
           enabled: flags.settings
         },
-        { to: '/users', 
+        { to: '/app/users', 
           label: t('nav.users'), 
           icon: ShieldUser, 
           adminOnly: true,
@@ -94,7 +106,7 @@ export function useNavGroups(
           sectionId: 'calendar'
         },
         {
-          to: '/settings/calendar/holidays',
+          to: '/app/settings/calendar/holidays',
           label: t('nav.settingsCalendarHolidays'),
           icon: Settings,
           adminOnly: true,
@@ -102,7 +114,7 @@ export function useNavGroups(
           sectionId: 'calendar'
         },
         {
-          to: '/settings/calendar/non-working',
+          to: '/app/settings/calendar/non-working',
           label: t('nav.settingsCalendarNonWorking'),
           icon: Settings,
           adminOnly: true,

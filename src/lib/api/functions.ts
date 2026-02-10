@@ -54,3 +54,9 @@ export async function generateAppointmentsPdf(params: {
   const response = await callable(params);
   return response.data as { filename: string; contentBase64: string };
 }
+
+export async function generateQuotePdf(params: { buildingId: string }) {
+  const callable = httpsCallable(functions, 'generateQuotePdf');
+  const response = await callable(params);
+  return response.data as { filename: string; contentBase64: string };
+}
