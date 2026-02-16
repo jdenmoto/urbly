@@ -190,8 +190,8 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
       });
       await persist(Array.from(existing.values()), nonWorkingDays);
       toast(t('settings.calendarImported'), 'success');
-    } catch {
-      console.log(error)
+    } catch (error) {
+      console.error(error);
       toast(t('settings.calendarImportError'), 'error');
     }
   };
