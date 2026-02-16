@@ -21,3 +21,18 @@ npm install
 npm --prefix functions install
 npm run dev
 ```
+
+## Deploy (Firebase Preview Channels)
+Use Hosting preview channels for safe QA deploys before production:
+
+```bash
+# Uses current git branch as channel id
+npm run deploy:preview
+
+# Custom channel id
+npm run deploy:preview -- feature-calendar-redesign
+```
+
+Optional env vars:
+- `FIREBASE_PREVIEW_EXPIRES` (default: `7d`)
+- `FIREBASE_PROJECT` (if you want to force a project id)

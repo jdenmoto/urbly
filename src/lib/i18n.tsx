@@ -50,7 +50,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         if (typeof result !== 'string') return key;
         if (!params) return result;
         return Object.entries(params).reduce((text, [paramKey, paramValue]) => {
-          return text.replaceAll(`{${paramKey}}`, String(paramValue));
+          return text.split(`{${paramKey}}`).join(String(paramValue));
         }, result);
       }
     };

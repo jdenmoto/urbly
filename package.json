@@ -20,7 +20,10 @@
     "firestore:clear:buildings": "node scripts/clear-buildings.mjs",
     "firestore:clear": "node scripts/clear-firestore.mjs",
     "sync:users": "node scripts/sync-users.mjs",
-    "firestore:re-init": "npm run firestore:clear && npm run firestore:seed"
+    "firestore:re-init": "npm run firestore:clear && npm run firestore:seed",
+    "deploy:preview": "PATH=$PATH:/snap/bin node scripts/deploy-preview.mjs",
+    "deploy:preview:branch": "PATH=$PATH:/snap/bin node scripts/deploy-preview.mjs",
+    "preview:allow-url": "node scripts/add-preview-referrer.mjs"
   },
   "dependencies": {
     "@fullcalendar/daygrid": "^6.1.11",

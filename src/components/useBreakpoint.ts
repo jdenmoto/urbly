@@ -1,9 +1,5 @@
 import { useEffect, useState } from 'react';
-
-const BREAKPOINTS = {
-  md: 768,
-  lg: 1024
-};
+import { BREAKPOINTS, getBreakpoint } from '@/config/breakpoints';
 
 export default function useBreakpoint() {
   const [width, setWidth] = useState(() => window.innerWidth);
@@ -14,9 +10,15 @@ export default function useBreakpoint() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const current = getBreakpoint(width);
+
   return {
-    isMobile: width < BREAKPOINTS.md,
-    isTablet: width >= BREAKPOINTS.md && width < BREAKPOINTS.lg,
-    isDesktop: width >= BREAKPOINTS.lg
+    width,
+    current,
+    isMobile: current === 'mobile',
+    isIpad: current === 'ipad',
+    isTablet: current === 'ipad',
+    isDesktop: current === 'desktop',
+    breakpoints: BREAKPOINTS
   };
 }

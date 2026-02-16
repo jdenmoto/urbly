@@ -1,9 +1,14 @@
 import type { Config } from 'tailwindcss';
+import { BREAKPOINTS } from './src/config/breakpoints';
 
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      screens: {
+        ipad: `${BREAKPOINTS.ipadMin}px`,
+        desktop: `${BREAKPOINTS.desktopMin}px`
+      },
       colors: {
         ink: {
           900: '#0f172a',
