@@ -1,15 +1,15 @@
-name: Deploy Production (main)
+name: Deploy Staging (develop)
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
 
 concurrency:
-  group: deploy-main
-  cancel-in-progress: false
+  group: deploy-develop
+  cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  deploy_staging:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,30 +21,19 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Install web dependencies
+      - name: Install dependencies
         run: npm ci
-
-      - name: Install functions dependencies
-        run: npm ci
-        working-directory: functions
-
-      - name: Lint web app
-        run: npm run lint
 
       - name: Build web app
         run: npm run build
 
-      - name: Build functions
-        run: npm run build
-        working-directory: functions
-
-      - name: Deploy production
+      - name: Deploy staging channel
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         run: |
           echo "$FIREBASE_SERVICE_ACCOUNT" > "$HOME/firebase-sa.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$HOME/firebase-sa.json"
-          npx -y firebase-tools deploy \
+          npx -y firebase-tools hosting:channel:deploy develop \
             --project "$FIREBASE_PROJECT_ID" \
-            --only hosting,functions,firestore:rules,firestore:indexes
+            --expires 30d
