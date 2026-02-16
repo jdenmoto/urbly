@@ -1,0 +1,567 @@
+common:
+  appName: Urbly
+  panelTitle: Panel Urbly
+  panelSubtitle: Gestion inteligente de edificios
+  tagline: Smart building ops
+  menu: Menu
+  new: Nuevo
+  add: Agregar
+  invite: Invitar
+  logout: Salir
+  close: Cerrar
+  cancel: Cancelar
+  confirm: Confirmar
+  edit: Editar
+  delete: Eliminar
+  save: Guardar
+  update: Actualizar
+  loading: Cargando...
+  loadingSession: Cargando sesion...
+  actionSuccess: Accion completada
+  actionError: Ocurrio un error
+  yes: Si
+  no: No
+  all: Todos
+  optional: Opcional
+  select: Selecciona
+  filters: Filtros
+  showFilters: Mostrar filtros
+  hideFilters: Ocultar filtros
+  today: Hoy
+  planLabel: Plan MVP - Admin
+  addressSearch: Buscar direccion
+  mapsUnavailable: Google Maps no disponible. Revisa la API key y habilita Places (nuevo).
+  mapsGeocodeError: No se pudo validar la direccion. Intenta otra.
+  addressMinChars: Escribe al menos 3 caracteres para buscar.
+  downloadErrors: Descargar errores
+  noData: Sin datos
+  noResults: Sin resultados
+  required: Requerido
+  actions: Acciones
+  notAvailable: No disponible
+  prev: Anterior
+  next: Siguiente
+  unassigned: Sin asignar
+  unnamed: Sin nombre
+  expand: Ampliar
+  collapse: Reducir
+  featureDisabledTitle: Funcionalidad deshabilitada
+  featureDisabledSubtitle: Esta seccion no esta disponible en este momento.
+  notAuthorized: No tienes permisos para acceder a esta seccion.
+nav:
+  dashboard: Dashboard
+  buildings: Edificios
+  management: Administraciones
+  employees: Empleados
+  scheduling: Agendamientos
+  users: Usuarios
+  portal: Portal
+  settings: Configuraciones
+  settingsGroups: Grupos
+  settingsIssues: Novedades
+  settingsContracts: Tipos de Contratos
+  settingsLabs: Analisis laboratorio
+  settingsCalendarSection: Calendario
+  settingsCalendarHolidays: Festivos
+  settingsCalendarNonWorking: No laborables
+  mainSection: Operacion
+  adminSection: Administracion
+  settingsSection: Configuraciones
+  portalSection: Portal
+auth:
+  title: Bienvenido a Urbly
+  subtitle: Ingresa con tu cuenta de administrador.
+  email: Email
+  billingEmail: Email facturacion
+  legalRepresentative: Representante legal
+  group: Grupo
+  type: Tipo
+  delegateName: Administrador delegado
+  delegatePhone: Celular administrador delegado
+  password: Password
+  signIn: Entrar
+  signingIn: Entrando...
+  error: No fue posible iniciar sesion.
+  errorEmail: Email invalido
+  errorPassword: Minimo 6 caracteres
+  resetPassword: Olvidaste tu contrasena?
+  resetEmail: Email para reiniciar
+  sendReset: Enviar enlace
+  sendingReset: Enviando...
+  resetSent: Enlace enviado. Revisa tu correo.
+  resetError: No fue posible enviar el enlace.
+portal:
+  title: Portal de administracion
+  subtitle: Acceso restringido para administradores de edificio
+  missingAccess: No se encontro una administracion asociada a tu usuario.
+  buildingsEmpty: Sin edificios asociados
+  buildingsEmptyHint: No hay edificios con contrato activo.
+  appointmentsEmpty: Sin agendamientos
+  appointmentsEmptyHint: No hay agendamientos para tus edificios.
+settings:
+  title: Configuraciones
+  subtitle: Administra tipos de novedad y categorias
+  groupsTitle: Grupos de edificios
+  groupsSubtitle: Configura los grupos y colores del portafolio
+  issuesTitle: Novedades
+  issuesSubtitle: Crea novedades con categorias
+  contractsTitle: Contratos
+  contractsSubtitle: Configura tipos de contrato y analisis de laboratorio
+  labsTitle: Analisis laboratorio
+  labsSubtitle: Configura los tipos de analisis de laboratorio
+  calendarTitle: Calendario
+  calendarSubtitle: Configura dias festivos y no laborables
+  holidaysTitle: Dias festivos
+  nonWorkingTitle: Dias no laborables
+  calendarDate: Fecha
+  calendarName: Nombre
+  calendarAddHoliday: Agregar festivo
+  calendarAddNonWorking: Agregar no laborable
+  calendarUpdate: Actualizar dia
+  calendarDateDuplicate: La fecha ya existe en el calendario.
+  calendarImportColombia: Importar festivos de Colombia
+  calendarYear: Ano
+  calendarYearInvalid: Ano invalido
+  calendarImportError: No se pudieron importar los festivos.
+  calendarImported: Festivos importados
+  calendarHolidayDefault: Festivo
+  buildingGroups: Grupos de edificios
+  groupName: Nombre del grupo
+  groupColor: Color
+  addGroup: Agregar grupo
+  updateGroup: Actualizar grupo
+  newGroup: Nuevo grupo
+  groupsTableTitle: Grupos registrados
+  saveGroups: Guardar grupos
+  groupsSaved: Grupos guardados
+  groupExists: El nombre del grupo ya existe
+  groupColorExists: El color del grupo ya existe
+  issueTypes: Tipos de novedad
+  issueCategories: Categorias
+  issueName: Nombre de la novedad
+  newCategory: Nueva categoria
+  addIssue: Agregar novedad
+  updateIssue: Actualizar novedad
+  issueDeleted: Novedad eliminada
+  issueUpdated: Novedad actualizada
+  issuesTableTitle: Novedades registradas
+  categoryPillHint: Las categorias se editan directamente en las pildoras.
+  addCategory: Agregar categoria
+  categoryHint: Selecciona un tipo para administrar sus categorias.
+  maintenanceTypesTitle: Tipos de contrato mantenimiento
+  labTypesTitle: Tipos de analisis laboratorio
+  contractTypeName: Nombre del tipo de contrato
+  labTypeName: Nombre del tipo de analisis
+  labTypeDescription: Descripcion
+  labTypeKind: Tipo
+  addContractType: Agregar tipo de contrato
+  updateContractType: Actualizar tipo de contrato
+  contractTypeDeleted: Tipo de contrato eliminado
+  contractTypeUpdated: Tipo de contrato actualizado
+  addLabType: Agregar tipo de analisis
+  updateLabType: Actualizar tipo de analisis
+  labTypeDeleted: Tipo de analisis eliminado
+  labTypeCreated: Tipo de analisis creado
+  labTypeUpdated: Tipo de analisis actualizado
+  labTypeDuplicate: Ya existe un tipo de analisis con ese nombre y tipo.
+  labTypeStatus: Estado
+  labTypeActive: Activo
+  labTypeDisabled: Deshabilitado
+  labTypeEnable: Habilitar
+  labTypeDisable: Deshabilitar
+  labTypeDeleteBlocked: No puedes eliminar un tipo de analisis asociado a contratos.
+  pricesSection: Precios por tipo de contrato
+  priceWaterTankSem1: Lavado tanque agua potable (sem 1)
+  priceWaterTankSem2: Lavado tanque agua potable (sem 2)
+  pricePozosLluvias: Lavado pozos eyectores aguas lluvias
+  pricePozosNegras: Lavado pozos eyectores aguas negras
+  priceHidraulicas: Pruebas hidraulicas red contra incendios
+  priceDrenaje: Limpieza sistema drenaje sotanos
+  priceTankRCI: Lavado tanque red contra incendios
+  priceMaintenance: Valor contrato mantenimiento
+  appliesYes: Aplica
+  appliesNo: No aplica
+  recommendedDatesTitle: Fechas recomendadas
+  recWaterPotableSem1: Agua potable 1 semestre
+  recWaterPotableSem2: Agua potable 2 semestre
+  recPozoLluvias: Pozo aguas lluvias
+  recPozoNegras: Pozo aguas negras
+  recTankRci: Tanque RCI
+  recPruebasRci: Pruebas RCI
+  save: Guardar cambios
+  saving: Guardando...
+  toastSaved: Configuracion guardada
+management:
+  title: Administraciones
+  subtitle: Empresas administradoras registradas
+  tabs:
+    administrations: Administraciones
+    contracts: Contratos
+  newTitle: Nueva administracion
+  name: Nombre
+  contactPhone: Telefono
+  email: Email
+  billingEmail: Email facturacion
+  legalRepresentative: Representante legal
+  group: Grupo
+  type: Tipo
+  delegateName: Administrador delegado
+  delegatePhone: Celular administrador delegado
+  nit: NIT
+  address: Direccion
+  viewBuildings: Ver edificios
+  buildingsTitle: Edificios asociados
+  buildingsEmptyTitle: Sin edificios asociados
+  buildingsEmptySubtitle: Esta administracion aun no tiene edificios.
+  buildingsSelect: Edificios (opcional)
+  buildingsOptional: Selecciona uno o mas edificios.
+  buildingsRequired: Selecciona al menos un edificio.
+  buildingsEmpty: No hay edificios disponibles.
+  searchBuildings: Buscar edificios
+  availableBuildings: Disponibles
+  selectAll: Seleccionar todos
+  selectedBuildings: Seleccionados
+  selectedEmptyTitle: Sin edificios seleccionados
+  selectedEmptySubtitle: Selecciona uno o mas edificios para asociar.
+  create: Crear administracion
+  update: Actualizar administracion
+  saving: Guardando...
+  emptyTitle: Sin administraciones
+  emptySubtitle: Registra tu primera empresa.
+  nitFormat: "Formato NIT invalido (ej: 900123456-7)"
+  nitPlaceholder: 900123456-7
+  nitUnique: El NIT ya existe
+  editTitle: Editar administracion
+  deleteTitle: Eliminar administracion
+  deleteConfirm: Estas seguro de eliminar esta administracion?
+  toastCreated: Administracion creada
+  toastUpdated: Administracion actualizada
+  toastDeleted: Administracion eliminada
+  types:
+    EDIFICIO: Edificio
+    CONJUNTO_RESIDENCIAL: Conjunto residencial
+    UNIDAD: Unidad
+contracts:
+  title: Contratos
+  subtitle: Gestion de contratos por administracion
+  detailTitle: Detalle de contrato
+  name: Nombre
+  administration: Administracion
+  maintenanceType: Tipo contrato mantenimiento
+  labAnalysisType: Tipo analisis laboratorio
+  labAnalysisPrice: Valor analisis laboratorio
+  pricesTitle: Lista de precios del contrato
+  priceWaterTankSem1: Lavado tanque agua potable (sem 1)
+  priceWaterTankSem2: Lavado tanque agua potable (sem 2)
+  pricePozosLluvias: Lavado pozos eyectores aguas lluvias
+  pricePozosNegras: Lavado pozos eyectores aguas negras
+  priceHidraulicas: Pruebas hidraulicas red contra incendios
+  priceDrenaje: Limpieza sistema drenaje sotanos
+  priceTankRCI: Lavado tanque red contra incendios
+  priceMaintenance: Valor contrato mantenimiento
+  startAt: Inicio
+  endAt: Fin
+  status: Estado
+  statusActive: Activo
+  statusInactive: Inactivo
+  newTitle: Nuevo contrato
+  editTitle: Editar contrato
+  create: Crear contrato
+  update: Actualizar contrato
+  saving: Guardando...
+  emptyTitle: Sin contratos
+  emptySubtitle: Crea el primer contrato.
+  deleteTitle: Eliminar contrato
+  deleteConfirm: Estas seguro de eliminar este contrato?
+  deleteBlocked: No puedes eliminar un contrato asignado a edificios.
+  toastCreated: Contrato creado
+  toastUpdated: Contrato actualizado
+  toastDeleted: Contrato eliminado
+  maintenanceTypeRequired: Selecciona un tipo de contrato mantenimiento.
+  labTypeRequired: Selecciona un tipo de analisis de laboratorio.
+  labPriceInvalid: Valor de analisis invalido.
+buildings:
+  title: Edificios
+  subtitle: Gestiona tu portafolio de edificios
+  newTitle: Nuevo edificio
+  name: Nombre
+  group: Grupo
+  type: Tipo
+  delegateName: Administrador delegado
+  delegatePhone: Celular administrador delegado
+  nit: NIT
+  email: Email
+  billingEmail: Email facturacion
+  porterPhone: Telefono porteria
+  managementCompany: Administracion
+  address: Direccion (Google Maps)
+  managementRequired: Selecciona una administracion
+  addressRequired: Selecciona una direccion valida
+  contract: Contrato
+  noContract: Sin contrato
+  contractRequired: Selecciona un contrato
+  contractMismatch: El contrato no pertenece a la administracion seleccionada
+  types:
+    EDIFICIO: Edificio
+    CONJUNTO_RESIDENCIAL: Conjunto residencial
+    UNIDAD: Unidad
+  status: Estado
+  active: Activo
+  disabled: Deshabilitado
+  enable: Habilitar
+  disable: Deshabilitar
+  create: Crear edificio
+  update: Actualizar edificio
+  saving: Guardando...
+  emptyTitle: Sin edificios
+  emptySubtitle: Crea el primer edificio para empezar.
+  bulkTitle: Importacion masiva
+  bulkHint: CSV o XLSX con columnas building_name, address, porter_phone, management_name.
+  uploading: Subiendo...
+  created: Creado
+  failed: Fallidos
+  errorsFileName: errores-importacion.csv
+  errorFileHeader: fila,mensaje
+  mapTitle: Mapa de edificios
+  errorTableTitle: Filas con error
+  errorRow: Fila
+  errorMessage: Error
+  editTitle: Editar edificio
+  deleteTitle: Eliminar edificio
+  deleteConfirm: Estas seguro de eliminar este edificio?
+  toastCreated: Edificio creado
+  toastUpdated: Edificio actualizado
+  toastDeleted: Edificio eliminado
+  toastEnabled: Edificio habilitado
+  toastDisabled: Edificio deshabilitado
+  detailTitle: Detalle de edificio
+  maintenanceTitle: Mantenimientos programados
+  maintenanceEmptyTitle: Sin mantenimientos
+  maintenanceEmptySubtitle: No hay mantenimientos programados para este edificio.
+  viewContract: Ver contrato
+employees:
+  title: Empleados
+  subtitle: Equipo operativo
+  newTitle: Nuevo empleado
+  fullName: Nombre completo
+  phone: Telefono
+  email: Email
+  role: Rol
+  active: Activo
+  building: Edificio
+  create: Crear empleado
+  update: Actualizar empleado
+  saving: Guardando...
+  emptyTitle: Sin empleados
+  emptySubtitle: Agrega el equipo operativo.
+  editTitle: Editar empleado
+  deleteTitle: Eliminar empleado
+  deleteConfirm: Estas seguro de eliminar este empleado?
+  toastCreated: Empleado creado
+  toastUpdated: Empleado actualizado
+  toastDeleted: Empleado eliminado
+  roles:
+    admin: Administrador
+    tech: Tecnico
+    user: Usuario
+users:
+  title: Usuarios
+  subtitle: Gestiona accesos de la plataforma
+  add: Agregar usuario
+  email: Email
+  role: Rol
+  administration: Administracion
+  status: Estado
+  active: Activo
+  disabled: Deshabilitado
+  enable: Habilitar
+  disable: Deshabilitar
+  emptyTitle: Sin usuarios
+  emptySubtitle: Agrega el primer usuario para empezar.
+  createTitle: Crear usuario
+  editTitle: Editar usuario
+  deleteTitle: Eliminar usuario
+  deleteConfirm: Estas seguro de eliminar este usuario?
+  create: Crear usuario
+  creating: Creando...
+  update: Actualizar usuario
+  saving: Guardando...
+  generatedPasswordTitle: Contrasena generada
+  toastCreated: Usuario creado
+  toastUpdated: Usuario actualizado
+  toastDeleted: Usuario eliminado
+  toastEnabled: Usuario habilitado
+  toastDisabled: Usuario deshabilitado
+  unauthorized: No tienes permisos para administrar usuarios.
+  roles:
+    view: Ver
+    editor: Editor
+    admin: Administrador
+    building_admin: Admin edificio
+    emergency_scheduler: Emergencias
+scheduling:
+  title: Agendamientos
+  subtitle: Calendario y agenda operativa
+  newTitle: Nuevo agendamiento
+  building: Edificio
+  searchBuilding: Buscar edificio
+  titleLabel: Titulo
+  description: Descripcion
+  startAt: Inicio
+  endAt: Fin
+  status: Estado
+  type: Tipo
+  employee: Empleado
+  recurrence: Recurrencia
+  noRecurrence: No se repite
+  create: Crear agendamiento
+  update: Actualizar agendamiento
+  saving: Guardando...
+  calendar: Calendario
+  viewLabel: Vista
+  viewCalendar: Calendario
+  viewList: Lista
+  toastCreated: Agendamiento creado
+  toastUpdated: Agendamiento actualizado
+  toastCanceled: Agendamiento cancelado
+  toastDeleted: Agendamiento eliminado
+  toastCompleted: Agendamiento completado
+  exactDate: Fecha exacta
+  from: Desde
+  to: Hasta
+  emptyTitle: Sin agendamientos
+  emptySubtitle: Crea el primer evento.
+  scheduled: Agendados
+  completed: Completados
+  detailTitle: Detalle de agendamiento
+  buildingLabel: Edificio
+  statusLabel: Estado
+  recurrenceLabel: Recurrencia
+  descriptionLabel: Descripcion
+  filtersTitle: Filtros
+  buildingRequired: Selecciona un edificio
+  pdfGenerate: Generar PDF
+  pdfGenerating: Generando PDF...
+  pdfReady: PDF generado
+  pdfError: No se pudo generar el PDF
+  dateBlocked: No se puede agendar en dias festivos o no laborables.
+  emergencyOnly: Solo puedes agendar servicios de emergencia.
+  emergencyPermission: No tienes permisos para agendar emergencias en esos dias.
+  contractRequired: El edificio debe tener un contrato con fechas para programar recurrencias.
+  contractOutOfRange: La fecha seleccionada esta fuera del rango del contrato.
+  seriesConfirmTitle: Regenerar serie
+  seriesConfirmDescription: Esta accion eliminara la serie actual y generara una nueva. Deseas continuar?
+  businessHoursStart: El inicio debe estar entre 8:00 AM y 6:00 PM.
+  businessHoursEnd: La finalizacion debe estar entre 8:00 AM y 6:00 PM.
+  businessHoursToast: Solo puedes programar servicios entre 8:00 AM y 6:00 PM.
+  statusProgrammed: Programado
+  statusConfirmed: Confirmado
+  statusCompleted: Completado
+  statusCanceled: Cancelado
+  cancel: Cancelar
+  complete: Completar
+  completeTitle: Completar servicio
+  completing: Completando...
+  cancelTitle: Cancelar agendamiento
+  cancelReason: Razon de cancelacion
+  cancelNote: Nota de cancelacion
+  cancelling: Cancelando...
+  confirmCancel: Confirmar cancelacion
+  deleteTitle: Eliminar agendamiento
+  deleteConfirm: Estas seguro de eliminar este agendamiento?
+  issueQuestion: Hubo novedades?
+  issueType: Tipo de novedad
+  issueCategory: Categoria
+  issueDescription: Descripcion
+  issuePhotos: Fotos (2 obligatorias)
+  issuePhotosHint: Selecciona exactamente 2 fotos.
+  addPhoto: Agregar foto
+  addIssue: Agregar novedad
+  issueList: Novedades agregadas
+  issueRequired: Tipo y categoria son obligatorios.
+  issuePhotosRequired: Debes agregar 2 fotos.
+  issueDecisionRequired: Indica si hubo novedades.
+  issueAtLeastOne: Agrega al menos una novedad.
+  issuesTitle: Novedades
+  views:
+    day: Dia
+    week: Semana
+    month: Mes
+    quarter: Trimestre
+    semester: Semestre
+    year: Año
+  allDay: Todo el dia
+  recurrenceOptions:
+    semanal: Semanal
+    quincenal: Quincenal
+    mensual: Mensual
+    bimensual: Bimensual
+    semestral: Semestral
+  types:
+    mantenimiento: Mantenimiento
+    lavado_tanque: Lavado de tanque
+    emergencia: Emergencia
+    interventoria: Interventoria
+  issueTypes:
+    operativo: Operativo
+    seguridad: Seguridad
+    infraestructura: Infraestructura
+    otro: Otro
+  issueCategories:
+    limpieza: Limpieza
+    mantenimiento: Mantenimiento
+    logistica: Logistica
+    acceso: Acceso
+    incidente: Incidente
+    prevencion: Prevencion
+    electricidad: Electricidad
+    plomeria: Plomeria
+    estructura: Estructura
+    general: General
+  cancelReasons:
+    cliente: Cliente
+    personal: Personal
+    clima: Clima
+    reprogramado: Reprogramado
+    otro: Otro
+dashboard:
+  title: Dashboard
+  subtitle: Pulso operativo del portafolio
+  from: Desde
+  to: Hasta
+  trendTitle: Actividad diaria
+  trendHint: Total vs completados (ultimos 10 dias)
+  completionTitle: Cumplimiento
+  completedRate: Tasa de cumplimiento
+  completed: Completados
+  pending: Pendientes
+  pendingTitle: Pendientes
+  pendingLabel: Pendiente
+  pendingEmpty: No hay pendientes vencidos.
+  pendingCount: "{count} pendientes"
+  pendingCompleted: Pendiente completado
+  pendingCanceled: Pendiente cancelado
+  pendingCancelRequired: Selecciona una razon o escribe una nota.
+  buildings: Edificios
+  managements: Administraciones
+  employees: Empleados activos
+  appointmentsToday: Agendamientos hoy
+  byDay: Agendamientos por dia
+  byType: Agendamientos por tipo
+  weeklyCompliance: Cumplimiento semanal
+  topEmployees: Top empleados con mas servicios
+  topCanceledBuildings: Edificios con mas cancelaciones
+  avgDuration: Duracion promedio por tipo (min)
+  nextDays: Proximos 7 dias
+  nextEmpty: No hay agendamientos proximos.
+  dailyEmpty: Sin datos de agendamientos.
+  topBuildings: Top edificios con mas actividad
+  topEmpty: Aun no hay actividad registrada.
+  chartTitle: Agendamientos completados vs agendados
+  upcomingHint: Calendario
+  activeHint: En servicio
+  registeredHint: Registradas
+  activeBuildingsHint: Activos
+  activities: actividades
+errors:
+  invalidDateRange: La fecha de fin debe ser mayor que la fecha de inicio

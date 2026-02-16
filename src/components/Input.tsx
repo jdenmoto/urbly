@@ -6,10 +6,15 @@ type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
 };
 
-const Input = forwardRef<HTMLInputElement, InputProps>(({ label, error, className, ...props }, ref) => {
+const Input = forwardRef<HTMLInputElement, InputProps>(({ label, error, className, required, ...props }, ref) => {
   return (
     <label className="flex w-full flex-col gap-1 text-sm text-ink-700">
-      {label ? <span className="font-medium text-ink-800">{label}</span> : null}
+      {label ? (
+        <span className="font-medium text-ink-800">
+          {label}
+          {required ? <span className="ml-1 text-red-500">*</span> : null}
+        </span>
+      ) : null}
       <input
         ref={ref}
         className={clsx(
@@ -17,6 +22,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({ label, error, classNam
           error && 'border-red-400 focus:border-red-500',
           className
         )}
+        required={required}
         {...props}
       />
       {error ? <span className="text-xs text-red-500">{error}</span> : null}

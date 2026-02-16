@@ -1,64 +1,38 @@
 # Urbly MVP
 
-Plataforma SaaS para gestion inteligente de edificios, agenda y dashboard. Este repositorio contiene el MVP web con React + Firebase + Tailwind y estructura preparada para evolucionar a mobile.
+Urbly is a SaaS platform for modern building management. This repository contains the web MVP built with React, Firebase, and Tailwind, prepared for future React Native reuse.
 
-## Stack
-- React + TypeScript (Vite)
-- Tailwind CSS
-- React Router
-- TanStack Query + TanStack Table
-- React Hook Form + Zod
-- FullCalendar
-- Firebase Auth + Firestore + Storage + Functions
-- GitHub Actions (deploy a Firebase Hosting)
+## Table of Contents
+- Docs index: `docs/README.md`
+- Project overview: `docs/project-overview.md`
+- Firebase setup: `docs/firebase-setup.md`
+- Environment variables: `docs/env.md`
+- Google Maps setup: `docs/google-maps.md`
+- Functions and deploy: `docs/functions.md`
+- Seed and cleanup: `docs/seed.md`
+- Bulk import: `docs/import.md`
+- Trello cards: `docs/trello.md`
+- Security notes: `docs/security-notes.md`
+- Risks: `docs/risks.md`
 
-## Estructura
+## Quick Start
 ```
-/src
-  /app              -> routing y layouts
-  /features         -> buildings, management, employees, scheduling, dashboard
-  /components       -> UI reutilizable
-  /core             -> logica de dominio
-  /lib
-    /firebase       -> config, auth, firestore, storage, functions
-    /api            -> wrappers Firestore / Functions
-  /styles           -> tailwind
-/functions          -> Firebase Cloud Functions
-/public
+npm install
+npm --prefix functions install
+npm run dev
 ```
 
-## Setup
-1. Instalar dependencias:
-   ```bash
-   npm install
-   npm --prefix functions install
-   ```
-2. Variables de entorno en `.env`:
-   ```bash
-   VITE_FIREBASE_API_KEY=...
-   VITE_FIREBASE_PROJECT_ID=...
-   VITE_GOOGLE_MAPS_API_KEY=...
-   ```
-   - Puedes copiar `.env.example` y completar los valores.
-   - Para Firebase: toma `apiKey` y `projectId` desde la configuracion web en Firebase Console.
-   - Para Google Maps: habilita Places API y usa la API key en `VITE_GOOGLE_MAPS_API_KEY`.
-3. Ejecutar en desarrollo:
-   ```bash
-   npm run dev
-   ```
+## Deploy (Firebase Preview Channels)
+Use Hosting preview channels for safe QA deploys before production:
 
-## Deploy
-- Configura `FIREBASE_SERVICE_ACCOUNT` y `FIREBASE_PROJECT_ID` en GitHub Actions.
-- Merge a `main` para deploy automatico (hosting + functions + rules + indexes).
+```bash
+# Uses current git branch as channel id
+npm run deploy:preview
 
-## Datos seed
-Ejemplo en `seed/seed.json`. Se puede importar manualmente via Firebase console o scripts propios.
+# Custom channel id
+npm run deploy:preview -- feature-calendar-redesign
+```
 
-## Decisiones tecnicas
-- Dominio en `/core` para reutilizacion futura en React Native.
-- UI responsive con breakpoints md/lg para desktop/tablet/phone.
-- Imports masivos via Cloud Function `importBuildings`.
-
-## Reglas Firestore
-- Lectura para usuarios autenticados.
-- Escritura solo para admin (`request.auth.token.role == 'admin'`).
+Optional env vars:
+- `FIREBASE_PREVIEW_EXPIRES` (default: `7d`)
+- `FIREBASE_PROJECT` (if you want to force a project id)

@@ -4,6 +4,10 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './app/App';
 import './styles/index.css';
+import { I18nProvider } from './lib/i18n';
+import { ToastProvider } from './components/ToastProvider';
+import { FeatureFlagsProvider } from './lib/featureFlags';
+import GlobalLoaderProvider from './components/GlobalLoader';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,9 +21,17 @@ const queryClient = new QueryClient({
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <I18nProvider>
+        <ToastProvider>
+          <FeatureFlagsProvider>
+            <GlobalLoaderProvider>
+              <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+                <App />
+              </BrowserRouter>
+            </GlobalLoaderProvider>
+          </FeatureFlagsProvider>
+        </ToastProvider>
+      </I18nProvider>
     </QueryClientProvider>
   </React.StrictMode>
 );

@@ -6,20 +6,20 @@ import BottomNav from '@/components/BottomNav';
 import useBreakpoint from '@/components/useBreakpoint';
 
 export default function AppLayout() {
-  const { isDesktop, isTablet } = useBreakpoint();
+  const { isDesktop, isIpad, isMobile } = useBreakpoint();
   const [collapsed, setCollapsed] = useState(false);
+  const showSidebar = isDesktop || isIpad;
 
   return (
     <div className="flex min-h-screen">
-      {isDesktop ? <Sidebar /> : null}
-      {isTablet ? <Sidebar collapsed={collapsed} /> : null}
+      {showSidebar ? <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} /> : null}
       <div className="flex min-h-screen flex-1 flex-col">
-        <TopBar onToggle={isTablet ? () => setCollapsed((prev) => !prev) : undefined} />
-        <main className="flex-1 space-y-8 px-4 py-6 pb-24 md:px-6">
+        <TopBar />
+        <main className="flex-1 space-y-8 px-4 py-6 pb-24 ipad:px-6">
           <Outlet />
         </main>
       </div>
-      <BottomNav />
+      <BottomNav show={isMobile} />
     </div>
   );
 }
