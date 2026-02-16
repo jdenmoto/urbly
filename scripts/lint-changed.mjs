@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 
 function run(command, args) {
   return spawnSync(command, args, { encoding: 'utf8' });
@@ -37,7 +38,8 @@ function getChangedFiles() {
     .filter(Boolean)
     .filter((f) => /\.(ts|tsx|js|jsx|mjs|cjs)$/.test(f))
     .filter((f) => !f.startsWith('dist/'))
-    .filter((f) => !f.startsWith('functions/lib/'));
+    .filter((f) => !f.startsWith('functions/lib/'))
+    .filter((f) => existsSync(f));
 }
 
 const changedFiles = getChangedFiles();
