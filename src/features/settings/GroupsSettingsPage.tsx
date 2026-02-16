@@ -33,7 +33,7 @@ export default function GroupsSettingsPage() {
           const payload = groupsSnap.data() as { groups?: BuildingGroup[] };
           setGroups(payload.groups ?? []);
         }
-      } catch (error) {
+      } catch {
         toast(t('common.actionError'), 'error');
       } finally {
         setLoading(false);
@@ -72,7 +72,7 @@ export default function GroupsSettingsPage() {
     try {
       await setDoc(doc(db, 'settings', 'building_groups'), { groups: payload ?? groups }, { merge: true });
       toast(t('settings.groupsSaved'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setGroupsSaving(false);

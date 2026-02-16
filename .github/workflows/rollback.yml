@@ -1,0 +1,42 @@
+name: Rollback Hosting (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Source para clonar. Ej: urbly-2bae2:@VERSION_ID o urbly-2bae2:develop"
+        required: true
+        type: string
+      target:
+        description: "Target channel. Usa 'live' para producción"
+        required: false
+        default: "live"
+        type: string
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Rollback hosting release
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_HOSTING_SITE: ${{ secrets.FIREBASE_HOSTING_SITE }}
+          SOURCE: ${{ github.event.inputs.source }}
+          TARGET: ${{ github.event.inputs.target }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > "$HOME/firebase-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/firebase-sa.json"
+
+          SITE_ID="${FIREBASE_HOSTING_SITE:-$FIREBASE_PROJECT_ID}"
+          if [ -z "$SITE_ID" ]; then
+            echo "Falta FIREBASE_HOSTING_SITE o FIREBASE_PROJECT_ID"
+            exit 1
+          fi
+
+          npx -y firebase-tools hosting:clone "$SOURCE" "$SITE_ID:$TARGET" --project "$FIREBASE_PROJECT_ID"

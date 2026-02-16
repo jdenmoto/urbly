@@ -43,7 +43,7 @@ export default function LabsSettingsPage() {
           const payload = labSnap.data() as { types?: LabType[] };
           setLabTypes(payload.types ?? []);
         }
-      } catch (error) {
+      } catch {
         toast(t('common.actionError'), 'error');
       } finally {
         setLoading(false);
@@ -58,7 +58,7 @@ export default function LabsSettingsPage() {
       await setDoc(doc(db, 'settings', 'lab_analysis_types'), { types: next }, { merge: true });
       setLabTypes(next);
       toast(t('settings.toastSaved'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setSaving(false);

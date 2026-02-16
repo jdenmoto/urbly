@@ -139,7 +139,7 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
     let geocode: GeocodeResult;
     try {
       geocode = await geocodeAddress(row.address);
-    } catch (error) {
+    } catch {
       logger.warn('Geocode failed', { row: rowNumber, address: row.address });
       errors.push({ row: rowNumber, message: 'Direccion no valida o no encontrada.' });
       continue;

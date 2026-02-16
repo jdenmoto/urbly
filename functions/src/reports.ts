@@ -276,7 +276,7 @@ export const generateAppointmentsPdf = onCall(async (request) => {
     try {
       const field = form.getTextField(fieldName);
       field.setText(value ?? 'error');
-    } catch (error) {
+    } catch {
       logger.debug('PDF field not found', { fieldName });
     }
   });

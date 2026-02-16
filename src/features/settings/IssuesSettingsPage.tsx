@@ -37,7 +37,7 @@ export default function IssuesSettingsPage() {
         if (snapshot.exists()) {
           setSettings(snapshot.data() as IssueSettings);
         }
-      } catch (error) {
+      } catch {
         toast(t('common.actionError'), 'error');
       } finally {
         setLoading(false);
@@ -54,7 +54,7 @@ export default function IssuesSettingsPage() {
       await setDoc(doc(db, 'settings', 'issues'), next, { merge: true });
       setSettings(next);
       toast(t('settings.toastSaved'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setSaving(false);

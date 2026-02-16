@@ -1,26 +1,26 @@
-name: Deploy Production (main)
+name: CI
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches:
+      - develop
+      - main
+      - 'feature/**'
 
 concurrency:
-  group: deploy-main
-  cancel-in-progress: false
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
-    if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'main'
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -57,7 +57,10 @@ jobs:
 
       - name: Lint changed files (CI)
         env:
-          GITHUB_EVENT_NAME: workflow_run
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_BEFORE: ${{ github.event.before }}
+          GITHUB_SHA: ${{ github.sha }}
         run: npm run lint:ci
 
       - name: Build web app
@@ -66,14 +69,3 @@ jobs:
       - name: Build functions
         run: npm run build
         working-directory: functions
-
-      - name: Deploy production
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-        run: |
-          echo "$FIREBASE_SERVICE_ACCOUNT" > "$HOME/firebase-sa.json"
-          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/firebase-sa.json"
-          npx -y firebase-tools deploy \
-            --project "$FIREBASE_PROJECT_ID" \
-            --only hosting,functions,firestore:rules,firestore:indexes

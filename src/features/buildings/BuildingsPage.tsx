@@ -10,7 +10,6 @@ import type { Appointment } from '@/core/models/appointment';
 import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import PageHeader from '@/components/PageHeader';
-import Card from '@/components/Card';
 import Input from '@/components/Input';
 import Select from '@/components/Select';
 import Button from '@/components/Button';
@@ -297,7 +296,7 @@ export default function BuildingsPage() {
       reset();
       setPlace(null);
       toast(t('buildings.toastCreated'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     }
   };
@@ -358,7 +357,7 @@ export default function BuildingsPage() {
       setEditOpen(false);
       setEditingBuilding(null);
       toast(t('buildings.toastUpdated'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     }
   };
@@ -369,7 +368,7 @@ export default function BuildingsPage() {
       await deleteDocById('buildings', deleteTarget.id);
       await queryClient.invalidateQueries({ queryKey: ['buildings'] });
       toast(t('buildings.toastDeleted'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setDeleteTarget(null);
@@ -382,7 +381,7 @@ export default function BuildingsPage() {
       await updateDocById('buildings', building.id, { active: nextActive });
       await queryClient.invalidateQueries({ queryKey: ['buildings'] });
       toast(nextActive ? t('buildings.toastEnabled') : t('buildings.toastDisabled'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     }
   };
@@ -439,7 +438,7 @@ export default function BuildingsPage() {
       if (result.errors.length) {
         const csv = [
           t('buildings.errorFileHeader'),
-          ...result.errors.map((err) => `${err.row},\"${err.message}\"`)
+          ...result.errors.map((err) => `${err.row},"${err.message}"`)
         ].join('\\n');
         setErrorUrl(URL.createObjectURL(new Blob([csv], { type: 'text/csv' })));
       } else {

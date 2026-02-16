@@ -65,7 +65,6 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
             <div className="space-y-1">
               {isGroupOpen
                 ? group.items.map((item) => {
-                const isSectionHeader = item.kind === 'section' && item.sectionId;
                 const isCalendarItem = item.sectionId === 'calendar' && item.kind !== 'section';
                 if (isCalendarItem && sectionOpen.calendar === false) {
                   return null;
