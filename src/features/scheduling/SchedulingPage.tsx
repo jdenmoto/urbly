@@ -582,7 +582,7 @@ export default function SchedulingPage() {
       setEditingId(null);
       setModalOpen(false);
       toast(editingId ? t('scheduling.toastUpdated') : t('scheduling.toastCreated'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     }
   };
@@ -600,7 +600,7 @@ export default function SchedulingPage() {
       setEditingId(null);
       setModalOpen(false);
       toast(t('scheduling.toastUpdated'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setSeriesConfirmOpen(false);
@@ -761,7 +761,7 @@ export default function SchedulingPage() {
         );
       }
       setCompleteTarget(null);
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setCompleteSubmitting(false);
@@ -779,7 +779,7 @@ export default function SchedulingPage() {
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
       toast(t('scheduling.toastCanceled'), 'success');
       setCancelTarget(null);
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     }
   };
@@ -797,7 +797,7 @@ export default function SchedulingPage() {
         setSelected(null);
       }
       toast(t('scheduling.toastDeleted'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setDeleteTarget(null);
@@ -871,7 +871,7 @@ export default function SchedulingPage() {
       link.click();
       URL.revokeObjectURL(url);
       toast(t('scheduling.pdfReady'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('scheduling.pdfError'), 'error');
     } finally {
       setPdfLoading(false);

@@ -177,7 +177,7 @@ export default function UsersPage() {
       await queryClient.invalidateQueries({ queryKey: ['users'] });
       toast(t('users.toastCreated'), 'success');
       reset({ email: '', role: 'view', administrationId: '' });
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     }
   };
@@ -204,7 +204,7 @@ export default function UsersPage() {
       toast(t('users.toastUpdated'), 'success');
       setEditOpen(false);
       setEditingUser(null);
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     }
   };
@@ -214,7 +214,7 @@ export default function UsersPage() {
       await setAppUserDisabled(user.id, user.active);
       await queryClient.invalidateQueries({ queryKey: ['users'] });
       toast(user.active ? t('users.toastDisabled') : t('users.toastEnabled'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     }
   };
@@ -225,7 +225,7 @@ export default function UsersPage() {
       await deleteAppUser(deleteTarget.id);
       await queryClient.invalidateQueries({ queryKey: ['users'] });
       toast(t('users.toastDeleted'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setDeleteTarget(null);

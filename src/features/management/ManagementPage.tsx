@@ -4,7 +4,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import PageHeader from '@/components/PageHeader';
-import Card from '@/components/Card';
 import Input from '@/components/Input';
 import Select from '@/components/Select';
 import Button from '@/components/Button';
@@ -329,14 +328,13 @@ export default function ManagementPage() {
       setBuildingSearch('');
       setBuildingsError(null);
       setModalOpen(false);
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     }
   };
 
   const syncBuildings = async (companyId: string) => {
     const current = buildings.filter((building) => building.managementCompanyId === companyId);
-    const currentIds = new Set(current.map((item) => item.id));
     const nextIds = new Set(
       selectedBuildingIds.filter((id) =>
         availableBuildings.some((building) => building.id === id)
@@ -402,7 +400,7 @@ export default function ManagementPage() {
       await deleteDocById('management_companies', deleteTarget.id);
       await queryClient.invalidateQueries({ queryKey: ['managements'] });
       toast(t('management.toastDeleted'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setDeleteTarget(null);
@@ -463,7 +461,7 @@ export default function ManagementPage() {
       });
       setEditingContract(null);
       setContractModalOpen(false);
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     }
   };
@@ -510,7 +508,7 @@ export default function ManagementPage() {
       await deleteDocById('contracts', deleteContractTarget.id);
       await queryClient.invalidateQueries({ queryKey: ['contracts'] });
       toast(t('contracts.toastDeleted'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setDeleteContractTarget(null);

@@ -5,14 +5,13 @@ import Input from '@/components/Input';
 import Select from '@/components/Select';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
-import ConfirmModal from '@/components/ConfirmModal';
 import { CheckIcon, CancelIcon } from '@/components/ActionIcons';
 import { useList } from '@/lib/api/queries';
 import type { Appointment } from '@/core/models/appointment';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
 import type { ManagementCompany } from '@/core/models/managementCompany';
-import { format, isAfter, isBefore, startOfDay, endOfDay, addDays, subDays } from 'date-fns';
+import { format, startOfDay, endOfDay, addDays, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useI18n } from '@/lib/i18n';
 import {
@@ -52,7 +51,6 @@ export default function DashboardPage() {
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [now, setNow] = useState(() => new Date());
   const [pendingTarget, setPendingTarget] = useState<Appointment | null>(null);
-  const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelNote, setCancelNote] = useState('');
@@ -96,15 +94,11 @@ export default function DashboardPage() {
       return true;
     });
   }, [appointments, rangeStart, rangeEnd]);
-  const nextWeek = addDays(today, 7);
   const appointmentsToday = filteredAppointments.filter((item) => {
     const start = new Date(item.startAt);
     return start >= today && start < addDays(today, 1);
   });
-  const appointmentsNext7 = filteredAppointments.filter((item) => {
-    const start = new Date(item.startAt);
-    return isAfter(start, today) && isBefore(start, nextWeek);
-  });
+
   const activeEmployees = employees.filter((employee) => employee.active);
 
   const byBuilding = filteredAppointments.reduce<Record<string, number>>((acc, item) => {
@@ -120,23 +114,9 @@ export default function DashboardPage() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 4);
 
-  const daily = filteredAppointments.reduce<Record<string, number>>((acc, item) => {
-    const key = format(new Date(item.startAt), 'MMM d', { locale: es });
-    acc[key] = (acc[key] ?? 0) + 1;
-    return acc;
-  }, {});
 
   const completedCount = filteredAppointments.filter((item) => item.status === 'completado').length;
-  const confirmedCount = filteredAppointments.filter((item) => item.status === 'confirmado').length;
-  const canceledCount = filteredAppointments.filter((item) => item.status === 'cancelado').length;
-  const scheduledCount = filteredAppointments.filter((item) => item.status === 'programado').length;
 
-  const statusData = [
-    { name: t('scheduling.completed'), valor: completedCount },
-    { name: t('scheduling.statusConfirmed'), valor: confirmedCount },
-    { name: t('scheduling.scheduled'), valor: scheduledCount },
-    { name: t('scheduling.statusCanceled'), valor: canceledCount }
-  ];
 
   const byType = filteredAppointments.reduce<Record<string, number>>((acc, item) => {
     const key = item.type || 'otro';
@@ -335,13 +315,12 @@ export default function DashboardPage() {
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
       toast(t('dashboard.pendingCompleted'), 'success');
       setPendingTarget(null);
-      setCompleteConfirmOpen(false);
       setPendingCompleteOpen(false);
       setPendingHasIssues('');
       setPendingIssues([]);
       setPendingIssueDraft({ id: '', type: '', category: '', description: '', photos: [] });
       setPendingIssueError(null);
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setActionLoading(false);
@@ -367,7 +346,7 @@ export default function DashboardPage() {
       setCancelOpen(false);
       setCancelReason('');
       setCancelNote('');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setActionLoading(false);

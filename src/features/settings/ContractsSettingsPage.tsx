@@ -101,7 +101,7 @@ export default function ContractsSettingsPage() {
           const payload = maintenanceSnap.data() as { types?: MaintenanceType[] };
           setMaintenanceTypes(payload.types ?? []);
         }
-      } catch (error) {
+      } catch {
         toast(t('common.actionError'), 'error');
       } finally {
         setLoading(false);
@@ -131,7 +131,7 @@ export default function ContractsSettingsPage() {
       await setDoc(doc(db, 'settings', 'maintenance_contract_types'), { types: next }, { merge: true });
       setMaintenanceTypes(next);
       toast(t('settings.toastSaved'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setSaving(false);

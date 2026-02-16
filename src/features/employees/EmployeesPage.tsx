@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import PageHeader from '@/components/PageHeader';
-import Card from '@/components/Card';
 import Input from '@/components/Input';
 import Select from '@/components/Select';
 import Button from '@/components/Button';
@@ -107,7 +106,7 @@ export default function EmployeesPage() {
       await queryClient.invalidateQueries({ queryKey: ['employees'] });
       reset();
       toast(t('employees.toastCreated'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     }
   };
@@ -152,7 +151,7 @@ export default function EmployeesPage() {
       setEditOpen(false);
       setEditingEmployee(null);
       toast(t('employees.toastUpdated'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     }
   };
@@ -163,7 +162,7 @@ export default function EmployeesPage() {
       await deleteDocById('employees', deleteTarget.id);
       await queryClient.invalidateQueries({ queryKey: ['employees'] });
       toast(t('employees.toastDeleted'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setDeleteTarget(null);

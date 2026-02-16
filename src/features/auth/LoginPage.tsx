@@ -45,7 +45,7 @@ export default function LoginPage() {
     setError('');
     try {
       await login(values.email, values.password);
-    } catch (err) {
+    } catch {
       setError(t('auth.error'));
     }
   };
@@ -56,7 +56,7 @@ export default function LoginPage() {
       toast(t('auth.resetSent'), 'success');
       resetForm();
       setResetOpen(false);
-    } catch (err) {
+    } catch {
       toast(t('auth.resetError'), 'error');
     }
   };

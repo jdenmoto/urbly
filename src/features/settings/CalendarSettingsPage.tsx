@@ -46,7 +46,7 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
           setHolidays(payload.holidays ?? []);
           setNonWorkingDays(payload.nonWorkingDays ?? []);
         }
-      } catch (error) {
+      } catch {
         toast(t('common.actionError'), 'error');
       } finally {
         setLoading(false);
@@ -66,7 +66,7 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
       setHolidays(nextHolidays);
       setNonWorkingDays(nextNonWorking);
       toast(t('settings.toastSaved'), 'success');
-    } catch (error) {
+    } catch {
       toast(t('common.actionError'), 'error');
     } finally {
       setSaving(false);
@@ -190,7 +190,7 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
       });
       await persist(Array.from(existing.values()), nonWorkingDays);
       toast(t('settings.calendarImported'), 'success');
-    } catch (error) {
+    } catch {
       console.log(error)
       toast(t('settings.calendarImportError'), 'error');
     }
