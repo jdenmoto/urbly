@@ -1,9 +1,18 @@
-name: Preview Deploy (PR)
+name: Preview Deploy (manual)
 
 on:
-  pull_request:
-    branches: [develop]
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Firebase preview channel"
+        required: false
+        default: "manual-preview"
+        type: string
+      expires:
+        description: "Expiración del canal (ej: 7d)"
+        required: false
+        default: "7d"
+        type: string
 
 permissions:
   contents: read
@@ -34,6 +43,7 @@ jobs:
           VITE_GOOGLE_MAPS_MAP_ID: ${{ secrets.VITE_GOOGLE_MAPS_MAP_ID }}
           VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_BROWSER_KEY_ID: ${{ secrets.FIREBASE_BROWSER_KEY_ID }}
         run: |
           cat > .env.local <<EOF
           VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY}
@@ -42,6 +52,7 @@ jobs:
           VITE_GOOGLE_MAPS_MAP_ID=${VITE_GOOGLE_MAPS_MAP_ID}
           VITE_FIREBASE_STORAGE_BUCKET=${VITE_FIREBASE_STORAGE_BUCKET}
           FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+          FIREBASE_BROWSER_KEY_ID=${FIREBASE_BROWSER_KEY_ID}
           EOF
 
       - name: Build web app
@@ -53,5 +64,5 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
-          channelId: pr-${{ github.event.number }}
-          expires: 7d
+          channelId: ${{ github.event.inputs.channel }}
+          expires: ${{ github.event.inputs.expires }}

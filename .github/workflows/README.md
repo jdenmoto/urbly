@@ -7,12 +7,13 @@ Este proyecto sigue flujo feature -> develop -> main:
   - Instala deps, genera `.env.local` desde secrets, lint incremental (`lint:ci` sobre archivos cambiados), build web y build functions.
 
 - `preview.yml`
-  - En cada PR hacia `develop`
-  - Hace build y publica un preview channel en Firebase (`pr-<numero>`).
+  - Manual (`workflow_dispatch`)
+  - Hace build y publica un preview channel bajo demanda.
 
 - `deploy-develop.yml`
-  - Corre **solo cuando CI termina exitoso** para la rama `develop`.
+  - Corre **solo cuando CI termina exitoso** para la rama `develop` (post-merge/push).
   - Despliega a canal `develop` (staging) en Firebase Hosting.
+  - Extrae la URL del canal y la agrega automáticamente a referrers permitidos de la API key web (gcloud).
 
 - `deploy.yml`
   - Corre **solo cuando CI termina exitoso** para la rama `main`.
