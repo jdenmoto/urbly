@@ -24,6 +24,17 @@ Este proyecto sigue flujo feature -> develop -> main:
 
 ## Secrets requeridos
 
+### Deploy / Rollback
 - `FIREBASE_SERVICE_ACCOUNT` (JSON completo de service account)
 - `FIREBASE_PROJECT_ID` (ej: `urbly-2bae2`)
 - `FIREBASE_HOSTING_SITE` (opcional; si no existe usa `FIREBASE_PROJECT_ID`)
+
+### Build web (.env.local en CI)
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_GOOGLE_MAPS_API_KEY`
+- `VITE_GOOGLE_MAPS_MAP_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `FIREBASE_BROWSER_KEY_ID` (opcional, útil para scripts de preview/referrer)
+
+> Nota: los workflows generan `.env.local` dinámicamente en tiempo de ejecución; no se versionan secretos en el repositorio.

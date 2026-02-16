@@ -28,6 +28,26 @@ jobs:
         run: npm ci
         working-directory: functions
 
+      - name: Create .env.local from GitHub Secrets
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          VITE_GOOGLE_MAPS_MAP_ID: ${{ secrets.VITE_GOOGLE_MAPS_MAP_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_BROWSER_KEY_ID: ${{ secrets.FIREBASE_BROWSER_KEY_ID }}
+        run: |
+          cat > .env.local <<EOF
+          VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY}
+          VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID}
+          VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY}
+          VITE_GOOGLE_MAPS_MAP_ID=${VITE_GOOGLE_MAPS_MAP_ID}
+          VITE_FIREBASE_STORAGE_BUCKET=${VITE_FIREBASE_STORAGE_BUCKET}
+          FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+          FIREBASE_BROWSER_KEY_ID=${FIREBASE_BROWSER_KEY_ID}
+          EOF
+
       - name: Lint web app
         run: npm run lint
 
