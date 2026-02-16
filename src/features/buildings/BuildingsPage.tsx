@@ -439,7 +439,7 @@ export default function BuildingsPage() {
       if (result.errors.length) {
         const csv = [
           t('buildings.errorFileHeader'),
-          ...result.errors.map((err) => `${err.row},\"${err.message}\"`)
+          ...result.errors.map((err) => `${err.row},"${err.message}"`)
         ].join('\\n');
         setErrorUrl(URL.createObjectURL(new Blob([csv], { type: 'text/csv' })));
       } else {

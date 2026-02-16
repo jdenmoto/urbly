@@ -154,14 +154,6 @@ export default function UsersPage() {
     [t]
   );
 
-  if (role !== 'admin') {
-    return (
-      <Card>
-        <p className="text-sm text-ink-600">{t('users.unauthorized')}</p>
-      </Card>
-    );
-  }
-
   const openInvite = searchParams.get('invite') === '1';
   useEffect(() => {
     if (openInvite && !createOpen) {
@@ -169,6 +161,14 @@ export default function UsersPage() {
       setSearchParams({});
     }
   }, [openInvite, createOpen, setSearchParams]);
+
+  if (role !== 'admin') {
+    return (
+      <Card>
+        <p className="text-sm text-ink-600">{t('users.unauthorized')}</p>
+      </Card>
+    );
+  }
 
   const onCreate = async (values: FormValues) => {
     try {
