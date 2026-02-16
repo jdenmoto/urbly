@@ -1,8 +1,9 @@
 name: Deploy Production (main)
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
 
 concurrency:
   group: deploy-main
@@ -10,10 +11,16 @@ concurrency:
 
 jobs:
   build-and-deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 2
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -48,8 +55,10 @@ jobs:
           FIREBASE_BROWSER_KEY_ID=${FIREBASE_BROWSER_KEY_ID}
           EOF
 
-      - name: Lint web app
-        run: npm run lint
+      - name: Lint changed files (CI)
+        env:
+          GITHUB_EVENT_NAME: workflow_run
+        run: npm run lint:ci
 
       - name: Build web app
         run: npm run build

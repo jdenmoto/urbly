@@ -4,18 +4,18 @@ Este proyecto sigue flujo feature -> develop -> main:
 
 - `ci.yml`
   - Corre en PR/push (`feature/**`, `develop`, `main`)
-  - Instala deps, lint, build web y build functions.
+  - Instala deps, genera `.env.local` desde secrets, lint incremental (`lint:ci` sobre archivos cambiados), build web y build functions.
 
 - `preview.yml`
   - En cada PR hacia `develop`
   - Hace build y publica un preview channel en Firebase (`pr-<numero>`).
 
 - `deploy-develop.yml`
-  - En push a `develop`
+  - Corre **solo cuando CI termina exitoso** para la rama `develop`.
   - Despliega a canal `develop` (staging) en Firebase Hosting.
 
 - `deploy.yml`
-  - En push a `main`
+  - Corre **solo cuando CI termina exitoso** para la rama `main`.
   - Despliega a producción (hosting + functions + firestore rules/indexes).
 
 - `rollback.yml`

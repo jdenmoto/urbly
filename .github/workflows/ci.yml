@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -53,8 +55,13 @@ jobs:
           FIREBASE_BROWSER_KEY_ID=${FIREBASE_BROWSER_KEY_ID}
           EOF
 
-      - name: Lint web app
-        run: npm run lint
+      - name: Lint changed files (CI)
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_BEFORE: ${{ github.event.before }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: npm run lint:ci
 
       - name: Build web app
         run: npm run build
