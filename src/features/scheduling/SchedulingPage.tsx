@@ -806,12 +806,14 @@ export default function SchedulingPage() {
     setIssues((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const safeStorageName = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, '_');
+
   const uploadIssuePhotos = async (appointmentId: string, issueId: string, photos: File[]) => {
     const uploads = await Promise.all(
       photos
         .filter((file): file is File => file instanceof File)
         .map(async (file, index) => {
-          const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${file.name}`);
+          const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${safeStorageName(file.name)}`);
           await uploadBytes(storageRef, file);
           return getDownloadURL(storageRef);
         })
@@ -821,11 +823,13 @@ export default function SchedulingPage() {
 
   const uploadCompletionPhotos = async (appointmentId: string, photos: File[]) => {
     const uploads = await Promise.all(
-      photos.map(async (file, index) => {
-        const storageRef = ref(storage, `appointments/${appointmentId}/completion-photos/${Date.now()}-${index}-${file.name}`);
-        await uploadBytes(storageRef, file);
-        return getDownloadURL(storageRef);
-      })
+      photos
+        .filter((file): file is File => file instanceof File)
+        .map(async (file, index) => {
+          const storageRef = ref(storage, `appointments/${appointmentId}/completion-photos/${Date.now()}-${index}-${safeStorageName(file.name)}`);
+          await uploadBytes(storageRef, file);
+          return getDownloadURL(storageRef);
+        })
     );
     return uploads;
   };
@@ -846,6 +850,16 @@ export default function SchedulingPage() {
     }
     if (!completionReport.entryHour || !completionReport.exitHour || !completionReport.observations.trim()) {
       setIssueError('Debes completar todos los campos obligatorios del reporte.');
+      return;
+    }
+
+    const toMinutes = (time: string) => {
+      const [hour = '0', minute = '0'] = time.split(':');
+      return Number(hour) * 60 + Number(minute);
+    };
+
+    if (toMinutes(completionReport.exitHour) <= toMinutes(completionReport.entryHour)) {
+      setIssueError('La hora de salida debe ser posterior a la hora de entrada.');
       return;
     }
     const normalizedChecklist = completionChecklistItems.reduce<Record<string, 'ok' | 'regular' | 'malo' | 'na'>>(
@@ -913,8 +927,14 @@ export default function SchedulingPage() {
         );
       }
       setCompleteTarget(null);
-    } catch {
-      toast(t('common.actionError'), 'error');
+    } catch (error) {
+      const firebaseMessage =
+        typeof error === 'object' && error !== null && 'code' in error
+          ? `Firebase Storage (${String((error as { code?: unknown }).code)})`
+          : '';
+      const detail = error instanceof Error ? error.message : '';
+      const message = [firebaseMessage, detail].filter(Boolean).join(': ');
+      toast(message || t('common.actionError'), 'error');
     } finally {
       setCompleteSubmitting(false);
     }
