@@ -182,10 +182,15 @@ export default function SchedulingPage() {
   const [bombaPanelsOpen, setBombaPanelsOpen] = useState<Record<number, boolean>>({ 1: true });
   const [photoViewer, setPhotoViewer] = useState<{ src: string; title?: string } | null>(null);
   const [photoZoom, setPhotoZoom] = useState(1);
+  const [photoPan, setPhotoPan] = useState({ x: 0, y: 0 });
+  const [photoDragging, setPhotoDragging] = useState(false);
+  const [photoDragStart, setPhotoDragStart] = useState({ x: 0, y: 0 });
 
   const openPhotoViewer = (src: string, title?: string) => {
     setPhotoViewer({ src, title });
     setPhotoZoom(1);
+    setPhotoPan({ x: 0, y: 0 });
+    setPhotoDragging(false);
   };
   const makeGroup1Key = (unit: number, item: string) => `bomba_${unit}__${item}`;
   const makeGroup1RedKey = (unit: number, item: string) => `${makeGroup1Key(unit, item)}__red_distribucion`;
@@ -1564,7 +1569,13 @@ export default function SchedulingPage() {
         </div>
       ) : null}
       {photoViewer ? (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4" onClick={() => setPhotoViewer(null)}>
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4"
+          onClick={() => {
+            setPhotoViewer(null);
+            setPhotoDragging(false);
+          }}
+        >
           <div className="max-h-[90vh] w-full max-w-5xl rounded-xl border-2 border-white bg-ink-900/90 p-3 shadow-soft" onClick={(event) => event.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between text-white">
               <p className="text-sm font-semibold">{photoViewer.title || 'Foto'}</p>
@@ -1572,7 +1583,10 @@ export default function SchedulingPage() {
                 <button
                   type="button"
                   className="rounded border border-white/40 px-2 py-1 text-xs hover:bg-white/10"
-                  onClick={() => setPhotoZoom((prev) => Math.max(0.5, Number((prev - 0.2).toFixed(2))))}
+                  onClick={() => {
+                    setPhotoZoom((prev) => Math.max(0.5, Number((prev - 0.2).toFixed(2))));
+                    setPhotoDragging(false);
+                  }}
                 >
                   -
                 </button>
@@ -1587,19 +1601,36 @@ export default function SchedulingPage() {
                 <button
                   type="button"
                   className="rounded border border-rose-500 bg-rose-600 px-2 py-1 text-sm font-bold text-white hover:bg-rose-500"
-                  onClick={() => setPhotoViewer(null)}
+                  onClick={() => {
+                    setPhotoViewer(null);
+                    setPhotoDragging(false);
+                  }}
                   aria-label="Cerrar visor"
                 >
                   ✕
                 </button>
               </div>
             </div>
-            <div className="max-h-[82vh] overflow-auto rounded-lg border border-white/30 bg-black/30 p-2">
+            <div
+              className={`max-h-[82vh] overflow-auto rounded-lg border border-white/30 bg-black/30 p-2 ${photoZoom > 1 ? (photoDragging ? 'cursor-grabbing' : 'cursor-grab') : ''}`}
+              onMouseMove={(event) => {
+                if (!photoDragging || photoZoom <= 1) return;
+                setPhotoPan({ x: event.clientX - photoDragStart.x, y: event.clientY - photoDragStart.y });
+              }}
+              onMouseUp={() => setPhotoDragging(false)}
+              onMouseLeave={() => setPhotoDragging(false)}
+            >
               <img
                 src={photoViewer.src}
                 alt={photoViewer.title || 'Foto'}
-                className="mx-auto max-h-[78vh] w-auto object-contain"
-                style={{ transform: `scale(${photoZoom})`, transformOrigin: 'center center' }}
+                draggable={false}
+                onMouseDown={(event) => {
+                  if (photoZoom <= 1) return;
+                  setPhotoDragging(true);
+                  setPhotoDragStart({ x: event.clientX - photoPan.x, y: event.clientY - photoPan.y });
+                }}
+                className="mx-auto max-h-[78vh] w-auto select-none object-contain"
+                style={{ transform: `translate(${photoPan.x}px, ${photoPan.y}px) scale(${photoZoom})`, transformOrigin: 'center center' }}
               />
             </div>
           </div>
