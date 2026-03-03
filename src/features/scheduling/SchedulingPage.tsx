@@ -181,6 +181,12 @@ export default function SchedulingPage() {
   });
   const [bombaPanelsOpen, setBombaPanelsOpen] = useState<Record<number, boolean>>({ 1: true });
   const [photoViewer, setPhotoViewer] = useState<{ src: string; title?: string } | null>(null);
+  const [photoZoom, setPhotoZoom] = useState(1);
+
+  const openPhotoViewer = (src: string, title?: string) => {
+    setPhotoViewer({ src, title });
+    setPhotoZoom(1);
+  };
   const makeGroup1Key = (unit: number, item: string) => `bomba_${unit}__${item}`;
   const makeGroup1RedKey = (unit: number, item: string) => `${makeGroup1Key(unit, item)}__red_distribucion`;
   const formatChecklistLabel = (value: string) =>
@@ -1459,7 +1465,7 @@ export default function SchedulingPage() {
                           <button
                             key={`${photo}-${index}`}
                             type="button"
-                            onClick={() => setPhotoViewer({ src: photo, title: `Foto servicio ${index + 1}` })}
+                            onClick={() => openPhotoViewer(photo, `Foto servicio ${index + 1}`)}
                             className="block overflow-hidden rounded border border-fog-200 bg-white"
                           >
                             <img src={photo} alt={`Foto servicio ${index + 1}`} className="h-24 w-full object-cover" />
@@ -1486,7 +1492,7 @@ export default function SchedulingPage() {
                             <button
                               key={`${issue.id}-${index}`}
                               type="button"
-                              onClick={() => setPhotoViewer({ src: photo, title: `Novedad ${index + 1}` })}
+                              onClick={() => openPhotoViewer(photo, `Novedad ${index + 1}`)}
                               className="block overflow-hidden rounded border border-fog-200 bg-white"
                             >
                               <img src={photo} alt={`Novedad ${index + 1}`} className="h-20 w-full object-cover" />
@@ -1559,14 +1565,43 @@ export default function SchedulingPage() {
       ) : null}
       {photoViewer ? (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4" onClick={() => setPhotoViewer(null)}>
-          <div className="max-h-[90vh] w-full max-w-4xl" onClick={(event) => event.stopPropagation()}>
+          <div className="max-h-[90vh] w-full max-w-5xl rounded-xl border-2 border-white bg-ink-900/90 p-3 shadow-soft" onClick={(event) => event.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between text-white">
               <p className="text-sm font-semibold">{photoViewer.title || 'Foto'}</p>
-              <button type="button" className="text-sm" onClick={() => setPhotoViewer(null)}>
-                {t('common.close')}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="rounded border border-white/40 px-2 py-1 text-xs hover:bg-white/10"
+                  onClick={() => setPhotoZoom((prev) => Math.max(0.5, Number((prev - 0.2).toFixed(2))))}
+                >
+                  -
+                </button>
+                <span className="min-w-12 text-center text-xs">{Math.round(photoZoom * 100)}%</span>
+                <button
+                  type="button"
+                  className="rounded border border-white/40 px-2 py-1 text-xs hover:bg-white/10"
+                  onClick={() => setPhotoZoom((prev) => Math.min(3, Number((prev + 0.2).toFixed(2))))}
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  className="rounded border border-rose-500 bg-rose-600 px-2 py-1 text-sm font-bold text-white hover:bg-rose-500"
+                  onClick={() => setPhotoViewer(null)}
+                  aria-label="Cerrar visor"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
-            <img src={photoViewer.src} alt={photoViewer.title || 'Foto'} className="max-h-[82vh] w-full rounded-lg object-contain" />
+            <div className="max-h-[82vh] overflow-auto rounded-lg border border-white/30 bg-black/30 p-2">
+              <img
+                src={photoViewer.src}
+                alt={photoViewer.title || 'Foto'}
+                className="mx-auto max-h-[78vh] w-auto object-contain"
+                style={{ transform: `scale(${photoZoom})`, transformOrigin: 'center center' }}
+              />
+            </div>
           </div>
         </div>
       ) : null}
