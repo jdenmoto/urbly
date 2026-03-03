@@ -180,6 +180,7 @@ export default function SchedulingPage() {
     grupo3: false
   });
   const [bombaPanelsOpen, setBombaPanelsOpen] = useState<Record<number, boolean>>({ 1: true });
+  const [photoViewer, setPhotoViewer] = useState<{ src: string; title?: string } | null>(null);
   const makeGroup1Key = (unit: number, item: string) => `bomba_${unit}__${item}`;
   const makeGroup1RedKey = (unit: number, item: string) => `${makeGroup1Key(unit, item)}__red_distribucion`;
   const formatChecklistLabel = (value: string) =>
@@ -239,6 +240,8 @@ export default function SchedulingPage() {
   const completionChecklistGroup1 = completionChecklistItems.filter(
     (item) => !completionChecklistGroups.grupo2.includes(item as (typeof completionChecklistGroups.grupo2)[number]) && !completionChecklistGroups.grupo3.includes(item as (typeof completionChecklistGroups.grupo3)[number])
   );
+
+  const checklistValueLabel = (value?: string) => (value === 'ok' ? 'Bueno' : value === 'regular' ? 'Regular' : value === 'malo' ? 'Malo' : 'N/A');
 
   const cancelSchema = z
     .object({
@@ -1373,22 +1376,69 @@ export default function SchedulingPage() {
                   <p><span className="font-semibold text-ink-900">Hora salida:</span> {String(selected.completionReport?.exitHour || t('common.noData'))}</p>
                   <p><span className="font-semibold text-ink-900">Observaciones:</span> {String(selected.completionReport?.observations || t('common.noData'))}</p>
 
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <p className="font-semibold text-ink-900">Checklist</p>
-                    <div className="max-h-56 space-y-1 overflow-y-auto rounded border border-fog-200 bg-white p-2">
-                      {Object.entries((selected.completionReport?.checklist as Record<string, string>) || {}).length ? (
-                        Object.entries((selected.completionReport?.checklist as Record<string, string>) || {})
-                          .sort(([a], [b]) => a.localeCompare(b))
-                          .map(([key, value]) => (
-                            <p key={key} className="text-xs">
-                              <span className="font-semibold text-ink-900">{formatChecklistLabel(key)}:</span>{' '}
-                              {value === 'ok' ? 'Bueno' : value === 'regular' ? 'Regular' : value === 'malo' ? 'Malo' : 'N/A'}
-                            </p>
-                          ))
-                      ) : (
-                        <p className="text-xs text-ink-600">{t('common.noData')}</p>
-                      )}
-                    </div>
+                    {(() => {
+                      const checklist = (selected.completionReport?.checklist as Record<string, string>) || {};
+                      const group1Entries = Object.entries(checklist).filter(([key]) => key.startsWith('bomba_'));
+                      const group1ByPump: Record<string, Array<[string, string]>> = {};
+                      group1Entries.forEach(([key, value]) => {
+                        const [pumpKey, itemKey] = key.split('__');
+                        if (!pumpKey || !itemKey) return;
+                        if (!group1ByPump[pumpKey]) group1ByPump[pumpKey] = [];
+                        group1ByPump[pumpKey].push([itemKey, value]);
+                      });
+
+                      const group2Entries = completionChecklistGroups.grupo2.map((item) => [item, checklist[item] || 'na'] as [string, string]);
+                      const group3Entries = completionChecklistGroups.grupo3.map((item) => [item, checklist[item] || 'na'] as [string, string]);
+
+                      return (
+                        <div className="max-h-80 space-y-2 overflow-y-auto rounded border border-fog-200 bg-white p-2 text-xs">
+                          <div className="space-y-1 rounded border border-fog-200 p-2">
+                            <p className="font-semibold text-ink-900">Grupo 1 (Bombas)</p>
+                            {Object.keys(group1ByPump).length ? (
+                              Object.entries(group1ByPump)
+                                .sort(([a], [b]) => a.localeCompare(b))
+                                .map(([pumpKey, entries], pumpIndex) => (
+                                  <div key={pumpKey} className="rounded border border-fog-200 bg-fog-50 p-2">
+                                    <p className="font-semibold text-ink-900">Bomba {pumpIndex + 1}</p>
+                                    <div className="space-y-0.5">
+                                      {entries
+                                        .sort(([a], [b]) => a.localeCompare(b))
+                                        .map(([itemKey, value]) => (
+                                          <p key={`${pumpKey}-${itemKey}`}>
+                                            <span className="font-semibold text-ink-900">{formatChecklistLabel(itemKey)}:</span>{' '}
+                                            {checklistValueLabel(value)}
+                                          </p>
+                                        ))}
+                                    </div>
+                                  </div>
+                                ))
+                            ) : (
+                              <p className="text-ink-600">{t('common.noData')}</p>
+                            )}
+                          </div>
+
+                          <div className="space-y-1 rounded border border-fog-200 p-2">
+                            <p className="font-semibold text-ink-900">Grupo 2</p>
+                            {group2Entries.map(([item, value]) => (
+                              <p key={item}>
+                                <span className="font-semibold text-ink-900">{formatChecklistLabel(item)}:</span> {checklistValueLabel(value)}
+                              </p>
+                            ))}
+                          </div>
+
+                          <div className="space-y-1 rounded border border-fog-200 p-2">
+                            <p className="font-semibold text-ink-900">Grupo 3</p>
+                            {group3Entries.map(([item, value]) => (
+                              <p key={item}>
+                                <span className="font-semibold text-ink-900">{formatChecklistLabel(item)}:</span> {checklistValueLabel(value)}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div className="space-y-1">
@@ -1396,9 +1446,14 @@ export default function SchedulingPage() {
                     {selected.completionPhotos?.length ? (
                       <div className="grid grid-cols-2 gap-2">
                         {selected.completionPhotos.map((photo, index) => (
-                          <a key={`${photo}-${index}`} href={photo} target="_blank" rel="noreferrer" className="block overflow-hidden rounded border border-fog-200 bg-white">
+                          <button
+                            key={`${photo}-${index}`}
+                            type="button"
+                            onClick={() => setPhotoViewer({ src: photo, title: `Foto servicio ${index + 1}` })}
+                            className="block overflow-hidden rounded border border-fog-200 bg-white"
+                          >
                             <img src={photo} alt={`Foto servicio ${index + 1}`} className="h-24 w-full object-cover" />
-                          </a>
+                          </button>
                         ))}
                       </div>
                     ) : (
@@ -1418,9 +1473,14 @@ export default function SchedulingPage() {
                       {issue.photos?.length ? (
                         <div className="grid grid-cols-2 gap-2">
                           {issue.photos.map((photo, index) => (
-                            <a key={`${issue.id}-${index}`} href={photo} target="_blank" rel="noreferrer" className="block overflow-hidden rounded border border-fog-200 bg-white">
+                            <button
+                              key={`${issue.id}-${index}`}
+                              type="button"
+                              onClick={() => setPhotoViewer({ src: photo, title: `Novedad ${index + 1}` })}
+                              className="block overflow-hidden rounded border border-fog-200 bg-white"
+                            >
                               <img src={photo} alt={`Novedad ${index + 1}`} className="h-20 w-full object-cover" />
-                            </a>
+                            </button>
                           ))}
                         </div>
                       ) : null}
@@ -1484,6 +1544,19 @@ export default function SchedulingPage() {
                 ) : null}
               </div>
             )}
+          </div>
+        </div>
+      ) : null}
+      {photoViewer ? (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4" onClick={() => setPhotoViewer(null)}>
+          <div className="max-h-[90vh] w-full max-w-4xl" onClick={(event) => event.stopPropagation()}>
+            <div className="mb-2 flex items-center justify-between text-white">
+              <p className="text-sm font-semibold">{photoViewer.title || 'Foto'}</p>
+              <button type="button" className="text-sm" onClick={() => setPhotoViewer(null)}>
+                {t('common.close')}
+              </button>
+            </div>
+            <img src={photoViewer.src} alt={photoViewer.title || 'Foto'} className="max-h-[82vh] w-full rounded-lg object-contain" />
           </div>
         </div>
       ) : null}
