@@ -179,6 +179,7 @@ export default function SchedulingPage() {
     grupo2: false,
     grupo3: false
   });
+  const [bombaPanelsOpen, setBombaPanelsOpen] = useState<Record<number, boolean>>({ 1: true });
   const makeGroup1Key = (unit: number, item: string) => `bomba_${unit}__${item}`;
   const makeGroup1RedKey = (unit: number, item: string) => `${makeGroup1Key(unit, item)}__red_distribucion`;
   const formatChecklistLabel = (value: string) =>
@@ -781,6 +782,7 @@ export default function SchedulingPage() {
     });
     setGroup1Units([1]);
     setGroupPanelsOpen({ grupo1: false, grupo2: false, grupo3: false });
+    setBombaPanelsOpen({ 1: true });
   };
 
   const hasMinTwoPhotos = (photos: File[]) => photos.filter((photo) => photo instanceof File).length >= 2;
@@ -1649,24 +1651,52 @@ export default function SchedulingPage() {
                 {groupPanelsOpen.grupo1 ? (
                   <div className="space-y-2">
                     <div className="flex items-center justify-end">
-                      <Button type="button" variant="secondary" onClick={() => setGroup1Units((prev) => [...prev, (prev.length ? prev[prev.length - 1] : 0) + 1])}>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          const nextUnit = (group1Units.length ? group1Units[group1Units.length - 1] : 0) + 1;
+                          setGroup1Units((prev) => [...prev, nextUnit]);
+                          setBombaPanelsOpen((prev) => ({ ...prev, [nextUnit]: true }));
+                        }}
+                      >
                         Agregar Bomba
                       </Button>
                     </div>
                     {group1Units.map((unit, index) => (
                       <div key={unit} className="space-y-2 rounded-lg border border-fog-200 bg-fog-50 p-2">
                         <div className="flex items-center justify-between">
-                          <p className="text-xs font-semibold text-ink-700">Bomba {index + 1}</p>
+                          <button
+                            type="button"
+                            className="flex items-center gap-2 text-xs font-semibold text-ink-700"
+                            onClick={() =>
+                              setBombaPanelsOpen((prev) => ({
+                                ...prev,
+                                [unit]: !(prev[unit] ?? true)
+                              }))
+                            }
+                          >
+                            <span>{bombaPanelsOpen[unit] ?? true ? '▾' : '▸'}</span>
+                            <span>Bomba {index + 1}</span>
+                          </button>
                           {group1Units.length > 1 ? (
                             <button
                               type="button"
                               className="text-xs text-rose-600"
-                              onClick={() => setGroup1Units((prev) => prev.filter((value) => value !== unit))}
+                              onClick={() => {
+                                setGroup1Units((prev) => prev.filter((value) => value !== unit));
+                                setBombaPanelsOpen((prev) => {
+                                  const next = { ...prev };
+                                  delete next[unit];
+                                  return next;
+                                });
+                              }}
                             >
                               {t('common.delete')}
                             </button>
                           ) : null}
                         </div>
+                        {(bombaPanelsOpen[unit] ?? true) ? (
                         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                           {completionChecklistGroup1.map((item) => {
                             const key = makeGroup1Key(unit, item);
@@ -1715,6 +1745,7 @@ export default function SchedulingPage() {
                             );
                           })}
                         </div>
+                        ) : null}
                       </div>
                     ))}
                   </div>
