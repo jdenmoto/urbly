@@ -834,6 +834,11 @@ export default function SchedulingPage() {
       (acc, item) => {
         const value = completionReport.checklist[item];
         acc[item] = (value as 'ok' | 'regular' | 'malo' | 'na') || 'na';
+        if (completionChecklistGroup1.includes(item)) {
+          const redKey = `${item}__red_distribucion`;
+          const redValue = completionReport.checklist[redKey];
+          acc[redKey] = (redValue as 'ok' | 'regular' | 'malo' | 'na') || 'na';
+        }
         return acc;
       },
       {}
@@ -1618,28 +1623,54 @@ export default function SchedulingPage() {
                 <div key={group.title} className="space-y-2">
                   <p className="text-xs font-semibold text-ink-700">{group.title}</p>
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                    {group.items.map((item) => (
-                      <div key={item} className="rounded-lg border border-fog-200 bg-white p-2">
-                        <p className="mb-1 text-xs text-ink-700">{item.split('_').join(' ')} <span className="text-red-500">*</span></p>
-                        <Select
-                          value={completionReport.checklist[item] ?? 'na'}
-                          onChange={(event) =>
-                            setCompletionReport((prev) => ({
-                              ...prev,
-                              checklist: {
-                                ...prev.checklist,
-                                [item]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
-                              }
-                            }))
-                          }
-                        >
-                          <option value="ok">Bueno</option>
-                          <option value="regular">Regular</option>
-                          <option value="malo">Malo</option>
-                          <option value="na">N/A</option>
-                        </Select>
-                      </div>
-                    ))}
+                    {group.items.map((item) => {
+                      const redKey = `${item}__red_distribucion`;
+                      const isGroup1 = group.title === 'Grupo 1';
+                      return (
+                        <div key={item} className="rounded-lg border border-fog-200 bg-white p-2 space-y-2">
+                          <p className="mb-1 text-xs text-ink-700">{item.split('_').join(' ')} <span className="text-red-500">*</span></p>
+                          <Select
+                            value={completionReport.checklist[item] ?? 'na'}
+                            onChange={(event) =>
+                              setCompletionReport((prev) => ({
+                                ...prev,
+                                checklist: {
+                                  ...prev.checklist,
+                                  [item]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
+                                }
+                              }))
+                            }
+                          >
+                            <option value="ok">Bueno</option>
+                            <option value="regular">Regular</option>
+                            <option value="malo">Malo</option>
+                            <option value="na">N/A</option>
+                          </Select>
+                          {isGroup1 ? (
+                            <div className="space-y-1">
+                              <p className="text-xs text-ink-700">Red de distribución <span className="text-red-500">*</span></p>
+                              <Select
+                                value={completionReport.checklist[redKey] ?? 'na'}
+                                onChange={(event) =>
+                                  setCompletionReport((prev) => ({
+                                    ...prev,
+                                    checklist: {
+                                      ...prev.checklist,
+                                      [redKey]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
+                                    }
+                                  }))
+                                }
+                              >
+                                <option value="ok">Buena</option>
+                                <option value="regular">Regular</option>
+                                <option value="malo">Mala</option>
+                                <option value="na">N/A</option>
+                              </Select>
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
