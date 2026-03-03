@@ -1323,7 +1323,7 @@ export default function SchedulingPage() {
       </div>
       {selected ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-soft">
+          <div className="w-full max-w-4xl rounded-2xl bg-white p-6 shadow-soft max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-ink-900">{selected.title}</h3>
@@ -1366,14 +1366,64 @@ export default function SchedulingPage() {
                 <span className="font-semibold text-ink-900">{t('scheduling.recurrenceLabel')}:</span>{' '}
                 {selected.recurrence ? t(`scheduling.recurrenceOptions.${selected.recurrence}`) : t('scheduling.noRecurrence')}
               </p>
+              {selected.status === 'completado' ? (
+                <div className="space-y-3 rounded-lg border border-fog-200 bg-fog-50 p-3">
+                  <p className="font-semibold text-ink-900">Reporte de servicio</p>
+                  <p><span className="font-semibold text-ink-900">Hora entrada:</span> {String(selected.completionReport?.entryHour || t('common.noData'))}</p>
+                  <p><span className="font-semibold text-ink-900">Hora salida:</span> {String(selected.completionReport?.exitHour || t('common.noData'))}</p>
+                  <p><span className="font-semibold text-ink-900">Observaciones:</span> {String(selected.completionReport?.observations || t('common.noData'))}</p>
+
+                  <div className="space-y-1">
+                    <p className="font-semibold text-ink-900">Checklist</p>
+                    <div className="max-h-56 space-y-1 overflow-y-auto rounded border border-fog-200 bg-white p-2">
+                      {Object.entries((selected.completionReport?.checklist as Record<string, string>) || {}).length ? (
+                        Object.entries((selected.completionReport?.checklist as Record<string, string>) || {})
+                          .sort(([a], [b]) => a.localeCompare(b))
+                          .map(([key, value]) => (
+                            <p key={key} className="text-xs">
+                              <span className="font-semibold text-ink-900">{formatChecklistLabel(key)}:</span>{' '}
+                              {value === 'ok' ? 'Bueno' : value === 'regular' ? 'Regular' : value === 'malo' ? 'Malo' : 'N/A'}
+                            </p>
+                          ))
+                      ) : (
+                        <p className="text-xs text-ink-600">{t('common.noData')}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="font-semibold text-ink-900">Fotos del servicio</p>
+                    {selected.completionPhotos?.length ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {selected.completionPhotos.map((photo, index) => (
+                          <a key={`${photo}-${index}`} href={photo} target="_blank" rel="noreferrer" className="block overflow-hidden rounded border border-fog-200 bg-white">
+                            <img src={photo} alt={`Foto servicio ${index + 1}`} className="h-24 w-full object-cover" />
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-ink-600">{t('common.noData')}</p>
+                    )}
+                  </div>
+                </div>
+              ) : null}
               {selected.issues?.length ? (
                 <div className="space-y-2">
                   <p className="font-semibold text-ink-900">{t('scheduling.issuesTitle')}</p>
                   {selected.issues.map((issue) => (
-                    <div key={issue.id} className="rounded-lg border border-fog-200 bg-fog-50 p-2 text-xs text-ink-700">
+                    <div key={issue.id} className="rounded-lg border border-fog-200 bg-fog-50 p-2 text-xs text-ink-700 space-y-1">
                       <p className="font-semibold text-ink-900">{resolveIssueLabel('scheduling.issueTypes', issue.type)}</p>
                       <p>{resolveIssueLabel('scheduling.issueCategories', issue.category)}</p>
                       {issue.description ? <p>{issue.description}</p> : null}
+                      {issue.photos?.length ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          {issue.photos.map((photo, index) => (
+                            <a key={`${issue.id}-${index}`} href={photo} target="_blank" rel="noreferrer" className="block overflow-hidden rounded border border-fog-200 bg-white">
+                              <img src={photo} alt={`Novedad ${index + 1}`} className="h-20 w-full object-cover" />
+                            </a>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>
