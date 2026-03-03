@@ -25,5 +25,7 @@ export type Appointment = {
   seriesId?: string | null;
   completedAt?: string | null;
   issues?: AppointmentIssue[];
+  completionPhotos?: string[];
+  completionReport?: Record<string, unknown>;
   createdAt?: string;
 };

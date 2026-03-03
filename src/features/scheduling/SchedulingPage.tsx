@@ -122,6 +122,13 @@ export default function SchedulingPage() {
   });
   const [issueError, setIssueError] = useState<string | null>(null);
   const [completeSubmitting, setCompleteSubmitting] = useState(false);
+  const [completionPhotos, setCompletionPhotos] = useState<File[]>([]);
+  const [completionReport, setCompletionReport] = useState({
+    entryHour: '',
+    exitHour: '',
+    observations: '',
+    checklist: {} as Record<string, 'ok' | 'regular' | 'malo' | 'na'>
+  });
 
   const schema = z.object({
     buildingId: z.string().min(1, t('scheduling.buildingRequired')),
@@ -147,6 +154,76 @@ export default function SchedulingPage() {
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const selectedType = watch('type');
+
+  const timeHourOptions = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0'));
+  const timeMinuteOptions = Array.from({ length: 12 }, (_, index) => String(index * 5).padStart(2, '0'));
+  const getTimeParts = (value: string) => {
+    const [hour = '', minute = ''] = value.split(':');
+    return { hour, minute };
+  };
+  const setReportTimePart = (field: 'entryHour' | 'exitHour', part: 'hour' | 'minute', nextValue: string) => {
+    setCompletionReport((prev) => {
+      const current = getTimeParts(prev[field]);
+      const hour = part === 'hour' ? nextValue : current.hour;
+      const minute = part === 'minute' ? nextValue : current.minute;
+      return {
+        ...prev,
+        [field]: hour && minute ? `${hour}:${minute}` : ''
+      };
+    });
+  };
+
+  const completionChecklistGroups = {
+    grupo2: [
+      'bornera_control',
+      'bornera_fuerza',
+      'breaker_totalizador',
+      'coraza_cableado_control',
+      'coraza_cableado_motores',
+      'tablero_control'
+    ],
+    grupo3: [
+      'valvula_flotadora',
+      'diametro',
+      'alarma',
+      'demarcacion_registros',
+      'instalacion_hidraulica',
+      'instruciones_manejo',
+      'pintura'
+    ]
+  } as const;
+
+  const completionChecklistItems = [
+    'alternador_contactos_auxiliares',
+    'anclaje_base_estructural',
+    'cargador_automatico_aire',
+    'contactor_consumo_motor',
+    'guardamotor_calibracion',
+    'lampara_senalizacion',
+    'manometros',
+    'membrana',
+    'transductor',
+    'diafragma',
+    'organizacion_cableado_tanque',
+    'presostatos',
+    'regulador_nivel',
+    'rele_bimetalico_calibracion',
+    'rodamientos',
+    'selector',
+    'sello_mecanico',
+    'tanque_hidroacumulador',
+    'temporizador',
+    'terminales_bornera_motor',
+    'tornilleria_base_motor',
+    'variador',
+    'voltaje',
+    ...completionChecklistGroups.grupo2,
+    ...completionChecklistGroups.grupo3
+  ];
+
+  const completionChecklistGroup1 = completionChecklistItems.filter(
+    (item) => !completionChecklistGroups.grupo2.includes(item as (typeof completionChecklistGroups.grupo2)[number]) && !completionChecklistGroups.grupo3.includes(item as (typeof completionChecklistGroups.grupo3)[number])
+  );
 
   const cancelSchema = z
     .object({
@@ -681,7 +758,16 @@ export default function SchedulingPage() {
     setIssues([]);
     setIssueDraft({ id: '', type: '', category: '', description: '', photos: [] });
     setIssueError(null);
+    setCompletionPhotos([]);
+    setCompletionReport({
+      entryHour: '',
+      exitHour: '',
+      observations: '',
+      checklist: {}
+    });
   };
+
+  const hasMinTwoPhotos = (photos: File[]) => photos.filter((photo) => photo instanceof File).length >= 2;
 
   const addIssue = () => {
     setIssueError(null);
@@ -689,8 +775,8 @@ export default function SchedulingPage() {
       setIssueError(t('scheduling.issueRequired'));
       return;
     }
-    if (issueDraft.photos.length !== 2) {
-      setIssueError(t('scheduling.issuePhotosRequired'));
+    if (!hasMinTwoPhotos(issueDraft.photos)) {
+      setIssueError('Debes agregar mínimo 2 fotos en la novedad.');
       return;
     }
     const id = issueDraft.id || (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
@@ -704,8 +790,21 @@ export default function SchedulingPage() {
 
   const uploadIssuePhotos = async (appointmentId: string, issueId: string, photos: File[]) => {
     const uploads = await Promise.all(
+      photos
+        .filter((file): file is File => file instanceof File)
+        .map(async (file, index) => {
+          const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${file.name}`);
+          await uploadBytes(storageRef, file);
+          return getDownloadURL(storageRef);
+        })
+    );
+    return uploads;
+  };
+
+  const uploadCompletionPhotos = async (appointmentId: string, photos: File[]) => {
+    const uploads = await Promise.all(
       photos.map(async (file, index) => {
-        const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${file.name}`);
+        const storageRef = ref(storage, `appointments/${appointmentId}/completion-photos/${Date.now()}-${index}-${file.name}`);
         await uploadBytes(storageRef, file);
         return getDownloadURL(storageRef);
       })
@@ -723,11 +822,33 @@ export default function SchedulingPage() {
       setIssueError(t('scheduling.issueAtLeastOne'));
       return;
     }
+    if (completionPhotos.length < 1) {
+      setIssueError('Debes agregar al menos 1 foto adicional del servicio.');
+      return;
+    }
+    if (!completionReport.entryHour || !completionReport.exitHour || !completionReport.observations.trim()) {
+      setIssueError('Debes completar todos los campos obligatorios del reporte.');
+      return;
+    }
+    const normalizedChecklist = completionChecklistItems.reduce<Record<string, 'ok' | 'regular' | 'malo' | 'na'>>(
+      (acc, item) => {
+        const value = completionReport.checklist[item];
+        acc[item] = (value as 'ok' | 'regular' | 'malo' | 'na') || 'na';
+        return acc;
+      },
+      {}
+    );
     setCompleteSubmitting(true);
     try {
+      const completionPhotoUrls = await uploadCompletionPhotos(completeTarget.id, completionPhotos);
       let payload: Record<string, unknown> = {
         status: 'completado',
-        completedAt: new Date().toISOString()
+        completedAt: new Date().toISOString(),
+        completionReport: {
+          ...completionReport,
+          checklist: normalizedChecklist
+        },
+        completionPhotos: completionPhotoUrls
       };
       if (hasIssues === 'yes') {
         const resolvedIssues = await Promise.all(
@@ -755,7 +876,9 @@ export default function SchedulingPage() {
                 ...prev,
                 status: 'completado',
                 completedAt: payload.completedAt as string,
-                issues: payload.issues as Appointment['issues']
+                issues: payload.issues as Appointment['issues'],
+                completionPhotos: payload.completionPhotos as Appointment['completionPhotos'],
+                completionReport: payload.completionReport as Appointment['completionReport']
               }
             : prev
         );
@@ -1433,6 +1556,122 @@ export default function SchedulingPage() {
         onClose={() => setCompleteTarget(null)}
       >
         <div className="space-y-4">
+          <div className="rounded-xl border border-fog-200 bg-fog-50 p-4 space-y-3">
+            <p className="text-sm font-semibold text-ink-900">Reporte de servicio</p>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-ink-800">Hora entrada <span className="text-red-500">*</span></label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Select
+                    value={getTimeParts(completionReport.entryHour).hour}
+                    onChange={(event) => setReportTimePart('entryHour', 'hour', event.target.value)}
+                  >
+                    <option value="">Hora</option>
+                    {timeHourOptions.map((hour) => (
+                      <option key={`entry-hour-${hour}`} value={hour}>{hour}</option>
+                    ))}
+                  </Select>
+                  <Select
+                    value={getTimeParts(completionReport.entryHour).minute}
+                    onChange={(event) => setReportTimePart('entryHour', 'minute', event.target.value)}
+                  >
+                    <option value="">Min</option>
+                    {timeMinuteOptions.map((minute) => (
+                      <option key={`entry-minute-${minute}`} value={minute}>{minute}</option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-ink-800">Hora salida <span className="text-red-500">*</span></label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Select
+                    value={getTimeParts(completionReport.exitHour).hour}
+                    onChange={(event) => setReportTimePart('exitHour', 'hour', event.target.value)}
+                  >
+                    <option value="">Hora</option>
+                    {timeHourOptions.map((hour) => (
+                      <option key={`exit-hour-${hour}`} value={hour}>{hour}</option>
+                    ))}
+                  </Select>
+                  <Select
+                    value={getTimeParts(completionReport.exitHour).minute}
+                    onChange={(event) => setReportTimePart('exitHour', 'minute', event.target.value)}
+                  >
+                    <option value="">Min</option>
+                    {timeMinuteOptions.map((minute) => (
+                      <option key={`exit-minute-${minute}`} value={minute}>{minute}</option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+            </div>
+            <Input label="Observaciones" required value={completionReport.observations} onChange={(event) => setCompletionReport((prev) => ({ ...prev, observations: event.target.value }))} />
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-ink-700">Detalles de la revisión</p>
+
+              {[
+                { title: 'Grupo 1', items: completionChecklistGroup1 },
+                { title: 'Grupo 2', items: completionChecklistGroups.grupo2 },
+                { title: 'Grupo 3', items: completionChecklistGroups.grupo3 }
+              ].map((group) => (
+                <div key={group.title} className="space-y-2">
+                  <p className="text-xs font-semibold text-ink-700">{group.title}</p>
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                    {group.items.map((item) => (
+                      <div key={item} className="rounded-lg border border-fog-200 bg-white p-2">
+                        <p className="mb-1 text-xs text-ink-700">{item.split('_').join(' ')} <span className="text-red-500">*</span></p>
+                        <Select
+                          value={completionReport.checklist[item] ?? 'na'}
+                          onChange={(event) =>
+                            setCompletionReport((prev) => ({
+                              ...prev,
+                              checklist: {
+                                ...prev.checklist,
+                                [item]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
+                              }
+                            }))
+                          }
+                        >
+                          <option value="ok">Bueno</option>
+                          <option value="regular">Regular</option>
+                          <option value="malo">Malo</option>
+                          <option value="na">N/A</option>
+                        </Select>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-ink-800">Fotos del servicio <span className="text-red-500">*</span> (mínimo 1, ilimitadas)</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(event) => {
+                  const files = Array.from(event.target.files ?? []);
+                  if (!files.length) return;
+                  setCompletionPhotos((prev) => [...prev, ...files]);
+                  setIssueError(null);
+                }}
+                className="block w-full text-xs"
+              />
+              {completionPhotos.length ? (
+                <div className="space-y-1">
+                  {completionPhotos.map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs">
+                      <span className="truncate">{file.name}</span>
+                      <button type="button" className="text-rose-600" onClick={() => setCompletionPhotos((prev) => prev.filter((_, i) => i !== index))}>
+                        {t('common.delete')}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
           <div className="flex items-center gap-3">
             <p className="text-sm font-semibold text-ink-800">{t('scheduling.issueQuestion')}</p>
             <Button
@@ -1513,43 +1752,39 @@ export default function SchedulingPage() {
                   {t('scheduling.issuePhotos')}
                   <span className="ml-1 text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[0, 1].map((index) => {
-                    const file = issueDraft.photos[index];
-                    return (
-                      <label
-                        key={index}
-                        className="flex h-28 cursor-pointer items-center justify-center rounded-xl border border-dashed border-fog-300 bg-white text-ink-500 hover:border-ink-900"
-                      >
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(event) => {
-                            const next = Array.from(issueDraft.photos);
-                            const selected = event.target.files?.[0];
-                            if (selected) {
-                              next[index] = selected;
-                              setIssueDraft((prev) => ({ ...prev, photos: next }));
-                            }
-                          }}
-                        />
-                        {file ? (
-                          <div className="flex flex-col items-center gap-1 px-2 text-center text-xs text-ink-700">
-                            <span className="text-lg">✓</span>
-                            <span className="truncate">{file.name}</span>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center gap-1 text-xs">
-                            <span className="text-lg">＋</span>
-                            <span>{t('scheduling.addPhoto')}</span>
-                          </div>
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
-                <p className="text-xs text-ink-500">{t('scheduling.issuePhotosHint')}</p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(event) => {
+                    const files = Array.from(event.target.files ?? []);
+                    if (!files.length) return;
+                    setIssueDraft((prev) => ({ ...prev, photos: [...prev.photos, ...files] }));
+                  }}
+                  className="block w-full text-xs"
+                />
+                {issueDraft.photos.length ? (
+                  <div className="space-y-1">
+                    {issueDraft.photos.map((file, index) => (
+                      <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs text-ink-700">
+                        <span className="truncate">{file.name}</span>
+                        <button
+                          type="button"
+                          className="text-rose-600"
+                          onClick={() =>
+                            setIssueDraft((prev) => ({
+                              ...prev,
+                              photos: prev.photos.filter((_, i) => i !== index)
+                            }))
+                          }
+                        >
+                          {t('common.delete')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <p className="text-xs text-ink-500">Debes adjuntar mínimo 2 fotos por novedad (puedes agregar más).</p>
               </div>
               {issueError ? <p className="text-xs text-red-500">{issueError}</p> : null}
               <Button type="button" variant="secondary" onClick={addIssue}>
