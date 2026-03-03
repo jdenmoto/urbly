@@ -1380,40 +1380,50 @@ export default function SchedulingPage() {
                     <p className="font-semibold text-ink-900">Checklist</p>
                     {(() => {
                       const checklist = (selected.completionReport?.checklist as Record<string, string>) || {};
-                      const group1Entries = Object.entries(checklist).filter(([key]) => key.startsWith('bomba_'));
-                      const group1ByPump: Record<string, Array<[string, string]>> = {};
-                      group1Entries.forEach(([key, value]) => {
-                        const [pumpKey, itemKey] = key.split('__');
-                        if (!pumpKey || !itemKey) return;
-                        if (!group1ByPump[pumpKey]) group1ByPump[pumpKey] = [];
-                        group1ByPump[pumpKey].push([itemKey, value]);
-                      });
-
+                      const bombaIds = Array.from(
+                        new Set(
+                          Object.keys(checklist)
+                            .map((key) => key.match(/^bomba_(\d+)__/)?.[1])
+                            .filter((id): id is string => Boolean(id))
+                        )
+                      ).sort((a, b) => Number(a) - Number(b));
                       const group2Entries = completionChecklistGroups.grupo2.map((item) => [item, checklist[item] || 'na'] as [string, string]);
                       const group3Entries = completionChecklistGroups.grupo3.map((item) => [item, checklist[item] || 'na'] as [string, string]);
 
                       return (
                         <div className="max-h-80 space-y-2 overflow-y-auto rounded border border-fog-200 bg-white p-2 text-xs">
-                          <div className="space-y-1 rounded border border-fog-200 p-2">
+                          <div className="space-y-2 rounded border border-fog-200 p-2">
                             <p className="font-semibold text-ink-900">Grupo 1 (Bombas)</p>
-                            {Object.keys(group1ByPump).length ? (
-                              Object.entries(group1ByPump)
-                                .sort(([a], [b]) => a.localeCompare(b))
-                                .map(([pumpKey, entries], pumpIndex) => (
-                                  <div key={pumpKey} className="rounded border border-fog-200 bg-fog-50 p-2">
-                                    <p className="font-semibold text-ink-900">Bomba {pumpIndex + 1}</p>
-                                    <div className="space-y-0.5">
-                                      {entries
-                                        .sort(([a], [b]) => a.localeCompare(b))
-                                        .map(([itemKey, value]) => (
-                                          <p key={`${pumpKey}-${itemKey}`}>
-                                            <span className="font-semibold text-ink-900">{formatChecklistLabel(itemKey)}:</span>{' '}
-                                            {checklistValueLabel(value)}
-                                          </p>
-                                        ))}
-                                    </div>
+                            {bombaIds.length ? (
+                              bombaIds.map((bombaId, pumpIndex) => (
+                                <div key={bombaId} className="rounded border border-fog-200 bg-fog-50 p-2 space-y-1">
+                                  <p className="font-semibold text-ink-900">Bomba {pumpIndex + 1}</p>
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full text-left">
+                                      <thead>
+                                        <tr className="text-ink-700">
+                                          <th className="py-1 pr-2 font-semibold">Elemento</th>
+                                          <th className="py-1 pr-2 font-semibold">Estado</th>
+                                          <th className="py-1 font-semibold">Red De Distribución</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {completionChecklistGroup1.map((item) => {
+                                          const itemKey = `bomba_${bombaId}__${item}`;
+                                          const redKey = `${itemKey}__red_distribucion`;
+                                          return (
+                                            <tr key={itemKey} className="border-t border-fog-200">
+                                              <td className="py-1 pr-2">{formatChecklistLabel(item)}</td>
+                                              <td className="py-1 pr-2">{checklistValueLabel(checklist[itemKey])}</td>
+                                              <td className="py-1">{checklistValueLabel(checklist[redKey])}</td>
+                                            </tr>
+                                          );
+                                        })}
+                                      </tbody>
+                                    </table>
                                   </div>
-                                ))
+                                </div>
+                              ))
                             ) : (
                               <p className="text-ink-600">{t('common.noData')}</p>
                             )}
