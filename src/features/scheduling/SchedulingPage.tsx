@@ -174,6 +174,11 @@ export default function SchedulingPage() {
   };
 
   const [group1Units, setGroup1Units] = useState<number[]>([1]);
+  const [groupPanelsOpen, setGroupPanelsOpen] = useState({
+    grupo1: false,
+    grupo2: false,
+    grupo3: false
+  });
   const makeGroup1Key = (unit: number, item: string) => `bomba_${unit}__${item}`;
   const makeGroup1RedKey = (unit: number, item: string) => `${makeGroup1Key(unit, item)}__red_distribucion`;
   const formatChecklistLabel = (value: string) =>
@@ -775,6 +780,7 @@ export default function SchedulingPage() {
       checklist: {}
     });
     setGroup1Units([1]);
+    setGroupPanelsOpen({ grupo1: false, grupo2: false, grupo3: false });
   };
 
   const hasMinTwoPhotos = (photos: File[]) => photos.filter((photo) => photo instanceof File).length >= 2;
@@ -1631,109 +1637,134 @@ export default function SchedulingPage() {
             <div className="space-y-3">
               <p className="text-xs font-semibold text-ink-700">Detalles de la revisión</p>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-ink-700">Grupo 1 (Bombas)</p>
-                  <Button type="button" variant="secondary" onClick={() => setGroup1Units((prev) => [...prev, (prev.length ? prev[prev.length - 1] : 0) + 1])}>
-                    Agregar Bomba
-                  </Button>
-                </div>
-                {group1Units.map((unit, index) => (
-                  <div key={unit} className="space-y-2 rounded-lg border border-fog-200 bg-white p-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold text-ink-700">Bomba {index + 1}</p>
-                      {group1Units.length > 1 ? (
-                        <button
-                          type="button"
-                          className="text-xs text-rose-600"
-                          onClick={() => setGroup1Units((prev) => prev.filter((value) => value !== unit))}
-                        >
-                          {t('common.delete')}
-                        </button>
-                      ) : null}
+              <div className="rounded-lg border border-fog-200 bg-white p-2 space-y-2">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between text-left text-xs font-semibold text-ink-800"
+                  onClick={() => setGroupPanelsOpen((prev) => ({ ...prev, grupo1: !prev.grupo1 }))}
+                >
+                  <span>Grupo 1 (Bombas)</span>
+                  <span>{groupPanelsOpen.grupo1 ? '▾' : '▸'}</span>
+                </button>
+                {groupPanelsOpen.grupo1 ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-end">
+                      <Button type="button" variant="secondary" onClick={() => setGroup1Units((prev) => [...prev, (prev.length ? prev[prev.length - 1] : 0) + 1])}>
+                        Agregar Bomba
+                      </Button>
                     </div>
-                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                      {completionChecklistGroup1.map((item) => {
-                        const key = makeGroup1Key(unit, item);
-                        const redKey = makeGroup1RedKey(unit, item);
-                        return (
-                          <div key={key} className="rounded-lg border border-fog-200 bg-fog-50 p-2 space-y-2">
-                            <p className="mb-1 text-xs text-ink-700">{formatChecklistLabel(item)} <span className="text-red-500">*</span></p>
-                            <Select
-                              value={completionReport.checklist[key] ?? 'na'}
-                              onChange={(event) =>
-                                setCompletionReport((prev) => ({
-                                  ...prev,
-                                  checklist: {
-                                    ...prev.checklist,
-                                    [key]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
-                                  }
-                                }))
-                              }
+                    {group1Units.map((unit, index) => (
+                      <div key={unit} className="space-y-2 rounded-lg border border-fog-200 bg-fog-50 p-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-semibold text-ink-700">Bomba {index + 1}</p>
+                          {group1Units.length > 1 ? (
+                            <button
+                              type="button"
+                              className="text-xs text-rose-600"
+                              onClick={() => setGroup1Units((prev) => prev.filter((value) => value !== unit))}
                             >
-                              <option value="ok">Bueno</option>
-                              <option value="regular">Regular</option>
-                              <option value="malo">Malo</option>
-                              <option value="na">N/A</option>
-                            </Select>
-                            <div className="space-y-1">
-                              <p className="text-xs text-ink-700">Red De Distribución <span className="text-red-500">*</span></p>
-                              <Select
-                                value={completionReport.checklist[redKey] ?? 'na'}
-                                onChange={(event) =>
-                                  setCompletionReport((prev) => ({
-                                    ...prev,
-                                    checklist: {
-                                      ...prev.checklist,
-                                      [redKey]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
+                              {t('common.delete')}
+                            </button>
+                          ) : null}
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                          {completionChecklistGroup1.map((item) => {
+                            const key = makeGroup1Key(unit, item);
+                            const redKey = makeGroup1RedKey(unit, item);
+                            return (
+                              <div key={key} className="rounded-lg border border-fog-200 bg-white p-2 space-y-2">
+                                <p className="mb-1 text-xs text-ink-700">{formatChecklistLabel(item)} <span className="text-red-500">*</span></p>
+                                <Select
+                                  value={completionReport.checklist[key] ?? 'na'}
+                                  onChange={(event) =>
+                                    setCompletionReport((prev) => ({
+                                      ...prev,
+                                      checklist: {
+                                        ...prev.checklist,
+                                        [key]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
+                                      }
+                                    }))
+                                  }
+                                >
+                                  <option value="ok">Bueno</option>
+                                  <option value="regular">Regular</option>
+                                  <option value="malo">Malo</option>
+                                  <option value="na">N/A</option>
+                                </Select>
+                                <div className="space-y-1">
+                                  <p className="text-xs text-ink-700">Red De Distribución <span className="text-red-500">*</span></p>
+                                  <Select
+                                    value={completionReport.checklist[redKey] ?? 'na'}
+                                    onChange={(event) =>
+                                      setCompletionReport((prev) => ({
+                                        ...prev,
+                                        checklist: {
+                                          ...prev.checklist,
+                                          [redKey]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
+                                        }
+                                      }))
                                     }
-                                  }))
-                                }
-                              >
-                                <option value="ok">Buena</option>
-                                <option value="regular">Regular</option>
-                                <option value="malo">Mala</option>
-                                <option value="na">N/A</option>
-                              </Select>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {[
-                { title: 'Grupo 2', items: completionChecklistGroups.grupo2 },
-                { title: 'Grupo 3', items: completionChecklistGroups.grupo3 }
-              ].map((group) => (
-                <div key={group.title} className="space-y-2">
-                  <p className="text-xs font-semibold text-ink-700">{group.title}</p>
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                    {group.items.map((item) => (
-                      <div key={item} className="rounded-lg border border-fog-200 bg-white p-2 space-y-2">
-                        <p className="mb-1 text-xs text-ink-700">{formatChecklistLabel(item)} <span className="text-red-500">*</span></p>
-                        <Select
-                          value={completionReport.checklist[item] ?? 'na'}
-                          onChange={(event) =>
-                            setCompletionReport((prev) => ({
-                              ...prev,
-                              checklist: {
-                                ...prev.checklist,
-                                [item]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
-                              }
-                            }))
-                          }
-                        >
-                          <option value="ok">Bueno</option>
-                          <option value="regular">Regular</option>
-                          <option value="malo">Malo</option>
-                          <option value="na">N/A</option>
-                        </Select>
+                                  >
+                                    <option value="ok">Buena</option>
+                                    <option value="regular">Regular</option>
+                                    <option value="malo">Mala</option>
+                                    <option value="na">N/A</option>
+                                  </Select>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     ))}
                   </div>
+                ) : null}
+              </div>
+
+              {[
+                { key: 'grupo2', title: 'Grupo 2', items: completionChecklistGroups.grupo2 },
+                { key: 'grupo3', title: 'Grupo 3', items: completionChecklistGroups.grupo3 }
+              ].map((group) => (
+                <div key={group.title} className="rounded-lg border border-fog-200 bg-white p-2 space-y-2">
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between text-left text-xs font-semibold text-ink-800"
+                    onClick={() =>
+                      setGroupPanelsOpen((prev) => ({
+                        ...prev,
+                        [group.key]: !prev[group.key as 'grupo2' | 'grupo3']
+                      }))
+                    }
+                  >
+                    <span>{group.title}</span>
+                    <span>{groupPanelsOpen[group.key as 'grupo2' | 'grupo3'] ? '▾' : '▸'}</span>
+                  </button>
+                  {groupPanelsOpen[group.key as 'grupo2' | 'grupo3'] ? (
+                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                      {group.items.map((item) => (
+                        <div key={item} className="rounded-lg border border-fog-200 bg-fog-50 p-2 space-y-2">
+                          <p className="mb-1 text-xs text-ink-700">{formatChecklistLabel(item)} <span className="text-red-500">*</span></p>
+                          <Select
+                            value={completionReport.checklist[item] ?? 'na'}
+                            onChange={(event) =>
+                              setCompletionReport((prev) => ({
+                                ...prev,
+                                checklist: {
+                                  ...prev.checklist,
+                                  [item]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
+                                }
+                              }))
+                            }
+                          >
+                            <option value="ok">Bueno</option>
+                            <option value="regular">Regular</option>
+                            <option value="malo">Malo</option>
+                            <option value="na">N/A</option>
+                          </Select>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>
