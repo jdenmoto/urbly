@@ -168,7 +168,7 @@ export default function SchedulingPage() {
       const minute = part === 'minute' ? nextValue : current.minute;
       return {
         ...prev,
-        [field]: hour && minute ? `${hour}:${minute}` : ''
+        [field]: hour || minute ? `${hour}:${minute}` : ''
       };
     });
   };
