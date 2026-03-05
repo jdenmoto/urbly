@@ -1,0 +1,53 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function role() {
+      return request.auth.token.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && role() == 'admin';
+    }
+
+    function isEditor() {
+      return isSignedIn() && role() == 'editor';
+    }
+
+    function isEmergencyScheduler() {
+      return isSignedIn() && role() == 'emergency_scheduler';
+    }
+
+    function isStaff() {
+      return isAdmin() || isEditor() || isEmergencyScheduler();
+    }
+
+    function isImage() {
+      return request.resource != null
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    function underSizeLimit() {
+      // 15MB por imagen
+      return request.resource != null
+        && request.resource.size < 15 * 1024 * 1024;
+    }
+
+    match /appointments/{appointmentId}/issues/{issueId}/{fileName} {
+      allow read: if isStaff();
+      allow write: if isStaff() && isImage() && underSizeLimit();
+    }
+
+    match /appointments/{appointmentId}/completion-photos/{fileName} {
+      allow read: if isStaff();
+      allow write: if isStaff() && isImage() && underSizeLimit();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
