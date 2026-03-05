@@ -74,6 +74,7 @@ export default function DashboardPage() {
     photos: [] as File[]
   });
   const [pendingIssueError, setPendingIssueError] = useState<string | null>(null);
+  const [pendingCompletionPhotos, setPendingCompletionPhotos] = useState<File[]>([]);
   const { data: issueSettings } = useQuery({
     queryKey: ['issueSettings'],
     queryFn: async () => {
@@ -249,13 +250,32 @@ export default function DashboardPage() {
     return label === key ? value : label;
   };
 
+  const hasMinTwoPhotos = (photos: File[]) => photos.filter((photo) => photo instanceof File).length >= 2;
+
+  const safeStorageName = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, '_');
+
   const uploadIssuePhotos = async (appointmentId: string, issueId: string, photos: File[]) => {
     const uploads = await Promise.all(
-      photos.map(async (file, index) => {
-        const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${file.name}`);
-        await uploadBytes(storageRef, file);
-        return getDownloadURL(storageRef);
-      })
+      photos
+        .filter((file): file is File => file instanceof File)
+        .map(async (file, index) => {
+          const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${safeStorageName(file.name)}`);
+          await uploadBytes(storageRef, file);
+          return getDownloadURL(storageRef);
+        })
+    );
+    return uploads;
+  };
+
+  const uploadCompletionPhotos = async (appointmentId: string, photos: File[]) => {
+    const uploads = await Promise.all(
+      photos
+        .filter((file): file is File => file instanceof File)
+        .map(async (file, index) => {
+          const storageRef = ref(storage, `appointments/${appointmentId}/completion-photos/${Date.now()}-${index}-${safeStorageName(file.name)}`);
+          await uploadBytes(storageRef, file);
+          return getDownloadURL(storageRef);
+        })
     );
     return uploads;
   };
@@ -266,8 +286,8 @@ export default function DashboardPage() {
       setPendingIssueError(t('scheduling.issueRequired'));
       return;
     }
-    if (pendingIssueDraft.photos.length !== 2) {
-      setPendingIssueError(t('scheduling.issuePhotosRequired'));
+    if (!hasMinTwoPhotos(pendingIssueDraft.photos)) {
+      setPendingIssueError('Debes agregar mínimo 2 fotos en la novedad.');
       return;
     }
     const id = pendingIssueDraft.id || (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
@@ -289,11 +309,17 @@ export default function DashboardPage() {
       setPendingIssueError(t('scheduling.issueAtLeastOne'));
       return;
     }
+    if (pendingCompletionPhotos.length < 1) {
+      setPendingIssueError('Debes agregar al menos 1 foto adicional del servicio.');
+      return;
+    }
     setActionLoading(true);
     try {
+      const completionPhotoUrls = await uploadCompletionPhotos(pendingTarget.id, pendingCompletionPhotos);
       let payload: Record<string, unknown> = {
         status: 'completado',
-        completedAt: new Date().toISOString()
+        completedAt: new Date().toISOString(),
+        completionPhotos: completionPhotoUrls
       };
       if (pendingHasIssues === 'yes') {
         const resolvedIssues = await Promise.all(
@@ -320,8 +346,15 @@ export default function DashboardPage() {
       setPendingIssues([]);
       setPendingIssueDraft({ id: '', type: '', category: '', description: '', photos: [] });
       setPendingIssueError(null);
-    } catch {
-      toast(t('common.actionError'), 'error');
+      setPendingCompletionPhotos([]);
+    } catch (error) {
+      const firebaseMessage =
+        typeof error === 'object' && error !== null && 'code' in error
+          ? `Firebase Storage (${String((error as { code?: unknown }).code)})`
+          : '';
+      const detail = error instanceof Error ? error.message : '';
+      const message = [firebaseMessage, detail].filter(Boolean).join(': ');
+      toast(message || t('common.actionError'), 'error');
     } finally {
       setActionLoading(false);
     }
@@ -608,6 +641,7 @@ export default function DashboardPage() {
                 className="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-2 py-1 text-xs text-emerald-700 hover:border-emerald-400"
                 onClick={() => {
                   setPendingIssueError(null);
+                  setPendingCompletionPhotos([]);
                   setPendingCompleteOpen(true);
                 }}
                 disabled={actionLoading}
@@ -634,6 +668,33 @@ export default function DashboardPage() {
         onClose={() => setPendingCompleteOpen(false)}
       >
         <div className="space-y-4">
+          <div className="space-y-2 rounded-xl border border-fog-200 bg-fog-50 p-3">
+            <label className="text-sm font-medium text-ink-800">Fotos del servicio <span className="text-red-500">*</span> (mínimo 1, ilimitadas)</label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(event) => {
+                const files = Array.from(event.target.files ?? []);
+                if (!files.length) return;
+                setPendingCompletionPhotos((prev) => [...prev, ...files]);
+                setPendingIssueError(null);
+              }}
+              className="block w-full text-xs"
+            />
+            {pendingCompletionPhotos.length ? (
+              <div className="space-y-1">
+                {pendingCompletionPhotos.map((file, index) => (
+                  <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs">
+                    <span className="truncate">{file.name}</span>
+                    <button type="button" className="text-rose-600" onClick={() => setPendingCompletionPhotos((prev) => prev.filter((_, i) => i !== index))}>
+                      {t('common.delete')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
           <div className="space-y-2 text-sm text-ink-700">
             <label className="font-medium text-ink-800">{t('scheduling.issueQuestion')}</label>
             <div className="flex items-center gap-3">
@@ -713,31 +774,39 @@ export default function DashboardPage() {
                   {t('scheduling.issuePhotos')}
                   <span className="ml-1 text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[0, 1].map((index) => (
-                    <label
-                      key={index}
-                      className="flex h-20 cursor-pointer items-center justify-center rounded-xl border border-dashed border-fog-300 bg-white text-xs text-ink-500"
-                    >
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(event) => {
-                          const selected = event.target.files?.[0];
-                          if (selected) {
-                            setPendingIssueDraft((prev) => {
-                              const next = [...prev.photos];
-                              next[index] = selected;
-                              return { ...prev, photos: next };
-                            });
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(event) => {
+                    const files = Array.from(event.target.files ?? []);
+                    if (!files.length) return;
+                    setPendingIssueDraft((prev) => ({ ...prev, photos: [...prev.photos, ...files] }));
+                  }}
+                  className="block w-full text-xs"
+                />
+                {pendingIssueDraft.photos.length ? (
+                  <div className="space-y-1">
+                    {pendingIssueDraft.photos.map((file, index) => (
+                      <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs text-ink-700">
+                        <span className="truncate">{file.name}</span>
+                        <button
+                          type="button"
+                          className="text-rose-600"
+                          onClick={() =>
+                            setPendingIssueDraft((prev) => ({
+                              ...prev,
+                              photos: prev.photos.filter((_, i) => i !== index)
+                            }))
                           }
-                        }}
-                      />
-                      {pendingIssueDraft.photos[index] ? pendingIssueDraft.photos[index].name : '+'}
-                    </label>
-                  ))}
-                </div>
+                        >
+                          {t('common.delete')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <p className="text-xs text-ink-500">Debes adjuntar mínimo 2 fotos por novedad (puedes agregar más).</p>
               </div>
               {pendingIssueError ? <p className="text-xs text-rose-500">{pendingIssueError}</p> : null}
               <div className="flex items-center justify-between">

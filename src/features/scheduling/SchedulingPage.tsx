@@ -122,6 +122,13 @@ export default function SchedulingPage() {
   });
   const [issueError, setIssueError] = useState<string | null>(null);
   const [completeSubmitting, setCompleteSubmitting] = useState(false);
+  const [completionPhotos, setCompletionPhotos] = useState<File[]>([]);
+  const [completionReport, setCompletionReport] = useState({
+    entryHour: '',
+    exitHour: '',
+    observations: '',
+    checklist: {} as Record<string, 'ok' | 'regular' | 'malo' | 'na'>
+  });
 
   const schema = z.object({
     buildingId: z.string().min(1, t('scheduling.buildingRequired')),
@@ -147,6 +154,105 @@ export default function SchedulingPage() {
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const selectedType = watch('type');
+
+  const timeHourOptions = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0'));
+  const timeMinuteOptions = Array.from({ length: 12 }, (_, index) => String(index * 5).padStart(2, '0'));
+  const getTimeParts = (value: string) => {
+    const [hour = '', minute = ''] = value.split(':');
+    return { hour, minute };
+  };
+  const setReportTimePart = (field: 'entryHour' | 'exitHour', part: 'hour' | 'minute', nextValue: string) => {
+    setCompletionReport((prev) => {
+      const current = getTimeParts(prev[field]);
+      const hour = part === 'hour' ? nextValue : current.hour;
+      const minute = part === 'minute' ? nextValue : current.minute;
+      return {
+        ...prev,
+        [field]: hour || minute ? `${hour}:${minute}` : ''
+      };
+    });
+  };
+
+  const [group1Units, setGroup1Units] = useState<number[]>([1]);
+  const [groupPanelsOpen, setGroupPanelsOpen] = useState({
+    grupo1: false,
+    grupo2: false,
+    grupo3: false
+  });
+  const [bombaPanelsOpen, setBombaPanelsOpen] = useState<Record<number, boolean>>({ 1: true });
+  const [photoViewer, setPhotoViewer] = useState<{ src: string; title?: string } | null>(null);
+  const [photoZoom, setPhotoZoom] = useState(1);
+  const [photoPan, setPhotoPan] = useState({ x: 0, y: 0 });
+  const [photoDragging, setPhotoDragging] = useState(false);
+  const [photoDragStart, setPhotoDragStart] = useState({ x: 0, y: 0 });
+
+  const openPhotoViewer = (src: string, title?: string) => {
+    setPhotoViewer({ src, title });
+    setPhotoZoom(1);
+    setPhotoPan({ x: 0, y: 0 });
+    setPhotoDragging(false);
+  };
+  const makeGroup1Key = (unit: number, item: string) => `bomba_${unit}__${item}`;
+  const makeGroup1RedKey = (unit: number, item: string) => `${makeGroup1Key(unit, item)}__red_distribucion`;
+  const formatChecklistLabel = (value: string) =>
+    value
+      .split('_')
+      .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+      .join(' ');
+
+  const completionChecklistGroups = {
+    grupo2: [
+      'bornera_control',
+      'bornera_fuerza',
+      'breaker_totalizador',
+      'coraza_cableado_control',
+      'coraza_cableado_motores',
+      'tablero_control'
+    ],
+    grupo3: [
+      'valvula_flotadora',
+      'diametro',
+      'alarma',
+      'demarcacion_registros',
+      'instalacion_hidraulica',
+      'instruciones_manejo',
+      'pintura'
+    ]
+  } as const;
+
+  const completionChecklistItems = [
+    'alternador_contactos_auxiliares',
+    'anclaje_base_estructural',
+    'cargador_automatico_aire',
+    'contactor_consumo_motor',
+    'guardamotor_calibracion',
+    'lampara_senalizacion',
+    'manometros',
+    'membrana',
+    'transductor',
+    'diafragma',
+    'organizacion_cableado_tanque',
+    'presostatos',
+    'regulador_nivel',
+    'rele_bimetalico_calibracion',
+    'rodamientos',
+    'selector',
+    'sello_mecanico',
+    'tanque_hidroacumulador',
+    'temporizador',
+    'terminales_bornera_motor',
+    'tornilleria_base_motor',
+    'variador',
+    'voltaje',
+    ...completionChecklistGroups.grupo2,
+    ...completionChecklistGroups.grupo3
+  ];
+
+  const completionChecklistGroup1 = completionChecklistItems.filter(
+    (item) => !completionChecklistGroups.grupo2.includes(item as (typeof completionChecklistGroups.grupo2)[number]) && !completionChecklistGroups.grupo3.includes(item as (typeof completionChecklistGroups.grupo3)[number])
+  );
+
+  const checklistValueLabel = (value?: string) => (value === 'ok' ? 'Bueno' : value === 'regular' ? 'Regular' : value === 'malo' ? 'Malo' : 'N/A');
 
   const cancelSchema = z
     .object({
@@ -681,7 +787,19 @@ export default function SchedulingPage() {
     setIssues([]);
     setIssueDraft({ id: '', type: '', category: '', description: '', photos: [] });
     setIssueError(null);
+    setCompletionPhotos([]);
+    setCompletionReport({
+      entryHour: '',
+      exitHour: '',
+      observations: '',
+      checklist: {}
+    });
+    setGroup1Units([1]);
+    setGroupPanelsOpen({ grupo1: false, grupo2: false, grupo3: false });
+    setBombaPanelsOpen({ 1: true });
   };
+
+  const hasMinTwoPhotos = (photos: File[]) => photos.filter((photo) => photo instanceof File).length >= 2;
 
   const addIssue = () => {
     setIssueError(null);
@@ -689,8 +807,8 @@ export default function SchedulingPage() {
       setIssueError(t('scheduling.issueRequired'));
       return;
     }
-    if (issueDraft.photos.length !== 2) {
-      setIssueError(t('scheduling.issuePhotosRequired'));
+    if (!hasMinTwoPhotos(issueDraft.photos)) {
+      setIssueError('Debes agregar mínimo 2 fotos en la novedad.');
       return;
     }
     const id = issueDraft.id || (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
@@ -702,13 +820,30 @@ export default function SchedulingPage() {
     setIssues((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const safeStorageName = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, '_');
+
   const uploadIssuePhotos = async (appointmentId: string, issueId: string, photos: File[]) => {
     const uploads = await Promise.all(
-      photos.map(async (file, index) => {
-        const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${file.name}`);
-        await uploadBytes(storageRef, file);
-        return getDownloadURL(storageRef);
-      })
+      photos
+        .filter((file): file is File => file instanceof File)
+        .map(async (file, index) => {
+          const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${safeStorageName(file.name)}`);
+          await uploadBytes(storageRef, file);
+          return getDownloadURL(storageRef);
+        })
+    );
+    return uploads;
+  };
+
+  const uploadCompletionPhotos = async (appointmentId: string, photos: File[]) => {
+    const uploads = await Promise.all(
+      photos
+        .filter((file): file is File => file instanceof File)
+        .map(async (file, index) => {
+          const storageRef = ref(storage, `appointments/${appointmentId}/completion-photos/${Date.now()}-${index}-${safeStorageName(file.name)}`);
+          await uploadBytes(storageRef, file);
+          return getDownloadURL(storageRef);
+        })
     );
     return uploads;
   };
@@ -723,11 +858,54 @@ export default function SchedulingPage() {
       setIssueError(t('scheduling.issueAtLeastOne'));
       return;
     }
+    if (completionPhotos.length < 1) {
+      setIssueError('Debes agregar al menos 1 foto adicional del servicio.');
+      return;
+    }
+    if (!completionReport.entryHour || !completionReport.exitHour || !completionReport.observations.trim()) {
+      setIssueError('Debes completar todos los campos obligatorios del reporte.');
+      return;
+    }
+
+    const toMinutes = (time: string) => {
+      const [hour = '0', minute = '0'] = time.split(':');
+      return Number(hour) * 60 + Number(minute);
+    };
+
+    if (toMinutes(completionReport.exitHour) <= toMinutes(completionReport.entryHour)) {
+      setIssueError('La hora de salida debe ser posterior a la hora de entrada.');
+      return;
+    }
+    const normalizedChecklist = completionChecklistItems.reduce<Record<string, 'ok' | 'regular' | 'malo' | 'na'>>(
+      (acc, item) => {
+        if (!completionChecklistGroup1.includes(item)) {
+          const value = completionReport.checklist[item];
+          acc[item] = (value as 'ok' | 'regular' | 'malo' | 'na') || 'na';
+        }
+        return acc;
+      },
+      {}
+    );
+
+    group1Units.forEach((unit) => {
+      completionChecklistGroup1.forEach((item) => {
+        const key = makeGroup1Key(unit, item);
+        const redKey = makeGroup1RedKey(unit, item);
+        normalizedChecklist[key] = (completionReport.checklist[key] as 'ok' | 'regular' | 'malo' | 'na') || 'na';
+        normalizedChecklist[redKey] = (completionReport.checklist[redKey] as 'ok' | 'regular' | 'malo' | 'na') || 'na';
+      });
+    });
     setCompleteSubmitting(true);
     try {
+      const completionPhotoUrls = await uploadCompletionPhotos(completeTarget.id, completionPhotos);
       let payload: Record<string, unknown> = {
         status: 'completado',
-        completedAt: new Date().toISOString()
+        completedAt: new Date().toISOString(),
+        completionReport: {
+          ...completionReport,
+          checklist: normalizedChecklist
+        },
+        completionPhotos: completionPhotoUrls
       };
       if (hasIssues === 'yes') {
         const resolvedIssues = await Promise.all(
@@ -755,14 +933,22 @@ export default function SchedulingPage() {
                 ...prev,
                 status: 'completado',
                 completedAt: payload.completedAt as string,
-                issues: payload.issues as Appointment['issues']
+                issues: payload.issues as Appointment['issues'],
+                completionPhotos: payload.completionPhotos as Appointment['completionPhotos'],
+                completionReport: payload.completionReport as Appointment['completionReport']
               }
             : prev
         );
       }
       setCompleteTarget(null);
-    } catch {
-      toast(t('common.actionError'), 'error');
+    } catch (error) {
+      const firebaseMessage =
+        typeof error === 'object' && error !== null && 'code' in error
+          ? `Firebase Storage (${String((error as { code?: unknown }).code)})`
+          : '';
+      const detail = error instanceof Error ? error.message : '';
+      const message = [firebaseMessage, detail].filter(Boolean).join(': ');
+      toast(message || t('common.actionError'), 'error');
     } finally {
       setCompleteSubmitting(false);
     }
@@ -1151,7 +1337,7 @@ export default function SchedulingPage() {
       </div>
       {selected ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-soft">
+          <div className="w-full max-w-4xl rounded-2xl bg-white p-6 shadow-soft max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-ink-900">{selected.title}</h3>
@@ -1194,14 +1380,131 @@ export default function SchedulingPage() {
                 <span className="font-semibold text-ink-900">{t('scheduling.recurrenceLabel')}:</span>{' '}
                 {selected.recurrence ? t(`scheduling.recurrenceOptions.${selected.recurrence}`) : t('scheduling.noRecurrence')}
               </p>
+              {selected.status === 'completado' ? (
+                <div className="space-y-3 rounded-lg border border-fog-200 bg-fog-50 p-3">
+                  <p className="font-semibold text-ink-900">Reporte de servicio</p>
+                  <p><span className="font-semibold text-ink-900">Hora entrada:</span> {String(selected.completionReport?.entryHour || t('common.noData'))}</p>
+                  <p><span className="font-semibold text-ink-900">Hora salida:</span> {String(selected.completionReport?.exitHour || t('common.noData'))}</p>
+                  <p><span className="font-semibold text-ink-900">Observaciones:</span> {String(selected.completionReport?.observations || t('common.noData'))}</p>
+
+                  <div className="space-y-2">
+                    <p className="font-semibold text-ink-900">Checklist</p>
+                    {(() => {
+                      const checklist = (selected.completionReport?.checklist as Record<string, string>) || {};
+                      const bombaIds = Array.from(
+                        new Set(
+                          Object.keys(checklist)
+                            .map((key) => key.match(/^bomba_(\d+)__/)?.[1])
+                            .filter((id): id is string => Boolean(id))
+                        )
+                      ).sort((a, b) => Number(a) - Number(b));
+                      const group2Entries = completionChecklistGroups.grupo2.map((item) => [item, checklist[item] || 'na'] as [string, string]);
+                      const group3Entries = completionChecklistGroups.grupo3.map((item) => [item, checklist[item] || 'na'] as [string, string]);
+
+                      return (
+                        <div className="max-h-80 space-y-2 overflow-y-auto rounded border border-fog-200 bg-white p-2 text-xs">
+                          <div className="space-y-2 rounded border border-fog-200 p-2">
+                            <p className="font-semibold text-ink-900">Grupo 1 (Bombas)</p>
+                            {bombaIds.length ? (
+                              bombaIds.map((bombaId, pumpIndex) => (
+                                <div key={bombaId} className="rounded border border-fog-200 bg-fog-50 p-2 space-y-1">
+                                  <p className="font-semibold text-ink-900">Bomba {pumpIndex + 1}</p>
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full text-left">
+                                      <thead>
+                                        <tr className="text-ink-700">
+                                          <th className="py-1 pr-2 font-semibold">Elemento</th>
+                                          <th className="py-1 pr-2 font-semibold">Estado</th>
+                                          <th className="py-1 font-semibold">Red De Distribución</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {completionChecklistGroup1.map((item) => {
+                                          const itemKey = `bomba_${bombaId}__${item}`;
+                                          const redKey = `${itemKey}__red_distribucion`;
+                                          return (
+                                            <tr key={itemKey} className="border-t border-fog-200">
+                                              <td className="py-1 pr-2">{formatChecklistLabel(item)}</td>
+                                              <td className="py-1 pr-2">{checklistValueLabel(checklist[itemKey])}</td>
+                                              <td className="py-1">{checklistValueLabel(checklist[redKey])}</td>
+                                            </tr>
+                                          );
+                                        })}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-ink-600">{t('common.noData')}</p>
+                            )}
+                          </div>
+
+                          <div className="space-y-1 rounded border border-fog-200 p-2">
+                            <p className="font-semibold text-ink-900">Grupo 2</p>
+                            {group2Entries.map(([item, value]) => (
+                              <p key={item}>
+                                <span className="font-semibold text-ink-900">{formatChecklistLabel(item)}:</span> {checklistValueLabel(value)}
+                              </p>
+                            ))}
+                          </div>
+
+                          <div className="space-y-1 rounded border border-fog-200 p-2">
+                            <p className="font-semibold text-ink-900">Grupo 3</p>
+                            {group3Entries.map(([item, value]) => (
+                              <p key={item}>
+                                <span className="font-semibold text-ink-900">{formatChecklistLabel(item)}:</span> {checklistValueLabel(value)}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="font-semibold text-ink-900">Fotos del servicio</p>
+                    {selected.completionPhotos?.length ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {selected.completionPhotos.map((photo, index) => (
+                          <button
+                            key={`${photo}-${index}`}
+                            type="button"
+                            onClick={() => openPhotoViewer(photo, `Foto servicio ${index + 1}`)}
+                            className="block overflow-hidden rounded border border-fog-200 bg-white"
+                          >
+                            <img src={photo} alt={`Foto servicio ${index + 1}`} className="h-24 w-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-ink-600">{t('common.noData')}</p>
+                    )}
+                  </div>
+                </div>
+              ) : null}
               {selected.issues?.length ? (
                 <div className="space-y-2">
                   <p className="font-semibold text-ink-900">{t('scheduling.issuesTitle')}</p>
                   {selected.issues.map((issue) => (
-                    <div key={issue.id} className="rounded-lg border border-fog-200 bg-fog-50 p-2 text-xs text-ink-700">
+                    <div key={issue.id} className="rounded-lg border border-fog-200 bg-fog-50 p-2 text-xs text-ink-700 space-y-1">
                       <p className="font-semibold text-ink-900">{resolveIssueLabel('scheduling.issueTypes', issue.type)}</p>
                       <p>{resolveIssueLabel('scheduling.issueCategories', issue.category)}</p>
                       {issue.description ? <p>{issue.description}</p> : null}
+                      {issue.photos?.length ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          {issue.photos.map((photo, index) => (
+                            <button
+                              key={`${issue.id}-${index}`}
+                              type="button"
+                              onClick={() => openPhotoViewer(photo, `Novedad ${index + 1}`)}
+                              className="block overflow-hidden rounded border border-fog-200 bg-white"
+                            >
+                              <img src={photo} alt={`Novedad ${index + 1}`} className="h-20 w-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -1262,6 +1565,74 @@ export default function SchedulingPage() {
                 ) : null}
               </div>
             )}
+          </div>
+        </div>
+      ) : null}
+      {photoViewer ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4"
+          onClick={() => {
+            setPhotoViewer(null);
+            setPhotoDragging(false);
+          }}
+        >
+          <div className="max-h-[90vh] w-full max-w-5xl rounded-xl border-2 border-white bg-ink-900/90 p-3 shadow-soft" onClick={(event) => event.stopPropagation()}>
+            <div className="mb-2 flex items-center justify-between text-white">
+              <p className="text-sm font-semibold">{photoViewer.title || 'Foto'}</p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="rounded border border-white/40 px-2 py-1 text-xs hover:bg-white/10"
+                  onClick={() => {
+                    setPhotoZoom((prev) => Math.max(0.5, Number((prev - 0.2).toFixed(2))));
+                    setPhotoDragging(false);
+                  }}
+                >
+                  -
+                </button>
+                <span className="min-w-12 text-center text-xs">{Math.round(photoZoom * 100)}%</span>
+                <button
+                  type="button"
+                  className="rounded border border-white/40 px-2 py-1 text-xs hover:bg-white/10"
+                  onClick={() => setPhotoZoom((prev) => Math.min(3, Number((prev + 0.2).toFixed(2))))}
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  className="rounded border border-rose-500 bg-rose-600 px-2 py-1 text-sm font-bold text-white hover:bg-rose-500"
+                  onClick={() => {
+                    setPhotoViewer(null);
+                    setPhotoDragging(false);
+                  }}
+                  aria-label="Cerrar visor"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div
+              className={`max-h-[82vh] overflow-auto rounded-lg border border-white/30 bg-black/30 p-2 ${photoZoom > 1 ? (photoDragging ? 'cursor-grabbing' : 'cursor-grab') : ''}`}
+              onMouseMove={(event) => {
+                if (!photoDragging || photoZoom <= 1) return;
+                setPhotoPan({ x: event.clientX - photoDragStart.x, y: event.clientY - photoDragStart.y });
+              }}
+              onMouseUp={() => setPhotoDragging(false)}
+              onMouseLeave={() => setPhotoDragging(false)}
+            >
+              <img
+                src={photoViewer.src}
+                alt={photoViewer.title || 'Foto'}
+                draggable={false}
+                onMouseDown={(event) => {
+                  if (photoZoom <= 1) return;
+                  setPhotoDragging(true);
+                  setPhotoDragStart({ x: event.clientX - photoPan.x, y: event.clientY - photoPan.y });
+                }}
+                className="mx-auto max-h-[78vh] w-auto select-none object-contain"
+                style={{ transform: `translate(${photoPan.x}px, ${photoPan.y}px) scale(${photoZoom})`, transformOrigin: 'center center' }}
+              />
+            </div>
           </div>
         </div>
       ) : null}
@@ -1433,6 +1804,248 @@ export default function SchedulingPage() {
         onClose={() => setCompleteTarget(null)}
       >
         <div className="space-y-4">
+          <div className="rounded-xl border border-fog-200 bg-fog-50 p-4 space-y-3">
+            <p className="text-sm font-semibold text-ink-900">Reporte de servicio</p>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-ink-800">Hora entrada <span className="text-red-500">*</span></label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Select
+                    value={getTimeParts(completionReport.entryHour).hour}
+                    onChange={(event) => setReportTimePart('entryHour', 'hour', event.target.value)}
+                  >
+                    <option value="">Hora</option>
+                    {timeHourOptions.map((hour) => (
+                      <option key={`entry-hour-${hour}`} value={hour}>{hour}</option>
+                    ))}
+                  </Select>
+                  <Select
+                    value={getTimeParts(completionReport.entryHour).minute}
+                    onChange={(event) => setReportTimePart('entryHour', 'minute', event.target.value)}
+                  >
+                    <option value="">Min</option>
+                    {timeMinuteOptions.map((minute) => (
+                      <option key={`entry-minute-${minute}`} value={minute}>{minute}</option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-ink-800">Hora salida <span className="text-red-500">*</span></label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Select
+                    value={getTimeParts(completionReport.exitHour).hour}
+                    onChange={(event) => setReportTimePart('exitHour', 'hour', event.target.value)}
+                  >
+                    <option value="">Hora</option>
+                    {timeHourOptions.map((hour) => (
+                      <option key={`exit-hour-${hour}`} value={hour}>{hour}</option>
+                    ))}
+                  </Select>
+                  <Select
+                    value={getTimeParts(completionReport.exitHour).minute}
+                    onChange={(event) => setReportTimePart('exitHour', 'minute', event.target.value)}
+                  >
+                    <option value="">Min</option>
+                    {timeMinuteOptions.map((minute) => (
+                      <option key={`exit-minute-${minute}`} value={minute}>{minute}</option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+            </div>
+            <Input label="Observaciones" required value={completionReport.observations} onChange={(event) => setCompletionReport((prev) => ({ ...prev, observations: event.target.value }))} />
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-ink-700">Detalles de la revisión</p>
+
+              <div className="rounded-lg border border-fog-200 bg-white p-2 space-y-2">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between text-left text-xs font-semibold text-ink-800"
+                  onClick={() => setGroupPanelsOpen((prev) => ({ ...prev, grupo1: !prev.grupo1 }))}
+                >
+                  <span>Grupo 1 (Bombas)</span>
+                  <span>{groupPanelsOpen.grupo1 ? '▾' : '▸'}</span>
+                </button>
+                {groupPanelsOpen.grupo1 ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-end">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          const nextUnit = (group1Units.length ? group1Units[group1Units.length - 1] : 0) + 1;
+                          setGroup1Units((prev) => [...prev, nextUnit]);
+                          setBombaPanelsOpen((prev) => ({ ...prev, [nextUnit]: true }));
+                        }}
+                      >
+                        Agregar Bomba
+                      </Button>
+                    </div>
+                    {group1Units.map((unit, index) => (
+                      <div key={unit} className="space-y-2 rounded-lg border border-fog-200 bg-fog-50 p-2">
+                        <div className="flex items-center justify-between">
+                          <button
+                            type="button"
+                            className="flex items-center gap-2 text-xs font-semibold text-ink-700"
+                            onClick={() =>
+                              setBombaPanelsOpen((prev) => ({
+                                ...prev,
+                                [unit]: !(prev[unit] ?? true)
+                              }))
+                            }
+                          >
+                            <span>{bombaPanelsOpen[unit] ?? true ? '▾' : '▸'}</span>
+                            <span>Bomba {index + 1}</span>
+                          </button>
+                          {group1Units.length > 1 ? (
+                            <button
+                              type="button"
+                              className="text-xs text-rose-600"
+                              onClick={() => {
+                                setGroup1Units((prev) => prev.filter((value) => value !== unit));
+                                setBombaPanelsOpen((prev) => {
+                                  const next = { ...prev };
+                                  delete next[unit];
+                                  return next;
+                                });
+                              }}
+                            >
+                              {t('common.delete')}
+                            </button>
+                          ) : null}
+                        </div>
+                        {(bombaPanelsOpen[unit] ?? true) ? (
+                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                          {completionChecklistGroup1.map((item) => {
+                            const key = makeGroup1Key(unit, item);
+                            const redKey = makeGroup1RedKey(unit, item);
+                            return (
+                              <div key={key} className="rounded-lg border border-fog-200 bg-white p-2 space-y-2">
+                                <p className="mb-1 text-xs text-ink-700">{formatChecklistLabel(item)} <span className="text-red-500">*</span></p>
+                                <Select
+                                  value={completionReport.checklist[key] ?? 'na'}
+                                  onChange={(event) =>
+                                    setCompletionReport((prev) => ({
+                                      ...prev,
+                                      checklist: {
+                                        ...prev.checklist,
+                                        [key]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
+                                      }
+                                    }))
+                                  }
+                                >
+                                  <option value="ok">Bueno</option>
+                                  <option value="regular">Regular</option>
+                                  <option value="malo">Malo</option>
+                                  <option value="na">N/A</option>
+                                </Select>
+                                <div className="space-y-1">
+                                  <p className="text-xs text-ink-700">Red De Distribución <span className="text-red-500">*</span></p>
+                                  <Select
+                                    value={completionReport.checklist[redKey] ?? 'na'}
+                                    onChange={(event) =>
+                                      setCompletionReport((prev) => ({
+                                        ...prev,
+                                        checklist: {
+                                          ...prev.checklist,
+                                          [redKey]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
+                                        }
+                                      }))
+                                    }
+                                  >
+                                    <option value="ok">Buena</option>
+                                    <option value="regular">Regular</option>
+                                    <option value="malo">Mala</option>
+                                    <option value="na">N/A</option>
+                                  </Select>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
+              {[
+                { key: 'grupo2', title: 'Grupo 2', items: completionChecklistGroups.grupo2 },
+                { key: 'grupo3', title: 'Grupo 3', items: completionChecklistGroups.grupo3 }
+              ].map((group) => (
+                <div key={group.title} className="rounded-lg border border-fog-200 bg-white p-2 space-y-2">
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between text-left text-xs font-semibold text-ink-800"
+                    onClick={() =>
+                      setGroupPanelsOpen((prev) => ({
+                        ...prev,
+                        [group.key]: !prev[group.key as 'grupo2' | 'grupo3']
+                      }))
+                    }
+                  >
+                    <span>{group.title}</span>
+                    <span>{groupPanelsOpen[group.key as 'grupo2' | 'grupo3'] ? '▾' : '▸'}</span>
+                  </button>
+                  {groupPanelsOpen[group.key as 'grupo2' | 'grupo3'] ? (
+                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                      {group.items.map((item) => (
+                        <div key={item} className="rounded-lg border border-fog-200 bg-fog-50 p-2 space-y-2">
+                          <p className="mb-1 text-xs text-ink-700">{formatChecklistLabel(item)} <span className="text-red-500">*</span></p>
+                          <Select
+                            value={completionReport.checklist[item] ?? 'na'}
+                            onChange={(event) =>
+                              setCompletionReport((prev) => ({
+                                ...prev,
+                                checklist: {
+                                  ...prev.checklist,
+                                  [item]: event.target.value as 'ok' | 'regular' | 'malo' | 'na'
+                                }
+                              }))
+                            }
+                          >
+                            <option value="ok">Bueno</option>
+                            <option value="regular">Regular</option>
+                            <option value="malo">Malo</option>
+                            <option value="na">N/A</option>
+                          </Select>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-ink-800">Fotos del servicio <span className="text-red-500">*</span> (mínimo 1, ilimitadas)</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(event) => {
+                  const files = Array.from(event.target.files ?? []);
+                  if (!files.length) return;
+                  setCompletionPhotos((prev) => [...prev, ...files]);
+                  setIssueError(null);
+                }}
+                className="block w-full text-xs"
+              />
+              {completionPhotos.length ? (
+                <div className="space-y-1">
+                  {completionPhotos.map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs">
+                      <span className="truncate">{file.name}</span>
+                      <button type="button" className="text-rose-600" onClick={() => setCompletionPhotos((prev) => prev.filter((_, i) => i !== index))}>
+                        {t('common.delete')}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
           <div className="flex items-center gap-3">
             <p className="text-sm font-semibold text-ink-800">{t('scheduling.issueQuestion')}</p>
             <Button
@@ -1513,43 +2126,39 @@ export default function SchedulingPage() {
                   {t('scheduling.issuePhotos')}
                   <span className="ml-1 text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[0, 1].map((index) => {
-                    const file = issueDraft.photos[index];
-                    return (
-                      <label
-                        key={index}
-                        className="flex h-28 cursor-pointer items-center justify-center rounded-xl border border-dashed border-fog-300 bg-white text-ink-500 hover:border-ink-900"
-                      >
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(event) => {
-                            const next = Array.from(issueDraft.photos);
-                            const selected = event.target.files?.[0];
-                            if (selected) {
-                              next[index] = selected;
-                              setIssueDraft((prev) => ({ ...prev, photos: next }));
-                            }
-                          }}
-                        />
-                        {file ? (
-                          <div className="flex flex-col items-center gap-1 px-2 text-center text-xs text-ink-700">
-                            <span className="text-lg">✓</span>
-                            <span className="truncate">{file.name}</span>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center gap-1 text-xs">
-                            <span className="text-lg">＋</span>
-                            <span>{t('scheduling.addPhoto')}</span>
-                          </div>
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
-                <p className="text-xs text-ink-500">{t('scheduling.issuePhotosHint')}</p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(event) => {
+                    const files = Array.from(event.target.files ?? []);
+                    if (!files.length) return;
+                    setIssueDraft((prev) => ({ ...prev, photos: [...prev.photos, ...files] }));
+                  }}
+                  className="block w-full text-xs"
+                />
+                {issueDraft.photos.length ? (
+                  <div className="space-y-1">
+                    {issueDraft.photos.map((file, index) => (
+                      <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded bg-white px-2 py-1 text-xs text-ink-700">
+                        <span className="truncate">{file.name}</span>
+                        <button
+                          type="button"
+                          className="text-rose-600"
+                          onClick={() =>
+                            setIssueDraft((prev) => ({
+                              ...prev,
+                              photos: prev.photos.filter((_, i) => i !== index)
+                            }))
+                          }
+                        >
+                          {t('common.delete')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <p className="text-xs text-ink-500">Debes adjuntar mínimo 2 fotos por novedad (puedes agregar más).</p>
               </div>
               {issueError ? <p className="text-xs text-red-500">{issueError}</p> : null}
               <Button type="button" variant="secondary" onClick={addIssue}>
