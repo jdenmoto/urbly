@@ -81,9 +81,13 @@ jobs:
           echo "preview_url=$PREVIEW_URL" >> "$GITHUB_OUTPUT"
 
       - name: Whitelist staging URL in API key referrers
-        if: ${{ steps.deploy_staging.outputs.preview_url != '' && secrets.FIREBASE_BROWSER_KEY_ID != '' }}
+        if: ${{ steps.deploy_staging.outputs.preview_url != '' }}
         env:
           GCP_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           GCP_API_KEY_ID: ${{ secrets.FIREBASE_BROWSER_KEY_ID }}
         run: |
+          if [ -z "$GCP_API_KEY_ID" ]; then
+            echo "FIREBASE_BROWSER_KEY_ID no configurado, se omite whitelist del preview URL"
+            exit 0
+          fi
           npm run preview:allow-url -- "${{ steps.deploy_staging.outputs.preview_url }}"
