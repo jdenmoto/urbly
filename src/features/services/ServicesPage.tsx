@@ -79,10 +79,10 @@ export default function ServicesPage() {
       <PageHeader title={t('services.title')} subtitle={t('services.subtitle')} />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Programados" value={summary.scheduled} />
-        <StatCard label="En progreso" value={summary.inProgress} />
-        <StatCard label="Completados" value={summary.completed} />
-        <StatCard label="Urgentes" value={summary.urgent} />
+        <StatCard label={t('services.statusScheduled')} value={summary.scheduled} />
+        <StatCard label={t('services.statusInProgress')} value={summary.inProgress} />
+        <StatCard label={t('services.statusCompleted')} value={summary.completed} />
+        <StatCard label={t('services.urgentLabel')} value={summary.urgent} />
       </section>
 
       <Card className="space-y-6 p-6">

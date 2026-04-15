@@ -182,6 +182,7 @@ services:
   statusInProgress: En progreso
   statusCompleted: Completado
   statusCancelled: Cancelado
+  urgentLabel: Urgentes
 customers:
   title: Clientes
   subtitle: Relacion comercial y operativa en una sola vista.
@@ -595,6 +596,7 @@ scheduling:
   hourPlaceholder: Hora
   minutePlaceholder: Min
   issuePhotosHint: Debes adjuntar minimo 2 fotos por novedad (puedes agregar mas).
+  closeViewer: Cerrar visor
   title: Agendamientos
   subtitle: Calendario y agenda operativa
   newTitle: Nuevo agendamiento

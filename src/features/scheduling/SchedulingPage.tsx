@@ -1545,7 +1545,7 @@ export default function SchedulingPage() {
                     setPhotoViewer(null);
                     setPhotoDragging(false);
                   }}
-                  aria-label="Cerrar visor"
+                  aria-label={t('scheduling.closeViewer')}
                 >
                   ✕
                 </button>
