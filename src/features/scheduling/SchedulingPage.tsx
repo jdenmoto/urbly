@@ -10,7 +10,6 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc } from 'firebase/firestore';
 import PageHeader from '@/components/PageHeader';
 import Card from '@/components/Card';
@@ -43,8 +42,15 @@ import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/app/Auth';
 import ConfirmModal from '@/components/ConfirmModal';
 import { CancelIcon, TrashIcon, CheckIcon, EditIcon, DownloadIcon } from '@/components/ActionIcons';
-import { storage, db } from '@/lib/firebase/client';
+import { db } from '@/lib/firebase/client';
 import { addDays, addMonths, isAfter } from 'date-fns';
+import {
+  applyCompletionToSelected,
+  buildCompletionPayload,
+  buildNormalizedChecklist,
+  hasMinTwoPhotos,
+  validateCompletion
+} from './schedulingCompletion';
 
 export default function SchedulingPage() {
   const { t } = useI18n();
@@ -763,7 +769,6 @@ export default function SchedulingPage() {
     setBombaPanelsOpen({ 1: true });
   };
 
-  const hasMinTwoPhotos = (photos: File[]) => photos.filter((photo) => photo instanceof File).length >= 2;
 
   const addIssue = () => {
     setIssueError(null);
@@ -784,125 +789,43 @@ export default function SchedulingPage() {
     setIssues((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const safeStorageName = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, '_');
-
-  const uploadIssuePhotos = async (appointmentId: string, issueId: string, photos: File[]) => {
-    const uploads = await Promise.all(
-      photos
-        .filter((file): file is File => file instanceof File)
-        .map(async (file, index) => {
-          const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${safeStorageName(file.name)}`);
-          await uploadBytes(storageRef, file);
-          return getDownloadURL(storageRef);
-        })
-    );
-    return uploads;
-  };
-
-  const uploadCompletionPhotos = async (appointmentId: string, photos: File[]) => {
-    const uploads = await Promise.all(
-      photos
-        .filter((file): file is File => file instanceof File)
-        .map(async (file, index) => {
-          const storageRef = ref(storage, `appointments/${appointmentId}/completion-photos/${Date.now()}-${index}-${safeStorageName(file.name)}`);
-          await uploadBytes(storageRef, file);
-          return getDownloadURL(storageRef);
-        })
-    );
-    return uploads;
-  };
-
   const completeService = async () => {
     if (!completeTarget) return;
-    if (!hasIssues) {
-      setIssueError(t('scheduling.issueDecisionRequired'));
-      return;
-    }
-    if (hasIssues === 'yes' && issues.length === 0) {
-      setIssueError(t('scheduling.issueAtLeastOne'));
-      return;
-    }
-    if (completionPhotos.length < 1) {
-      setIssueError('Debes agregar al menos 1 foto adicional del servicio.');
-      return;
-    }
-    if (!completionReport.entryHour || !completionReport.exitHour || !completionReport.observations.trim()) {
-      setIssueError('Debes completar todos los campos obligatorios del reporte.');
+    const completionError = validateCompletion({
+      t,
+      hasIssues,
+      issues,
+      completionPhotos,
+      completionReport
+    });
+    if (completionError) {
+      setIssueError(completionError);
       return;
     }
 
-    const toMinutes = (time: string) => {
-      const [hour = '0', minute = '0'] = time.split(':');
-      return Number(hour) * 60 + Number(minute);
-    };
-
-    if (toMinutes(completionReport.exitHour) <= toMinutes(completionReport.entryHour)) {
-      setIssueError('La hora de salida debe ser posterior a la hora de entrada.');
-      return;
-    }
-    const normalizedChecklist = completionChecklistItems.reduce<Record<string, 'ok' | 'regular' | 'malo' | 'na'>>(
-      (acc, item) => {
-        if (!completionChecklistGroup1.includes(item)) {
-          const value = completionReport.checklist[item];
-          acc[item] = (value as 'ok' | 'regular' | 'malo' | 'na') || 'na';
-        }
-        return acc;
-      },
-      {}
-    );
-
-    group1Units.forEach((unit) => {
-      completionChecklistGroup1.forEach((item) => {
-        const key = makeGroup1Key(unit, item);
-        const redKey = makeGroup1RedKey(unit, item);
-        normalizedChecklist[key] = (completionReport.checklist[key] as 'ok' | 'regular' | 'malo' | 'na') || 'na';
-        normalizedChecklist[redKey] = (completionReport.checklist[redKey] as 'ok' | 'regular' | 'malo' | 'na') || 'na';
-      });
+    const normalizedChecklist = buildNormalizedChecklist({
+      completionReport,
+      completionChecklistItems,
+      completionChecklistGroup1,
+      group1Units,
+      makeGroup1Key,
+      makeGroup1RedKey
     });
     setCompleteSubmitting(true);
     try {
-      const completionPhotoUrls = await uploadCompletionPhotos(completeTarget.id, completionPhotos);
-      let payload: Record<string, unknown> = {
-        status: 'completado',
-        completedAt: new Date().toISOString(),
-        completionReport: {
-          ...completionReport,
-          checklist: normalizedChecklist
-        },
-        completionPhotos: completionPhotoUrls
-      };
-      if (hasIssues === 'yes') {
-        const resolvedIssues = await Promise.all(
-          issues.map(async (issue) => {
-            const photoUrls = await uploadIssuePhotos(completeTarget.id, issue.id, issue.photos);
-            return {
-              id: issue.id,
-              type: issue.type,
-              category: issue.category,
-              description: issue.description?.trim() || null,
-              photos: photoUrls,
-              createdAt: new Date().toISOString()
-            };
-          })
-        );
-        payload = { ...payload, issues: resolvedIssues };
-      }
+      const payload = await buildCompletionPayload({
+        appointmentId: completeTarget.id,
+        hasIssues,
+        issues,
+        completionPhotos,
+        completionReport,
+        normalizedChecklist
+      });
       await updateDocById('appointments', completeTarget.id, payload);
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
       toast(t('scheduling.toastCompleted'), 'success');
       if (selected?.id === completeTarget.id) {
-        setSelected((prev) =>
-          prev
-            ? {
-                ...prev,
-                status: 'completado',
-                completedAt: payload.completedAt as string,
-                issues: payload.issues as Appointment['issues'],
-                completionPhotos: payload.completionPhotos as Appointment['completionPhotos'],
-                completionReport: payload.completionReport as Appointment['completionReport']
-              }
-            : prev
-        );
+        setSelected((prev) => applyCompletionToSelected(prev, completeTarget.id, payload));
       }
       setCompleteTarget(null);
     } catch (error) {
