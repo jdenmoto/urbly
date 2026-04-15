@@ -58,7 +58,7 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div className="space-y-2">
               <div className="inline-flex rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
-                Vista operativa priorizada
+                {t('dashboardV2.prioritizedBadge')}
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-ink-900">{t('dashboardV2.nextActions')}</h2>
@@ -67,7 +67,7 @@ export default function DashboardPage() {
             </div>
             <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
               <p className="font-semibold text-ink-900">{nextOrders.length}</p>
-              <p>servicios priorizados para seguimiento inmediato</p>
+              <p>{t('dashboardV2.prioritizedHint')}</p>
             </div>
           </div>
 
@@ -129,24 +129,24 @@ export default function DashboardPage() {
 
         <Card className="space-y-4 p-6">
           <div>
-            <h2 className="text-lg font-semibold text-ink-900">Pulso operativo</h2>
-            <p className="text-sm text-ink-600">Lectura rápida del estado actual para decidir dónde actuar primero.</p>
+            <h2 className="text-lg font-semibold text-ink-900">{t('dashboardV2.pulseTitle')}</h2>
+            <p className="text-sm text-ink-600">{t('dashboardV2.pulseSubtitle')}</p>
           </div>
           <div className="space-y-3">
             <div className="rounded-2xl bg-rose-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-rose-600">Urgencia</p>
+              <p className="text-xs uppercase tracking-wide text-rose-600">{t('dashboardV2.urgencyLabel')}</p>
               <p className="mt-1 text-2xl font-semibold text-rose-700">{summary.urgent}</p>
-              <p className="mt-1 text-sm text-rose-700">servicios con prioridad alta que requieren atención inmediata</p>
+              <p className="mt-1 text-sm text-rose-700">{t('dashboardV2.urgencyHint')}</p>
             </div>
             <div className="rounded-2xl bg-amber-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-amber-600">Riesgo</p>
+              <p className="text-xs uppercase tracking-wide text-amber-600">{t('dashboardV2.riskLabel')}</p>
               <p className="mt-1 text-2xl font-semibold text-amber-700">{summary.overdue}</p>
-              <p className="mt-1 text-sm text-amber-700">servicios vencidos o fuera de ventana prevista</p>
+              <p className="mt-1 text-sm text-amber-700">{t('dashboardV2.riskHint')}</p>
             </div>
             <div className="rounded-2xl bg-emerald-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-emerald-600">Entrega</p>
+              <p className="text-xs uppercase tracking-wide text-emerald-600">{t('dashboardV2.deliveryLabel')}</p>
               <p className="mt-1 text-2xl font-semibold text-emerald-700">{summary.completed}</p>
-              <p className="mt-1 text-sm text-emerald-700">servicios ya completados y listos para cierre o reporte</p>
+              <p className="mt-1 text-sm text-emerald-700">{t('dashboardV2.deliveryHint')}</p>
             </div>
           </div>
         </Card>

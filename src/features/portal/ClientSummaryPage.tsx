@@ -72,7 +72,7 @@ export default function ClientSummaryPage() {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-2">
             <div className="inline-flex rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
-              Visión cliente
+              {t('clientPortal.clientViewBadge')}
             </div>
             <div>
               <h2 className="text-xl font-semibold text-ink-900">{t('clientPortal.upcomingTitle')}</h2>
@@ -81,7 +81,7 @@ export default function ClientSummaryPage() {
           </div>
           <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
             <p className="font-semibold text-ink-900">{summary.upcoming.length}</p>
-            <p>servicios visibles en la siguiente ventana</p>
+            <p>{t('clientPortal.visibleWindowHint')}</p>
           </div>
         </div>
 
@@ -93,7 +93,7 @@ export default function ClientSummaryPage() {
                 <article key={serviceOrder.id} className="rounded-3xl border border-fog-200 bg-white p-5 shadow-sm">
                   <div className="flex flex-wrap gap-2">
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[serviceOrder.priority] ?? priorityTone.medium}`}>
-                      Prioridad {serviceOrder.priority}
+                      {t('clientPortal.priorityPill', { value: serviceOrder.priority })}
                     </span>
                   </div>
                   <div className="mt-3 space-y-1">
@@ -102,8 +102,8 @@ export default function ClientSummaryPage() {
                     <p className="text-sm text-ink-500">{new Date(serviceOrder.scheduledStartAt).toLocaleString('es-CO')}</p>
                   </div>
                   <div className="mt-4 rounded-2xl bg-fog-50 p-4 text-sm text-ink-600">
-                    <p><span className="font-semibold text-ink-900">Estado:</span> {serviceOrder.status}</p>
-                    <p className="mt-2"><span className="font-semibold text-ink-900">Novedades:</span> {serviceOrder.issues?.length ?? 0}</p>
+                    <p><span className="font-semibold text-ink-900">{t('services.statusLabel')}:</span> {serviceOrder.status}</p>
+                    <p className="mt-2"><span className="font-semibold text-ink-900">{t('services.issuesLabel')}:</span> {serviceOrder.issues?.length ?? 0}</p>
                   </div>
                 </article>
               );

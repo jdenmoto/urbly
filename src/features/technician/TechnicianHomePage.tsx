@@ -10,6 +10,13 @@ import type { Employee } from '@/core/models/employee';
 import { useList, useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
 
+const priorityTone: Record<string, string> = {
+  urgent: 'bg-rose-50 text-rose-700',
+  high: 'bg-amber-50 text-amber-700',
+  medium: 'bg-sky-50 text-sky-700',
+  low: 'bg-emerald-50 text-emerald-700'
+};
+
 export default function TechnicianHomePage() {
   const { t } = useI18n();
   const { user } = useAuth();
@@ -34,22 +41,33 @@ export default function TechnicianHomePage() {
   const nextOrder = assignedOrders.find((item) => item.status !== 'completed' && item.status !== 'cancelled') ?? null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader title={t('technician.homeTitle')} subtitle={t('technician.homeSubtitle')} />
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-3">
         <StatCard label={t('technician.assignedServices')} value={assignedOrders.length} />
         <StatCard
           label={t('technician.pendingServices')}
           value={assignedOrders.filter((item) => item.status !== 'completed' && item.status !== 'cancelled').length}
         />
         <StatCard label={t('technician.issuesDetected')} value={assignedOrders.reduce((acc, item) => acc + (item.issues?.length ?? 0), 0)} />
-      </div>
+      </section>
 
-      <Card className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold text-ink-900">{t('technician.nextServiceTitle')}</h2>
-          <p className="text-sm text-ink-600">{t('technician.nextServiceSubtitle')}</p>
+      <Card className="space-y-6 p-6">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div className="space-y-2">
+            <div className="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+              {t('technician.mobileBadge')}
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-ink-900">{t('technician.nextServiceTitle')}</h2>
+              <p className="max-w-2xl text-sm leading-6 text-ink-600">{t('technician.nextServiceSubtitle')}</p>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
+            <p className="font-semibold text-ink-900">{assignedOrders.length}</p>
+            <p>{t('technician.visibleServicesHint')}</p>
+          </div>
         </div>
 
         {!employee ? (
@@ -57,16 +75,32 @@ export default function TechnicianHomePage() {
         ) : !nextOrder ? (
           <EmptyState title={t('technician.nextServiceTitle')} description={t('technician.empty')} />
         ) : (
-          <div className="rounded-2xl border border-fog-200 p-4">
-            <p className="text-base font-semibold text-ink-900">{nextOrder.title}</p>
-            <p className="mt-1 text-sm text-ink-600">
-              {buildings.find((item) => item.id === nextOrder.buildingId)?.name ?? t('common.noData')}
-            </p>
-            <p className="mt-2 text-xs text-ink-500">{new Date(nextOrder.scheduledStartAt).toLocaleString('es-CO')}</p>
-            <div className="mt-3 grid gap-2 text-sm text-ink-600 md:grid-cols-3">
-              <p><span className="font-semibold text-ink-900">{t('technician.statusLabel')}:</span> {nextOrder.status}</p>
-              <p><span className="font-semibold text-ink-900">{t('technician.priorityLabel')}:</span> {nextOrder.priority}</p>
-              <p><span className="font-semibold text-ink-900">{t('technician.issuesLabel')}:</span> {nextOrder.issues?.length ?? 0}</p>
+          <div className="rounded-3xl border border-fog-200 bg-white p-5 shadow-sm">
+            <div className="flex flex-wrap gap-2">
+              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[nextOrder.priority] ?? priorityTone.medium}`}>
+                {t('technician.priorityPill', { value: nextOrder.priority })}
+              </span>
+            </div>
+            <div className="mt-3 space-y-1">
+              <p className="text-lg font-semibold text-ink-900">{nextOrder.title}</p>
+              <p className="text-sm text-ink-600">
+                {buildings.find((item) => item.id === nextOrder.buildingId)?.name ?? t('common.noData')}
+              </p>
+              <p className="text-sm text-ink-500">{new Date(nextOrder.scheduledStartAt).toLocaleString('es-CO')}</p>
+            </div>
+            <div className="mt-4 grid gap-3 text-sm text-ink-600 md:grid-cols-3">
+              <div className="rounded-2xl bg-fog-50 p-4">
+                <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.statusLabel')}</p>
+                <p className="mt-1 font-semibold text-ink-900">{nextOrder.status}</p>
+              </div>
+              <div className="rounded-2xl bg-fog-50 p-4">
+                <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.priorityLabel')}</p>
+                <p className="mt-1 font-semibold text-ink-900">{nextOrder.priority}</p>
+              </div>
+              <div className="rounded-2xl bg-fog-50 p-4">
+                <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.issuesLabel')}</p>
+                <p className="mt-1 font-semibold text-ink-900">{nextOrder.issues?.length ?? 0}</p>
+              </div>
             </div>
           </div>
         )}

@@ -89,19 +89,16 @@ export default function ServicesPage() {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-2">
             <div className="inline-flex rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
-              Núcleo operativo v2
+              {t('services.v2Badge')}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-ink-900">Agenda operativa</h2>
-              <p className="max-w-2xl text-sm leading-6 text-ink-600">
-                Vista enfocada en lectura rápida, prioridad y acceso directo a detalle y cierre mientras terminamos la
-                migración completa desde legacy.
-              </p>
+              <h2 className="text-xl font-semibold text-ink-900">{t('services.agendaTitle')}</h2>
+              <p className="max-w-2xl text-sm leading-6 text-ink-600">{t('services.agendaSubtitle')}</p>
             </div>
           </div>
           <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
             <p className="font-semibold text-ink-900">{recentOrders.length}</p>
-            <p>servicios visibles con los filtros actuales</p>
+            <p>{t('services.visibleCountHint')}</p>
           </div>
         </div>
 
@@ -165,15 +162,15 @@ export default function ServicesPage() {
 
                     <div className="grid gap-3 text-sm text-ink-600 sm:grid-cols-3 xl:min-w-[360px]">
                       <div className="rounded-2xl bg-fog-50 p-3">
-                        <p className="text-xs uppercase tracking-wide text-ink-500">Técnico</p>
+                        <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.technicianLabel')}</p>
                         <p className="mt-1 font-semibold text-ink-900">{technician?.fullName ?? t('common.unassigned')}</p>
                       </div>
                       <div className="rounded-2xl bg-fog-50 p-3">
-                        <p className="text-xs uppercase tracking-wide text-ink-500">Tipo</p>
+                        <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.typeLabel')}</p>
                         <p className="mt-1 font-semibold text-ink-900">{order.type}</p>
                       </div>
                       <div className="rounded-2xl bg-fog-50 p-3">
-                        <p className="text-xs uppercase tracking-wide text-ink-500">Novedades</p>
+                        <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
                         <p className="mt-1 font-semibold text-ink-900">{order.issues?.length ?? 0}</p>
                       </div>
                     </div>
