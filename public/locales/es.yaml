@@ -169,6 +169,12 @@ ai:
   title: IA operativa
   subtitle: Asistente transversal para informes, mensajes y seguimiento.
   comingSoon: Aqui se integraran acciones de IA con foco en ahorro operativo real.
+  workspaceTitle: Sugerencias operativas
+  workspaceSubtitle: Primer corte de acciones sugeridas usando el backlog actual de service orders.
+  suggestionUrgent: Prioriza este servicio, prepara mensaje al cliente y revisa seguimiento inmediato.
+  suggestionIssues: Resume novedades, prepara informe y valida si hace falta seguimiento tecnico.
+  suggestionDefault: Revisa contexto del caso y deja listo el siguiente paso operativo.
+  empty: No hay servicios activos para sugerencias ahora mismo.
 technician:
   homeTitle: Hoy
   homeSubtitle: Espacio de trabajo movil para el tecnico.
