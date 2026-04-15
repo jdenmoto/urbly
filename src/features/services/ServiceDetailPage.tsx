@@ -7,6 +7,7 @@ import { useList, useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
+import type { ManagementCompany } from '@/core/models/managementCompany';
 
 export default function ServiceDetailPage() {
   const { t } = useI18n();
@@ -14,6 +15,7 @@ export default function ServiceDetailPage() {
   const { data: serviceOrders = [] } = useServiceOrders();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
+  const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
 
   const serviceOrder = useMemo(
     () => serviceOrders.find((item) => item.id === serviceOrderId) ?? null,
@@ -22,6 +24,7 @@ export default function ServiceDetailPage() {
 
   const building = buildings.find((item) => item.id === serviceOrder?.buildingId);
   const technician = employees.find((item) => item.id === serviceOrder?.assignedTechnicianId);
+  const management = managements.find((item) => item.id === building?.managementCompanyId);
 
   if (!serviceOrder) {
     return <EmptyState title={t('services.detailTitle')} description={t('services.detailEmpty')} />;
@@ -39,9 +42,11 @@ export default function ServiceDetailPage() {
           </div>
           <div className="grid gap-3 md:grid-cols-2 text-sm text-ink-700">
             <p><span className="font-semibold text-ink-900">{t('services.buildingLabel')}:</span> {building?.name ?? t('common.noData')}</p>
+            <p><span className="font-semibold text-ink-900">{t('services.customerLabel')}:</span> {management?.name ?? t('common.noData')}</p>
             <p><span className="font-semibold text-ink-900">{t('services.technicianLabel')}:</span> {technician?.fullName ?? t('common.unassigned')}</p>
             <p><span className="font-semibold text-ink-900">{t('services.statusLabel')}:</span> {serviceOrder.status}</p>
             <p><span className="font-semibold text-ink-900">{t('services.priorityLabel')}:</span> {serviceOrder.priority}</p>
+            <p><span className="font-semibold text-ink-900">{t('services.typeLabel')}:</span> {serviceOrder.type}</p>
             <p><span className="font-semibold text-ink-900">{t('services.startLabel')}:</span> {new Date(serviceOrder.scheduledStartAt).toLocaleString('es-CO')}</p>
             <p><span className="font-semibold text-ink-900">{t('services.endLabel')}:</span> {new Date(serviceOrder.scheduledEndAt).toLocaleString('es-CO')}</p>
           </div>
@@ -53,24 +58,45 @@ export default function ServiceDetailPage() {
           ) : null}
         </Card>
 
-        <Card className="space-y-4">
-          <div>
-            <h2 className="text-lg font-semibold text-ink-900">{t('services.timelineTitle')}</h2>
-            <p className="text-sm text-ink-600">{t('services.timelineSubtitle')}</p>
-          </div>
-          {serviceOrder.timeline?.length ? (
-            <div className="space-y-3">
-              {serviceOrder.timeline.map((event) => (
-                <div key={event.id} className="rounded-xl border border-fog-200 p-3">
-                  <p className="text-sm font-semibold text-ink-900">{event.summary}</p>
-                  <p className="text-xs text-ink-500">{new Date(event.createdAt).toLocaleString('es-CO')}</p>
-                </div>
-              ))}
+        <div className="space-y-4">
+          <Card className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-ink-900">{t('services.timelineTitle')}</h2>
+              <p className="text-sm text-ink-600">{t('services.timelineSubtitle')}</p>
             </div>
-          ) : (
-            <EmptyState title={t('services.timelineTitle')} description={t('services.timelineEmpty')} />
-          )}
-        </Card>
+            {serviceOrder.timeline?.length ? (
+              <div className="space-y-3">
+                {serviceOrder.timeline.map((event) => (
+                  <div key={event.id} className="rounded-xl border border-fog-200 p-3">
+                    <p className="text-sm font-semibold text-ink-900">{event.summary}</p>
+                    <p className="text-xs text-ink-500">{new Date(event.createdAt).toLocaleString('es-CO')}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState title={t('services.timelineTitle')} description={t('services.timelineEmpty')} />
+            )}
+          </Card>
+          <Card className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-ink-900">{t('services.issueSummaryTitle')}</h2>
+              <p className="text-sm text-ink-600">{t('services.issueSummarySubtitle')}</p>
+            </div>
+            {serviceOrder.issues?.length ? (
+              <div className="space-y-3">
+                {serviceOrder.issues.map((issue) => (
+                  <div key={issue.id} className="rounded-xl border border-fog-200 p-3">
+                    <p className="text-sm font-semibold text-ink-900">{issue.type}</p>
+                    <p className="text-xs text-ink-500">{issue.category}</p>
+                    {issue.description ? <p className="mt-2 text-sm text-ink-600">{issue.description}</p> : null}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState title={t('services.issueSummaryTitle')} description={t('services.issueSummaryEmpty')} />
+            )}
+          </Card>
+        </div>
       </div>
     </div>
   );

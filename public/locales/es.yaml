@@ -123,9 +123,11 @@ services:
   contextTitle: Contexto del servicio
   contextSubtitle: Informacion base para operar el service order sin entrar al scheduling legacy.
   buildingLabel: Edificio
+  customerLabel: Cliente
   technicianLabel: Tecnico
   statusLabel: Estado
   priorityLabel: Prioridad
+  typeLabel: Tipo
   startLabel: Inicio
   endLabel: Fin
   descriptionLabel: Descripcion
@@ -140,6 +142,11 @@ services:
   evidenceTitle: Evidencia actual
   evidenceCount: "Fotos registradas: {count}"
   issuesCount: "Novedades registradas: {count}"
+  timelineCount: "Eventos del timeline: {count}"
+  communicationTitle: Comunicacion generada
+  issueSummaryTitle: Resumen de novedades
+  issueSummarySubtitle: Primer corte de incidencias derivadas del servicio actual.
+  issueSummaryEmpty: No hay novedades registradas para este servicio.
 customers:
   title: Clientes
   subtitle: Relacion comercial y operativa en una sola vista.
