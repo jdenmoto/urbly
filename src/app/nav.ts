@@ -1,4 +1,4 @@
-import { CalendarDays, Building2, Users, Landmark, LayoutDashboard, ShieldUser, Settings, Briefcase, Sparkles, FileText } from './navIcons';
+import { Building2, Users, Landmark, LayoutDashboard, ShieldUser, Settings, Briefcase, Sparkles, FileText } from './navIcons';
 import { useI18n } from '@/lib/i18n';
 import { useFeatureFlags } from '@/lib/featureFlags';
 
@@ -41,8 +41,7 @@ export function useNavGroups(
         label: t('nav.mainSection'),
         items: [
           { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, enabled: flags.dashboard },
-          { to: '/services', label: t('nav.services'), icon: Briefcase, enabled: flags.services },
-          { to: '/scheduling', label: t('nav.scheduling'), icon: CalendarDays, enabled: flags.scheduling }
+          { to: '/services', label: t('nav.services'), icon: Briefcase, enabled: flags.services }
         ]
       }
     ];
@@ -54,7 +53,6 @@ export function useNavGroups(
         items: [
           { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, enabled: flags.dashboard },
           { to: '/services', label: t('nav.services'), icon: Briefcase, enabled: flags.services },
-          { to: '/scheduling', label: t('nav.scheduling'), icon: CalendarDays, enabled: flags.scheduling },
           { to: '/customers', label: t('nav.customers'), icon: Landmark, enabled: flags.customers },
           { to: '/assets', label: t('nav.assets'), icon: Building2, enabled: flags.assets },
           { to: '/reports', label: t('nav.reports'), icon: FileText, enabled: flags.reports },
@@ -145,10 +143,10 @@ export function useNavGroups(
       label: t('nav.mainSection'),
       items: [
         { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, enabled: flags.dashboard },
+        { to: '/services', label: t('nav.services'), icon: Briefcase, enabled: flags.services },
         { to: '/buildings', label: t('nav.buildings'), icon: Building2, enabled: flags.buildings },
         { to: '/management', label: t('nav.management'), icon: Landmark, enabled: flags.management },
-        { to: '/employees', label: t('nav.employees'), icon: Users, enabled: flags.employees },
-        { to: '/scheduling', label: t('nav.scheduling'), icon: CalendarDays, enabled: flags.scheduling }
+        { to: '/employees', label: t('nav.employees'), icon: Users, enabled: flags.employees }
       ]
     },
     {
