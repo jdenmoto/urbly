@@ -63,7 +63,7 @@ export default function ServiceDetailPage() {
                   {serviceOrder.status}
                 </span>
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[serviceOrder.priority] ?? priorityTone.medium}`}>
-                  Prioridad {serviceOrder.priority}
+                  {t('services.priorityPill', { value: serviceOrder.priority })}
                 </span>
               </div>
               <div>
@@ -73,7 +73,7 @@ export default function ServiceDetailPage() {
             </div>
             <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
               <p className="font-semibold text-ink-900">{serviceOrder.type}</p>
-              <p>tipo de servicio activo</p>
+              <p>{t('services.activeTypeHint')}</p>
             </div>
           </div>
 
@@ -99,7 +99,7 @@ export default function ServiceDetailPage() {
               <p className="mt-1 font-semibold text-ink-900">{new Date(serviceOrder.scheduledEndAt).toLocaleString('es-CO')}</p>
             </div>
             <div className="rounded-2xl bg-fog-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-ink-500">Novedades</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
               <p className="mt-1 font-semibold text-ink-900">{serviceOrder.issues?.length ?? 0}</p>
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function ServiceDetailPage() {
       <Card className="space-y-6 p-6">
         <div>
           <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
-            IA operativa aplicada
+            {t('services.aiBadge')}
           </div>
           <h2 className="mt-3 text-xl font-semibold text-ink-900">{t('services.aiActionsTitle')}</h2>
           <p className="text-sm leading-6 text-ink-600">{t('services.aiActionsSubtitle')}</p>

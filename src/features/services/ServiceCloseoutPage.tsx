@@ -32,7 +32,7 @@ export default function ServiceCloseoutPage() {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-3">
             <div className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              Cierre operativo
+              {t('services.closeoutBadge')}
             </div>
             <div>
               <h2 className="text-xl font-semibold text-ink-900">{serviceOrder.title}</h2>
@@ -41,7 +41,7 @@ export default function ServiceCloseoutPage() {
           </div>
           <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
             <p className="font-semibold text-ink-900">{serviceOrder.status}</p>
-            <p>estado actual para cierre y reporte</p>
+            <p>{t('services.closeoutStatusHint')}</p>
           </div>
         </div>
 
@@ -59,11 +59,11 @@ export default function ServiceCloseoutPage() {
               <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.evidenceCount', { count: serviceOrder.completionPhotos?.length ?? 0 })}</p>
             </div>
             <div className="rounded-3xl bg-fog-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-ink-500">Novedades</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
               <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.issuesCount', { count: serviceOrder.issues?.length ?? 0 })}</p>
             </div>
             <div className="rounded-3xl bg-fog-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-ink-500">Timeline</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.timelineLabel')}</p>
               <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.timelineCount', { count: serviceOrder.timeline?.length ?? 0 })}</p>
             </div>
           </div>
@@ -99,12 +99,10 @@ export default function ServiceCloseoutPage() {
       <Card className="space-y-6 p-6">
         <div>
           <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
-            IA para cierre
+            {t('services.aiCloseoutBadge')}
           </div>
-          <h2 className="mt-3 text-xl font-semibold text-ink-900">Acciones listas para enviar o ajustar</h2>
-          <p className="text-sm leading-6 text-ink-600">
-            Este bloque resume el servicio, sugiere reporte y deja listo el siguiente paso con mejor legibilidad.
-          </p>
+          <h2 className="mt-3 text-xl font-semibold text-ink-900">{t('services.aiCloseoutTitle')}</h2>
+          <p className="text-sm leading-6 text-ink-600">{t('services.aiCloseoutSubtitle')}</p>
         </div>
 
         <div className="grid gap-4 xl:grid-cols-3">

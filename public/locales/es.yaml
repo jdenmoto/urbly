@@ -116,6 +116,9 @@ clientPortal:
   upcomingTitle: Proximos servicios
   upcomingSubtitle: Primer corte del resumen cliente basado en service orders.
   empty: No hay proximos servicios programados.
+  clientViewBadge: Vision cliente
+  visibleWindowHint: servicios visibles en la siguiente ventana
+  priorityPill: "Prioridad {value}"
 services:
   title: Servicios
   subtitle: Nuevo nucleo operativo basado en service orders.
@@ -159,6 +162,20 @@ services:
   aiCustomerMessageTitle: Mensaje sugerido al cliente
   aiFollowUpTitle: Siguiente paso sugerido
   aiReportTitle: Informe tecnico sugerido
+  v2Badge: Nucleo operativo v2
+  agendaTitle: Agenda operativa
+  agendaSubtitle: Vista enfocada en lectura rápida, prioridad y acceso directo a detalle y cierre mientras terminamos la migracion completa desde legacy.
+  visibleCountHint: servicios visibles con los filtros actuales
+  issuesLabel: Novedades
+  priorityPill: "Prioridad {value}"
+  activeTypeHint: tipo de servicio activo
+  aiBadge: IA operativa aplicada
+  closeoutBadge: Cierre operativo
+  closeoutStatusHint: estado actual para cierre y reporte
+  timelineLabel: Timeline
+  aiCloseoutBadge: IA para cierre
+  aiCloseoutTitle: Acciones listas para enviar o ajustar
+  aiCloseoutSubtitle: Este bloque resume el servicio, sugiere reporte y deja listo el siguiente paso con mejor legibilidad.
 customers:
   title: Clientes
   subtitle: Relacion comercial y operativa en una sola vista.
@@ -171,6 +188,17 @@ reports:
   title: Reportes
   subtitle: Informes, evidencias y trazabilidad operativa.
   comingSoon: Esta seccion reunira reportes tecnicos, historiales y entregables al cliente.
+dashboardV2:
+  prioritizedBadge: Vista operativa priorizada
+  prioritizedHint: servicios priorizados para seguimiento inmediato
+  pulseTitle: Pulso operativo
+  pulseSubtitle: Lectura rápida del estado actual para decidir dónde actuar primero.
+  urgencyLabel: Urgencia
+  urgencyHint: servicios con prioridad alta que requieren atención inmediata
+  riskLabel: Riesgo
+  riskHint: servicios vencidos o fuera de ventana prevista
+  deliveryLabel: Entrega
+  deliveryHint: servicios ya completados y listos para cierre o reporte
 ai:
   title: IA operativa
   subtitle: Asistente transversal para informes, mensajes y seguimiento.
