@@ -113,11 +113,11 @@ export default function ServicesPage() {
           </Select>
           <Select value={filters.status} onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}>
             <option value="">{t('common.all')}</option>
-            <option value="scheduled">Programado</option>
-            <option value="confirmed">Confirmado</option>
-            <option value="in_progress">En progreso</option>
-            <option value="completed">Completado</option>
-            <option value="cancelled">Cancelado</option>
+            <option value="scheduled">{t('services.statusScheduled')}</option>
+            <option value="confirmed">{t('services.statusConfirmed')}</option>
+            <option value="in_progress">{t('services.statusInProgress')}</option>
+            <option value="completed">{t('services.statusCompleted')}</option>
+            <option value="cancelled">{t('services.statusCancelled')}</option>
           </Select>
           <Input type="date" value={filters.from} onChange={(event) => setFilters((prev) => ({ ...prev, from: event.target.value }))} />
           <Input type="date" value={filters.to} onChange={(event) => setFilters((prev) => ({ ...prev, to: event.target.value }))} />

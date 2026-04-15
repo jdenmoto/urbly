@@ -19,8 +19,9 @@ common:
   loadingSession: Cargando sesion...
   actionSuccess: Accion completada
   actionError: Ocurrio un error
-  yes: Si
-  no: No
+  "yes": Si
+  "no": No
+  view: Ver
   all: Todos
   optional: Opcional
   select: Selecciona
@@ -176,6 +177,11 @@ services:
   aiCloseoutBadge: IA para cierre
   aiCloseoutTitle: Acciones listas para enviar o ajustar
   aiCloseoutSubtitle: Este bloque resume el servicio, sugiere reporte y deja listo el siguiente paso con mejor legibilidad.
+  statusScheduled: Programado
+  statusConfirmed: Confirmado
+  statusInProgress: En progreso
+  statusCompleted: Completado
+  statusCancelled: Cancelado
 customers:
   title: Clientes
   subtitle: Relacion comercial y operativa en una sola vista.
@@ -564,6 +570,31 @@ users:
     building_admin: Admin edificio
     emergency_scheduler: Emergencias
 scheduling:
+  serviceReport: Reporte de servicio
+  entryHourLabel: Hora entrada
+  exitHourLabel: Hora salida
+  observationsLabel: Observaciones
+  checklistTitle: Checklist
+  group1Pumps: Grupo 1 (Bombas)
+  group2Label: Grupo 2
+  group3Label: Grupo 3
+  pumpLabel: "Bomba {index}"
+  itemLabel: Elemento
+  statusLabelShort: Estado
+  distributionNetworkLabel: Red de distribución
+  servicePhotosTitle: Fotos del servicio
+  servicePhotosRequirement: (minimo 1, ilimitadas)
+  reviewDetailsTitle: Detalles de la revision
+  addPump: Agregar bomba
+  goodOption: Bueno
+  regularOption: Regular
+  badOption: Malo
+  notApplicableOption: N/A
+  goodFemaleOption: Buena
+  badFemaleOption: Mala
+  hourPlaceholder: Hora
+  minutePlaceholder: Min
+  issuePhotosHint: Debes adjuntar minimo 2 fotos por novedad (puedes agregar mas).
   title: Agendamientos
   subtitle: Calendario y agenda operativa
   newTitle: Nuevo agendamiento

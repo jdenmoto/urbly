@@ -1322,13 +1322,13 @@ export default function SchedulingPage() {
               </p>
               {selected.status === 'completado' ? (
                 <div className="space-y-3 rounded-lg border border-fog-200 bg-fog-50 p-3">
-                  <p className="font-semibold text-ink-900">Reporte de servicio</p>
-                  <p><span className="font-semibold text-ink-900">Hora entrada:</span> {String(selected.completionReport?.entryHour || t('common.noData'))}</p>
-                  <p><span className="font-semibold text-ink-900">Hora salida:</span> {String(selected.completionReport?.exitHour || t('common.noData'))}</p>
-                  <p><span className="font-semibold text-ink-900">Observaciones:</span> {String(selected.completionReport?.observations || t('common.noData'))}</p>
+                  <p className="font-semibold text-ink-900">{t('scheduling.serviceReport')}</p>
+                  <p><span className="font-semibold text-ink-900">{t('scheduling.entryHourLabel')}:</span> {String(selected.completionReport?.entryHour || t('common.noData'))}</p>
+                  <p><span className="font-semibold text-ink-900">{t('scheduling.exitHourLabel')}:</span> {String(selected.completionReport?.exitHour || t('common.noData'))}</p>
+                  <p><span className="font-semibold text-ink-900">{t('scheduling.observationsLabel')}:</span> {String(selected.completionReport?.observations || t('common.noData'))}</p>
 
                   <div className="space-y-2">
-                    <p className="font-semibold text-ink-900">Checklist</p>
+                    <p className="font-semibold text-ink-900">{t('scheduling.checklistTitle')}</p>
                     {(() => {
                       const checklist = (selected.completionReport?.checklist as Record<string, string>) || {};
                       const bombaIds = Array.from(
@@ -1344,18 +1344,18 @@ export default function SchedulingPage() {
                       return (
                         <div className="max-h-80 space-y-2 overflow-y-auto rounded border border-fog-200 bg-white p-2 text-xs">
                           <div className="space-y-2 rounded border border-fog-200 p-2">
-                            <p className="font-semibold text-ink-900">Grupo 1 (Bombas)</p>
+                            <p className="font-semibold text-ink-900">{t('scheduling.group1Pumps')}</p>
                             {bombaIds.length ? (
                               bombaIds.map((bombaId, pumpIndex) => (
                                 <div key={bombaId} className="rounded border border-fog-200 bg-fog-50 p-2 space-y-1">
-                                  <p className="font-semibold text-ink-900">Bomba {pumpIndex + 1}</p>
+                                  <p className="font-semibold text-ink-900">{t('scheduling.pumpLabel', { index: pumpIndex + 1 })}</p>
                                   <div className="overflow-x-auto">
                                     <table className="w-full text-left">
                                       <thead>
                                         <tr className="text-ink-700">
-                                          <th className="py-1 pr-2 font-semibold">Elemento</th>
-                                          <th className="py-1 pr-2 font-semibold">Estado</th>
-                                          <th className="py-1 font-semibold">Red De Distribución</th>
+                                          <th className="py-1 pr-2 font-semibold">{t('scheduling.itemLabel')}</th>
+                                          <th className="py-1 pr-2 font-semibold">{t('scheduling.statusLabelShort')}</th>
+                                          <th className="py-1 font-semibold">{t('scheduling.distributionNetworkLabel')}</th>
                                         </tr>
                                       </thead>
                                       <tbody>
@@ -1381,7 +1381,7 @@ export default function SchedulingPage() {
                           </div>
 
                           <div className="space-y-1 rounded border border-fog-200 p-2">
-                            <p className="font-semibold text-ink-900">Grupo 2</p>
+                            <p className="font-semibold text-ink-900">{t('scheduling.group2Label')}</p>
                             {group2Entries.map(([item, value]) => (
                               <p key={item}>
                                 <span className="font-semibold text-ink-900">{formatChecklistLabel(item)}:</span> {checklistValueLabel(value)}
@@ -1390,7 +1390,7 @@ export default function SchedulingPage() {
                           </div>
 
                           <div className="space-y-1 rounded border border-fog-200 p-2">
-                            <p className="font-semibold text-ink-900">Grupo 3</p>
+                            <p className="font-semibold text-ink-900">{t('scheduling.group3Label')}</p>
                             {group3Entries.map(([item, value]) => (
                               <p key={item}>
                                 <span className="font-semibold text-ink-900">{formatChecklistLabel(item)}:</span> {checklistValueLabel(value)}
@@ -1403,7 +1403,7 @@ export default function SchedulingPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <p className="font-semibold text-ink-900">Fotos del servicio</p>
+                    <p className="font-semibold text-ink-900">{t('scheduling.servicePhotosTitle')}</p>
                     {selected.completionPhotos?.length ? (
                       <div className="grid grid-cols-2 gap-2">
                         {selected.completionPhotos.map((photo, index) => (
@@ -1745,7 +1745,7 @@ export default function SchedulingPage() {
       >
         <div className="space-y-4">
           <div className="rounded-xl border border-fog-200 bg-fog-50 p-4 space-y-3">
-            <p className="text-sm font-semibold text-ink-900">Reporte de servicio</p>
+            <p className="text-sm font-semibold text-ink-900">{t('scheduling.serviceReport')}</p>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div className="space-y-1">
                 <label className="text-sm font-medium text-ink-800">Hora entrada <span className="text-red-500">*</span></label>
@@ -1754,7 +1754,7 @@ export default function SchedulingPage() {
                     value={getTimeParts(completionReport.entryHour).hour}
                     onChange={(event) => setReportTimePart('entryHour', 'hour', event.target.value)}
                   >
-                    <option value="">Hora</option>
+                    <option value="">{t('scheduling.hourPlaceholder')}</option>
                     {timeHourOptions.map((hour) => (
                       <option key={`entry-hour-${hour}`} value={hour}>{hour}</option>
                     ))}
@@ -1763,7 +1763,7 @@ export default function SchedulingPage() {
                     value={getTimeParts(completionReport.entryHour).minute}
                     onChange={(event) => setReportTimePart('entryHour', 'minute', event.target.value)}
                   >
-                    <option value="">Min</option>
+                    <option value="">{t('scheduling.minutePlaceholder')}</option>
                     {timeMinuteOptions.map((minute) => (
                       <option key={`entry-minute-${minute}`} value={minute}>{minute}</option>
                     ))}
@@ -1777,7 +1777,7 @@ export default function SchedulingPage() {
                     value={getTimeParts(completionReport.exitHour).hour}
                     onChange={(event) => setReportTimePart('exitHour', 'hour', event.target.value)}
                   >
-                    <option value="">Hora</option>
+                    <option value="">{t('scheduling.hourPlaceholder')}</option>
                     {timeHourOptions.map((hour) => (
                       <option key={`exit-hour-${hour}`} value={hour}>{hour}</option>
                     ))}
@@ -1786,7 +1786,7 @@ export default function SchedulingPage() {
                     value={getTimeParts(completionReport.exitHour).minute}
                     onChange={(event) => setReportTimePart('exitHour', 'minute', event.target.value)}
                   >
-                    <option value="">Min</option>
+                    <option value="">{t('scheduling.minutePlaceholder')}</option>
                     {timeMinuteOptions.map((minute) => (
                       <option key={`exit-minute-${minute}`} value={minute}>{minute}</option>
                     ))}
@@ -1794,9 +1794,9 @@ export default function SchedulingPage() {
                 </div>
               </div>
             </div>
-            <Input label="Observaciones" required value={completionReport.observations} onChange={(event) => setCompletionReport((prev) => ({ ...prev, observations: event.target.value }))} />
+            <Input label={t('scheduling.observationsLabel')} required value={completionReport.observations} onChange={(event) => setCompletionReport((prev) => ({ ...prev, observations: event.target.value }))} />
             <div className="space-y-3">
-              <p className="text-xs font-semibold text-ink-700">Detalles de la revisión</p>
+              <p className="text-xs font-semibold text-ink-700">{t('scheduling.reviewDetailsTitle')}</p>
 
               <div className="rounded-lg border border-fog-200 bg-white p-2 space-y-2">
                 <button
@@ -1804,7 +1804,7 @@ export default function SchedulingPage() {
                   className="flex w-full items-center justify-between text-left text-xs font-semibold text-ink-800"
                   onClick={() => setGroupPanelsOpen((prev) => ({ ...prev, grupo1: !prev.grupo1 }))}
                 >
-                  <span>Grupo 1 (Bombas)</span>
+                  <span>{t('scheduling.group1Pumps')}</span>
                   <span>{groupPanelsOpen.grupo1 ? '▾' : '▸'}</span>
                 </button>
                 {groupPanelsOpen.grupo1 ? (
@@ -1836,7 +1836,7 @@ export default function SchedulingPage() {
                             }
                           >
                             <span>{bombaPanelsOpen[unit] ?? true ? '▾' : '▸'}</span>
-                            <span>Bomba {index + 1}</span>
+                            <span>{t('scheduling.pumpLabel', { index: index + 1 })}</span>
                           </button>
                           {group1Units.length > 1 ? (
                             <button
@@ -1875,10 +1875,10 @@ export default function SchedulingPage() {
                                     }))
                                   }
                                 >
-                                  <option value="ok">Bueno</option>
-                                  <option value="regular">Regular</option>
-                                  <option value="malo">Malo</option>
-                                  <option value="na">N/A</option>
+                                  <option value="ok">{t('scheduling.goodOption')}</option>
+                                  <option value="regular">{t('scheduling.regularOption')}</option>
+                                  <option value="malo">{t('scheduling.badOption')}</option>
+                                  <option value="na">{t('scheduling.notApplicableOption')}</option>
                                 </Select>
                                 <div className="space-y-1">
                                   <p className="text-xs text-ink-700">Red De Distribución <span className="text-red-500">*</span></p>
@@ -1894,10 +1894,10 @@ export default function SchedulingPage() {
                                       }))
                                     }
                                   >
-                                    <option value="ok">Buena</option>
-                                    <option value="regular">Regular</option>
-                                    <option value="malo">Mala</option>
-                                    <option value="na">N/A</option>
+                                    <option value="ok">{t('scheduling.goodFemaleOption')}</option>
+                                    <option value="regular">{t('scheduling.regularOption')}</option>
+                                    <option value="malo">{t('scheduling.badFemaleOption')}</option>
+                                    <option value="na">{t('scheduling.notApplicableOption')}</option>
                                   </Select>
                                 </div>
                               </div>
@@ -1912,8 +1912,8 @@ export default function SchedulingPage() {
               </div>
 
               {[
-                { key: 'grupo2', title: 'Grupo 2', items: completionChecklistGroups.grupo2 },
-                { key: 'grupo3', title: 'Grupo 3', items: completionChecklistGroups.grupo3 }
+                { key: 'grupo2', title: t('scheduling.group2Label'), items: completionChecklistGroups.grupo2 },
+                { key: 'grupo3', title: t('scheduling.group3Label'), items: completionChecklistGroups.grupo3 }
               ].map((group) => (
                 <div key={group.title} className="rounded-lg border border-fog-200 bg-white p-2 space-y-2">
                   <button
@@ -1946,10 +1946,10 @@ export default function SchedulingPage() {
                               }))
                             }
                           >
-                            <option value="ok">Bueno</option>
-                            <option value="regular">Regular</option>
-                            <option value="malo">Malo</option>
-                            <option value="na">N/A</option>
+                            <option value="ok">{t('scheduling.goodOption')}</option>
+                            <option value="regular">{t('scheduling.regularOption')}</option>
+                            <option value="malo">{t('scheduling.badOption')}</option>
+                            <option value="na">{t('scheduling.notApplicableOption')}</option>
                           </Select>
                         </div>
                       ))}
@@ -1959,7 +1959,7 @@ export default function SchedulingPage() {
               ))}
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-ink-800">Fotos del servicio <span className="text-red-500">*</span> (mínimo 1, ilimitadas)</label>
+              <label className="text-sm font-medium text-ink-800">{t('scheduling.servicePhotosTitle')} <span className="text-red-500">*</span> {t('scheduling.servicePhotosRequirement')}</label>
               <input
                 type="file"
                 accept="image/*"
@@ -2098,7 +2098,7 @@ export default function SchedulingPage() {
                     ))}
                   </div>
                 ) : null}
-                <p className="text-xs text-ink-500">Debes adjuntar mínimo 2 fotos por novedad (puedes agregar más).</p>
+                <p className="text-xs text-ink-500">{t('scheduling.issuePhotosHint')}</p>
               </div>
               {issueError ? <p className="text-xs text-red-500">{issueError}</p> : null}
               <Button type="button" variant="secondary" onClick={addIssue}>
