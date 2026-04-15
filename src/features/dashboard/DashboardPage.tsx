@@ -1,8 +1,11 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import PageHeader from '@/components/PageHeader';
 import { GlassPanel, MetricCard, MotionGrid, MotionItem, SectionHeader, StatusPill } from '@/components/premium';
+import type { AppUser } from '@/core/models/appUser';
 import type { Building } from '@/core/models/building';
+import type { Contract } from '@/core/models/contract';
 import type { Employee } from '@/core/models/employee';
 import { useList, useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
@@ -12,6 +15,8 @@ export default function DashboardPage() {
   const { data: serviceOrders = [] } = useServiceOrders();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
+  const { data: contracts = [] } = useList<Contract>('contracts', 'contracts');
+  const { data: users = [] } = useList<AppUser>('users', 'users');
 
   const data = useMemo(() => {
     const now = new Date();
@@ -21,7 +26,12 @@ export default function DashboardPage() {
     const overdue = active.filter((item) => new Date(item.scheduledStartAt) < now);
     const upcoming = [...active]
       .sort((a, b) => new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime())
-      .slice(0, 5);
+      .slice(0, 6);
+    const alerts = [
+      ...urgent.map((item) => ({ id: `${item.id}-urgent`, label: t('missionControl.alertUrgent'), service: item.title, tone: 'danger' as const })),
+      ...blocked.map((item) => ({ id: `${item.id}-blocked`, label: t('missionControl.alertUnassigned'), service: item.title, tone: 'warning' as const })),
+      ...overdue.map((item) => ({ id: `${item.id}-overdue`, label: t('missionControl.alertOverdue'), service: item.title, tone: 'warning' as const }))
+    ].slice(0, 6);
 
     const technicianLoad = employees
       .filter((employee) => employee.active)
@@ -33,8 +43,33 @@ export default function DashboardPage() {
       .sort((a, b) => b.assigned - a.assigned)
       .slice(0, 5);
 
-    return { active, urgent, blocked, overdue, upcoming, technicianLoad, contractsPending: 8, quotesPending: 5 };
-  }, [employees, serviceOrders]);
+    const recentActivity = serviceOrders
+      .flatMap((order) =>
+        (order.timeline ?? []).map((event) => ({
+          id: event.id,
+          title: event.summary,
+          createdAt: event.createdAt,
+          serviceTitle: order.title
+        }))
+      )
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 6);
+
+    return {
+      active,
+      urgent,
+      blocked,
+      overdue,
+      upcoming,
+      alerts,
+      technicianLoad,
+      recentActivity,
+      contractsPending: contracts.filter((item) => !item.endAt || new Date(item.endAt) >= now).length,
+      quotesPending: blocked.length + urgent.length,
+      usersCount: users.length,
+      buildingsCount: buildings.length
+    };
+  }, [buildings.length, contracts, employees, serviceOrders, t, users.length]);
 
   const priorityTone = (priority: string) => {
     if (priority === 'urgent') return 'danger';
@@ -60,18 +95,18 @@ export default function DashboardPage() {
           aside={<StatusPill tone="info">{t('missionControl.liveLabel')}</StatusPill>}
         />
         <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <button className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5">
+          <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5" to="/services">
             {t('missionControl.quickSchedule')}
-          </button>
-          <button className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5">
+          </Link>
+          <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5" to="/employees">
             {t('missionControl.quickAssign')}
-          </button>
-          <button className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5">
+          </Link>
+          <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5" to="/reports">
             {t('missionControl.quickQuote')}
-          </button>
-          <button className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5">
+          </Link>
+          <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5" to="/management">
             {t('missionControl.quickContract')}
-          </button>
+          </Link>
         </div>
       </GlassPanel>
 
@@ -126,6 +161,23 @@ export default function DashboardPage() {
 
         <div className="space-y-4">
           <GlassPanel>
+            <SectionHeader title={t('missionControl.alertsTitle')} subtitle={t('missionControl.alertsSubtitle')} />
+            <div className="mt-6 space-y-3">
+              {data.alerts.map((alert) => (
+                <div key={alert.id} className="rounded-2xl border border-white/70 bg-white/75 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-slate-900">{alert.service}</p>
+                      <p className="text-sm text-slate-600">{alert.label}</p>
+                    </div>
+                    <StatusPill tone={alert.tone}>{alert.label}</StatusPill>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </GlassPanel>
+
+          <GlassPanel>
             <SectionHeader title={t('missionControl.teamLoadTitle')} subtitle={t('missionControl.teamLoadSubtitle')} />
             <div className="mt-6 space-y-3">
               {data.technicianLoad.map((tech) => (
@@ -138,21 +190,44 @@ export default function DashboardPage() {
               ))}
             </div>
           </GlassPanel>
-
-          <GlassPanel>
-            <SectionHeader title={t('missionControl.commercialTitle')} subtitle={t('missionControl.commercialSubtitle')} />
-            <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-              <div className="rounded-2xl border border-white/70 bg-white/75 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.quotesPending')}</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-950">{data.quotesPending}</p>
-              </div>
-              <div className="rounded-2xl border border-white/70 bg-white/75 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.contractsPending')}</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-950">{data.contractsPending}</p>
-              </div>
-            </div>
-          </GlassPanel>
         </div>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[1fr,1.2fr]">
+        <GlassPanel>
+          <SectionHeader title={t('missionControl.commercialTitle')} subtitle={t('missionControl.commercialSubtitle')} />
+          <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-2">
+            <div className="rounded-2xl border border-white/70 bg-white/75 p-4">
+              <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.quotesPending')}</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-950">{data.quotesPending}</p>
+            </div>
+            <div className="rounded-2xl border border-white/70 bg-white/75 p-4">
+              <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.contractsPending')}</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-950">{data.contractsPending}</p>
+            </div>
+            <div className="rounded-2xl border border-white/70 bg-white/75 p-4">
+              <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.usersLabel')}</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-950">{data.usersCount}</p>
+            </div>
+            <div className="rounded-2xl border border-white/70 bg-white/75 p-4">
+              <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.buildingsLabel')}</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-950">{data.buildingsCount}</p>
+            </div>
+          </div>
+        </GlassPanel>
+
+        <GlassPanel>
+          <SectionHeader title={t('missionControl.activityTitle')} subtitle={t('missionControl.activitySubtitle')} />
+          <div className="mt-6 space-y-3">
+            {data.recentActivity.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-white/70 bg-white/75 p-4">
+                <p className="font-semibold text-slate-900">{item.title}</p>
+                <p className="text-sm text-slate-600">{item.serviceTitle}</p>
+                <p className="mt-1 text-xs text-slate-500">{new Date(item.createdAt).toLocaleString('es-CO')}</p>
+              </div>
+            ))}
+          </div>
+        </GlassPanel>
       </div>
     </motion.div>
   );

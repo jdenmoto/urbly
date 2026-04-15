@@ -60,10 +60,7 @@ export function MotionGrid({ children, className }: PropsWithChildren<{ classNam
       className={className}
       initial="hidden"
       animate="show"
-      variants={{
-        hidden: {},
-        show: { transition: { staggerChildren: 0.06 } }
-      }}
+      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
     >
       {children}
     </motion.div>

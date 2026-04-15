@@ -216,10 +216,19 @@ missionControl:
   teamLoadTitle: Carga del equipo
   teamLoadSubtitle: Balance rápido del equipo técnico para decidir asignaciones.
   assignedCount: "{count} asignados"
+  alertsTitle: Alertas operativas
+  alertsSubtitle: Bloqueos, urgencias y vencimientos que necesitan intervención.
+  alertUrgent: Urgente
+  alertUnassigned: Sin asignar
+  alertOverdue: Vencido
   commercialTitle: Pipeline comercial y contractual
   commercialSubtitle: Controles rápidos para lo que todavía necesita conversión o implementación.
   quotesPending: Cotizaciones pendientes
   contractsPending: Contratos por implementar
+  usersLabel: Usuarios activos
+  buildingsLabel: Edificios monitoreados
+  activityTitle: Actividad reciente
+  activitySubtitle: Últimos movimientos relevantes generados por la operación.
 ai:
   title: IA operativa
   subtitle: Asistente transversal para informes, mensajes y seguimiento.
