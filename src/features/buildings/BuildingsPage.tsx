@@ -4,11 +4,12 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createDoc, updateDocById, deleteDocById } from '@/lib/api/firestore';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useList } from '@/lib/api/queries';
-import type { Building } from '@/core/models/building';
+import { buildServiceOrders, useList } from '@/lib/api/queries';
 import type { Appointment } from '@/core/models/appointment';
+import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
+import type { ServiceOrder } from '@/core/models/serviceOrder';
 import PageHeader from '@/components/PageHeader';
 import Input from '@/components/Input';
 import Select from '@/components/Select';
@@ -267,26 +268,31 @@ export default function BuildingsPage() {
     ],
     [t]
   );
-  const maintenanceColumns = useMemo<ColumnDef<Appointment>[]>(
+  const serviceOrders = useMemo(
+    () => buildServiceOrders(appointments, buildings, contracts, managements),
+    [appointments, buildings, contracts, managements]
+  );
+
+  const maintenanceColumns = useMemo<ColumnDef<ServiceOrder>[]>(
     () => [
       { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: false },
       {
         header: t('scheduling.startAt'),
-        accessorKey: 'startAt',
+        accessorKey: 'scheduledStartAt',
         enableSorting: false,
-        cell: ({ row }) => formatDateTime(row.original.startAt)
+        cell: ({ row }) => formatDateTime(row.original.scheduledStartAt)
       },
       {
         header: t('scheduling.endAt'),
-        accessorKey: 'endAt',
+        accessorKey: 'scheduledEndAt',
         enableSorting: false,
-        cell: ({ row }) => formatDateTime(row.original.endAt)
+        cell: ({ row }) => formatDateTime(row.original.scheduledEndAt)
       },
       {
         header: t('scheduling.status'),
         accessorKey: 'status',
         enableSorting: false,
-        cell: ({ row }) => statusLabels[row.original.status] ?? row.original.status
+        cell: ({ row }) => statusLabels[row.original.status === 'scheduled' ? 'programado' : row.original.status === 'confirmed' ? 'confirmado' : row.original.status === 'completed' ? 'completado' : 'cancelado'] ?? row.original.status
       }
     ],
     [statusLabels, t, formatDateTime]
@@ -294,10 +300,10 @@ export default function BuildingsPage() {
 
   const maintenanceAppointments = useMemo(() => {
     if (!detailTarget) return [];
-    return appointments
-      .filter((appointment) => appointment.buildingId === detailTarget.id && appointment.type === 'mantenimiento')
-      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
-  }, [appointments, detailTarget]);
+    return serviceOrders
+      .filter((serviceOrder) => serviceOrder.buildingId === detailTarget.id && serviceOrder.type === 'mantenimiento')
+      .sort((a, b) => new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime());
+  }, [detailTarget, serviceOrders]);
   const detailContract = useMemo(() => {
     if (!detailTarget?.contractId) return null;
     return contracts.find((contract) => contract.id === detailTarget.contractId) ?? null;
