@@ -4,11 +4,11 @@ Este proyecto sigue flujo feature -> develop -> main:
 
 - `ci.yml`
   - Corre en PR/push (`feature/**`, `develop`, `main`)
-  - Instala deps, genera `.env.local` desde secrets, lint incremental (`lint:ci` sobre archivos cambiados), build web y build functions.
+  - Instala deps, genera `.env.local` desde secrets, lint incremental (`lint:ci` sobre archivos cambiados), typecheck web/functions, build web y build functions.
 
 - `preview.yml`
   - Manual (`workflow_dispatch`)
-  - Hace build y publica un preview channel bajo demanda.
+  - Hace typecheck + build y publica un preview channel bajo demanda.
 
 - `deploy-develop.yml`
   - Corre **solo cuando CI termina exitoso** para la rama `develop` (post-merge/push).
@@ -37,5 +37,13 @@ Este proyecto sigue flujo feature -> develop -> main:
 - `VITE_GOOGLE_MAPS_MAP_ID`
 - `VITE_FIREBASE_STORAGE_BUCKET`
 - `FIREBASE_BROWSER_KEY_ID` (opcional, útil para scripts de preview/referrer)
+
+## Checks mínimos esperados
+- lint incremental en CI para ramas activas
+- lint completo antes de deploy a producción
+- typecheck web
+- typecheck functions
+- build web
+- build functions
 
 > Nota: los workflows generan `.env.local` dinámicamente en tiempo de ejecución; no se versionan secretos en el repositorio.

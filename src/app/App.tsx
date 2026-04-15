@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
 import { AuthProvider, ProtectedRoute, RoleGuard } from './Auth';
-import DashboardPage from '@/features/dashboard/DashboardPage';
+import HomeRouterPage from '@/features/dashboard/HomeRouterPage';
 import BuildingsPage from '@/features/buildings/BuildingsPage';
 import ManagementPage from '@/features/management/ManagementPage';
 import EmployeesPage from '@/features/employees/EmployeesPage';
@@ -10,6 +10,15 @@ import LoginPage from '@/features/auth/LoginPage';
 import UsersPage from '@/features/users/UsersPage';
 import FeatureGuard from '@/components/FeatureGuard';
 import BuildingAdminPage from '@/features/buildingAdmin/BuildingAdminPage';
+import ServicesPage from '@/features/services/ServicesPage';
+import ServiceDetailPage from '@/features/services/ServiceDetailPage';
+import ServiceCloseoutPage from '@/features/services/ServiceCloseoutPage';
+import CustomersPage from '@/features/customers/CustomersPage';
+import AssetsPage from '@/features/assets/AssetsPage';
+import ReportsPage from '@/features/reports/ReportsPage';
+import AiWorkspacePage from '@/features/ai/AiWorkspacePage';
+import TechnicianHomePage from '@/features/technician/TechnicianHomePage';
+import ClientSummaryPage from '@/features/portal/ClientSummaryPage';
 import GroupsSettingsPage from '@/features/settings/GroupsSettingsPage';
 import IssuesSettingsPage from '@/features/settings/IssuesSettingsPage';
 import ContractsSettingsPage from '@/features/settings/ContractsSettingsPage';
@@ -34,9 +43,49 @@ export default function App() {
           <Route
             index
             element={
-              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler']}>
+              <RoleGuard allow={['admin', 'editor', 'view']}>
                 <FeatureGuard feature="dashboard">
-                  <DashboardPage />
+                  <HomeRouterPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="technician"
+            element={
+              <RoleGuard allow={['emergency_scheduler']}>
+                <FeatureGuard feature="technicianHome">
+                  <TechnicianHomePage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="services"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler']}>
+                <FeatureGuard feature="services">
+                  <ServicesPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="services/:serviceOrderId"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler']}>
+                <FeatureGuard feature="services">
+                  <ServiceDetailPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="services/:serviceOrderId/closeout"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler']}>
+                <FeatureGuard feature="services">
+                  <ServiceCloseoutPage />
                 </FeatureGuard>
               </RoleGuard>
             }
@@ -47,6 +96,26 @@ export default function App() {
               <RoleGuard allow={['admin', 'editor', 'view']}>
                 <FeatureGuard feature="buildings">
                   <BuildingsPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="customers"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'view']}>
+                <FeatureGuard feature="customers">
+                  <CustomersPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="assets"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'view']}>
+                <FeatureGuard feature="assets">
+                  <AssetsPage />
                 </FeatureGuard>
               </RoleGuard>
             }
@@ -74,9 +143,29 @@ export default function App() {
           <Route
             path="scheduling"
             element={
-              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler']}>
+              <RoleGuard allow={['admin', 'editor']}>
                 <FeatureGuard feature="scheduling">
                   <SchedulingPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="reports"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'view']}>
+                <FeatureGuard feature="reports">
+                  <ReportsPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="ai"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'view']}>
+                <FeatureGuard feature="aiWorkspace">
+                  <AiWorkspacePage />
                 </FeatureGuard>
               </RoleGuard>
             }
@@ -93,6 +182,24 @@ export default function App() {
           />
           <Route
             path="portal"
+            element={
+              <RoleGuard allow={['building_admin']}>
+                <FeatureGuard feature="clientSummary">
+                  <ClientSummaryPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="portal/services"
+            element={
+              <RoleGuard allow={['building_admin']}>
+                <BuildingAdminPage />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="portal/reports"
             element={
               <RoleGuard allow={['building_admin']}>
                 <BuildingAdminPage />

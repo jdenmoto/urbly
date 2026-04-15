@@ -15,6 +15,7 @@ jobs:
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'develop'
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,6 +51,9 @@ jobs:
           FIREBASE_BROWSER_KEY_ID=${FIREBASE_BROWSER_KEY_ID}
           EOF
 
+      - name: Typecheck web app
+        run: npm run typecheck
+
       - name: Build web app
         run: npm run build
 
@@ -82,4 +86,8 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           GCP_API_KEY_ID: ${{ secrets.FIREBASE_BROWSER_KEY_ID }}
         run: |
+          if [ -z "$GCP_API_KEY_ID" ]; then
+            echo "FIREBASE_BROWSER_KEY_ID no configurado, se omite whitelist del preview URL"
+            exit 0
+          fi
           npm run preview:allow-url -- "${{ steps.deploy_staging.outputs.preview_url }}"
