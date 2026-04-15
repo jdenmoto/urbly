@@ -4,6 +4,7 @@ import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
 import { useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
+import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from '@/features/services/serviceOrderAi';
 
 export default function AiWorkspacePage() {
   const { t } = useI18n();
@@ -28,7 +29,10 @@ export default function AiWorkspacePage() {
             ? t('ai.suggestionUrgent')
             : item.issues?.length
               ? t('ai.suggestionIssues')
-              : t('ai.suggestionDefault')
+              : t('ai.suggestionDefault'),
+        summary: buildServiceSummary(item),
+        customerMessage: buildCustomerMessage(item),
+        followUp: buildFollowUp(item)
       }));
   }, [serviceOrders, t]);
 
@@ -45,9 +49,25 @@ export default function AiWorkspacePage() {
         {suggestions.length ? (
           <div className="space-y-3">
             {suggestions.map((item) => (
-              <div key={item.id} className="rounded-xl border border-fog-200 p-4">
-                <p className="text-sm font-semibold text-ink-900">{item.title}</p>
-                <p className="mt-1 text-sm text-ink-600">{item.suggestion}</p>
+              <div key={item.id} className="rounded-xl border border-fog-200 p-4 space-y-3">
+                <div>
+                  <p className="text-sm font-semibold text-ink-900">{item.title}</p>
+                  <p className="mt-1 text-sm text-ink-600">{item.suggestion}</p>
+                </div>
+                <div className="grid gap-3 xl:grid-cols-3 text-sm text-ink-700">
+                  <div className="rounded-lg bg-fog-50 p-3">
+                    <p className="font-semibold text-ink-900">{t('ai.caseSummaryTitle')}</p>
+                    <p className="mt-2 whitespace-pre-wrap">{item.summary}</p>
+                  </div>
+                  <div className="rounded-lg bg-fog-50 p-3">
+                    <p className="font-semibold text-ink-900">{t('ai.customerMessageTitle')}</p>
+                    <p className="mt-2 whitespace-pre-wrap">{item.customerMessage}</p>
+                  </div>
+                  <div className="rounded-lg bg-fog-50 p-3">
+                    <p className="font-semibold text-ink-900">{t('ai.followUpTitle')}</p>
+                    <p className="mt-2 whitespace-pre-wrap">{item.followUp}</p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>

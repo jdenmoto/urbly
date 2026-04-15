@@ -180,6 +180,9 @@ ai:
   suggestionUrgent: Prioriza este servicio, prepara mensaje al cliente y revisa seguimiento inmediato.
   suggestionIssues: Resume novedades, prepara informe y valida si hace falta seguimiento tecnico.
   suggestionDefault: Revisa contexto del caso y deja listo el siguiente paso operativo.
+  caseSummaryTitle: Resumen del caso
+  customerMessageTitle: Mensaje sugerido al cliente
+  followUpTitle: Siguiente paso sugerido
   empty: No hay servicios activos para sugerencias ahora mismo.
 technician:
   homeTitle: Hoy
