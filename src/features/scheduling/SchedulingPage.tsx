@@ -51,6 +51,7 @@ import {
   hasMinTwoPhotos,
   validateCompletion
 } from './schedulingCompletion';
+import { cancelAppointment, deleteAppointment } from './schedulingMutations';
 
 export default function SchedulingPage() {
   const { t } = useI18n();
@@ -844,11 +845,7 @@ export default function SchedulingPage() {
   const onCancel = async (values: CancelValues) => {
     if (!cancelTarget) return;
     try {
-      await updateDocById('appointments', cancelTarget.id, {
-        status: 'cancelado',
-        cancelReason: values.reason || null,
-        cancelNote: values.note?.trim() || null
-      });
+      await cancelAppointment(cancelTarget.id, values);
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
       toast(t('scheduling.toastCanceled'), 'success');
       setCancelTarget(null);
@@ -860,7 +857,7 @@ export default function SchedulingPage() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await deleteDocById('appointments', deleteTarget.id);
+      await deleteAppointment(deleteTarget.id);
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
       if (editingId === deleteTarget.id) {
         setModalOpen(false);
