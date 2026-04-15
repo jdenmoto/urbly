@@ -10,3 +10,7 @@
 - Trello cards: `docs/trello.md`
 - Security notes: `docs/security-notes.md`
 - Risks: `docs/risks.md`
+- Urbly v2 docs: `docs/urbly-v2/README.md`
+- Urbly v2 design doc: `docs/urbly-v2/design.md`
+- Urbly v2 implementation plan: `docs/urbly-v2/implementation-plan.md`
+- Urbly v2 execution plan: `docs/urbly-v2/execution-plan.md`

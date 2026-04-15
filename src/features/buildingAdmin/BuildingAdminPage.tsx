@@ -4,10 +4,9 @@ import Card from '@/components/Card';
 import DataTable from '@/components/DataTable';
 import EmptyState from '@/components/EmptyState';
 import BuildingsMap from '@/components/BuildingsMap';
-import { useList } from '@/lib/api/queries';
+import { useList, useServiceOrders } from '@/lib/api/queries';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type { Building } from '@/core/models/building';
-import type { Appointment } from '@/core/models/appointment';
 import type { AppUser } from '@/core/models/appUser';
 import { useAuth } from '@/app/Auth';
 import { loadGoogleMaps } from '@/lib/googleMaps';
@@ -20,7 +19,7 @@ export default function BuildingAdminPage() {
   const { data: users = [] } = useList<AppUser>('users', 'users');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
-  const { data: appointments = [] } = useList<Appointment>('appointments', 'appointments');
+  const { data: serviceOrders = [] } = useServiceOrders();
   const [mapsReady, setMapsReady] = useState(false);
 
   const currentUser = useMemo(() => users.find((item) => item.id === user?.uid), [users, user?.uid]);
@@ -39,10 +38,10 @@ export default function BuildingAdminPage() {
     [buildings, administrationId]
   );
 
-  const scopedAppointments = useMemo(() => {
+  const scopedServiceOrders = useMemo(() => {
     const buildingIds = new Set(scopedBuildings.map((building) => building.id));
-    return appointments.filter((appointment) => buildingIds.has(appointment.buildingId));
-  }, [appointments, scopedBuildings]);
+    return serviceOrders.filter((serviceOrder) => buildingIds.has(serviceOrder.buildingId));
+  }, [serviceOrders, scopedBuildings]);
 
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -67,7 +66,7 @@ export default function BuildingAdminPage() {
     [t]
   );
 
-  const appointmentColumns = useMemo<ColumnDef<Appointment>[]>(
+  const appointmentColumns = useMemo<ColumnDef<(typeof scopedServiceOrders)[number]>[]>(
     () => [
       { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: false },
       {
@@ -75,11 +74,11 @@ export default function BuildingAdminPage() {
         enableSorting: false,
         accessorFn: (row) => scopedBuildings.find((b) => b.id === row.buildingId)?.name ?? t('common.noData')
       },
-      { header: t('scheduling.startAt'), accessorKey: 'startAt', enableSorting: false },
-      { header: t('scheduling.endAt'), accessorKey: 'endAt', enableSorting: false },
+      { header: t('scheduling.startAt'), accessorKey: 'scheduledStartAt', enableSorting: false },
+      { header: t('scheduling.endAt'), accessorKey: 'scheduledEndAt', enableSorting: false },
       { header: t('scheduling.status'), accessorKey: 'status', enableSorting: false }
     ],
-    [t, scopedBuildings]
+    [t, scopedBuildings, scopedServiceOrders]
   );
 
   if (!administrationId) {
@@ -121,7 +120,7 @@ export default function BuildingAdminPage() {
       </div>
       <DataTable
         columns={appointmentColumns}
-        data={scopedAppointments}
+        data={scopedServiceOrders}
         emptyState={<EmptyState title={t('portal.appointmentsEmpty')} description={t('portal.appointmentsEmptyHint')} />}
       />
     </div>

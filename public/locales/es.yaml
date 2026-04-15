@@ -50,12 +50,20 @@ common:
   notAuthorized: No tienes permisos para acceder a esta seccion.
 nav:
   dashboard: Dashboard
+  services: Servicios
+  customers: Clientes
+  assets: Activos
+  reports: Reportes
+  aiWorkspace: IA
   buildings: Edificios
   management: Administraciones
   employees: Empleados
   scheduling: Agendamientos
   users: Usuarios
   portal: Portal
+  clientSummary: Resumen
+  portalServices: Servicios
+  portalReports: Reportes
   settings: Configuraciones
   settingsGroups: Grupos
   settingsIssues: Novedades
@@ -98,6 +106,98 @@ portal:
   buildingsEmptyHint: No hay edificios con contrato activo.
   appointmentsEmpty: Sin agendamientos
   appointmentsEmptyHint: No hay agendamientos para tus edificios.
+clientPortal:
+  summaryTitle: Resumen del cliente
+  summarySubtitle: Vista inicial del portal cliente para seguimiento operativo.
+  comingSoon: Aqui vivira la nueva vista de resumen para clientes con estado general, proximos mantenimientos e informes.
+  activeServices: Servicios activos
+  completedServices: Servicios completados
+  buildingsCount: Edificios
+  upcomingTitle: Proximos servicios
+  upcomingSubtitle: Primer corte del resumen cliente basado en service orders.
+  empty: No hay proximos servicios programados.
+services:
+  title: Servicios
+  subtitle: Nuevo nucleo operativo basado en service orders.
+  comingSoon: Esta area alojara agenda, detalle y cierre del nuevo flujo de servicios.
+  empty: No hay servicios para los filtros seleccionados.
+  viewDetail: Ver detalle
+  viewCloseout: Ver cierre
+  detailTitle: Detalle del servicio
+  detailSubtitle: Primer corte de la vista dedicada para contexto e historial.
+  detailEmpty: No se encontro el servicio solicitado.
+  contextTitle: Contexto del servicio
+  contextSubtitle: Informacion base para operar el service order sin entrar al scheduling legacy.
+  buildingLabel: Edificio
+  customerLabel: Cliente
+  technicianLabel: Tecnico
+  statusLabel: Estado
+  priorityLabel: Prioridad
+  typeLabel: Tipo
+  startLabel: Inicio
+  endLabel: Fin
+  descriptionLabel: Descripcion
+  timelineTitle: Timeline operativo
+  timelineSubtitle: Eventos derivados del appointment actual mientras se migra el dominio.
+  timelineEmpty: Este servicio todavia no tiene eventos registrados.
+  closeoutTitle: Cierre tecnico
+  closeoutSubtitle: Primer corte del cierre dedicado de service orders.
+  closeoutEmpty: No se encontro el servicio solicitado.
+  closeoutHint: Esta vista sera la base para separar checklist, reporte y evidencias del scheduling legacy.
+  reportTitle: Reporte actual
+  evidenceTitle: Evidencia actual
+  evidenceCount: "Fotos registradas: {count}"
+  issuesCount: "Novedades registradas: {count}"
+  timelineCount: "Eventos del timeline: {count}"
+  communicationTitle: Comunicacion generada
+  issueSummaryTitle: Resumen de novedades
+  issueSummarySubtitle: Primer corte de incidencias derivadas del servicio actual.
+  issueSummaryEmpty: No hay novedades registradas para este servicio.
+  aiActionsTitle: IA operativa aplicada
+  aiActionsSubtitle: Sugerencias listas para usar desde el contexto real del servicio.
+  aiSummaryTitle: Resumen del caso
+  aiCustomerMessageTitle: Mensaje sugerido al cliente
+  aiFollowUpTitle: Siguiente paso sugerido
+  aiReportTitle: Informe tecnico sugerido
+customers:
+  title: Clientes
+  subtitle: Relacion comercial y operativa en una sola vista.
+  comingSoon: Esta seccion centralizara cuentas, contactos y contexto de servicio.
+assets:
+  title: Activos
+  subtitle: Edificios, contratos e historial operativo.
+  comingSoon: Aqui se consolidaran edificios y activos con contexto tecnico y contractual.
+reports:
+  title: Reportes
+  subtitle: Informes, evidencias y trazabilidad operativa.
+  comingSoon: Esta seccion reunira reportes tecnicos, historiales y entregables al cliente.
+ai:
+  title: IA operativa
+  subtitle: Asistente transversal para informes, mensajes y seguimiento.
+  comingSoon: Aqui se integraran acciones de IA con foco en ahorro operativo real.
+  workspaceTitle: Sugerencias operativas
+  workspaceSubtitle: Primer corte de acciones sugeridas usando el backlog actual de service orders.
+  suggestionUrgent: Prioriza este servicio, prepara mensaje al cliente y revisa seguimiento inmediato.
+  suggestionIssues: Resume novedades, prepara informe y valida si hace falta seguimiento tecnico.
+  suggestionDefault: Revisa contexto del caso y deja listo el siguiente paso operativo.
+  caseSummaryTitle: Resumen del caso
+  customerMessageTitle: Mensaje sugerido al cliente
+  followUpTitle: Siguiente paso sugerido
+  empty: No hay servicios activos para sugerencias ahora mismo.
+technician:
+  homeTitle: Hoy
+  homeSubtitle: Espacio de trabajo movil para el tecnico.
+  comingSoon: Esta vista reunira los servicios del dia, contexto, checklist y cierre rapido desde movil.
+  assignedServices: Servicios asignados
+  pendingServices: Pendientes
+  issuesDetected: Novedades
+  nextServiceTitle: Siguiente servicio
+  nextServiceSubtitle: Primer corte del home tecnico usando service orders.
+  missingEmployee: No se encontro un tecnico asociado a este usuario.
+  empty: No tienes servicios pendientes por ahora.
+  statusLabel: Estado
+  priorityLabel: Prioridad
+  issuesLabel: Novedades
 settings:
   title: Configuraciones
   subtitle: Administra tipos de novedad y categorias

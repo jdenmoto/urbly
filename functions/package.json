@@ -3,6 +3,7 @@
   "private": true,
   "main": "lib/index.js",
   "scripts": {
+    "typecheck": "tsc --pretty false --noEmit",
     "build": "tsc",
     "lint": "echo 'no lint configured'"
   },
