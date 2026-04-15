@@ -188,17 +188,38 @@ reports:
   title: Reportes
   subtitle: Informes, evidencias y trazabilidad operativa.
   comingSoon: Esta seccion reunira reportes tecnicos, historiales y entregables al cliente.
-dashboardV2:
-  prioritizedBadge: Vista operativa priorizada
-  prioritizedHint: servicios priorizados para seguimiento inmediato
-  pulseTitle: Pulso operativo
-  pulseSubtitle: Lectura rápida del estado actual para decidir dónde actuar primero.
-  urgencyLabel: Urgencia
-  urgencyHint: servicios con prioridad alta que requieren atención inmediata
-  riskLabel: Riesgo
-  riskHint: servicios vencidos o fuera de ventana prevista
-  deliveryLabel: Entrega
-  deliveryHint: servicios ya completados y listos para cierre o reporte
+missionControl:
+  title: Mission Control
+  subtitle: Centro de control premium para monitorear la operación diaria, asignar, agendar y coordinar el sistema completo.
+  eyebrow: Centro operativo premium
+  heroTitle: Operación del día bajo control
+  heroSubtitle: Supervisa servicios, asignaciones, cotizaciones, contratos y carga operativa desde una sola vista diseñada para respuesta rápida.
+  liveLabel: En vivo
+  quickSchedule: Nuevo agendamiento
+  quickAssign: Asignar técnico
+  quickQuote: Crear cotización
+  quickContract: Implementar contrato
+  activeServices: Servicios activos
+  activeServicesHint: servicios en curso o listos para ejecución inmediata
+  urgentAlerts: Alertas urgentes
+  urgentAlertsHint: servicios con prioridad crítica que requieren seguimiento ahora
+  unassigned: Sin asignación
+  unassignedHint: servicios sin técnico asignado o sin responsable claro
+  overdue: Fuera de ventana
+  overdueHint: servicios que ya entraron en riesgo operativo por tiempo
+  operationsTitle: Agenda y asignaciones
+  operationsSubtitle: Vista principal para coordinar servicios, responsables y próximos movimientos.
+  priorityPill: "Prioridad {value}"
+  assigneeLabel: Responsable
+  issuesLabel: Novedades
+  typeLabel: Tipo
+  teamLoadTitle: Carga del equipo
+  teamLoadSubtitle: Balance rápido del equipo técnico para decidir asignaciones.
+  assignedCount: "{count} asignados"
+  commercialTitle: Pipeline comercial y contractual
+  commercialSubtitle: Controles rápidos para lo que todavía necesita conversión o implementación.
+  quotesPending: Cotizaciones pendientes
+  contractsPending: Contratos por implementar
 ai:
   title: IA operativa
   subtitle: Asistente transversal para informes, mensajes y seguimiento.
