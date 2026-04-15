@@ -232,7 +232,7 @@ export default function ContractsSettingsPage() {
                   </button>
                 </div>
                 <Input
-                  label=""
+                  label={t('settings.priceValueLabel')}
                   value={formatCOP(prices[field.key as keyof MaintenancePrices] ?? 0)}
                   inputMode="numeric"
                   onChange={(event) =>
