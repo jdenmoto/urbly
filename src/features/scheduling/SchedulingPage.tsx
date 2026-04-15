@@ -38,6 +38,7 @@ import { useList } from '@/lib/api/queries';
 import { isValidDateRange } from '@/core/validators';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
+import { buildRestrictedDates, filterAppointments, formatDateTime, formatLocalInput, formatLocalIso, isRestrictedDate as isRestrictedDateValue, isWithinBusinessHours, toLocalIso, translateAppointmentStatus } from './schedulingUtils';
 import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/app/Auth';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -290,48 +291,11 @@ export default function SchedulingPage() {
     reset: resetCancel
   } = useForm<CancelValues>({ resolver: zodResolver(cancelSchema) });
 
-  const filterFromDate = filters.from ? new Date(`${filters.from}T00:00:00`) : null;
-  const filterToDate = filters.to ? new Date(`${filters.to}T23:59:59`) : null;
-  const filtered = appointments.filter((item) => {
-    if (filters.buildingId && item.buildingId !== filters.buildingId) return false;
-    const start = new Date(item.startAt);
-    const end = new Date(item.endAt);
-    if (filterFromDate && start < filterFromDate) return false;
-    if (filterToDate && end > filterToDate) return false;
-    return true;
-  });
+  const filtered = useMemo(() => filterAppointments(appointments, filters), [appointments, filters]);
 
-  const restrictedDates = useMemo(() => {
-    const dates = new Set<string>();
-    (calendarSettings?.holidays ?? []).forEach((item) => item.date && dates.add(item.date));
-    (calendarSettings?.nonWorkingDays ?? []).forEach((item) => item.date && dates.add(item.date));
-    return dates;
-  }, [calendarSettings]);
+  const restrictedDates = useMemo(() => buildRestrictedDates(calendarSettings), [calendarSettings]);
 
-  const isRestrictedDate = (value?: string) => {
-    if (!value) return false;
-    const date = value.slice(0, 10);
-    return restrictedDates.has(date);
-  };
-  const formatLocalIso = (value: Date) => {
-    const pad = (num: number) => String(num).padStart(2, '0');
-    return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}T${pad(value.getHours())}:${pad(value.getMinutes())}:00`;
-  };
-  const formatLocalInput = (value: Date) => formatLocalIso(value).slice(0, 16);
-  const toLocalIso = (value: string) => {
-    if (!value) return value;
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return formatLocalIso(date);
-  };
-  const isWithinBusinessHours = (startIso: string, endIso: string) => {
-    const start = new Date(startIso);
-    const end = new Date(endIso);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
-    const startMinutes = start.getHours() * 60 + start.getMinutes();
-    const endMinutes = end.getHours() * 60 + end.getMinutes();
-    return startMinutes >= 8 * 60 && endMinutes <= 18 * 60;
-  };
+  const isRestrictedDate = (value?: string) => isRestrictedDateValue(restrictedDates, value);
   const nextWorkingDate = (base: Date) => {
     let candidate = new Date(base);
     while (isRestrictedDate(formatLocalIso(candidate)) || candidate.getDay() === 0) {
@@ -990,31 +954,7 @@ export default function SchedulingPage() {
     }
   };
 
-  const toLocalDate = (value?: string | null) => {
-    if (!value) return null;
-    const cleaned = value.replace(/Z$|[+-]\d{2}:\d{2}$/, '');
-    const date = new Date(cleaned.includes('T') ? cleaned : cleaned.replace(' ', 'T'));
-    return Number.isNaN(date.getTime()) ? null : date;
-  };
-  const formatDateTime = (value?: string | null) => {
-    const date = toLocalDate(value);
-    if (!date) return '';
-    return date.toLocaleString('es-CO', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-      hour12: true
-    });
-  };
-
-  const statusLabel = (status: string) => {
-    const map: Record<string, string> = {
-      programado: t('scheduling.statusProgrammed'),
-      confirmado: t('scheduling.statusConfirmed'),
-      completado: t('scheduling.statusCompleted'),
-      cancelado: t('scheduling.statusCanceled')
-    };
-    return map[status] ?? status;
-  };
+  const statusLabel = (status: string) => translateAppointmentStatus(status, t);
 
   const resolveIssueLabel = (prefix: 'scheduling.issueTypes' | 'scheduling.issueCategories', value: string) => {
     const key = `${prefix}.${value}`;
