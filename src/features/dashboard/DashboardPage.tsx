@@ -40,9 +40,30 @@ export default function DashboardPage() {
       .sort((a, b) => new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime())
       .slice(0, 6);
     const alerts = [
-      ...urgent.map((item) => ({ id: `${item.id}-urgent`, label: t('missionControl.alertUrgent'), service: item.title, tone: 'danger' as const })),
-      ...blocked.map((item) => ({ id: `${item.id}-blocked`, label: t('missionControl.alertUnassigned'), service: item.title, tone: 'warning' as const })),
-      ...overdue.map((item) => ({ id: `${item.id}-overdue`, label: t('missionControl.alertOverdue'), service: item.title, tone: 'warning' as const }))
+      ...urgent.map((item) => ({
+        id: `${item.id}-urgent`,
+        label: t('missionControl.alertUrgent'),
+        service: item.title,
+        tone: 'danger' as const,
+        actionLabel: t('missionControl.actionViewService'),
+        to: `/services/${item.id}`
+      })),
+      ...blocked.map((item) => ({
+        id: `${item.id}-blocked`,
+        label: t('missionControl.alertUnassigned'),
+        service: item.title,
+        tone: 'warning' as const,
+        actionLabel: t('missionControl.actionAssignService'),
+        to: `/services/${item.id}`
+      })),
+      ...overdue.map((item) => ({
+        id: `${item.id}-overdue`,
+        label: t('missionControl.alertOverdue'),
+        service: item.title,
+        tone: 'warning' as const,
+        actionLabel: t('missionControl.actionCloseService'),
+        to: `/services/${item.id}/closeout`
+      }))
     ].slice(0, 6);
 
     const technicianLoad = employees
@@ -183,6 +204,14 @@ export default function DashboardPage() {
                       <p className="text-sm text-slate-600">{alert.label}</p>
                     </div>
                     <StatusPill tone={alert.tone}>{alert.label}</StatusPill>
+                  </div>
+                  <div className="mt-4">
+                    <Link
+                      className="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                      to={alert.to}
+                    >
+                      {alert.actionLabel}
+                    </Link>
                   </div>
                 </div>
               ))}

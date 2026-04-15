@@ -228,6 +228,9 @@ missionControl:
   alertUrgent: Urgente
   alertUnassigned: Sin asignar
   alertOverdue: Vencido
+  actionViewService: Ver servicio
+  actionAssignService: Revisar asignacion
+  actionCloseService: Ir al cierre
   commercialTitle: Pipeline comercial y contractual
   commercialSubtitle: Controles rápidos para lo que todavía necesita conversión o implementación.
   quotesPending: Cotizaciones pendientes
