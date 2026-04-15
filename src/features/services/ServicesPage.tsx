@@ -27,6 +27,13 @@ const priorityTone: Record<string, string> = {
   low: 'bg-emerald-50 text-emerald-700'
 };
 
+const priorityLabelKey: Record<string, string> = {
+  urgent: 'services.priorityUrgent',
+  high: 'services.priorityHigh',
+  medium: 'services.priorityMedium',
+  low: 'services.priorityLow'
+};
+
 export default function ServicesPage() {
   const { t } = useI18n();
   const { data: serviceOrders = [], isLoading } = useServiceOrders();
@@ -63,12 +70,12 @@ export default function ServicesPage() {
 
   const statusLabel = (value: string) => {
     const labels: Record<string, string> = {
-      draft: 'Borrador',
-      scheduled: 'Programado',
-      confirmed: 'Confirmado',
-      in_progress: 'En progreso',
-      completed: 'Completado',
-      cancelled: 'Cancelado'
+      draft: t('services.statusDraft'),
+      scheduled: t('services.statusScheduled'),
+      confirmed: t('services.statusConfirmed'),
+      in_progress: t('services.statusInProgress'),
+      completed: t('services.statusCompleted'),
+      cancelled: t('services.statusCancelled')
     };
 
     return labels[value] ?? value;
@@ -145,7 +152,7 @@ export default function ServicesPage() {
                           {statusLabel(order.status)}
                         </span>
                         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[order.priority] ?? priorityTone.medium}`}>
-                          Prioridad {order.priority}
+                          {t('services.priorityPill', { value: t(priorityLabelKey[order.priority] ?? 'services.priorityMedium') })}
                         </span>
                       </div>
                       <div className="space-y-1">
@@ -167,7 +174,7 @@ export default function ServicesPage() {
                       </div>
                       <div className="rounded-2xl bg-fog-50 p-3">
                         <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.typeLabel')}</p>
-                        <p className="mt-1 font-semibold text-ink-900">{order.type}</p>
+                        <p className="mt-1 font-semibold text-ink-900">{t(`scheduling.types.${order.type}`, { defaultValue: order.type })}</p>
                       </div>
                       <div className="rounded-2xl bg-fog-50 p-3">
                         <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>

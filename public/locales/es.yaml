@@ -182,7 +182,12 @@ services:
   statusInProgress: En progreso
   statusCompleted: Completado
   statusCancelled: Cancelado
+  statusDraft: Borrador
   urgentLabel: Urgentes
+  priorityUrgent: Urgente
+  priorityHigh: Alta
+  priorityMedium: Media
+  priorityLow: Baja
 customers:
   title: Clientes
   subtitle: Relacion comercial y operativa en una sola vista.
