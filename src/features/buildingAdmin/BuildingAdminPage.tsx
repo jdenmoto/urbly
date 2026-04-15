@@ -12,6 +12,11 @@ import { useAuth } from '@/app/Auth';
 import { loadGoogleMaps } from '@/lib/googleMaps';
 import { useI18n } from '@/lib/i18n';
 import type { ColumnDef } from '@tanstack/react-table';
+import {
+  formatServiceDateTime,
+  getServiceOrderStatusLabel,
+  getServiceOrderTypeLabel
+} from '@/features/services/serviceOrderPresentation';
 
 export default function BuildingAdminPage() {
   const { t } = useI18n();
@@ -70,15 +75,32 @@ export default function BuildingAdminPage() {
     () => [
       { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: false },
       {
+        header: t('services.typeLabel'),
+        enableSorting: false,
+        cell: ({ row }) => getServiceOrderTypeLabel(t, row.original.type)
+      },
+      {
         header: t('scheduling.building'),
         enableSorting: false,
         accessorFn: (row) => scopedBuildings.find((b) => b.id === row.buildingId)?.name ?? t('common.noData')
       },
-      { header: t('scheduling.startAt'), accessorKey: 'scheduledStartAt', enableSorting: false },
-      { header: t('scheduling.endAt'), accessorKey: 'scheduledEndAt', enableSorting: false },
-      { header: t('scheduling.status'), accessorKey: 'status', enableSorting: false }
+      {
+        header: t('scheduling.startAt'),
+        enableSorting: false,
+        cell: ({ row }) => formatServiceDateTime(row.original.scheduledStartAt)
+      },
+      {
+        header: t('scheduling.endAt'),
+        enableSorting: false,
+        cell: ({ row }) => formatServiceDateTime(row.original.scheduledEndAt)
+      },
+      {
+        header: t('scheduling.status'),
+        enableSorting: false,
+        cell: ({ row }) => getServiceOrderStatusLabel(t, row.original.status)
+      }
     ],
-    [t, scopedBuildings, scopedServiceOrders]
+    [t, scopedBuildings]
   );
 
   if (!administrationId) {
