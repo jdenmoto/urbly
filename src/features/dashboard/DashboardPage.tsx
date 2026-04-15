@@ -18,6 +18,18 @@ export default function DashboardPage() {
   const { data: contracts = [] } = useList<Contract>('contracts', 'contracts');
   const { data: users = [] } = useList<AppUser>('users', 'users');
 
+  const statusLabels = useMemo(
+    () => ({
+      scheduled: t('services.statusScheduled'),
+      confirmed: t('services.statusConfirmed'),
+      in_progress: t('services.statusInProgress'),
+      completed: t('services.statusCompleted'),
+      cancelled: t('services.statusCancelled'),
+      draft: t('services.statusDraft')
+    }),
+    [t]
+  );
+
   const data = useMemo(() => {
     const now = new Date();
     const active = serviceOrders.filter((item) => item.status === 'scheduled' || item.status === 'confirmed' || item.status === 'in_progress');
@@ -131,7 +143,7 @@ export default function DashboardPage() {
                       <div>
                         <div className="flex flex-wrap gap-2">
                           <StatusPill tone={priorityTone(order.priority)}>{t('missionControl.priorityPill', { value: order.priority })}</StatusPill>
-                          <StatusPill>{order.status}</StatusPill>
+                          <StatusPill>{statusLabels[order.status] ?? order.status}</StatusPill>
                         </div>
                         <h3 className="mt-3 text-lg font-semibold text-slate-950">{order.title}</h3>
                         <p className="text-sm text-slate-600">{building?.name ?? t('common.noData')}</p>
@@ -149,7 +161,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
                         <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.typeLabel')}</p>
-                        <p className="mt-1 font-semibold text-slate-900">{order.type}</p>
+                        <p className="mt-1 font-semibold text-slate-900">{t(`scheduling.types.${order.type}`, { defaultValue: order.type })}</p>
                       </div>
                     </div>
                   </div>
