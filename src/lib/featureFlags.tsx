@@ -11,6 +11,13 @@ export type FeatureFlags = {
   scheduling: boolean;
   users: boolean;
   settings: boolean;
+  services: boolean;
+  customers: boolean;
+  assets: boolean;
+  reports: boolean;
+  aiWorkspace: boolean;
+  technicianHome: boolean;
+  clientSummary: boolean;
 };
 
 const defaultFlags: FeatureFlags = {
@@ -20,7 +27,14 @@ const defaultFlags: FeatureFlags = {
   employees: true,
   scheduling: true,
   users: true,
-  settings: true
+  settings: true,
+  services: true,
+  customers: true,
+  assets: true,
+  reports: true,
+  aiWorkspace: true,
+  technicianHome: true,
+  clientSummary: true
 };
 
 type FeatureFlagsContextValue = {
@@ -41,7 +55,15 @@ function normalizeFlags(payload: Record<string, unknown> | null | undefined): Fe
     employees: typeof payload?.employees === 'boolean' ? payload.employees : defaultFlags.employees,
     scheduling: typeof payload?.scheduling === 'boolean' ? payload.scheduling : defaultFlags.scheduling,
     users: typeof payload?.users === 'boolean' ? payload.users : defaultFlags.users,
-    settings: typeof payload?.settings === 'boolean' ? payload.settings : defaultFlags.settings
+    settings: typeof payload?.settings === 'boolean' ? payload.settings : defaultFlags.settings,
+    services: typeof payload?.services === 'boolean' ? payload.services : defaultFlags.services,
+    customers: typeof payload?.customers === 'boolean' ? payload.customers : defaultFlags.customers,
+    assets: typeof payload?.assets === 'boolean' ? payload.assets : defaultFlags.assets,
+    reports: typeof payload?.reports === 'boolean' ? payload.reports : defaultFlags.reports,
+    aiWorkspace: typeof payload?.aiWorkspace === 'boolean' ? payload.aiWorkspace : defaultFlags.aiWorkspace,
+    technicianHome:
+      typeof payload?.technicianHome === 'boolean' ? payload.technicianHome : defaultFlags.technicianHome,
+    clientSummary: typeof payload?.clientSummary === 'boolean' ? payload.clientSummary : defaultFlags.clientSummary
   };
 }
 

@@ -50,12 +50,20 @@ common:
   notAuthorized: No tienes permisos para acceder a esta seccion.
 nav:
   dashboard: Dashboard
+  services: Servicios
+  customers: Clientes
+  assets: Activos
+  reports: Reportes
+  aiWorkspace: IA
   buildings: Edificios
   management: Administraciones
   employees: Empleados
   scheduling: Agendamientos
   users: Usuarios
   portal: Portal
+  clientSummary: Resumen
+  portalServices: Servicios
+  portalReports: Reportes
   settings: Configuraciones
   settingsGroups: Grupos
   settingsIssues: Novedades
@@ -98,6 +106,34 @@ portal:
   buildingsEmptyHint: No hay edificios con contrato activo.
   appointmentsEmpty: Sin agendamientos
   appointmentsEmptyHint: No hay agendamientos para tus edificios.
+clientPortal:
+  summaryTitle: Resumen del cliente
+  summarySubtitle: Nueva experiencia del portal cliente en preparacion.
+  comingSoon: Aqui vivira la nueva vista de resumen para clientes con estado general, proximos mantenimientos e informes.
+services:
+  title: Servicios
+  subtitle: Nuevo nucleo operativo basado en service orders.
+  comingSoon: Esta area alojara agenda, detalle y cierre del nuevo flujo de servicios.
+customers:
+  title: Clientes
+  subtitle: Relacion comercial y operativa en una sola vista.
+  comingSoon: Esta seccion centralizara cuentas, contactos y contexto de servicio.
+assets:
+  title: Activos
+  subtitle: Edificios, contratos e historial operativo.
+  comingSoon: Aqui se consolidaran edificios y activos con contexto tecnico y contractual.
+reports:
+  title: Reportes
+  subtitle: Informes, evidencias y trazabilidad operativa.
+  comingSoon: Esta seccion reunira reportes tecnicos, historiales y entregables al cliente.
+ai:
+  title: IA operativa
+  subtitle: Asistente transversal para informes, mensajes y seguimiento.
+  comingSoon: Aqui se integraran acciones de IA con foco en ahorro operativo real.
+technician:
+  homeTitle: Hoy
+  homeSubtitle: Espacio de trabajo movil para el tecnico.
+  comingSoon: Esta vista reunira los servicios del dia, contexto, checklist y cierre rapido desde movil.
 settings:
   title: Configuraciones
   subtitle: Administra tipos de novedad y categorias
