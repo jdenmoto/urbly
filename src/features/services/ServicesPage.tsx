@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Card from '@/components/Card';
 import EmptyState from '@/components/EmptyState';
+import Input from '@/components/Input';
 import PageHeader from '@/components/PageHeader';
+import Select from '@/components/Select';
 import StatCard from '@/components/StatCard';
 import { useList, useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
@@ -13,6 +15,7 @@ export default function ServicesPage() {
   const { data: serviceOrders = [], isLoading } = useServiceOrders();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
+  const [filters, setFilters] = useState({ buildingId: '', from: '', to: '', status: '' });
 
   const summary = useMemo(() => {
     const scheduled = serviceOrders.filter((item) => item.status === 'scheduled' || item.status === 'confirmed').length;
@@ -23,12 +26,22 @@ export default function ServicesPage() {
     return { scheduled, inProgress, completed, urgent };
   }, [serviceOrders]);
 
+  const filteredOrders = useMemo(() => {
+    return serviceOrders.filter((order) => {
+      if (filters.buildingId && order.buildingId !== filters.buildingId) return false;
+      if (filters.status && order.status !== filters.status) return false;
+      if (filters.from && new Date(order.scheduledStartAt) < new Date(`${filters.from}T00:00:00`)) return false;
+      if (filters.to && new Date(order.scheduledEndAt) > new Date(`${filters.to}T23:59:59`)) return false;
+      return true;
+    });
+  }, [filters, serviceOrders]);
+
   const recentOrders = useMemo(
     () =>
-      [...serviceOrders]
-        .sort((a, b) => new Date(b.scheduledStartAt).getTime() - new Date(a.scheduledStartAt).getTime())
-        .slice(0, 6),
-    [serviceOrders]
+      [...filteredOrders]
+        .sort((a, b) => new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime())
+        .slice(0, 12),
+    [filteredOrders]
   );
 
   const statusLabel = (value: string) => {
@@ -57,10 +70,31 @@ export default function ServicesPage() {
 
       <Card className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-ink-900">Backlog operativo v2</h2>
+          <h2 className="text-lg font-semibold text-ink-900">Agenda operativa v2</h2>
           <p className="text-sm text-ink-600">
             Esta vista ya usa `serviceOrder` como capa de lectura sobre `appointments` mientras se migra el core.
           </p>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-4">
+          <Select value={filters.buildingId} onChange={(event) => setFilters((prev) => ({ ...prev, buildingId: event.target.value }))}>
+            <option value="">{t('common.all')}</option>
+            {buildings.map((building) => (
+              <option key={building.id} value={building.id}>
+                {building.name}
+              </option>
+            ))}
+          </Select>
+          <Select value={filters.status} onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}>
+            <option value="">{t('common.all')}</option>
+            <option value="scheduled">Programado</option>
+            <option value="confirmed">Confirmado</option>
+            <option value="in_progress">En progreso</option>
+            <option value="completed">Completado</option>
+            <option value="cancelled">Cancelado</option>
+          </Select>
+          <Input type="date" value={filters.from} onChange={(event) => setFilters((prev) => ({ ...prev, from: event.target.value }))} />
+          <Input type="date" value={filters.to} onChange={(event) => setFilters((prev) => ({ ...prev, to: event.target.value }))} />
         </div>
 
         {isLoading ? (
@@ -69,6 +103,7 @@ export default function ServicesPage() {
           <EmptyState title={t('services.title')} description={t('services.empty')} />
         ) : (
           <div className="space-y-3">
+            <p className="text-xs text-ink-500">Mostrando {recentOrders.length} servicios en el primer corte de agenda aislada.</p>
             {recentOrders.map((order) => {
               const building = buildings.find((item) => item.id === order.buildingId);
               const technician = employees.find((item) => item.id === order.assignedTechnicianId);
