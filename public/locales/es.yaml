@@ -212,6 +212,9 @@ ai:
   customerMessageTitle: Mensaje sugerido al cliente
   followUpTitle: Siguiente paso sugerido
   empty: No hay servicios activos para sugerencias ahora mismo.
+  workspaceBadge: Workspace IA
+  visibleSuggestionsHint: sugerencias visibles en este corte operativo
+  priorityPill: "Prioridad {value}"
 technician:
   homeTitle: Hoy
   homeSubtitle: Espacio de trabajo movil para el tecnico.
@@ -226,6 +229,9 @@ technician:
   statusLabel: Estado
   priorityLabel: Prioridad
   issuesLabel: Novedades
+  mobileBadge: Vista movil
+  visibleServicesHint: servicios visibles para el tecnico actual
+  priorityPill: "Prioridad {value}"
 settings:
   title: Configuraciones
   subtitle: Administra tipos de novedad y categorias
