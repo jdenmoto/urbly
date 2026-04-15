@@ -26,6 +26,22 @@ const priorityTone: Record<string, string> = {
   low: 'bg-emerald-50 text-emerald-700'
 };
 
+const priorityLabelKey: Record<string, string> = {
+  urgent: 'services.priorityUrgent',
+  high: 'services.priorityHigh',
+  medium: 'services.priorityMedium',
+  low: 'services.priorityLow'
+};
+
+const statusLabelKey: Record<string, string> = {
+  draft: 'services.statusDraft',
+  scheduled: 'services.statusScheduled',
+  confirmed: 'services.statusConfirmed',
+  in_progress: 'services.statusInProgress',
+  completed: 'services.statusCompleted',
+  cancelled: 'services.statusCancelled'
+};
+
 export default function ServiceDetailPage() {
   const { t } = useI18n();
   const { serviceOrderId = '' } = useParams();
@@ -42,8 +58,8 @@ export default function ServiceDetailPage() {
   const building = buildings.find((item) => item.id === serviceOrder?.buildingId);
   const technician = employees.find((item) => item.id === serviceOrder?.assignedTechnicianId);
   const management = managements.find((item) => item.id === building?.managementCompanyId);
-  const aiSummary = serviceOrder ? buildServiceSummary(serviceOrder) : '';
-  const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder) : '';
+  const aiSummary = serviceOrder ? buildServiceSummary(serviceOrder, t) : '';
+  const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder) : '';
 
   if (!serviceOrder) {
@@ -60,10 +76,10 @@ export default function ServiceDetailPage() {
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2">
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusTone[serviceOrder.status] ?? statusTone.draft}`}>
-                  {serviceOrder.status}
+                  {t(statusLabelKey[serviceOrder.status] ?? 'services.statusDraft')}
                 </span>
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[serviceOrder.priority] ?? priorityTone.medium}`}>
-                  {t('services.priorityPill', { value: serviceOrder.priority })}
+                  {t('services.priorityPill', { value: t(priorityLabelKey[serviceOrder.priority] ?? 'services.priorityMedium') })}
                 </span>
               </div>
               <div>
@@ -72,7 +88,7 @@ export default function ServiceDetailPage() {
               </div>
             </div>
             <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
-              <p className="font-semibold text-ink-900">{serviceOrder.type}</p>
+              <p className="font-semibold text-ink-900">{t(`scheduling.types.${serviceOrder.type}`, { defaultValue: serviceOrder.type })}</p>
               <p>{t('services.activeTypeHint')}</p>
             </div>
           </div>
@@ -141,8 +157,8 @@ export default function ServiceDetailPage() {
               <div className="space-y-3">
                 {serviceOrder.issues.map((issue) => (
                   <div key={issue.id} className="rounded-2xl border border-fog-200 bg-fog-50 p-4">
-                    <p className="text-sm font-semibold text-ink-900">{issue.type}</p>
-                    <p className="text-xs text-ink-500">{issue.category}</p>
+                    <p className="text-sm font-semibold text-ink-900">{t(`scheduling.issueTypes.${issue.type}`, { defaultValue: issue.type })}</p>
+                    <p className="text-xs text-ink-500">{t(`scheduling.issueCategories.${issue.category}`, { defaultValue: issue.category })}</p>
                     {issue.description ? <p className="mt-2 text-sm leading-6 text-ink-600">{issue.description}</p> : null}
                   </div>
                 ))}

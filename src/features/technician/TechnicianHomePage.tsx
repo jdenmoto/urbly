@@ -17,6 +17,22 @@ const priorityTone: Record<string, string> = {
   low: 'bg-emerald-50 text-emerald-700'
 };
 
+const priorityLabelKey: Record<string, string> = {
+  urgent: 'services.priorityUrgent',
+  high: 'services.priorityHigh',
+  medium: 'services.priorityMedium',
+  low: 'services.priorityLow'
+};
+
+const statusLabelKey: Record<string, string> = {
+  draft: 'services.statusDraft',
+  scheduled: 'services.statusScheduled',
+  confirmed: 'services.statusConfirmed',
+  in_progress: 'services.statusInProgress',
+  completed: 'services.statusCompleted',
+  cancelled: 'services.statusCancelled'
+};
+
 export default function TechnicianHomePage() {
   const { t } = useI18n();
   const { user } = useAuth();
@@ -78,7 +94,7 @@ export default function TechnicianHomePage() {
           <div className="rounded-3xl border border-fog-200 bg-white p-5 shadow-sm">
             <div className="flex flex-wrap gap-2">
               <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[nextOrder.priority] ?? priorityTone.medium}`}>
-                {t('technician.priorityPill', { value: nextOrder.priority })}
+                {t('technician.priorityPill', { value: t(priorityLabelKey[nextOrder.priority] ?? 'services.priorityMedium') })}
               </span>
             </div>
             <div className="mt-3 space-y-1">
@@ -91,11 +107,11 @@ export default function TechnicianHomePage() {
             <div className="mt-4 grid gap-3 text-sm text-ink-600 md:grid-cols-3">
               <div className="rounded-2xl bg-fog-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.statusLabel')}</p>
-                <p className="mt-1 font-semibold text-ink-900">{nextOrder.status}</p>
+                <p className="mt-1 font-semibold text-ink-900">{t(statusLabelKey[nextOrder.status] ?? 'services.statusDraft')}</p>
               </div>
               <div className="rounded-2xl bg-fog-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.priorityLabel')}</p>
-                <p className="mt-1 font-semibold text-ink-900">{nextOrder.priority}</p>
+                <p className="mt-1 font-semibold text-ink-900">{t(priorityLabelKey[nextOrder.priority] ?? 'services.priorityMedium')}</p>
               </div>
               <div className="rounded-2xl bg-fog-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.issuesLabel')}</p>

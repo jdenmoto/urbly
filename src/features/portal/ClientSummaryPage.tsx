@@ -17,6 +17,22 @@ const priorityTone: Record<string, string> = {
   low: 'bg-emerald-50 text-emerald-700'
 };
 
+const priorityLabelKey: Record<string, string> = {
+  urgent: 'services.priorityUrgent',
+  high: 'services.priorityHigh',
+  medium: 'services.priorityMedium',
+  low: 'services.priorityLow'
+};
+
+const statusLabelKey: Record<string, string> = {
+  draft: 'services.statusDraft',
+  scheduled: 'services.statusScheduled',
+  confirmed: 'services.statusConfirmed',
+  in_progress: 'services.statusInProgress',
+  completed: 'services.statusCompleted',
+  cancelled: 'services.statusCancelled'
+};
+
 export default function ClientSummaryPage() {
   const { t } = useI18n();
   const { user } = useAuth();
@@ -93,7 +109,7 @@ export default function ClientSummaryPage() {
                 <article key={serviceOrder.id} className="rounded-3xl border border-fog-200 bg-white p-5 shadow-sm">
                   <div className="flex flex-wrap gap-2">
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[serviceOrder.priority] ?? priorityTone.medium}`}>
-                      {t('clientPortal.priorityPill', { value: serviceOrder.priority })}
+                      {t('clientPortal.priorityPill', { value: t(priorityLabelKey[serviceOrder.priority] ?? 'services.priorityMedium') })}
                     </span>
                   </div>
                   <div className="mt-3 space-y-1">
@@ -102,7 +118,7 @@ export default function ClientSummaryPage() {
                     <p className="text-sm text-ink-500">{new Date(serviceOrder.scheduledStartAt).toLocaleString('es-CO')}</p>
                   </div>
                   <div className="mt-4 rounded-2xl bg-fog-50 p-4 text-sm text-ink-600">
-                    <p><span className="font-semibold text-ink-900">{t('services.statusLabel')}:</span> {serviceOrder.status}</p>
+                    <p><span className="font-semibold text-ink-900">{t('services.statusLabel')}:</span> {t(statusLabelKey[serviceOrder.status] ?? 'services.statusDraft')}</p>
                     <p className="mt-2"><span className="font-semibold text-ink-900">{t('services.issuesLabel')}:</span> {serviceOrder.issues?.length ?? 0}</p>
                   </div>
                 </article>
