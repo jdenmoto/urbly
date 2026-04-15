@@ -15,6 +15,7 @@ jobs:
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,10 +56,15 @@ jobs:
           FIREBASE_BROWSER_KEY_ID=${FIREBASE_BROWSER_KEY_ID}
           EOF
 
-      - name: Lint changed files (CI)
-        env:
-          GITHUB_EVENT_NAME: workflow_run
-        run: npm run lint:ci
+      - name: Lint full web app
+        run: npm run lint
+
+      - name: Typecheck web app
+        run: npm run typecheck
+
+      - name: Typecheck functions
+        run: npm run typecheck
+        working-directory: functions
 
       - name: Build web app
         run: npm run build
@@ -77,3 +83,7 @@ jobs:
           npx -y firebase-tools deploy \
             --project "$FIREBASE_PROJECT_ID" \
             --only hosting,functions,firestore:rules,firestore:indexes
+
+      - name: Print production release summary
+        run: |
+          echo "Production deploy completed for SHA ${{ github.event.workflow_run.head_sha }}"

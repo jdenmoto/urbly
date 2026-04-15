@@ -1,5 +1,9 @@
 name: CI
 
+permissions:
+  contents: read
+  checks: write
+
 on:
   pull_request:
     branches: [develop, main]
@@ -16,6 +20,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,6 +67,13 @@ jobs:
           GITHUB_BEFORE: ${{ github.event.before }}
           GITHUB_SHA: ${{ github.sha }}
         run: npm run lint:ci
+
+      - name: Typecheck web app
+        run: npm run typecheck
+
+      - name: Typecheck functions
+        run: npm run typecheck
+        working-directory: functions
 
       - name: Build web app
         run: npm run build
