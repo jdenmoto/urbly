@@ -1748,7 +1748,7 @@ export default function SchedulingPage() {
             <p className="text-sm font-semibold text-ink-900">{t('scheduling.serviceReport')}</p>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div className="space-y-1">
-                <label className="text-sm font-medium text-ink-800">Hora entrada <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium text-ink-800">{t('scheduling.entryHourLabel')} <span className="text-red-500">*</span></label>
                 <div className="grid grid-cols-2 gap-2">
                   <Select
                     value={getTimeParts(completionReport.entryHour).hour}
@@ -1771,7 +1771,7 @@ export default function SchedulingPage() {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-ink-800">Hora salida <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium text-ink-800">{t('scheduling.exitHourLabel')} <span className="text-red-500">*</span></label>
                 <div className="grid grid-cols-2 gap-2">
                   <Select
                     value={getTimeParts(completionReport.exitHour).hour}
@@ -1819,7 +1819,7 @@ export default function SchedulingPage() {
                           setBombaPanelsOpen((prev) => ({ ...prev, [nextUnit]: true }));
                         }}
                       >
-                        Agregar Bomba
+                        {t('scheduling.addPump')}
                       </Button>
                     </div>
                     {group1Units.map((unit, index) => (
@@ -1881,7 +1881,7 @@ export default function SchedulingPage() {
                                   <option value="na">{t('scheduling.notApplicableOption')}</option>
                                 </Select>
                                 <div className="space-y-1">
-                                  <p className="text-xs text-ink-700">Red De Distribución <span className="text-red-500">*</span></p>
+                                  <p className="text-xs text-ink-700">{t('scheduling.distributionNetworkLabel')} <span className="text-red-500">*</span></p>
                                   <Select
                                     value={completionReport.checklist[redKey] ?? 'na'}
                                     onChange={(event) =>
