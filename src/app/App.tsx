@@ -11,6 +11,8 @@ import UsersPage from '@/features/users/UsersPage';
 import FeatureGuard from '@/components/FeatureGuard';
 import BuildingAdminPage from '@/features/buildingAdmin/BuildingAdminPage';
 import ServicesPage from '@/features/services/ServicesPage';
+import ServiceDetailPage from '@/features/services/ServiceDetailPage';
+import ServiceCloseoutPage from '@/features/services/ServiceCloseoutPage';
 import CustomersPage from '@/features/customers/CustomersPage';
 import AssetsPage from '@/features/assets/AssetsPage';
 import ReportsPage from '@/features/reports/ReportsPage';
@@ -64,6 +66,26 @@ export default function App() {
               <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler']}>
                 <FeatureGuard feature="services">
                   <ServicesPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="services/:serviceOrderId"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler']}>
+                <FeatureGuard feature="services">
+                  <ServiceDetailPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="services/:serviceOrderId/closeout"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler']}>
+                <FeatureGuard feature="services">
+                  <ServiceCloseoutPage />
                 </FeatureGuard>
               </RoleGuard>
             }

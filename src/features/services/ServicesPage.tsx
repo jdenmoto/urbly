@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Card from '@/components/Card';
 import EmptyState from '@/components/EmptyState';
 import Input from '@/components/Input';
@@ -140,6 +141,14 @@ export default function ServicesPage() {
                     <p>
                       <span className="font-semibold text-ink-900">Novedades:</span> {order.issues?.length ?? 0}
                     </p>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link className="text-sm font-semibold text-sky-700" to={`/services/${order.id}`}>
+                      {t('services.viewDetail')}
+                    </Link>
+                    <Link className="text-sm font-semibold text-emerald-700" to={`/services/${order.id}/closeout`}>
+                      {t('services.viewCloseout')}
+                    </Link>
                   </div>
                 </div>
               );

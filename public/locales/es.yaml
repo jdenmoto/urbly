@@ -114,6 +114,32 @@ services:
   title: Servicios
   subtitle: Nuevo nucleo operativo basado en service orders.
   comingSoon: Esta area alojara agenda, detalle y cierre del nuevo flujo de servicios.
+  empty: No hay servicios para los filtros seleccionados.
+  viewDetail: Ver detalle
+  viewCloseout: Ver cierre
+  detailTitle: Detalle del servicio
+  detailSubtitle: Primer corte de la vista dedicada para contexto e historial.
+  detailEmpty: No se encontro el servicio solicitado.
+  contextTitle: Contexto del servicio
+  contextSubtitle: Informacion base para operar el service order sin entrar al scheduling legacy.
+  buildingLabel: Edificio
+  technicianLabel: Tecnico
+  statusLabel: Estado
+  priorityLabel: Prioridad
+  startLabel: Inicio
+  endLabel: Fin
+  descriptionLabel: Descripcion
+  timelineTitle: Timeline operativo
+  timelineSubtitle: Eventos derivados del appointment actual mientras se migra el dominio.
+  timelineEmpty: Este servicio todavia no tiene eventos registrados.
+  closeoutTitle: Cierre tecnico
+  closeoutSubtitle: Primer corte del cierre dedicado de service orders.
+  closeoutEmpty: No se encontro el servicio solicitado.
+  closeoutHint: Esta vista sera la base para separar checklist, reporte y evidencias del scheduling legacy.
+  reportTitle: Reporte actual
+  evidenceTitle: Evidencia actual
+  evidenceCount: "Fotos registradas: {count}"
+  issuesCount: "Novedades registradas: {count}"
 customers:
   title: Clientes
   subtitle: Relacion comercial y operativa en una sola vista.
