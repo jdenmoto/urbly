@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,11 +18,9 @@ import EmptyState from '@/components/EmptyState';
 import PlacesAutocomplete, { type PlaceResult } from '@/components/PlacesAutocomplete';
 import { loadGoogleMaps } from '@/lib/googleMaps';
 import { importBuildingsFile, type ImportResult } from '@/lib/api/functions';
-import Papa from 'papaparse';
-import ExcelJS from 'exceljs';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
-import BuildingsMap from '@/components/BuildingsMap';
+const BuildingsMap = lazy(() => import('@/components/BuildingsMap'));
 import Modal from '@/components/Modal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useToast } from '@/components/ToastProvider';
@@ -36,6 +34,46 @@ type PreviewRow = {
   address: string;
   porter_phone: string;
   management_name: string;
+};
+
+const mapCsvRows = async (file: File) => {
+  const Papa = (await import('papaparse')).default;
+  return new Promise<PreviewRow[]>((resolve) => {
+    Papa.parse<PreviewRow>(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => resolve(results.data)
+    });
+  });
+};
+
+const mapSpreadsheetRows = async (file: File) => {
+  const ExcelJS = (await import('exceljs')).default;
+  const data = await file.arrayBuffer();
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(data);
+  const worksheet = workbook.worksheets[0];
+  if (!worksheet) return [];
+
+  const headerRow = worksheet.getRow(1);
+  const headers = Array.from({ length: headerRow.cellCount }, (_, index) => {
+    const cell = headerRow.getCell(index + 1).value;
+    return String(cell ?? '').trim();
+  });
+
+  const rows: PreviewRow[] = [];
+  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    if (rowNumber === 1) return;
+    const entry = {} as PreviewRow;
+    headers.forEach((header, idx) => {
+      if (!header) return;
+      const value = row.getCell(idx + 1).value;
+      entry[header as keyof PreviewRow] = value ? String(value) : '';
+    });
+    rows.push(entry);
+  });
+
+  return rows;
 };
 
 export default function BuildingsPage() {
@@ -389,41 +427,18 @@ export default function BuildingsPage() {
   const handleFile = async (file: File) => {
     setImportResult(null);
     const extension = file.name.split('.').pop()?.toLowerCase();
+
     if (extension === 'csv') {
-      Papa.parse<PreviewRow>(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => setPreviewRows(results.data)
-      });
+      setPreviewRows(await mapCsvRows(file));
       return;
     }
+
     if (extension === 'xlsx' || extension === 'xls') {
-      const data = await file.arrayBuffer();
-      const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(data);
-      const worksheet = workbook.worksheets[0];
-      if (!worksheet) {
-        setPreviewRows([]);
-        return;
-      }
-      const headerRow = worksheet.getRow(1);
-      const headers = Array.from({ length: headerRow.cellCount }, (_, index) => {
-        const cell = headerRow.getCell(index + 1).value;
-        return String(cell ?? '').trim();
-      });
-      const rows: PreviewRow[] = [];
-      worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-        if (rowNumber === 1) return;
-        const entry = {} as PreviewRow;
-        headers.forEach((header, idx) => {
-          if (!header) return;
-          const value = row.getCell(idx + 1).value;
-          entry[header as keyof PreviewRow] = value ? String(value) : '';
-        });
-        rows.push(entry);
-      });
-      setPreviewRows(rows);
+      setPreviewRows(await mapSpreadsheetRows(file));
+      return;
     }
+
+    setPreviewRows([]);
   };
 
   const handleImport = async (file: File | null) => {
@@ -511,7 +526,9 @@ export default function BuildingsPage() {
           ) : null
         }
       />
-      <BuildingsMap buildings={buildings} ready={mapsReady} />
+      <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading')}</div>}>
+        <BuildingsMap buildings={buildings} ready={mapsReady} />
+      </Suspense>
       {canEdit ? (
         <>
           <div className="space-y-4">

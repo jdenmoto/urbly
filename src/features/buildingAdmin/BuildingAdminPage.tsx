@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import Card from '@/components/Card';
 import DataTable from '@/components/DataTable';
 import EmptyState from '@/components/EmptyState';
-import BuildingsMap from '@/components/BuildingsMap';
+const BuildingsMap = lazy(() => import('@/components/BuildingsMap'));
 import { useList, useServiceOrders } from '@/lib/api/queries';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type { Building } from '@/core/models/building';
@@ -111,7 +111,9 @@ export default function BuildingAdminPage() {
         </Card>
       ) : null}
       <div className="space-y-4">
-        <BuildingsMap buildings={scopedBuildings} ready={mapsReady} />
+        <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading')}</div>}>
+          <BuildingsMap buildings={scopedBuildings} ready={mapsReady} />
+        </Suspense>
         <DataTable
           columns={buildingColumns}
           data={scopedBuildings}

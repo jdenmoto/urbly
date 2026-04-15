@@ -63,10 +63,14 @@ export function useAuth() {
   return ctx;
 }
 
+function AuthLoadingFallback() {
+  const { t } = useI18n();
+  return <div className="p-8 text-sm text-ink-600">{t('common.loadingSession')}</div>;
+}
+
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
-  const { t } = useI18n();
-  if (loading) return <div className="p-8 text-sm text-ink-600">{t('common.loadingSession')}</div>;
+  if (loading) return <AuthLoadingFallback />;
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
@@ -80,7 +84,7 @@ export function RoleGuard({
 }) {
   const { role, loading } = useAuth();
   const { t } = useI18n();
-  if (loading) return <div className="p-8 text-sm text-ink-600">{t('common.loadingSession')}</div>;
+  if (loading) return <AuthLoadingFallback />;
   if (!allow.includes(role)) {
     return <div className="p-8 text-sm text-ink-600">{t('common.notAuthorized')}</div>;
   }

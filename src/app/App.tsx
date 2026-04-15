@@ -1,35 +1,42 @@
+import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
 import { AuthProvider, ProtectedRoute, RoleGuard } from './Auth';
 import HomeRouterPage from '@/features/dashboard/HomeRouterPage';
-import BuildingsPage from '@/features/buildings/BuildingsPage';
-import ManagementPage from '@/features/management/ManagementPage';
-import EmployeesPage from '@/features/employees/EmployeesPage';
-import SchedulingPage from '@/features/scheduling/SchedulingPage';
 import LoginPage from '@/features/auth/LoginPage';
-import UsersPage from '@/features/users/UsersPage';
 import FeatureGuard from '@/components/FeatureGuard';
-import BuildingAdminPage from '@/features/buildingAdmin/BuildingAdminPage';
-import ServicesPage from '@/features/services/ServicesPage';
-import ServiceDetailPage from '@/features/services/ServiceDetailPage';
-import ServiceCloseoutPage from '@/features/services/ServiceCloseoutPage';
-import CustomersPage from '@/features/customers/CustomersPage';
-import AssetsPage from '@/features/assets/AssetsPage';
-import ReportsPage from '@/features/reports/ReportsPage';
-import AiWorkspacePage from '@/features/ai/AiWorkspacePage';
-import TechnicianHomePage from '@/features/technician/TechnicianHomePage';
-import ClientSummaryPage from '@/features/portal/ClientSummaryPage';
-import GroupsSettingsPage from '@/features/settings/GroupsSettingsPage';
-import IssuesSettingsPage from '@/features/settings/IssuesSettingsPage';
-import ContractsSettingsPage from '@/features/settings/ContractsSettingsPage';
-import LabsSettingsPage from '@/features/settings/LabsSettingsPage';
-import CalendarSettingsPage from '@/features/settings/CalendarSettingsPage';
-import CalendarHolidaysPage from '@/features/settings/CalendarHolidaysPage';
-import CalendarNonWorkingPage from '@/features/settings/CalendarNonWorkingPage';
+
+const BuildingsPage = lazy(() => import('@/features/buildings/BuildingsPage'));
+const ManagementPage = lazy(() => import('@/features/management/ManagementPage'));
+const EmployeesPage = lazy(() => import('@/features/employees/EmployeesPage'));
+const SchedulingPage = lazy(() => import('@/features/scheduling/SchedulingPage'));
+const UsersPage = lazy(() => import('@/features/users/UsersPage'));
+const BuildingAdminPage = lazy(() => import('@/features/buildingAdmin/BuildingAdminPage'));
+const ServicesPage = lazy(() => import('@/features/services/ServicesPage'));
+const ServiceDetailPage = lazy(() => import('@/features/services/ServiceDetailPage'));
+const ServiceCloseoutPage = lazy(() => import('@/features/services/ServiceCloseoutPage'));
+const CustomersPage = lazy(() => import('@/features/customers/CustomersPage'));
+const AssetsPage = lazy(() => import('@/features/assets/AssetsPage'));
+const ReportsPage = lazy(() => import('@/features/reports/ReportsPage'));
+const AiWorkspacePage = lazy(() => import('@/features/ai/AiWorkspacePage'));
+const TechnicianHomePage = lazy(() => import('@/features/technician/TechnicianHomePage'));
+const ClientSummaryPage = lazy(() => import('@/features/portal/ClientSummaryPage'));
+const GroupsSettingsPage = lazy(() => import('@/features/settings/GroupsSettingsPage'));
+const IssuesSettingsPage = lazy(() => import('@/features/settings/IssuesSettingsPage'));
+const ContractsSettingsPage = lazy(() => import('@/features/settings/ContractsSettingsPage'));
+const LabsSettingsPage = lazy(() => import('@/features/settings/LabsSettingsPage'));
+const CalendarSettingsPage = lazy(() => import('@/features/settings/CalendarSettingsPage'));
+const CalendarHolidaysPage = lazy(() => import('@/features/settings/CalendarHolidaysPage'));
+const CalendarNonWorkingPage = lazy(() => import('@/features/settings/CalendarNonWorkingPage'));
+
+function RouteLoader() {
+  return <div className="p-8 text-sm text-ink-600">Cargando modulo...</div>;
+}
 
 export default function App() {
   return (
     <AuthProvider>
+      <Suspense fallback={<RouteLoader />}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route
@@ -288,6 +295,7 @@ export default function App() {
           />
         </Route>
       </Routes>
+      </Suspense>
     </AuthProvider>
   );
 }
