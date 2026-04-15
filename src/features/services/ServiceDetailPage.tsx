@@ -15,7 +15,8 @@ import {
   getIssueTypeLabel,
   getServiceOrderPriorityPill,
   getServiceOrderStatusLabel,
-  getServiceOrderTypeLabel
+  getServiceOrderTypeLabel,
+  serviceOrderPriorityTone
 } from './serviceOrderPresentation';
 
 const statusTone: Record<string, string> = {
@@ -25,13 +26,6 @@ const statusTone: Record<string, string> = {
   in_progress: 'bg-amber-50 text-amber-700',
   completed: 'bg-emerald-50 text-emerald-700',
   cancelled: 'bg-rose-50 text-rose-700'
-};
-
-const priorityTone: Record<string, string> = {
-  urgent: 'bg-rose-50 text-rose-700',
-  high: 'bg-amber-50 text-amber-700',
-  medium: 'bg-sky-50 text-sky-700',
-  low: 'bg-emerald-50 text-emerald-700'
 };
 
 export default function ServiceDetailPage() {
@@ -70,7 +64,7 @@ export default function ServiceDetailPage() {
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusTone[serviceOrder.status] ?? statusTone.draft}`}>
                   {getServiceOrderStatusLabel(t, serviceOrder.status)}
                 </span>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[serviceOrder.priority] ?? priorityTone.medium}`}>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[serviceOrder.priority]}`}>
                   {getServiceOrderPriorityPill(t, serviceOrder.priority)}
                 </span>
               </div>

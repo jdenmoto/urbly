@@ -85,12 +85,12 @@ export function buildCustomerMessage(serviceOrder: ServiceOrderLike, t: Translat
   return [intro, status, issuesText, close].join(' ');
 }
 
-export function buildFollowUp(serviceOrder: ServiceOrderLike) {
+export function buildFollowUp(serviceOrder: ServiceOrderLike, t: TranslateFn = defaultTranslate) {
   const issues = serviceOrder.issues ?? [];
   const photos = serviceOrder.completionPhotos?.length ?? 0;
   const actions = [] as string[];
 
-  if (issues.length) actions.push('validar tratamiento de novedades antes de cerrar');
+  if (issues.length) actions.push(`validar tratamiento de novedades antes de dejar el servicio en ${getServiceOrderStatusLabel(t, serviceOrder.status).toLowerCase()}`);
   if (!photos) actions.push('pedir o cargar evidencia fotográfica');
   if (serviceOrder.status !== 'completed') actions.push('confirmar cierre técnico y actualización de estado');
   if (!actions.length) actions.push('compartir reporte final con el cliente');

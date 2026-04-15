@@ -9,14 +9,12 @@ import type { Building } from '@/core/models/building';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import { useList, useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
-import { formatServiceDateTime, getServiceOrderPriorityPill, getServiceOrderStatusLabel } from '@/features/services/serviceOrderPresentation';
-
-const priorityTone: Record<string, string> = {
-  urgent: 'bg-rose-50 text-rose-700',
-  high: 'bg-amber-50 text-amber-700',
-  medium: 'bg-sky-50 text-sky-700',
-  low: 'bg-emerald-50 text-emerald-700'
-};
+import {
+  formatServiceDateTime,
+  getServiceOrderPriorityPill,
+  getServiceOrderStatusLabel,
+  serviceOrderPriorityTone
+} from '@/features/services/serviceOrderPresentation';
 
 export default function ClientSummaryPage() {
   const { t } = useI18n();
@@ -93,7 +91,7 @@ export default function ClientSummaryPage() {
               return (
                 <article key={serviceOrder.id} className="rounded-3xl border border-fog-200 bg-white p-5 shadow-sm">
                   <div className="flex flex-wrap gap-2">
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[serviceOrder.priority] ?? priorityTone.medium}`}>
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[serviceOrder.priority]}`}>
                       {getServiceOrderPriorityPill(t, serviceOrder.priority, 'clientPortal.priorityPill')}
                     </span>
                   </div>

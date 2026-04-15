@@ -10,7 +10,12 @@ import { useList, useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
-import { getServiceOrderPriorityPill, getServiceOrderStatusLabel, getServiceOrderTypeLabel } from './serviceOrderPresentation';
+import {
+  getServiceOrderPriorityPill,
+  getServiceOrderStatusLabel,
+  getServiceOrderTypeLabel,
+  serviceOrderPriorityTone
+} from './serviceOrderPresentation';
 
 const statusTone: Record<string, string> = {
   draft: 'bg-fog-100 text-ink-700',
@@ -19,13 +24,6 @@ const statusTone: Record<string, string> = {
   in_progress: 'bg-amber-50 text-amber-700',
   completed: 'bg-emerald-50 text-emerald-700',
   cancelled: 'bg-rose-50 text-rose-700'
-};
-
-const priorityTone: Record<string, string> = {
-  urgent: 'bg-rose-50 text-rose-700',
-  high: 'bg-amber-50 text-amber-700',
-  medium: 'bg-sky-50 text-sky-700',
-  low: 'bg-emerald-50 text-emerald-700'
 };
 
 export default function ServicesPage() {
@@ -134,7 +132,7 @@ export default function ServicesPage() {
                         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusTone[order.status] ?? statusTone.draft}`}>
                           {statusLabel(order.status)}
                         </span>
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[order.priority] ?? priorityTone.medium}`}>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[order.priority]}`}>
                           {getServiceOrderPriorityPill(t, order.priority)}
                         </span>
                       </div>

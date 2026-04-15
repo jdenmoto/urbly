@@ -9,14 +9,13 @@ import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
 import { useList, useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
-import { formatServiceDateTime, getServiceOrderPriorityLabel, getServiceOrderPriorityPill, getServiceOrderStatusLabel } from '@/features/services/serviceOrderPresentation';
-
-const priorityTone: Record<string, string> = {
-  urgent: 'bg-rose-50 text-rose-700',
-  high: 'bg-amber-50 text-amber-700',
-  medium: 'bg-sky-50 text-sky-700',
-  low: 'bg-emerald-50 text-emerald-700'
-};
+import {
+  formatServiceDateTime,
+  getServiceOrderPriorityLabel,
+  getServiceOrderPriorityPill,
+  getServiceOrderStatusLabel,
+  serviceOrderPriorityTone
+} from '@/features/services/serviceOrderPresentation';
 
 export default function TechnicianHomePage() {
   const { t } = useI18n();
@@ -78,7 +77,7 @@ export default function TechnicianHomePage() {
         ) : (
           <div className="rounded-3xl border border-fog-200 bg-white p-5 shadow-sm">
             <div className="flex flex-wrap gap-2">
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[nextOrder.priority] ?? priorityTone.medium}`}>
+              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[nextOrder.priority]}`}>
                 {getServiceOrderPriorityPill(t, nextOrder.priority, 'technician.priorityPill')}
               </span>
             </div>

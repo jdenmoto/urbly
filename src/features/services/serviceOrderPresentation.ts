@@ -42,6 +42,13 @@ export function getIssueCategoryLabel(t: TranslateFn, value: string) {
   return t(`scheduling.issueCategories.${value}`, { defaultValue: value });
 }
 
+export const serviceOrderPriorityTone: Record<ServiceOrder['priority'], string> = {
+  urgent: 'bg-rose-50 text-rose-700',
+  high: 'bg-amber-50 text-amber-700',
+  medium: 'bg-sky-50 text-sky-700',
+  low: 'bg-emerald-50 text-emerald-700'
+};
+
 export function formatServiceDateTime(value: string) {
   return new Date(value).toLocaleString('es-CO');
 }

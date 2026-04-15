@@ -5,13 +5,7 @@ import PageHeader from '@/components/PageHeader';
 import { useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
 import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from '@/features/services/serviceOrderAi';
-
-const priorityTone: Record<string, string> = {
-  urgent: 'bg-rose-50 text-rose-700',
-  high: 'bg-amber-50 text-amber-700',
-  medium: 'bg-sky-50 text-sky-700',
-  low: 'bg-emerald-50 text-emerald-700'
-};
+import { getServiceOrderPriorityPill, serviceOrderPriorityTone } from '@/features/services/serviceOrderPresentation';
 
 export default function AiWorkspacePage() {
   const { t } = useI18n();
@@ -38,8 +32,8 @@ export default function AiWorkspacePage() {
             : item.issues?.length
               ? t('ai.suggestionIssues')
               : t('ai.suggestionDefault'),
-        summary: buildServiceSummary(item),
-        customerMessage: buildCustomerMessage(item),
+        summary: buildServiceSummary(item, t),
+        customerMessage: buildCustomerMessage(item, t),
         followUp: buildFollowUp(item)
       }));
   }, [serviceOrders, t]);
@@ -71,8 +65,8 @@ export default function AiWorkspacePage() {
               <article key={item.id} className="rounded-3xl border border-fog-200 bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div>
-                    <div className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[item.priority] ?? priorityTone.medium}`}>
-                      {t('ai.priorityPill', { value: item.priority })}
+                    <div className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[item.priority]}`}>
+                      {getServiceOrderPriorityPill(t, item.priority, 'ai.priorityPill')}
                     </div>
                     <p className="mt-3 text-lg font-semibold text-ink-900">{item.title}</p>
                     <p className="mt-1 text-sm text-ink-600">{item.suggestion}</p>
