@@ -8,6 +8,7 @@ import { useI18n } from '@/lib/i18n';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
 import type { ManagementCompany } from '@/core/models/managementCompany';
+import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from './serviceOrderAi';
 
 export default function ServiceDetailPage() {
   const { t } = useI18n();
@@ -25,6 +26,9 @@ export default function ServiceDetailPage() {
   const building = buildings.find((item) => item.id === serviceOrder?.buildingId);
   const technician = employees.find((item) => item.id === serviceOrder?.assignedTechnicianId);
   const management = managements.find((item) => item.id === building?.managementCompanyId);
+  const aiSummary = serviceOrder ? buildServiceSummary(serviceOrder) : '';
+  const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder) : '';
+  const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder) : '';
 
   if (!serviceOrder) {
     return <EmptyState title={t('services.detailTitle')} description={t('services.detailEmpty')} />;
@@ -95,6 +99,26 @@ export default function ServiceDetailPage() {
             ) : (
               <EmptyState title={t('services.issueSummaryTitle')} description={t('services.issueSummaryEmpty')} />
             )}
+          </Card>
+          <Card className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-ink-900">{t('services.aiActionsTitle')}</h2>
+              <p className="text-sm text-ink-600">{t('services.aiActionsSubtitle')}</p>
+            </div>
+            <div className="space-y-4 text-sm text-ink-700">
+              <div className="rounded-xl border border-fog-200 p-3">
+                <p className="font-semibold text-ink-900">{t('services.aiSummaryTitle')}</p>
+                <p className="mt-2 whitespace-pre-wrap">{aiSummary}</p>
+              </div>
+              <div className="rounded-xl border border-fog-200 p-3">
+                <p className="font-semibold text-ink-900">{t('services.aiCustomerMessageTitle')}</p>
+                <p className="mt-2 whitespace-pre-wrap">{aiCustomerMessage}</p>
+              </div>
+              <div className="rounded-xl border border-fog-200 p-3">
+                <p className="font-semibold text-ink-900">{t('services.aiFollowUpTitle')}</p>
+                <p className="mt-2 whitespace-pre-wrap">{aiFollowUp}</p>
+              </div>
+            </div>
           </Card>
         </div>
       </div>

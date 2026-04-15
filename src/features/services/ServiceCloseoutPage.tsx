@@ -5,6 +5,7 @@ import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
 import { useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
+import { buildCustomerMessage, buildFollowUp, buildTechnicalReport } from './serviceOrderAi';
 
 export default function ServiceCloseoutPage() {
   const { t } = useI18n();
@@ -15,6 +16,9 @@ export default function ServiceCloseoutPage() {
     () => serviceOrders.find((item) => item.id === serviceOrderId) ?? null,
     [serviceOrderId, serviceOrders]
   );
+  const aiReport = serviceOrder ? buildTechnicalReport(serviceOrder) : '';
+  const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder) : '';
+  const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder) : '';
 
   if (!serviceOrder) {
     return <EmptyState title={t('services.closeoutTitle')} description={t('services.closeoutEmpty')} />;
@@ -63,6 +67,21 @@ export default function ServiceCloseoutPage() {
           <div className="rounded-xl border border-fog-200 p-4">
             <h3 className="text-sm font-semibold text-ink-900">{t('services.communicationTitle')}</h3>
             <pre className="mt-2 whitespace-pre-wrap text-xs text-ink-600">{JSON.stringify(serviceOrder.communication ?? {}, null, 2)}</pre>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-xl border border-fog-200 p-4">
+            <h3 className="text-sm font-semibold text-ink-900">{t('services.aiReportTitle')}</h3>
+            <pre className="mt-2 whitespace-pre-wrap text-xs text-ink-600">{aiReport}</pre>
+          </div>
+          <div className="rounded-xl border border-fog-200 p-4">
+            <h3 className="text-sm font-semibold text-ink-900">{t('services.aiCustomerMessageTitle')}</h3>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-ink-600">{aiCustomerMessage}</p>
+          </div>
+          <div className="rounded-xl border border-fog-200 p-4">
+            <h3 className="text-sm font-semibold text-ink-900">{t('services.aiFollowUpTitle')}</h3>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-ink-600">{aiFollowUp}</p>
           </div>
         </div>
       </Card>

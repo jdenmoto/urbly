@@ -153,6 +153,12 @@ services:
   issueSummaryTitle: Resumen de novedades
   issueSummarySubtitle: Primer corte de incidencias derivadas del servicio actual.
   issueSummaryEmpty: No hay novedades registradas para este servicio.
+  aiActionsTitle: IA operativa aplicada
+  aiActionsSubtitle: Sugerencias listas para usar desde el contexto real del servicio.
+  aiSummaryTitle: Resumen del caso
+  aiCustomerMessageTitle: Mensaje sugerido al cliente
+  aiFollowUpTitle: Siguiente paso sugerido
+  aiReportTitle: Informe tecnico sugerido
 customers:
   title: Clientes
   subtitle: Relacion comercial y operativa en una sola vista.
