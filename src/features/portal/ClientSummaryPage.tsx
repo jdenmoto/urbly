@@ -9,28 +9,13 @@ import type { Building } from '@/core/models/building';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import { useList, useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
+import { formatServiceDateTime, getServiceOrderPriorityPill, getServiceOrderStatusLabel } from '@/features/services/serviceOrderPresentation';
 
 const priorityTone: Record<string, string> = {
   urgent: 'bg-rose-50 text-rose-700',
   high: 'bg-amber-50 text-amber-700',
   medium: 'bg-sky-50 text-sky-700',
   low: 'bg-emerald-50 text-emerald-700'
-};
-
-const priorityLabelKey: Record<string, string> = {
-  urgent: 'services.priorityUrgent',
-  high: 'services.priorityHigh',
-  medium: 'services.priorityMedium',
-  low: 'services.priorityLow'
-};
-
-const statusLabelKey: Record<string, string> = {
-  draft: 'services.statusDraft',
-  scheduled: 'services.statusScheduled',
-  confirmed: 'services.statusConfirmed',
-  in_progress: 'services.statusInProgress',
-  completed: 'services.statusCompleted',
-  cancelled: 'services.statusCancelled'
 };
 
 export default function ClientSummaryPage() {
@@ -109,16 +94,16 @@ export default function ClientSummaryPage() {
                 <article key={serviceOrder.id} className="rounded-3xl border border-fog-200 bg-white p-5 shadow-sm">
                   <div className="flex flex-wrap gap-2">
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[serviceOrder.priority] ?? priorityTone.medium}`}>
-                      {t('clientPortal.priorityPill', { value: t(priorityLabelKey[serviceOrder.priority] ?? 'services.priorityMedium') })}
+                      {getServiceOrderPriorityPill(t, serviceOrder.priority, 'clientPortal.priorityPill')}
                     </span>
                   </div>
                   <div className="mt-3 space-y-1">
                     <h3 className="text-lg font-semibold text-ink-900">{serviceOrder.title}</h3>
                     <p className="text-sm text-ink-600">{building?.name ?? t('common.noData')}</p>
-                    <p className="text-sm text-ink-500">{new Date(serviceOrder.scheduledStartAt).toLocaleString('es-CO')}</p>
+                    <p className="text-sm text-ink-500">{formatServiceDateTime(serviceOrder.scheduledStartAt)}</p>
                   </div>
                   <div className="mt-4 rounded-2xl bg-fog-50 p-4 text-sm text-ink-600">
-                    <p><span className="font-semibold text-ink-900">{t('services.statusLabel')}:</span> {t(statusLabelKey[serviceOrder.status] ?? 'services.statusDraft')}</p>
+                    <p><span className="font-semibold text-ink-900">{t('services.statusLabel')}:</span> {getServiceOrderStatusLabel(t, serviceOrder.status)}</p>
                     <p className="mt-2"><span className="font-semibold text-ink-900">{t('services.issuesLabel')}:</span> {serviceOrder.issues?.length ?? 0}</p>
                   </div>
                 </article>

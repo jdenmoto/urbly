@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import PageHeader from '@/components/PageHeader';
 import { GlassPanel, MetricCard, MotionGrid, MotionItem, SectionHeader, StatusPill } from '@/components/premium';
+import { formatServiceDateTime, getServiceOrderPriorityPill, getServiceOrderStatusLabel, getServiceOrderTypeLabel } from '@/features/services/serviceOrderPresentation';
 import type { AppUser } from '@/core/models/appUser';
 import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
@@ -17,18 +18,6 @@ export default function DashboardPage() {
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: contracts = [] } = useList<Contract>('contracts', 'contracts');
   const { data: users = [] } = useList<AppUser>('users', 'users');
-
-  const statusLabels = useMemo(
-    () => ({
-      scheduled: t('services.statusScheduled'),
-      confirmed: t('services.statusConfirmed'),
-      in_progress: t('services.statusInProgress'),
-      completed: t('services.statusCompleted'),
-      cancelled: t('services.statusCancelled'),
-      draft: t('services.statusDraft')
-    }),
-    [t]
-  );
 
   const data = useMemo(() => {
     const now = new Date();
@@ -163,13 +152,13 @@ export default function DashboardPage() {
                     <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                       <div>
                         <div className="flex flex-wrap gap-2">
-                          <StatusPill tone={priorityTone(order.priority)}>{t('missionControl.priorityPill', { value: order.priority })}</StatusPill>
-                          <StatusPill>{statusLabels[order.status] ?? order.status}</StatusPill>
+                          <StatusPill tone={priorityTone(order.priority)}>{getServiceOrderPriorityPill(t, order.priority, 'missionControl.priorityPill')}</StatusPill>
+                          <StatusPill>{getServiceOrderStatusLabel(t, order.status)}</StatusPill>
                         </div>
                         <h3 className="mt-3 text-lg font-semibold text-slate-950">{order.title}</h3>
                         <p className="text-sm text-slate-600">{building?.name ?? t('common.noData')}</p>
                       </div>
-                      <p className="text-sm text-slate-500">{new Date(order.scheduledStartAt).toLocaleString('es-CO')}</p>
+                      <p className="text-sm text-slate-500">{formatServiceDateTime(order.scheduledStartAt)}</p>
                     </div>
                     <div className="mt-4 grid gap-3 md:grid-cols-3 text-sm text-slate-600">
                       <div className="rounded-2xl bg-slate-50 p-3">
@@ -182,7 +171,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
                         <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.typeLabel')}</p>
-                        <p className="mt-1 font-semibold text-slate-900">{t(`scheduling.types.${order.type}`, { defaultValue: order.type })}</p>
+                        <p className="mt-1 font-semibold text-slate-900">{getServiceOrderTypeLabel(t, order.type)}</p>
                       </div>
                     </div>
                   </div>
@@ -264,7 +253,7 @@ export default function DashboardPage() {
               <div key={item.id} className="rounded-2xl border border-white/70 bg-white/75 p-4">
                 <p className="font-semibold text-slate-900">{item.title}</p>
                 <p className="text-sm text-slate-600">{item.serviceTitle}</p>
-                <p className="mt-1 text-xs text-slate-500">{new Date(item.createdAt).toLocaleString('es-CO')}</p>
+                <p className="mt-1 text-xs text-slate-500">{formatServiceDateTime(item.createdAt)}</p>
               </div>
             ))}
           </div>

@@ -10,6 +10,7 @@ import { useList, useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
+import { getServiceOrderPriorityPill, getServiceOrderStatusLabel, getServiceOrderTypeLabel } from './serviceOrderPresentation';
 
 const statusTone: Record<string, string> = {
   draft: 'bg-fog-100 text-ink-700',
@@ -25,13 +26,6 @@ const priorityTone: Record<string, string> = {
   high: 'bg-amber-50 text-amber-700',
   medium: 'bg-sky-50 text-sky-700',
   low: 'bg-emerald-50 text-emerald-700'
-};
-
-const priorityLabelKey: Record<string, string> = {
-  urgent: 'services.priorityUrgent',
-  high: 'services.priorityHigh',
-  medium: 'services.priorityMedium',
-  low: 'services.priorityLow'
 };
 
 export default function ServicesPage() {
@@ -68,18 +62,7 @@ export default function ServicesPage() {
     [filteredOrders]
   );
 
-  const statusLabel = (value: string) => {
-    const labels: Record<string, string> = {
-      draft: t('services.statusDraft'),
-      scheduled: t('services.statusScheduled'),
-      confirmed: t('services.statusConfirmed'),
-      in_progress: t('services.statusInProgress'),
-      completed: t('services.statusCompleted'),
-      cancelled: t('services.statusCancelled')
-    };
-
-    return labels[value] ?? value;
-  };
+  const statusLabel = (value: string) => getServiceOrderStatusLabel(t, value as Parameters<typeof getServiceOrderStatusLabel>[1]);
 
   return (
     <div className="space-y-8">
@@ -152,7 +135,7 @@ export default function ServicesPage() {
                           {statusLabel(order.status)}
                         </span>
                         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[order.priority] ?? priorityTone.medium}`}>
-                          {t('services.priorityPill', { value: t(priorityLabelKey[order.priority] ?? 'services.priorityMedium') })}
+                          {getServiceOrderPriorityPill(t, order.priority)}
                         </span>
                       </div>
                       <div className="space-y-1">
@@ -174,7 +157,7 @@ export default function ServicesPage() {
                       </div>
                       <div className="rounded-2xl bg-fog-50 p-3">
                         <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.typeLabel')}</p>
-                        <p className="mt-1 font-semibold text-ink-900">{t(`scheduling.types.${order.type}`, { defaultValue: order.type })}</p>
+                        <p className="mt-1 font-semibold text-ink-900">{getServiceOrderTypeLabel(t, order.type)}</p>
                       </div>
                       <div className="rounded-2xl bg-fog-50 p-3">
                         <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
