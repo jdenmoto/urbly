@@ -108,8 +108,14 @@ portal:
   appointmentsEmptyHint: No hay agendamientos para tus edificios.
 clientPortal:
   summaryTitle: Resumen del cliente
-  summarySubtitle: Nueva experiencia del portal cliente en preparacion.
+  summarySubtitle: Vista inicial del portal cliente para seguimiento operativo.
   comingSoon: Aqui vivira la nueva vista de resumen para clientes con estado general, proximos mantenimientos e informes.
+  activeServices: Servicios activos
+  completedServices: Servicios completados
+  buildingsCount: Edificios
+  upcomingTitle: Proximos servicios
+  upcomingSubtitle: Primer corte del resumen cliente basado en service orders.
+  empty: No hay proximos servicios programados.
 services:
   title: Servicios
   subtitle: Nuevo nucleo operativo basado en service orders.
