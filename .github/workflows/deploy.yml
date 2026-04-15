@@ -1,9 +1,8 @@
 name: Deploy Production (main)
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
+  push:
+    branches: [main]
 
 concurrency:
   group: deploy-main
@@ -11,16 +10,13 @@ concurrency:
 
 jobs:
   build-and-deploy:
-    if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 2
 
       - name: Setup Node
@@ -86,4 +82,4 @@ jobs:
 
       - name: Print production release summary
         run: |
-          echo "Production deploy completed for SHA ${{ github.event.workflow_run.head_sha }}"
+          echo "Production deploy completed for SHA ${{ github.sha }}"
