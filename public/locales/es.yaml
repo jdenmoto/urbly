@@ -182,6 +182,7 @@ services:
   statusInProgress: En progreso
   statusCompleted: Completado
   statusCancelled: Cancelado
+  urgentLabel: Urgentes
 customers:
   title: Clientes
   subtitle: Relacion comercial y operativa en una sola vista.
@@ -352,6 +353,7 @@ settings:
   appliesYes: Aplica
   appliesNo: No aplica
   recommendedDatesTitle: Fechas recomendadas
+  priceValueLabel: Valor
   recWaterPotableSem1: Agua potable 1 semestre
   recWaterPotableSem2: Agua potable 2 semestre
   recPozoLluvias: Pozo aguas lluvias
@@ -595,6 +597,7 @@ scheduling:
   hourPlaceholder: Hora
   minutePlaceholder: Min
   issuePhotosHint: Debes adjuntar minimo 2 fotos por novedad (puedes agregar mas).
+  closeViewer: Cerrar visor
   title: Agendamientos
   subtitle: Calendario y agenda operativa
   newTitle: Nuevo agendamiento
