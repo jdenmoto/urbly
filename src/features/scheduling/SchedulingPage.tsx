@@ -33,7 +33,7 @@ import {
 } from '@/core/appointments';
 import { generateAppointmentsPdf } from '@/lib/api/functions';
 import { listServiceTypes } from '@/lib/serviceTypes';
-import { useList, useServiceOrders } from '@/lib/api/queries';
+import { useList, useTenantServiceOrders } from '@/lib/api/queries';
 import { isValidDateRange } from '@/core/validators';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
@@ -59,8 +59,8 @@ import { mapAppointmentToSchedulingItem, mapServiceOrderToSchedulingItem, type S
 export default function SchedulingPage() {
   const { t } = useI18n();
   const { toast } = useToast();
-  const { role } = useAuth();
-  const canEdit = role === 'admin' || role === 'editor';
+  const { role, administrationId } = useAuth();
+  const canEdit = role === 'admin' || role === 'editor' || role === 'supervisor' || role === 'scheduler';
   const canScheduleEmergency = role === 'admin' || role === 'editor' || role === 'emergency_scheduler';
   const canCreate = canEdit || role === 'emergency_scheduler';
   const { isMobile } = useBreakpoint();
@@ -68,7 +68,7 @@ export default function SchedulingPage() {
   const { data: contracts = [] } = useList<Contract>('contracts', 'contracts');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: appointments = [] } = useList<Appointment>('appointments', 'appointments');
-  const { data: serviceOrders = [] } = useServiceOrders();
+  const { data: serviceOrders = [] } = useTenantServiceOrders(administrationId, role);
   const { data: issueSettings } = useQuery({
     queryKey: ['issueSettings'],
     queryFn: async () => {
@@ -350,8 +350,12 @@ export default function SchedulingPage() {
   };
 
   const activeBuildings = useMemo(
-    () => buildings.filter((building) => building.active !== false),
-    [buildings]
+    () => buildings.filter((building) => {
+      if (building.active === false) return false;
+      if (!administrationId) return true;
+      return building.managementCompanyId === administrationId;
+    }),
+    [buildings, administrationId]
   );
 
   const dynamicIssueTypes = useMemo(
