@@ -23,7 +23,7 @@ export default defineConfig({
               return 'vendor-firebase';
             }
             if (id.includes('@fullcalendar')) {
-              return 'vendor-ui';
+              return 'vendor-fullcalendar';
             }
             if (id.includes('framer-motion') || id.includes('recharts')) {
               return 'vendor-ui';
