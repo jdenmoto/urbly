@@ -19,25 +19,25 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
   return (
     <aside
       className={clsx(
-        'flex h-full flex-col gap-6 border-r border-white/50 bg-white/60 px-4 py-6 backdrop-blur-xl',
-        collapsed ? 'w-20' : 'w-72'
+        'flex h-full flex-col gap-6 border-r border-slate-200/70 bg-slate-950 px-4 py-6 text-slate-100 shadow-[16px_0_40px_rgba(15,23,42,0.08)]',
+        collapsed ? 'w-20' : 'w-80'
       )}
     >
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/60 bg-slate-950 text-sm font-semibold text-white">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-800 bg-white text-sm font-semibold text-slate-950">
             U
           </div>
           {!collapsed ? (
             <div>
-              <p className="text-base font-semibold tracking-tight text-slate-950">{t('common.appName')}</p>
-              <p className="text-xs text-slate-500">{t('common.tagline')}</p>
+              <p className="text-base font-semibold tracking-tight text-white">{t('common.appName')}</p>
+              <p className="text-xs text-slate-400">{t('common.tagline')}</p>
             </div>
           ) : null}
         </div>
         {onToggle ? (
           <button
-            className="rounded-xl border border-white/70 bg-white/80 p-2 text-slate-700 transition hover:-translate-y-0.5"
+            className="rounded-xl border border-slate-800 bg-slate-900 p-2 text-slate-200 transition hover:-translate-y-0.5"
             onClick={onToggle}
             aria-label={collapsed ? t('common.expand') : t('common.collapse')}
             title={collapsed ? t('common.expand') : t('common.collapse')}
@@ -55,11 +55,14 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
               {!collapsed ? (
                 <button
                   type="button"
-                  className="flex w-full items-center justify-between px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400"
+                  className="w-full rounded-2xl border border-transparent px-3 py-2 text-left transition hover:bg-slate-900"
                   onClick={() => setSectionOpen((prev) => ({ ...prev, [groupKey]: !isGroupOpen }))}
                 >
-                  <span>{group.label}</span>
-                  {isGroupOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{group.label}</span>
+                    {isGroupOpen ? <ChevronUp className="h-3 w-3 text-slate-500" /> : <ChevronDown className="h-3 w-3 text-slate-500" />}
+                  </div>
+                  {group.description ? <p className="mt-1 text-xs leading-5 text-slate-400">{group.description}</p> : null}
                 </button>
               ) : null}
               <div className="space-y-1">
@@ -72,7 +75,7 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
                           key={`${group.label}-${item.label}`}
                           type="button"
                           className={clsx(
-                            'flex w-full items-center justify-between px-3 pt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400',
+                            'flex w-full items-center justify-between px-3 pt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500',
                             collapsed ? 'hidden' : 'flex'
                           )}
                           onClick={() => item.sectionId ? setSectionOpen((prev) => ({ ...prev, [item.sectionId!]: !prev[item.sectionId!] })) : null}
@@ -87,7 +90,7 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
                           className={({ isActive }) =>
                             clsx(
                               'flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium transition',
-                              isActive ? 'border border-white/70 bg-white/80 text-slate-950 shadow-[0_8px_24px_rgba(15,23,42,0.08)]' : 'text-slate-600 hover:bg-white/65'
+                              isActive ? 'border border-slate-800 bg-white text-slate-950 shadow-[0_8px_24px_rgba(15,23,42,0.18)]' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
                             )
                           }
                         >
@@ -105,12 +108,12 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
       {!collapsed ? (
         <div className="space-y-3">
           <button
-            className="w-full rounded-2xl border border-white/70 bg-white/80 px-4 py-3 text-left text-xs font-semibold text-slate-700 transition hover:-translate-y-0.5"
+            className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-left text-xs font-semibold text-slate-100 transition hover:-translate-y-0.5"
             onClick={() => void logout()}
           >
             {t('common.logout')}
           </button>
-          <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3 text-xs text-slate-600">{t('common.planLabel')}</div>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-xs text-slate-300">{t('common.planLabel')}</div>
         </div>
       ) : null}
     </aside>
