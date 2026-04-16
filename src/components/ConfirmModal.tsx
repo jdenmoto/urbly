@@ -17,14 +17,21 @@ export default function ConfirmModal({
   onClose: () => void;
 }) {
   const { t } = useI18n();
+
   return (
     <Modal open={open} title={title} onClose={onClose} layer="confirm">
-      {description ? <p className="text-sm text-ink-700">{description}</p> : null}
-      <div className="mt-6 flex items-center justify-end gap-2">
-        <Button variant="secondary" onClick={onClose}>
-          {t('common.cancel')}
-        </Button>
-        <Button onClick={onConfirm}>{t('common.confirm')}</Button>
+      <div className="space-y-6">
+        {description ? (
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm leading-6 text-slate-700 shadow-sm">
+            {description}
+          </div>
+        ) : null}
+        <div className="flex items-center justify-end gap-2 border-t border-slate-200 pt-4">
+          <Button variant="secondary" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={onConfirm}>{t('common.confirm')}</Button>
+        </div>
       </div>
     </Modal>
   );

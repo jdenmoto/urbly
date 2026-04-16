@@ -46,6 +46,11 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
           </button>
         ) : null}
       </div>
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t('shell.workspaceLabel')}</p>
+        <p className="mt-2 text-sm font-semibold text-white">{t('shell.executionModeValue')}</p>
+        <p className="mt-1 text-xs leading-5 text-slate-400">{t('shell.sidebarHint')}</p>
+      </div>
       <nav className="flex flex-1 flex-col gap-4">
         {navGroups.map((group, index) => {
           const groupKey = index === 0 ? 'main' : 'settings';
@@ -106,7 +111,7 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
         })}
       </nav>
       {!collapsed ? (
-        <div className="space-y-3">
+        <div className="space-y-3 border-t border-slate-800 pt-4">
           <button
             className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-left text-xs font-semibold text-slate-100 transition hover:-translate-y-0.5"
             onClick={() => void logout()}

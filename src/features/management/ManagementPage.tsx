@@ -11,6 +11,7 @@ import DataTable from '@/components/DataTable';
 import EmptyState from '@/components/EmptyState';
 import Modal from '@/components/Modal';
 import ConfirmModal from '@/components/ConfirmModal';
+import { GlassPanel, MetricCard, SectionHeader, StatusPill } from '@/components/premium';
 import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type { Building } from '@/core/models/building';
@@ -518,6 +519,22 @@ export default function ManagementPage() {
   return (
     <div className="space-y-8">
       <PageHeader title={t('management.title')} subtitle={t('management.subtitle')} />
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label={t('management.tabs.administrations')} value={companies.length} hint={t('management.emptySubtitle')} />
+        <MetricCard label={t('management.tabs.contracts')} value={contracts.length} hint={t('contracts.emptySubtitle')} />
+        <MetricCard label={t('management.buildingsTitle')} value={buildings.filter((building) => Boolean(building.managementCompanyId)).length} hint={t('management.buildingsOptional')} />
+        <MetricCard label={t('common.actions')} value={canEdit ? 'Sí' : 'No'} hint={canEdit ? t('common.edit') : t('common.view')} />
+      </section>
+
+      <GlassPanel className="space-y-5">
+        <SectionHeader
+          eyebrow={t('management.title')}
+          title={t('management.subtitle')}
+          subtitle={activeTab === 'administrations' ? t('management.tabs.administrations') : t('management.tabs.contracts')}
+          aside={<StatusPill tone="info">{activeTab === 'administrations' ? t('management.tabs.administrations') : t('management.tabs.contracts')}</StatusPill>}
+        />
+
       <div className="flex flex-wrap items-center gap-2">
         <Button
           variant={activeTab === 'administrations' ? 'primary' : 'secondary'}
@@ -533,7 +550,7 @@ export default function ManagementPage() {
         </Button>
       </div>
       {activeTab === 'administrations' && selectedCompany ? (
-        <div className="space-y-4">
+        <GlassPanel className="space-y-4 border border-slate-200 bg-slate-50/60 shadow-none">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-ink-900">{selectedCompany.name}</p>
@@ -567,10 +584,10 @@ export default function ManagementPage() {
             }
             pageSize={5}
           />
-        </div>
+        </GlassPanel>
       ) : null}
       {activeTab === 'administrations' && canEdit ? (
-        <>
+        <GlassPanel className="space-y-3 border border-slate-200 bg-white/70 shadow-none">
           <div className="space-y-3">
             <div className="flex items-center justify-end">
               <Button onClick={startCreate}>{t('common.add')}</Button>
@@ -729,17 +746,19 @@ export default function ManagementPage() {
             onConfirm={confirmDelete}
             onClose={() => setDeleteTarget(null)}
           />
-        </>
+        </GlassPanel>
       ) : null}
       {activeTab === 'administrations' && !canEdit ? (
-        <DataTable
-          columns={columns}
-          data={companies}
-          emptyState={<EmptyState title={t('management.emptyTitle')} description={t('management.emptySubtitle')} />}
-        />
+        <GlassPanel className="border border-slate-200 bg-white/70 shadow-none">
+          <DataTable
+            columns={columns}
+            data={companies}
+            emptyState={<EmptyState title={t('management.emptyTitle')} description={t('management.emptySubtitle')} />}
+          />
+        </GlassPanel>
       ) : null}
       {activeTab === 'contracts' ? (
-        <div className="space-y-3">
+        <GlassPanel className="space-y-3 border border-slate-200 bg-white/70 shadow-none">
           {canEdit ? (
             <div className="flex items-center justify-end">
               <Button onClick={startCreateContract}>{t('common.add')}</Button>
@@ -884,8 +903,9 @@ export default function ManagementPage() {
             onConfirm={confirmDeleteContract}
             onClose={() => setDeleteContractTarget(null)}
           />
-        </div>
+        </GlassPanel>
       ) : null}
+      </GlassPanel>
     </div>
   );
 }

@@ -16,6 +16,7 @@ export default function Modal({
   layer?: 'base' | 'confirm';
 }) {
   const { t } = useI18n();
+
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -31,18 +32,19 @@ export default function Modal({
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center bg-black/40 px-4 ${layer === 'confirm' ? 'z-[70]' : 'z-50'}`}
+      className={`fixed inset-0 flex items-center justify-center bg-slate-950/55 px-4 py-6 backdrop-blur-sm ${layer === 'confirm' ? 'z-[70]' : 'z-50'}`}
     >
-      <div className="flex w-full max-w-lg max-h-[80vh] flex-col rounded-2xl bg-white p-6 shadow-soft">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-semibold text-ink-900">{title}</h3>
+      <div className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-[32px] border border-white/15 bg-[#f8fafc] shadow-[0_32px_90px_rgba(15,23,42,0.28)]">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-6 py-5 backdrop-blur">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Workspace modal</p>
+            <h3 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">{title}</h3>
           </div>
           <Button variant="ghost" onClick={onClose}>
             {t('common.close')}
           </Button>
         </div>
-        <div className="mt-4 flex-1 overflow-y-auto">{children}</div>
+        <div className="flex-1 overflow-y-auto bg-[#f8fafc] px-6 py-6">{children}</div>
       </div>
     </div>
   );
