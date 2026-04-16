@@ -28,6 +28,7 @@ const LabsSettingsPage = lazy(() => import('@/features/settings/LabsSettingsPage
 const CalendarSettingsPage = lazy(() => import('@/features/settings/CalendarSettingsPage'));
 const CalendarHolidaysPage = lazy(() => import('@/features/settings/CalendarHolidaysPage'));
 const CalendarNonWorkingPage = lazy(() => import('@/features/settings/CalendarNonWorkingPage'));
+const ServiceTypesSettingsPage = lazy(() => import('@/features/settings/ServiceTypesSettingsPage'));
 
 function RouteLoader() {
   return <div className="p-8 text-sm text-ink-600">Cargando modulo...</div>;
@@ -239,6 +240,16 @@ export default function App() {
               <RoleGuard allow={['admin']}>
                 <FeatureGuard feature="settings">
                   <IssuesSettingsPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="settings/service-types"
+            element={
+              <RoleGuard allow={['admin']}>
+                <FeatureGuard feature="settings">
+                  <ServiceTypesSettingsPage />
                 </FeatureGuard>
               </RoleGuard>
             }

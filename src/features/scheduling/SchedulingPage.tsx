@@ -27,12 +27,12 @@ import type { Contract } from '@/core/models/contract';
 import type { Employee } from '@/core/models/employee';
 import {
   recurrenceOptions,
-  appointmentTypeOptions,
   cancelReasonOptions,
   issueTypeOptions,
   issueCategoryOptions
 } from '@/core/appointments';
 import { generateAppointmentsPdf } from '@/lib/api/functions';
+import { listServiceTypes } from '@/lib/serviceTypes';
 import { useList, useServiceOrders } from '@/lib/api/queries';
 import { isValidDateRange } from '@/core/validators';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -87,6 +87,12 @@ export default function SchedulingPage() {
     },
     staleTime: 60_000
   });
+  const { data: serviceTypes = [] } = useQuery({
+    queryKey: ['serviceTypes'],
+    queryFn: listServiceTypes,
+    staleTime: 60_000
+  });
+
   const { data: calendarSettings } = useQuery({
     queryKey: ['calendarSettings'],
     queryFn: async () => {
@@ -1446,9 +1452,9 @@ export default function SchedulingPage() {
             </Select>
             <Select label={t('scheduling.type')} error={errors.type?.message} required {...register('type')}>
               <option value="">{t('common.select')}</option>
-              {appointmentTypeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {t(`scheduling.types.${option}`)}
+              {serviceTypes.map((option) => (
+                <option key={option.id} value={option.code}>
+                  {t(`scheduling.types.${option.code}`) !== `scheduling.types.${option.code}` ? t(`scheduling.types.${option.code}`) : option.name}
                 </option>
               ))}
             </Select>

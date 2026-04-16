@@ -101,6 +101,13 @@ export function useNavGroups(role: AppUserRole = 'view') {
             enabled: flags.settings
           },
           {
+            to: '/settings/service-types',
+            label: 'Tipos de servicio',
+            icon: Settings,
+            adminOnly: true,
+            enabled: flags.settings
+          },
+          {
             to: '/settings/contracts',
             label: t('nav.settingsContracts'),
             icon: Settings,
