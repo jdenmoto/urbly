@@ -139,28 +139,33 @@ export default function DashboardPage() {
         <MotionItem><MetricCard label={t('missionControl.overdue')} value={data.overdue.length} hint={t('missionControl.overdueHint')} /></MotionItem>
       </MotionGrid>
 
-      <div className="grid gap-4 xl:grid-cols-[1.4fr,1fr]">
+      <div className="grid gap-4 xl:grid-cols-[1.45fr,1fr]">
         <GlassPanel>
-          <SectionHeader title={t('missionControl.operationsTitle')} subtitle={t('missionControl.operationsSubtitle')} />
+          <SectionHeader
+            title={t('missionControl.operationsTitle')}
+            subtitle={t('missionControl.operationsSubtitle')}
+            aside={<StatusPill tone="info">{`${data.upcoming.length} ${t('common.items')}`}</StatusPill>}
+          />
           <MotionGrid className="mt-6 space-y-3">
             {data.upcoming.map((order) => {
               const building = buildings.find((item) => item.id === order.buildingId);
               const technician = employees.find((item) => item.id === order.assignedTechnicianId);
               return (
                 <MotionItem key={order.id}>
-                  <div className="rounded-[24px] border border-white/70 bg-white/75 p-4">
+                  <div className="rounded-[24px] border border-white/70 bg-white/80 p-4 shadow-sm">
                     <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                       <div>
                         <div className="flex flex-wrap gap-2">
                           <StatusPill tone={priorityTone(order.priority)}>{getServiceOrderPriorityPill(t, order.priority, 'missionControl.priorityPill')}</StatusPill>
                           <StatusPill>{getServiceOrderStatusLabel(t, order.status)}</StatusPill>
+                          <StatusPill tone="info">{getServiceOrderTypeLabel(t, order.type)}</StatusPill>
                         </div>
                         <h3 className="mt-3 text-lg font-semibold text-slate-950">{order.title}</h3>
                         <p className="text-sm text-slate-600">{building?.name ?? t('common.noData')}</p>
                       </div>
                       <p className="text-sm text-slate-500">{formatServiceDateTime(order.scheduledStartAt)}</p>
                     </div>
-                    <div className="mt-4 grid gap-3 md:grid-cols-3 text-sm text-slate-600">
+                    <div className="mt-4 grid gap-3 text-sm text-slate-600 md:grid-cols-3">
                       <div className="rounded-2xl bg-slate-50 p-3">
                         <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.assigneeLabel')}</p>
                         <p className="mt-1 font-semibold text-slate-900">{technician?.fullName ?? t('common.unassigned')}</p>
@@ -186,7 +191,7 @@ export default function DashboardPage() {
             <SectionHeader title={t('missionControl.alertsTitle')} subtitle={t('missionControl.alertsSubtitle')} />
             <div className="mt-6 space-y-3">
               {data.alerts.map((alert) => (
-                <div key={alert.id} className="rounded-2xl border border-white/70 bg-white/75 p-4">
+                <div key={alert.id} className="rounded-[24px] border border-white/70 bg-white/80 p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="font-semibold text-slate-900">{alert.service}</p>
@@ -211,7 +216,7 @@ export default function DashboardPage() {
             <SectionHeader title={t('missionControl.teamLoadTitle')} subtitle={t('missionControl.teamLoadSubtitle')} />
             <div className="mt-6 space-y-3">
               {data.technicianLoad.map((tech) => (
-                <div key={tech.id} className="rounded-2xl border border-white/70 bg-white/75 p-4">
+                <div key={tech.id} className="rounded-[24px] border border-white/70 bg-white/80 p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-semibold text-slate-900">{tech.name}</p>
                     <StatusPill tone={tech.assigned >= 3 ? 'warning' : 'success'}>{t('missionControl.assignedCount', { count: tech.assigned })}</StatusPill>
@@ -227,19 +232,19 @@ export default function DashboardPage() {
         <GlassPanel>
           <SectionHeader title={t('missionControl.commercialTitle')} subtitle={t('missionControl.commercialSubtitle')} />
           <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-2">
-            <div className="rounded-2xl border border-white/70 bg-white/75 p-4">
+            <div className="rounded-[24px] border border-white/70 bg-white/80 p-4 shadow-sm">
               <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.quotesPending')}</p>
               <p className="mt-2 text-2xl font-semibold text-slate-950">{data.quotesPending}</p>
             </div>
-            <div className="rounded-2xl border border-white/70 bg-white/75 p-4">
+            <div className="rounded-[24px] border border-white/70 bg-white/80 p-4 shadow-sm">
               <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.contractsPending')}</p>
               <p className="mt-2 text-2xl font-semibold text-slate-950">{data.contractsPending}</p>
             </div>
-            <div className="rounded-2xl border border-white/70 bg-white/75 p-4">
+            <div className="rounded-[24px] border border-white/70 bg-white/80 p-4 shadow-sm">
               <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.usersLabel')}</p>
               <p className="mt-2 text-2xl font-semibold text-slate-950">{data.usersCount}</p>
             </div>
-            <div className="rounded-2xl border border-white/70 bg-white/75 p-4">
+            <div className="rounded-[24px] border border-white/70 bg-white/80 p-4 shadow-sm">
               <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.buildingsLabel')}</p>
               <p className="mt-2 text-2xl font-semibold text-slate-950">{data.buildingsCount}</p>
             </div>
@@ -250,7 +255,7 @@ export default function DashboardPage() {
           <SectionHeader title={t('missionControl.activityTitle')} subtitle={t('missionControl.activitySubtitle')} />
           <div className="mt-6 space-y-3">
             {data.recentActivity.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-white/70 bg-white/75 p-4">
+              <div key={item.id} className="rounded-[24px] border border-white/70 bg-white/80 p-4 shadow-sm">
                 <p className="font-semibold text-slate-900">{item.title}</p>
                 <p className="text-sm text-slate-600">{item.serviceTitle}</p>
                 <p className="mt-1 text-xs text-slate-500">{formatServiceDateTime(item.createdAt)}</p>

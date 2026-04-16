@@ -12,10 +12,15 @@ export default function TopBar() {
   const currentGroup = navGroups.find((group) => group.items.some((item) => item.to === location.pathname));
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-[#f7f9fc]/90 px-4 py-4 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-[#f7f9fc]/92 px-4 py-4 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{currentGroup?.label ?? t('common.panelTitle')}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{currentGroup?.label ?? t('common.panelTitle')}</p>
+            <span className="hidden rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 md:inline-flex">
+              {t('shell.workspaceBadge')}
+            </span>
+          </div>
           <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950">{currentItem?.label ?? t('common.panelTitle')}</p>
           <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500">{currentGroup?.description ?? t('common.panelSubtitle')}</p>
         </div>
@@ -23,6 +28,12 @@ export default function TopBar() {
           <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
             {t('common.tagline')}
           </div>
+          <button className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
+            {t('shell.globalSearchPlaceholder')}
+          </button>
+          <button className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
+            {t('shell.quickActionLabel')}
+          </button>
           <div className="rounded-full border border-slate-900 bg-slate-950 px-3 py-1 text-xs font-semibold text-white shadow-sm">
             {t('common.panelTitle')}
           </div>

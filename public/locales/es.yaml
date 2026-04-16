@@ -96,6 +96,21 @@ nav:
   settingsSectionDescription: Parámetros maestros, usuarios y reglas operativas del sistema.
   portalSection: Portal
   portalSectionDescription: Resumen operativo para clientes y administradores del edificio.
+shell:
+  workspaceLabel: Workspace activo
+  workspaceBadge: CRM operativo
+  usageLabel: Uso recomendado
+  usagePointOne: Prioriza servicios y seguimientos desde la navegación principal.
+  usagePointTwo: Usa el contexto lateral para mantener foco por dominio operativo.
+  usagePointThree: Deja configuraciones y administración como tareas secundarias, no como flujo principal.
+  executionModeLabel: Modo operativo
+  executionModeValue: Operación centralizada
+  focusLabel: Foco del workspace
+  focusTitle: Menos navegación, más ejecución
+  focusDescription: El shell prioriza seguimiento, servicio y control operativo antes que administración secundaria.
+  globalSearchPlaceholder: Búsqueda global
+  quickActionLabel: Acción rápida
+  sidebarHint: Accede rápido a la operación principal y deja configuraciones en segundo plano.
 auth:
   title: Bienvenido a Urbly
   subtitle: Ingresa con tu cuenta de administrador.
