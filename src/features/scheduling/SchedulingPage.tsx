@@ -498,7 +498,7 @@ export default function SchedulingPage() {
       } else {
         await saveAppointment({ values: values as SchedulingFormValues, editingId: null, appointments });
       }
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await invalidateAppointments();
       reset();
       setEditingId(null);
       setModalOpen(false);
@@ -527,7 +527,7 @@ export default function SchedulingPage() {
         toast,
         t
       });
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await invalidateAppointments();
       reset();
       setEditingId(null);
       setModalOpen(false);
@@ -678,7 +678,7 @@ export default function SchedulingPage() {
         normalizedChecklist
       });
       await updateDocById('appointments', completeTarget.id, payload);
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await invalidateAppointments();
       toast(t('scheduling.toastCompleted'), 'success');
       if (selected?.id === completeTarget.id) {
         setSelected((prev) => applyCompletionToSelected(prev, completeTarget.id, payload));
@@ -701,7 +701,7 @@ export default function SchedulingPage() {
     if (!cancelTarget) return;
     try {
       await cancelAppointment(cancelTarget.id, values);
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await invalidateAppointments();
       toast(t('scheduling.toastCanceled'), 'success');
       setCancelTarget(null);
     } catch {
@@ -713,7 +713,7 @@ export default function SchedulingPage() {
     if (!deleteTarget) return;
     try {
       await deleteAppointment(deleteTarget.id);
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await invalidateAppointments();
       if (editingId === deleteTarget.id) {
         setModalOpen(false);
         setEditingId(null);
