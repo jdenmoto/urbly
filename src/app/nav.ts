@@ -22,13 +22,14 @@ export type NavGroup = {
   items: NavItem[];
 };
 
-export function useNavGroups(
-  role: AppUserRole = 'view'
-) {
+const adminVisibleRoles: AppUserRole[] = ['admin', 'editor'];
+const internalDashboardRoles: AppUserRole[] = ['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'];
+
+export function useNavGroups(role: AppUserRole = 'view') {
   const { t } = useI18n();
   const { flags } = useFeatureFlags();
 
-  if (role === 'building_admin') {
+  if (role === 'building_admin' || role === 'client') {
     return [
       {
         label: t('nav.portalSection'),
@@ -55,7 +56,7 @@ export function useNavGroups(
     ];
   }
 
-  if (role === 'editor' || role === 'view' || role === 'admin') {
+  if (internalDashboardRoles.includes(role)) {
     const groups: NavGroup[] = [
       {
         label: t('nav.operationsSection'),
@@ -153,119 +154,22 @@ export function useNavGroups(
         ...group,
         items: group.items.filter((item) => {
           const adminOnly = (item as { adminOnly?: boolean }).adminOnly;
-          return item.enabled && (!adminOnly || role === 'admin');
+          return item.enabled && (!adminOnly || adminVisibleRoles.includes(role));
         })
       }))
       .filter((group) => group.items.length > 0);
   }
 
-  const groups: NavGroup[] = [
-    {
-      label: t('nav.operationsSection'),
-      description: t('nav.operationsSectionDescription'),
-      items: [
-        { to: '/', label: t('nav.dashboard'), shortLabel: t('nav.shortDashboard'), icon: LayoutDashboard, enabled: flags.dashboard, mobile: true, mobileOrder: 1 },
-        { to: '/services', label: t('nav.services'), shortLabel: t('nav.shortServices'), icon: Briefcase, enabled: flags.services, mobile: true, mobileOrder: 2 },
-        { to: '/buildings', label: t('nav.buildings'), shortLabel: t('nav.shortBuildings'), icon: Building2, enabled: flags.buildings, mobile: true, mobileOrder: 3 }
-      ]
-    },
-    {
-      label: t('nav.portfolioSection'),
-      description: t('nav.portfolioSectionDescription'),
-      items: [
-        { to: '/management', label: t('nav.management'), shortLabel: t('nav.shortManagement'), icon: Landmark, enabled: flags.management, mobile: true, mobileOrder: 4 },
-        { to: '/employees', label: t('nav.employees'), shortLabel: t('nav.shortTeam'), icon: Users, enabled: flags.employees, mobile: true, mobileOrder: 5 }
-      ]
-    },
-    {
-      label: t('nav.settingsSection'),
-      description: t('nav.settingsSectionDescription'),
-      items: [
-        {
-          to: '/settings/groups',
-          label: t('nav.settingsGroups'),
-          icon: Settings,
-          adminOnly: true,
-          enabled: flags.settings
-        },
-        {
-          to: '/settings/issues',
-          label: t('nav.settingsIssues'),
-          icon: Settings,
-          adminOnly: true,
-          enabled: flags.settings
-        },
-        {
-          to: '/settings/contracts',
-          label: t('nav.settingsContracts'),
-          icon: Settings,
-          adminOnly: true,
-          enabled: flags.settings
-        },
-        {
-          to: '/settings/labs',
-          label: t('nav.settingsLabs'),
-          icon: Settings,
-          adminOnly: true,
-          enabled: flags.settings
-        },
-        {
-          to: '/users',
-          label: t('nav.users'),
-          icon: ShieldUser,
-          adminOnly: true,
-          enabled: flags.users
-        },
-        {
-          label: t('nav.settingsCalendarSection'),
-          icon: Settings,
-          adminOnly: true,
-          enabled: flags.settings,
-          kind: 'section',
-          sectionId: 'calendar'
-        },
-        {
-          to: '/settings/calendar/holidays',
-          label: t('nav.settingsCalendarHolidays'),
-          icon: Settings,
-          adminOnly: true,
-          enabled: flags.settings,
-          sectionId: 'calendar'
-        },
-        {
-          to: '/settings/calendar/non-working',
-          label: t('nav.settingsCalendarNonWorking'),
-          icon: Settings,
-          adminOnly: true,
-          enabled: flags.settings,
-          sectionId: 'calendar'
-        }
-      ]
-    }
-  ];
-
-  return groups
-    .map((group) => ({
-      ...group,
-      items: group.items.filter((item) => {
-        const adminOnly = (item as { adminOnly?: boolean }).adminOnly;
-        return item.enabled && (!adminOnly || role === 'admin');
-      })
-    }))
-    .filter((group) => group.items.length > 0);
+  return [];
 }
 
-export function useNavItems(
-  role: AppUserRole = 'view'
-) {
+export function useNavItems(role: AppUserRole = 'view') {
   return useNavGroups(role)
     .flatMap((group) => group.items)
     .filter((item) => item.kind !== 'section' && item.to);
 }
 
-export function useMobileNavItems(
-  role: AppUserRole = 'view'
-) {
+export function useMobileNavItems(role: AppUserRole = 'view') {
   return useNavItems(role)
     .filter((item) => item.mobile !== false)
     .sort((a, b) => (a.mobileOrder ?? Number.MAX_SAFE_INTEGER) - (b.mobileOrder ?? Number.MAX_SAFE_INTEGER))
