@@ -22,7 +22,7 @@ export type NavGroup = {
 };
 
 export function useNavGroups(
-  role: 'admin' | 'editor' | 'view' | 'building_admin' | 'emergency_scheduler' = 'view'
+  role: AppUserRole = 'view'
 ) {
   const { t } = useI18n();
   const { flags } = useFeatureFlags();
@@ -255,7 +255,7 @@ export function useNavGroups(
 }
 
 export function useNavItems(
-  role: 'admin' | 'editor' | 'view' | 'building_admin' | 'emergency_scheduler' = 'view'
+  role: AppUserRole = 'view'
 ) {
   return useNavGroups(role)
     .flatMap((group) => group.items)
@@ -263,7 +263,7 @@ export function useNavItems(
 }
 
 export function useMobileNavItems(
-  role: 'admin' | 'editor' | 'view' | 'building_admin' | 'emergency_scheduler' = 'view'
+  role: AppUserRole = 'view'
 ) {
   return useNavItems(role)
     .filter((item) => item.mobile !== false)

@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import { useNavGroups } from '@/app/nav';
 import { useAuth } from '@/app/Auth';
+import type { AppUserRole } from '@/core/models/appUser';
 import { useI18n } from '@/lib/i18n';
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from './ActionIcons';
 import { useState } from 'react';
