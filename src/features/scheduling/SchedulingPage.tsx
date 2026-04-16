@@ -33,7 +33,7 @@ import {
   issueCategoryOptions
 } from '@/core/appointments';
 import { generateAppointmentsPdf } from '@/lib/api/functions';
-import { useList } from '@/lib/api/queries';
+import { useList, useServiceOrders } from '@/lib/api/queries';
 import { isValidDateRange } from '@/core/validators';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
@@ -54,6 +54,7 @@ import {
 import { cancelAppointment, deleteAppointment, type CancelValues } from './schedulingMutations';
 import { createRecurringSeries, regenerateSeries, saveAppointment, type SchedulingFormValues } from './schedulingSeries';
 import { moveAppointmentOnCalendar } from './schedulingCalendarMutations';
+import { mapAppointmentToSchedulingItem, mapServiceOrderToSchedulingItem, type SchedulingItem } from './schedulingItem';
 
 export default function SchedulingPage() {
   const { t } = useI18n();
@@ -67,6 +68,7 @@ export default function SchedulingPage() {
   const { data: contracts = [] } = useList<Contract>('contracts', 'contracts');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: appointments = [] } = useList<Appointment>('appointments', 'appointments');
+  const { data: serviceOrders = [] } = useServiceOrders();
   const { data: issueSettings } = useQuery({
     queryKey: ['issueSettings'],
     queryFn: async () => {
@@ -98,7 +100,7 @@ export default function SchedulingPage() {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ buildingId: '', from: '', to: '' });
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [selected, setSelected] = useState<Appointment | null>(null);
+  const [selected, setSelected] = useState<SchedulingItem | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
@@ -106,13 +108,13 @@ export default function SchedulingPage() {
   const [filterBuildingSearch, setFilterBuildingSearch] = useState('');
   const [buildingDropdownOpen, setBuildingDropdownOpen] = useState(false);
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
-  const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Appointment | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<SchedulingItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<SchedulingItem | null>(null);
   const [seriesConfirmOpen, setSeriesConfirmOpen] = useState(false);
   const [pendingSeriesValues, setPendingSeriesValues] = useState<FormValues | null>(null);
   const [calendarRange, setCalendarRange] = useState<{ start: string; end: string } | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
-  const [completeTarget, setCompleteTarget] = useState<Appointment | null>(null);
+  const [completeTarget, setCompleteTarget] = useState<SchedulingItem | null>(null);
   const [hasIssues, setHasIssues] = useState<'yes' | 'no' | ''>('');
   const [issues, setIssues] = useState<
     Array<{
@@ -300,7 +302,12 @@ export default function SchedulingPage() {
     reset: resetCancel
   } = useForm<LocalCancelValues>({ resolver: zodResolver(cancelSchema) });
 
-  const filtered = useMemo(() => filterAppointments(appointments, filters), [appointments, filters]);
+  const schedulingItems = useMemo(() => {
+    if (serviceOrders.length > 0) return serviceOrders.map(mapServiceOrderToSchedulingItem);
+    return appointments.map(mapAppointmentToSchedulingItem);
+  }, [serviceOrders, appointments]);
+
+  const filtered = useMemo(() => filterAppointments(schedulingItems, filters), [schedulingItems, filters]);
 
   const restrictedDates = useMemo(() => buildRestrictedDates(calendarSettings), [calendarSettings]);
 
@@ -360,8 +367,8 @@ export default function SchedulingPage() {
     [activeBuildings, buildingSearch]
   );
 
-  const columns = useMemo<ColumnDef<Appointment>[]>(() => {
-    const base: ColumnDef<Appointment>[] = [
+  const columns = useMemo<ColumnDef<SchedulingItem>[]>(() => {
+    const base: ColumnDef<SchedulingItem>[] = [
       { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: true },
       {
         header: t('scheduling.building'),
@@ -576,7 +583,7 @@ export default function SchedulingPage() {
     setModalOpen(true);
   };
 
-  const startEdit = (appointment: Appointment) => {
+  const startEdit = (appointment: SchedulingItem) => {
     setEditingId(appointment.id);
     setValue('buildingId', appointment.buildingId);
     setValue('title', appointment.title);
@@ -602,12 +609,12 @@ export default function SchedulingPage() {
     }
   }, [selectedType, setValue]);
 
-  const openCancel = (appointment: Appointment) => {
+  const openCancel = (appointment: SchedulingItem) => {
     setCancelTarget(appointment);
     resetCancel({ reason: '', note: '' });
   };
 
-  const startComplete = (appointment: Appointment) => {
+  const startComplete = (appointment: SchedulingItem) => {
     setCompleteTarget(appointment);
     setHasIssues('');
     setIssues([]);
@@ -677,11 +684,21 @@ export default function SchedulingPage() {
         completionReport,
         normalizedChecklist
       });
-      await updateDocById('appointments', completeTarget.id, payload);
+      await updateDocById(completeTarget.source === 'service_order' ? 'service_orders' : 'appointments', completeTarget.id, payload);
       await invalidateAppointments();
       toast(t('scheduling.toastCompleted'), 'success');
       if (selected?.id === completeTarget.id) {
-        setSelected((prev) => applyCompletionToSelected(prev, completeTarget.id, payload));
+        setSelected((prev) => {
+          if (!prev || prev.id !== completeTarget.id) return prev;
+          return {
+            ...prev,
+            status: 'completado',
+            completedAt: payload.completedAt as string,
+            issues: payload.issues as SchedulingItem['issues'],
+            completionPhotos: payload.completionPhotos as SchedulingItem['completionPhotos'],
+            completionReport: payload.completionReport as SchedulingItem['completionReport']
+          };
+        });
       }
       setCompleteTarget(null);
     } catch (error) {
@@ -977,7 +994,7 @@ export default function SchedulingPage() {
                   }))
                 ]}
                 eventClick={(info) => {
-                  const appointment = appointments.find((item) => item.id === info.event.id);
+                  const appointment = schedulingItems.find((item) => item.id === info.event.id);
                   if (appointment) {
                     setSelected(appointment);
                   }
