@@ -71,7 +71,7 @@ export default function BuildingAdminPage() {
     [t]
   );
 
-  const appointmentColumns = useMemo<ColumnDef<(typeof scopedServiceOrders)[number]>[]>(
+  const serviceOrderColumns = useMemo<ColumnDef<(typeof scopedServiceOrders)[number]>[]>(
     () => [
       { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: false },
       {
@@ -143,9 +143,9 @@ export default function BuildingAdminPage() {
         />
       </div>
       <DataTable
-        columns={appointmentColumns}
+        columns={serviceOrderColumns}
         data={scopedServiceOrders}
-        emptyState={<EmptyState title={t('portal.appointmentsEmpty')} description={t('portal.appointmentsEmptyHint')} />}
+        emptyState={<EmptyState title={t('services.emptyTitle')} description={t('services.emptyDescription')} />}
       />
     </div>
   );
