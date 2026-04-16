@@ -2,62 +2,62 @@
 
 ## Objetivo
 
-Concentrar las decisiones que aún deben cerrarse antes de congelar una especificación V1 sólida.
+Concentrar las decisiones finas que aún deben cerrarse antes de pasar a historias técnicas detalladas.
 
 ---
 
 ## 1. Roles y permisos
 
-1. ¿qué visibilidad exacta debe tener el rol `comercial` sobre cotizaciones ajenas?
-
-2. ¿el rol `auditoria` puede exportar historial o solo visualizarlo?
+1. ¿qué visibilidad exacta debe tener el rol `comercial` sobre cotizaciones ajenas fuera de su equipo?
 
 ---
 
 ## 2. Estados y operación
 
-3. ¿qué eventos llevan un servicio a `con_novedad`?
+2. ¿conviene separar subtipos de `con_novedad` para reporting posterior?
 
-4. ¿el operador puede marcar un servicio como `en_curso` manualmente?
+3. ¿qué combinaciones exactas de eventos deben obligar comentarios internos adicionales?
 
 ---
 
 ## 3. Programación
 
-5. ¿cómo debe modelarse exactamente el grupo de asignación, como atributo fijo del edificio o como relación configurable por periodos?
+4. ¿qué reglas exactas debe usar el cálculo automático del grupo basándose en dirección y rutas?
 
-6. ¿qué reglas exactas debe usar el cálculo automático del grupo basándose en dirección y rutas?
+5. ¿el grupo de asignación debe soportar versionado o el cambio inmediato simple es suficiente para la V1?
 
 ---
 
 ## 4. Reporte técnico
 
-7. si el edificio ya tiene bombas registradas, ¿el operador puede editar esa cantidad o solo seleccionarlas?
+6. si el edificio ya tiene bombas registradas, ¿el operador puede editar esa cantidad o solo seleccionarlas?
 
-8. ¿debe existir mínimo de fotos por tipo de servicio además del mínimo global?
+7. ¿debe existir mínimo de fotos por tipo de servicio además del mínimo global?
 
-9. ¿cómo se configurará exactamente la variabilidad de plantillas por tenant?
+8. ¿cómo se configurará exactamente la variabilidad de plantillas por tenant en el editor visual?
 
 ---
 
 ## 5. Cotizaciones
 
-10. ¿el cliente debe ver versión o numeración de cotización en lenguaje interno o formato más comercial?
-
-11. ¿el comercial puede regenerar el enlace directamente o requiere flujo de aprobación?
+9. ¿el cliente debe ver versión o numeración de cotización en lenguaje interno o formato más comercial?
 
 ---
 
 ## 6. IA y hardening
 
-12. ¿la IA puede generar el primer borrador de cotización completo o solo ayudar en secciones?
+10. ¿la IA puede generar el primer borrador de cotización completo o solo ayudar en secciones?
 
-13. ¿se permitirá apagar IA por módulo, por cliente o por rol?
+11. ¿qué nivel de evidencia mínima necesita la IA para sugerir mantenimiento o criticidad?
 
-14. ¿qué nivel de evidencia mínima necesita la IA para sugerir mantenimiento o criticidad?
+12. ¿cómo se traducirá la configuración tenant-aware de IA a planes comerciales concretos?
 
-15. ¿debe existir configuración tenant-aware para exponer o no capacidades IA según cliente?
+---
 
+## Recomendación
+
+La base del producto ya está suficientemente cerrada para pasar a historias técnicas.
+Lo pendiente es principalmente diseño de configuración, reporting y estrategia multi-tenant.
 ---
 
 ## Recomendación

@@ -22,7 +22,7 @@ Definir el alcance funcional por rol y las herencias principales.
 - `admin` hereda todos los permisos
 - `programador` es el rol operativo habilitado para programar servicios
 - `comercial` participa en creación de cotizaciones
-- `supervisor` solo participa en flujo de cotizaciones y revisión de reportes, no en programación
+- `supervisor` participa en revisión de cotizaciones, revisión de reportes y gestión de grupos de asignación, pero no programa servicios
 - `cliente` accede mediante experiencia controlada para agenda, cotizaciones y reportes
 
 ---
@@ -80,13 +80,11 @@ El supervisor puede:
 - revisar cotizaciones
 - aprobar, rechazar o editar cotizaciones
 - revisar reportes de servicio
+- gestionar grupos de asignación
+- devolver reportes al operador con correcciones
+- escalar hallazgos críticos
 
 No programa servicios.
-
-Pendiente por definir:
-
-- si puede devolver reportes al operador con correcciones
-- si puede escalar hallazgos críticos
 
 ### Programador
 
@@ -104,8 +102,16 @@ El programador puede:
 El comercial puede:
 
 - crear cotizaciones
-- consultar cotizaciones propias o habilitadas por negocio
+- consultar las cotizaciones de su equipo
 - entregar insumos al flujo de revisión interna
+- regenerar enlaces seguros sobre la misma versión de cotización
+
+Reglas:
+
+- la regeneración crea un token nuevo
+- el enlace anterior debe invalidarse
+- la acción queda auditada
+- el motivo es opcional
 
 No programa servicios ni revisa cotizaciones.
 
@@ -120,13 +126,14 @@ Además de heredar todos los permisos, el admin es el único rol habilitado para
 
 El rol `auditoria` existe para consultar trazabilidad completa en UI.
 
-Puede ver:
+Puede:
 
-- historial de cambios
-- movimientos de estados
-- devoluciones
-- reprogramaciones
-- intervenciones de IA
+- ver historial de cambios
+- ver movimientos de estados
+- ver devoluciones
+- ver reprogramaciones
+- ver intervenciones de IA
+- exportar auditoría
 
 No crea, no aprueba y no modifica operación.
 ---

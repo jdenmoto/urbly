@@ -209,10 +209,13 @@ No mezclar el estado del negocio con el estado de la sugerencia IA. Son capas di
 1. el supervisor puede devolver reportes para ajuste
 2. cuando el supervisor encuentra problemas relevantes, el servicio puede pasar a `con_novedad`
 3. una cotización rechazada por cliente vuelve a revisión interna y genera nueva versión editable
+4. el operador puede marcar `en_curso` manualmente
+5. un reporte devuelto pasa el servicio a `con_novedad` directamente
+6. `con_novedad` puede dispararse opcionalmente por hallazgo crítico, devolución de reporte, incidente operativo o imposibilidad de ejecución
 
 ## Pendientes finos
 
-1. ¿el operador puede marcar `en_curso` manualmente?
-2. ¿qué condiciones exactas llevan un servicio a `con_novedad` y cuáles solo a devolución de reporte?
-3. ¿qué SLA o tiempos aplican a revisión interna y revisión de reportes?
-4. ¿cómo debe comportarse el estado `vencido` del enlace/cotización frente a reenvío o renovación?
+1. ¿qué SLA o tiempos aplican a revisión interna y revisión de reportes?
+2. ¿cómo debe comportarse el estado `vencido` del enlace/cotización frente a reenvío o renovación?
+3. ¿conviene separar subtipos de `con_novedad` para reporting posterior?
+4. ¿qué combinaciones exactas de eventos deben obligar comentarios internos adicionales?

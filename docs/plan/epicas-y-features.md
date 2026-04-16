@@ -81,9 +81,13 @@ El sistema permite programar, visualizar y gestionar servicios desde distintas v
 
 #### F1.9 Grupos de asignación y optimización visual
 - color principal por grupo de asignación
+- entidad propia con nombre, color, edificios y reglas
 - gestión de grupos por edificio
+- edición por admin y supervisor
 - agrupación por cercanía geográfica
 - soporte para optimización de rutas
+- sugerencia automática de grupo basada en dirección y rutas
+- aplicación manual de la sugerencia
 
 ---
 
@@ -132,6 +136,8 @@ El operador puede registrar evidencia técnica completa desde terreno con estruc
 - iniciar reporte
 - guardar borrador
 - continuar luego
+- registrar avances diarios en servicios largos
+- consolidar avances diarios en reporte final
 
 #### F3.2 Componentes evaluados por bomba
 - selección o determinación del número de bombas
@@ -187,6 +193,7 @@ Los reportes no se consideran cerrados operativamente hasta pasar por una revisi
 #### F4.2 Estado operativo posterior
 - cambio de estado del servicio según revisión
 - marcación de novedad si corresponde
+- paso directo a `con_novedad` cuando el reporte sea devuelto
 
 #### F4.3 Auditoría del reporte
 - historial de cambios
@@ -249,6 +256,7 @@ La operación puede poblar el sistema rápidamente a través de importaciones co
 - validación previa
 - preview
 - reporte de errores
+- preparación de datos que faciliten sugerencia posterior de grupos de asignación
 
 ---
 
@@ -333,18 +341,19 @@ La IA acelera la preparación de materiales y decisiones sin asumir control cont
 - sugerencia de reprogramación
 - detección de recurrencias mal generadas
 - propuesta de varias alternativas horarias
+- sugerencia de grupo de asignación por dirección y rutas
 - sin reasignación automática de operadores
 
 ---
 
 # Dependencias estratégicas
 
-1. cerrar modelo de estados
-2. cerrar matriz final de permisos
-3. definir rol creador de cotización
-4. cerrar reglas de revisión de reportes
-5. cerrar semántica de interacción cliente
-6. cerrar límites exactos de IA por flujo
+1. definir configuración tenant-aware de plantillas
+2. definir configuración tenant-aware de IA
+3. cerrar modelo exacto de grupos de asignación y sus reglas
+4. definir experiencia visual del editor de plantillas
+5. definir capacidades de exportación y consulta avanzada de auditoría
+6. definir SLA operativos y de revisión
 
 # Recomendación de implementación
 

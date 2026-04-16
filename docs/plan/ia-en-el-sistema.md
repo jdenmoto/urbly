@@ -173,6 +173,11 @@ Mejora calidad del reporte sin quitar responsabilidad técnica al operador.
 - la IA sugiere alternativas si detecta conflicto u optimización posible
 - el usuario confirma
 
+Reglas adicionales:
+
+- la IA puede sugerir grupo de asignación según dirección y rutas
+- la sugerencia no asigna automáticamente
+
 ### Beneficio
 
 La IA ayuda a resolver, no a imponer.
@@ -215,8 +220,10 @@ Acelera redacción sin soltar control contractual.
 3. bloquear autoaplicación en acciones externas o contractuales
 4. conservar diff entre texto original y texto sugerido
 5. auditar métricas de adopción y rechazo de sugerencias IA
-6. permitir desactivar IA por módulo o por rol si se detecta fricción
+6. permitir desactivar IA por módulo, rol o tenant si se detecta fricción
 7. usar reglas determinísticas como primera capa y IA como segunda capa
+8. permitir tenants completamente sin IA según plan comercial
+9. contemplar IA como palanca futura de pricing o diferenciación comercial
 
 ---
 

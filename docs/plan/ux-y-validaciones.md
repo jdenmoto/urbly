@@ -40,9 +40,13 @@ Regla principal:
 
 Reglas complementarias:
 
+- el grupo de asignación es una entidad propia con nombre, color, edificios y reglas
 - el grupo de asignación se gestiona por edificio
 - los grupos de asignación existen para agrupar por cercanía geográfica
 - su objetivo es optimizar rutas y operación
+- el cambio de grupo aplica de forma inmediata
+- puede ser editado por `admin` y `supervisor`
+- el cálculo automático basado en dirección y rutas solo sugiere grupo, no asigna automáticamente
 
 Implicación de diseño:
 
@@ -79,6 +83,9 @@ Deben diferenciarse al menos:
 
 - no se definen restricciones extra por cercanía temporal en esta etapa
 - el operador solo recibe asignaciones, no las rechaza
+- en servicios largos debe existir avance diario
+- el servicio largo puede cerrarse aunque falten avances de uno o más días
+- el reporte final consolida automáticamente los avances diarios
 
 ---
 
@@ -141,6 +148,10 @@ Si hay varios ítems en estado `mala`, el sistema debe generar automáticamente 
 
 - `regular` no requiere observación obligatoria en esta etapa
 - más adelante se quieren plantillas distintas de reporte según tipo de servicio
+- la variabilidad de plantillas depende del tenant
+- cada tenant podrá activar o desactivar campos, escoger plantilla por tipo de servicio, definir campos obligatorios y definir bloques propios
+- la configuración será administrada por el admin del tenant
+- se desea editor visual de plantillas
 
 ---
 
@@ -194,11 +205,13 @@ El cliente podrá:
 - rechazar
 - pedir cambios mediante caja de texto libre
 - descargar PDF mientras el enlace siga vigente
+- descargar también el reporte completo en PDF
 
 Reglas adicionales:
 
 - si el enlace vence, el cliente debe pedir un nuevo enlace al comercial
 - cuando se reenvíe un enlace, el anterior debe invalidarse
+- el reenvío genera token nuevo sobre la misma versión
 
 ## 6.3 Lenguaje de interfaz
 
@@ -219,6 +232,10 @@ En reportes, el cliente debe ver:
 - versión resumida con opción de ver el reporte completo
 - hallazgos críticos destacados
 
+Reglas adicionales:
+
+- la versión resumida puede ser generada automáticamente y editable por supervisor
+- el lenguaje de hallazgos críticos puede ser técnico o comercial según tenant
 ---
 
 ## 7. IA y validaciones finas
