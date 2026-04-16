@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import PageHeader from '@/components/PageHeader';
 import { GlassPanel, MetricCard, MotionGrid, MotionItem, SectionHeader, StatusPill } from '@/components/premium';
+import { formatServiceDateTime, getServiceOrderPriorityPill, getServiceOrderStatusLabel, getServiceOrderTypeLabel } from '@/features/services/serviceOrderPresentation';
 import type { AppUser } from '@/core/models/appUser';
 import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
@@ -28,9 +29,30 @@ export default function DashboardPage() {
       .sort((a, b) => new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime())
       .slice(0, 6);
     const alerts = [
-      ...urgent.map((item) => ({ id: `${item.id}-urgent`, label: t('missionControl.alertUrgent'), service: item.title, tone: 'danger' as const })),
-      ...blocked.map((item) => ({ id: `${item.id}-blocked`, label: t('missionControl.alertUnassigned'), service: item.title, tone: 'warning' as const })),
-      ...overdue.map((item) => ({ id: `${item.id}-overdue`, label: t('missionControl.alertOverdue'), service: item.title, tone: 'warning' as const }))
+      ...urgent.map((item) => ({
+        id: `${item.id}-urgent`,
+        label: t('missionControl.alertUrgent'),
+        service: item.title,
+        tone: 'danger' as const,
+        actionLabel: t('missionControl.actionViewService'),
+        to: `/services/${item.id}`
+      })),
+      ...blocked.map((item) => ({
+        id: `${item.id}-blocked`,
+        label: t('missionControl.alertUnassigned'),
+        service: item.title,
+        tone: 'warning' as const,
+        actionLabel: t('missionControl.actionAssignService'),
+        to: `/services/${item.id}`
+      })),
+      ...overdue.map((item) => ({
+        id: `${item.id}-overdue`,
+        label: t('missionControl.alertOverdue'),
+        service: item.title,
+        tone: 'warning' as const,
+        actionLabel: t('missionControl.actionCloseService'),
+        to: `/services/${item.id}/closeout`
+      }))
     ].slice(0, 6);
 
     const technicianLoad = employees
@@ -130,13 +152,13 @@ export default function DashboardPage() {
                     <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                       <div>
                         <div className="flex flex-wrap gap-2">
-                          <StatusPill tone={priorityTone(order.priority)}>{t('missionControl.priorityPill', { value: order.priority })}</StatusPill>
-                          <StatusPill>{order.status}</StatusPill>
+                          <StatusPill tone={priorityTone(order.priority)}>{getServiceOrderPriorityPill(t, order.priority, 'missionControl.priorityPill')}</StatusPill>
+                          <StatusPill>{getServiceOrderStatusLabel(t, order.status)}</StatusPill>
                         </div>
                         <h3 className="mt-3 text-lg font-semibold text-slate-950">{order.title}</h3>
                         <p className="text-sm text-slate-600">{building?.name ?? t('common.noData')}</p>
                       </div>
-                      <p className="text-sm text-slate-500">{new Date(order.scheduledStartAt).toLocaleString('es-CO')}</p>
+                      <p className="text-sm text-slate-500">{formatServiceDateTime(order.scheduledStartAt)}</p>
                     </div>
                     <div className="mt-4 grid gap-3 md:grid-cols-3 text-sm text-slate-600">
                       <div className="rounded-2xl bg-slate-50 p-3">
@@ -149,7 +171,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
                         <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.typeLabel')}</p>
-                        <p className="mt-1 font-semibold text-slate-900">{order.type}</p>
+                        <p className="mt-1 font-semibold text-slate-900">{getServiceOrderTypeLabel(t, order.type)}</p>
                       </div>
                     </div>
                   </div>
@@ -171,6 +193,14 @@ export default function DashboardPage() {
                       <p className="text-sm text-slate-600">{alert.label}</p>
                     </div>
                     <StatusPill tone={alert.tone}>{alert.label}</StatusPill>
+                  </div>
+                  <div className="mt-4">
+                    <Link
+                      className="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                      to={alert.to}
+                    >
+                      {alert.actionLabel}
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -223,7 +253,7 @@ export default function DashboardPage() {
               <div key={item.id} className="rounded-2xl border border-white/70 bg-white/75 p-4">
                 <p className="font-semibold text-slate-900">{item.title}</p>
                 <p className="text-sm text-slate-600">{item.serviceTitle}</p>
-                <p className="mt-1 text-xs text-slate-500">{new Date(item.createdAt).toLocaleString('es-CO')}</p>
+                <p className="mt-1 text-xs text-slate-500">{formatServiceDateTime(item.createdAt)}</p>
               </div>
             ))}
           </div>

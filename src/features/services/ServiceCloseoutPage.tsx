@@ -6,6 +6,11 @@ import PageHeader from '@/components/PageHeader';
 import { useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
 import { buildCustomerMessage, buildFollowUp, buildTechnicalReport } from './serviceOrderAi';
+import {
+  getIssueCategoryLabel,
+  getIssueTypeLabel,
+  getServiceOrderStatusLabel
+} from './serviceOrderPresentation';
 
 export default function ServiceCloseoutPage() {
   const { t } = useI18n();
@@ -16,9 +21,9 @@ export default function ServiceCloseoutPage() {
     () => serviceOrders.find((item) => item.id === serviceOrderId) ?? null,
     [serviceOrderId, serviceOrders]
   );
-  const aiReport = serviceOrder ? buildTechnicalReport(serviceOrder) : '';
-  const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder) : '';
-  const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder) : '';
+  const aiReport = serviceOrder ? buildTechnicalReport(serviceOrder, t) : '';
+  const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
+  const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder, t) : '';
 
   if (!serviceOrder) {
     return <EmptyState title={t('services.closeoutTitle')} description={t('services.closeoutEmpty')} />;
@@ -40,7 +45,7 @@ export default function ServiceCloseoutPage() {
             </div>
           </div>
           <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
-            <p className="font-semibold text-ink-900">{serviceOrder.status}</p>
+            <p className="font-semibold text-ink-900">{getServiceOrderStatusLabel(t, serviceOrder.status)}</p>
             <p>{t('services.closeoutStatusHint')}</p>
           </div>
         </div>
@@ -76,8 +81,8 @@ export default function ServiceCloseoutPage() {
               <div className="mt-4 space-y-3">
                 {serviceOrder.issues.map((issue) => (
                   <div key={issue.id} className="rounded-2xl bg-fog-50 p-4 text-sm text-ink-700">
-                    <p className="font-semibold text-ink-900">{issue.type}</p>
-                    <p className="text-xs text-ink-500">{issue.category}</p>
+                    <p className="font-semibold text-ink-900">{getIssueTypeLabel(t, issue.type)}</p>
+                    <p className="text-xs text-ink-500">{getIssueCategoryLabel(t, issue.category)}</p>
                     {issue.description ? <p className="mt-2 leading-6 text-ink-600">{issue.description}</p> : null}
                   </div>
                 ))}

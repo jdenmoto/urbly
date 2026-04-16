@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import Card from '@/components/Card';
 import DataTable from '@/components/DataTable';
 import EmptyState from '@/components/EmptyState';
-import BuildingsMap from '@/components/BuildingsMap';
+const BuildingsMap = lazy(() => import('@/components/BuildingsMap'));
 import { useList, useServiceOrders } from '@/lib/api/queries';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type { Building } from '@/core/models/building';
@@ -12,6 +12,11 @@ import { useAuth } from '@/app/Auth';
 import { loadGoogleMaps } from '@/lib/googleMaps';
 import { useI18n } from '@/lib/i18n';
 import type { ColumnDef } from '@tanstack/react-table';
+import {
+  formatServiceDateTime,
+  getServiceOrderStatusLabel,
+  getServiceOrderTypeLabel
+} from '@/features/services/serviceOrderPresentation';
 
 export default function BuildingAdminPage() {
   const { t } = useI18n();
@@ -66,19 +71,36 @@ export default function BuildingAdminPage() {
     [t]
   );
 
-  const appointmentColumns = useMemo<ColumnDef<(typeof scopedServiceOrders)[number]>[]>(
+  const serviceOrderColumns = useMemo<ColumnDef<(typeof scopedServiceOrders)[number]>[]>(
     () => [
       { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: false },
+      {
+        header: t('services.typeLabel'),
+        enableSorting: false,
+        cell: ({ row }) => getServiceOrderTypeLabel(t, row.original.type)
+      },
       {
         header: t('scheduling.building'),
         enableSorting: false,
         accessorFn: (row) => scopedBuildings.find((b) => b.id === row.buildingId)?.name ?? t('common.noData')
       },
-      { header: t('scheduling.startAt'), accessorKey: 'scheduledStartAt', enableSorting: false },
-      { header: t('scheduling.endAt'), accessorKey: 'scheduledEndAt', enableSorting: false },
-      { header: t('scheduling.status'), accessorKey: 'status', enableSorting: false }
+      {
+        header: t('scheduling.startAt'),
+        enableSorting: false,
+        cell: ({ row }) => formatServiceDateTime(row.original.scheduledStartAt)
+      },
+      {
+        header: t('scheduling.endAt'),
+        enableSorting: false,
+        cell: ({ row }) => formatServiceDateTime(row.original.scheduledEndAt)
+      },
+      {
+        header: t('scheduling.status'),
+        enableSorting: false,
+        cell: ({ row }) => getServiceOrderStatusLabel(t, row.original.status)
+      }
     ],
-    [t, scopedBuildings, scopedServiceOrders]
+    [t, scopedBuildings]
   );
 
   if (!administrationId) {
@@ -111,7 +133,9 @@ export default function BuildingAdminPage() {
         </Card>
       ) : null}
       <div className="space-y-4">
-        <BuildingsMap buildings={scopedBuildings} ready={mapsReady} />
+        <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading')}</div>}>
+          <BuildingsMap buildings={scopedBuildings} ready={mapsReady} />
+        </Suspense>
         <DataTable
           columns={buildingColumns}
           data={scopedBuildings}
@@ -119,9 +143,9 @@ export default function BuildingAdminPage() {
         />
       </div>
       <DataTable
-        columns={appointmentColumns}
+        columns={serviceOrderColumns}
         data={scopedServiceOrders}
-        emptyState={<EmptyState title={t('portal.appointmentsEmpty')} description={t('portal.appointmentsEmptyHint')} />}
+        emptyState={<EmptyState title={t('services.emptyTitle')} description={t('services.emptyDescription')} />}
       />
     </div>
   );

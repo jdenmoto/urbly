@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createDoc, updateDocById, deleteDocById } from '@/lib/api/firestore';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useList } from '@/lib/api/queries';
-import type { Building } from '@/core/models/building';
+import { buildServiceOrders, useList } from '@/lib/api/queries';
 import type { Appointment } from '@/core/models/appointment';
+import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
+import type { ServiceOrder } from '@/core/models/serviceOrder';
 import PageHeader from '@/components/PageHeader';
 import Input from '@/components/Input';
 import Select from '@/components/Select';
@@ -18,11 +19,9 @@ import EmptyState from '@/components/EmptyState';
 import PlacesAutocomplete, { type PlaceResult } from '@/components/PlacesAutocomplete';
 import { loadGoogleMaps } from '@/lib/googleMaps';
 import { importBuildingsFile, type ImportResult } from '@/lib/api/functions';
-import Papa from 'papaparse';
-import ExcelJS from 'exceljs';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
-import BuildingsMap from '@/components/BuildingsMap';
+const BuildingsMap = lazy(() => import('@/components/BuildingsMap'));
 import Modal from '@/components/Modal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useToast } from '@/components/ToastProvider';
@@ -36,6 +35,46 @@ type PreviewRow = {
   address: string;
   porter_phone: string;
   management_name: string;
+};
+
+const mapCsvRows = async (file: File) => {
+  const Papa = (await import('papaparse')).default;
+  return new Promise<PreviewRow[]>((resolve) => {
+    Papa.parse<PreviewRow>(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => resolve(results.data)
+    });
+  });
+};
+
+const mapSpreadsheetRows = async (file: File) => {
+  const ExcelJS = (await import('exceljs')).default;
+  const data = await file.arrayBuffer();
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(data);
+  const worksheet = workbook.worksheets[0];
+  if (!worksheet) return [];
+
+  const headerRow = worksheet.getRow(1);
+  const headers = Array.from({ length: headerRow.cellCount }, (_, index) => {
+    const cell = headerRow.getCell(index + 1).value;
+    return String(cell ?? '').trim();
+  });
+
+  const rows: PreviewRow[] = [];
+  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    if (rowNumber === 1) return;
+    const entry = {} as PreviewRow;
+    headers.forEach((header, idx) => {
+      if (!header) return;
+      const value = row.getCell(idx + 1).value;
+      entry[header as keyof PreviewRow] = value ? String(value) : '';
+    });
+    rows.push(entry);
+  });
+
+  return rows;
 };
 
 export default function BuildingsPage() {
@@ -229,26 +268,31 @@ export default function BuildingsPage() {
     ],
     [t]
   );
-  const maintenanceColumns = useMemo<ColumnDef<Appointment>[]>(
+  const serviceOrders = useMemo(
+    () => buildServiceOrders(appointments, buildings, contracts, managements),
+    [appointments, buildings, contracts, managements]
+  );
+
+  const maintenanceColumns = useMemo<ColumnDef<ServiceOrder>[]>(
     () => [
       { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: false },
       {
         header: t('scheduling.startAt'),
-        accessorKey: 'startAt',
+        accessorKey: 'scheduledStartAt',
         enableSorting: false,
-        cell: ({ row }) => formatDateTime(row.original.startAt)
+        cell: ({ row }) => formatDateTime(row.original.scheduledStartAt)
       },
       {
         header: t('scheduling.endAt'),
-        accessorKey: 'endAt',
+        accessorKey: 'scheduledEndAt',
         enableSorting: false,
-        cell: ({ row }) => formatDateTime(row.original.endAt)
+        cell: ({ row }) => formatDateTime(row.original.scheduledEndAt)
       },
       {
         header: t('scheduling.status'),
         accessorKey: 'status',
         enableSorting: false,
-        cell: ({ row }) => statusLabels[row.original.status] ?? row.original.status
+        cell: ({ row }) => statusLabels[row.original.status === 'scheduled' ? 'programado' : row.original.status === 'confirmed' ? 'confirmado' : row.original.status === 'completed' ? 'completado' : 'cancelado'] ?? row.original.status
       }
     ],
     [statusLabels, t, formatDateTime]
@@ -256,10 +300,10 @@ export default function BuildingsPage() {
 
   const maintenanceAppointments = useMemo(() => {
     if (!detailTarget) return [];
-    return appointments
-      .filter((appointment) => appointment.buildingId === detailTarget.id && appointment.type === 'mantenimiento')
-      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
-  }, [appointments, detailTarget]);
+    return serviceOrders
+      .filter((serviceOrder) => serviceOrder.buildingId === detailTarget.id && serviceOrder.type === 'mantenimiento')
+      .sort((a, b) => new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime());
+  }, [detailTarget, serviceOrders]);
   const detailContract = useMemo(() => {
     if (!detailTarget?.contractId) return null;
     return contracts.find((contract) => contract.id === detailTarget.contractId) ?? null;
@@ -389,41 +433,18 @@ export default function BuildingsPage() {
   const handleFile = async (file: File) => {
     setImportResult(null);
     const extension = file.name.split('.').pop()?.toLowerCase();
+
     if (extension === 'csv') {
-      Papa.parse<PreviewRow>(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => setPreviewRows(results.data)
-      });
+      setPreviewRows(await mapCsvRows(file));
       return;
     }
+
     if (extension === 'xlsx' || extension === 'xls') {
-      const data = await file.arrayBuffer();
-      const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(data);
-      const worksheet = workbook.worksheets[0];
-      if (!worksheet) {
-        setPreviewRows([]);
-        return;
-      }
-      const headerRow = worksheet.getRow(1);
-      const headers = Array.from({ length: headerRow.cellCount }, (_, index) => {
-        const cell = headerRow.getCell(index + 1).value;
-        return String(cell ?? '').trim();
-      });
-      const rows: PreviewRow[] = [];
-      worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-        if (rowNumber === 1) return;
-        const entry = {} as PreviewRow;
-        headers.forEach((header, idx) => {
-          if (!header) return;
-          const value = row.getCell(idx + 1).value;
-          entry[header as keyof PreviewRow] = value ? String(value) : '';
-        });
-        rows.push(entry);
-      });
-      setPreviewRows(rows);
+      setPreviewRows(await mapSpreadsheetRows(file));
+      return;
     }
+
+    setPreviewRows([]);
   };
 
   const handleImport = async (file: File | null) => {
@@ -511,7 +532,9 @@ export default function BuildingsPage() {
           ) : null
         }
       />
-      <BuildingsMap buildings={buildings} ready={mapsReady} />
+      <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading')}</div>}>
+        <BuildingsMap buildings={buildings} ready={mapsReady} />
+      </Suspense>
       {canEdit ? (
         <>
           <div className="space-y-4">

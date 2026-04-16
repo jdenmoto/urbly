@@ -9,13 +9,13 @@ import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
 import { useList, useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
-
-const priorityTone: Record<string, string> = {
-  urgent: 'bg-rose-50 text-rose-700',
-  high: 'bg-amber-50 text-amber-700',
-  medium: 'bg-sky-50 text-sky-700',
-  low: 'bg-emerald-50 text-emerald-700'
-};
+import {
+  formatServiceDateTime,
+  getServiceOrderPriorityLabel,
+  getServiceOrderPriorityPill,
+  getServiceOrderStatusLabel,
+  serviceOrderPriorityTone
+} from '@/features/services/serviceOrderPresentation';
 
 export default function TechnicianHomePage() {
   const { t } = useI18n();
@@ -77,8 +77,8 @@ export default function TechnicianHomePage() {
         ) : (
           <div className="rounded-3xl border border-fog-200 bg-white p-5 shadow-sm">
             <div className="flex flex-wrap gap-2">
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[nextOrder.priority] ?? priorityTone.medium}`}>
-                {t('technician.priorityPill', { value: nextOrder.priority })}
+              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[nextOrder.priority]}`}>
+                {getServiceOrderPriorityPill(t, nextOrder.priority, 'technician.priorityPill')}
               </span>
             </div>
             <div className="mt-3 space-y-1">
@@ -86,16 +86,16 @@ export default function TechnicianHomePage() {
               <p className="text-sm text-ink-600">
                 {buildings.find((item) => item.id === nextOrder.buildingId)?.name ?? t('common.noData')}
               </p>
-              <p className="text-sm text-ink-500">{new Date(nextOrder.scheduledStartAt).toLocaleString('es-CO')}</p>
+              <p className="text-sm text-ink-500">{formatServiceDateTime(nextOrder.scheduledStartAt)}</p>
             </div>
             <div className="mt-4 grid gap-3 text-sm text-ink-600 md:grid-cols-3">
               <div className="rounded-2xl bg-fog-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.statusLabel')}</p>
-                <p className="mt-1 font-semibold text-ink-900">{nextOrder.status}</p>
+                <p className="mt-1 font-semibold text-ink-900">{getServiceOrderStatusLabel(t, nextOrder.status)}</p>
               </div>
               <div className="rounded-2xl bg-fog-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.priorityLabel')}</p>
-                <p className="mt-1 font-semibold text-ink-900">{nextOrder.priority}</p>
+                <p className="mt-1 font-semibold text-ink-900">{getServiceOrderPriorityLabel(t, nextOrder.priority)}</p>
               </div>
               <div className="rounded-2xl bg-fog-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.issuesLabel')}</p>

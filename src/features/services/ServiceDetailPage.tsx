@@ -9,6 +9,15 @@ import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from './serviceOrderAi';
+import {
+  formatServiceDateTime,
+  getIssueCategoryLabel,
+  getIssueTypeLabel,
+  getServiceOrderPriorityPill,
+  getServiceOrderStatusLabel,
+  getServiceOrderTypeLabel,
+  serviceOrderPriorityTone
+} from './serviceOrderPresentation';
 
 const statusTone: Record<string, string> = {
   draft: 'bg-fog-100 text-ink-700',
@@ -17,13 +26,6 @@ const statusTone: Record<string, string> = {
   in_progress: 'bg-amber-50 text-amber-700',
   completed: 'bg-emerald-50 text-emerald-700',
   cancelled: 'bg-rose-50 text-rose-700'
-};
-
-const priorityTone: Record<string, string> = {
-  urgent: 'bg-rose-50 text-rose-700',
-  high: 'bg-amber-50 text-amber-700',
-  medium: 'bg-sky-50 text-sky-700',
-  low: 'bg-emerald-50 text-emerald-700'
 };
 
 export default function ServiceDetailPage() {
@@ -42,8 +44,8 @@ export default function ServiceDetailPage() {
   const building = buildings.find((item) => item.id === serviceOrder?.buildingId);
   const technician = employees.find((item) => item.id === serviceOrder?.assignedTechnicianId);
   const management = managements.find((item) => item.id === building?.managementCompanyId);
-  const aiSummary = serviceOrder ? buildServiceSummary(serviceOrder) : '';
-  const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder) : '';
+  const aiSummary = serviceOrder ? buildServiceSummary(serviceOrder, t) : '';
+  const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder) : '';
 
   if (!serviceOrder) {
@@ -60,10 +62,10 @@ export default function ServiceDetailPage() {
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2">
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusTone[serviceOrder.status] ?? statusTone.draft}`}>
-                  {serviceOrder.status}
+                  {getServiceOrderStatusLabel(t, serviceOrder.status)}
                 </span>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${priorityTone[serviceOrder.priority] ?? priorityTone.medium}`}>
-                  {t('services.priorityPill', { value: serviceOrder.priority })}
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[serviceOrder.priority]}`}>
+                  {getServiceOrderPriorityPill(t, serviceOrder.priority)}
                 </span>
               </div>
               <div>
@@ -72,7 +74,7 @@ export default function ServiceDetailPage() {
               </div>
             </div>
             <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
-              <p className="font-semibold text-ink-900">{serviceOrder.type}</p>
+              <p className="font-semibold text-ink-900">{getServiceOrderTypeLabel(t, serviceOrder.type)}</p>
               <p>{t('services.activeTypeHint')}</p>
             </div>
           </div>
@@ -92,11 +94,11 @@ export default function ServiceDetailPage() {
             </div>
             <div className="rounded-2xl bg-fog-50 p-4">
               <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.startLabel')}</p>
-              <p className="mt-1 font-semibold text-ink-900">{new Date(serviceOrder.scheduledStartAt).toLocaleString('es-CO')}</p>
+              <p className="mt-1 font-semibold text-ink-900">{formatServiceDateTime(serviceOrder.scheduledStartAt)}</p>
             </div>
             <div className="rounded-2xl bg-fog-50 p-4">
               <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.endLabel')}</p>
-              <p className="mt-1 font-semibold text-ink-900">{new Date(serviceOrder.scheduledEndAt).toLocaleString('es-CO')}</p>
+              <p className="mt-1 font-semibold text-ink-900">{formatServiceDateTime(serviceOrder.scheduledEndAt)}</p>
             </div>
             <div className="rounded-2xl bg-fog-50 p-4">
               <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
@@ -123,7 +125,7 @@ export default function ServiceDetailPage() {
                 {serviceOrder.timeline.map((event) => (
                   <div key={event.id} className="rounded-2xl border border-fog-200 bg-fog-50 p-4">
                     <p className="text-sm font-semibold text-ink-900">{event.summary}</p>
-                    <p className="mt-1 text-xs text-ink-500">{new Date(event.createdAt).toLocaleString('es-CO')}</p>
+                    <p className="mt-1 text-xs text-ink-500">{formatServiceDateTime(event.createdAt)}</p>
                   </div>
                 ))}
               </div>
@@ -141,8 +143,8 @@ export default function ServiceDetailPage() {
               <div className="space-y-3">
                 {serviceOrder.issues.map((issue) => (
                   <div key={issue.id} className="rounded-2xl border border-fog-200 bg-fog-50 p-4">
-                    <p className="text-sm font-semibold text-ink-900">{issue.type}</p>
-                    <p className="text-xs text-ink-500">{issue.category}</p>
+                    <p className="text-sm font-semibold text-ink-900">{getIssueTypeLabel(t, issue.type)}</p>
+                    <p className="text-xs text-ink-500">{getIssueCategoryLabel(t, issue.category)}</p>
                     {issue.description ? <p className="mt-2 text-sm leading-6 text-ink-600">{issue.description}</p> : null}
                   </div>
                 ))}

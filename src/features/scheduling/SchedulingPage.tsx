@@ -8,9 +8,9 @@ import multiMonthPlugin from '@fullcalendar/multimonth';
 import esLocale from '@fullcalendar/core/locales/es';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { updateDocById } from '@/lib/api/firestore';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc } from 'firebase/firestore';
 import PageHeader from '@/components/PageHeader';
 import Card from '@/components/Card';
@@ -32,7 +32,6 @@ import {
   issueTypeOptions,
   issueCategoryOptions
 } from '@/core/appointments';
-import { createDoc, updateDocById, deleteDocById } from '@/lib/api/firestore';
 import { generateAppointmentsPdf } from '@/lib/api/functions';
 import { useList } from '@/lib/api/queries';
 import { isValidDateRange } from '@/core/validators';
@@ -43,8 +42,18 @@ import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/app/Auth';
 import ConfirmModal from '@/components/ConfirmModal';
 import { CancelIcon, TrashIcon, CheckIcon, EditIcon, DownloadIcon } from '@/components/ActionIcons';
-import { storage, db } from '@/lib/firebase/client';
+import { db } from '@/lib/firebase/client';
 import { addDays, addMonths, isAfter } from 'date-fns';
+import {
+  applyCompletionToSelected,
+  buildCompletionPayload,
+  buildNormalizedChecklist,
+  hasMinTwoPhotos,
+  validateCompletion
+} from './schedulingCompletion';
+import { cancelAppointment, deleteAppointment, type CancelValues } from './schedulingMutations';
+import { createRecurringSeries, regenerateSeries, saveAppointment, type SchedulingFormValues } from './schedulingSeries';
+import { moveAppointmentOnCalendar } from './schedulingCalendarMutations';
 
 export default function SchedulingPage() {
   const { t } = useI18n();
@@ -283,13 +292,13 @@ export default function SchedulingPage() {
         });
       }
     });
-  type CancelValues = z.infer<typeof cancelSchema>;
+  type LocalCancelValues = CancelValues;
   const {
     register: cancelRegister,
     handleSubmit: handleCancelSubmit,
     formState: { errors: cancelErrors, isSubmitting: cancelSubmitting },
     reset: resetCancel
-  } = useForm<CancelValues>({ resolver: zodResolver(cancelSchema) });
+  } = useForm<LocalCancelValues>({ resolver: zodResolver(cancelSchema) });
 
   const filtered = useMemo(() => filterAppointments(appointments, filters), [appointments, filters]);
 
@@ -433,89 +442,6 @@ export default function SchedulingPage() {
     ];
   }, [buildings, employees, t, canEdit]);
 
-  const regenerateSeries = async (values: FormValues, current: Appointment | null) => {
-    const seriesId = current?.seriesId ?? (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
-    const related = appointments.filter((item) => item.seriesId === seriesId);
-    if (related.length) {
-      await Promise.all(related.map((item) => deleteDocById('appointments', item.id)));
-    } else if (current) {
-      await deleteDocById('appointments', current.id);
-    }
-
-    const building = buildings.find((item) => item.id === values.buildingId);
-    const contract = building?.contractId
-      ? contracts.find((item) => item.id === building.contractId)
-      : null;
-    if (!contract?.startAt || !contract?.endAt) {
-      toast(t('scheduling.contractRequired'), 'error');
-      return;
-    }
-    const contractStart = new Date(contract.startAt);
-    const contractEnd = new Date(contract.endAt);
-    const baseStart = new Date(toLocalIso(values.startAt));
-    const baseEnd = new Date(toLocalIso(values.endAt));
-    const durationMs = baseEnd.getTime() - baseStart.getTime();
-    if (Number.isNaN(contractStart.getTime()) || Number.isNaN(contractEnd.getTime())) {
-      toast(t('scheduling.contractRequired'), 'error');
-      return;
-    }
-    if (isAfter(baseStart, contractEnd)) {
-      toast(t('scheduling.contractOutOfRange'), 'error');
-      return;
-    }
-    if (durationMs <= 0) {
-      setError('endAt', { message: t('errors.invalidDateRange') });
-      return;
-    }
-    const step = values.recurrence;
-    let cursor = alignToContractStart(baseStart, contractStart, step);
-    const nextDate = (date: Date) => {
-      switch (step) {
-        case 'semanal':
-          return addDays(date, 7);
-        case 'quincenal':
-          return addDays(date, 15);
-        case 'mensual':
-          return addMonths(date, 1);
-        case 'bimensual':
-          return addMonths(date, 2);
-        case 'semestral':
-          return addMonths(date, 6);
-        default:
-          return addMonths(date, 1);
-      }
-    };
-
-    const payload = {
-      buildingId: values.buildingId,
-      title: values.title,
-      description: values.description ?? '',
-      startAt: toLocalIso(values.startAt),
-      endAt: toLocalIso(values.endAt),
-      status: values.status,
-      recurrence: values.recurrence || null,
-      type: values.type,
-      employeeId: values.employeeId || null,
-      seriesId
-    };
-    const tasks: Promise<unknown>[] = [];
-    while (!isAfter(cursor, contractEnd)) {
-      const scheduledStart = nextWorkingDate(cursor);
-      if (!isAfter(scheduledStart, contractEnd)) {
-        const end = new Date(scheduledStart.getTime() + durationMs);
-        tasks.push(
-          createDoc('appointments', {
-            ...payload,
-            startAt: formatLocalIso(scheduledStart),
-            endAt: formatLocalIso(end)
-          })
-        );
-      }
-      cursor = nextDate(cursor);
-    }
-    await Promise.all(tasks);
-  };
-
   const onSubmit = async (values: FormValues) => {
     console.log('[Scheduling] submit values', values);
     if (!canCreate) {
@@ -550,104 +476,29 @@ export default function SchedulingPage() {
       setError('type', { message: t('scheduling.emergencyPermission') });
       return;
     }
-    const payload = {
-      buildingId: values.buildingId,
-      title: values.title,
-      description: values.description ?? '',
-      startAt: toLocalIso(values.startAt),
-      endAt: toLocalIso(values.endAt),
-      status: values.status,
-      recurrence: values.recurrence || null,
-      type: values.type,
-      employeeId: values.employeeId || null,
-      seriesId: null as string | null
-    };
-    console.log('[Scheduling] payload', payload);
     try {
-      const current = editingId ? appointments.find((item) => item.id === editingId) : null;
       if (editingId && values.recurrence) {
         setPendingSeriesValues(values);
         setSeriesConfirmOpen(true);
         return;
       }
       if (editingId && !values.recurrence) {
-        if (current?.seriesId) {
-          const related = appointments.filter((item) => item.seriesId === current.seriesId && item.id !== editingId);
-          await Promise.all(related.map((item) => deleteDocById('appointments', item.id)));
-        }
-        console.log('[Scheduling] updating appointment', editingId);
-        await updateDocById('appointments', editingId, { ...payload, seriesId: null });
+        await saveAppointment({ values: values as SchedulingFormValues, editingId, appointments });
       } else if (values.recurrence) {
-        console.log('[Scheduling] creating recurring series', values.recurrence);
-        const building = buildings.find((item) => item.id === values.buildingId);
-        const contract = building?.contractId
-          ? contracts.find((item) => item.id === building.contractId)
-          : null;
-        if (!contract?.startAt || !contract?.endAt) {
-          toast(t('scheduling.contractRequired'), 'error');
-          return;
-        }
-        const contractStart = new Date(contract.startAt);
-        const contractEnd = new Date(contract.endAt);
-        const baseStart = new Date(toLocalIso(values.startAt));
-        const baseEnd = new Date(toLocalIso(values.endAt));
-        const durationMs = baseEnd.getTime() - baseStart.getTime();
-        if (Number.isNaN(contractStart.getTime()) || Number.isNaN(contractEnd.getTime())) {
-          toast(t('scheduling.contractRequired'), 'error');
-          return;
-        }
-        if (isAfter(baseStart, contractEnd)) {
-          toast(t('scheduling.contractOutOfRange'), 'error');
-          return;
-        }
-        if (durationMs <= 0) {
-          setError('endAt', { message: t('errors.invalidDateRange') });
-          return;
-        }
-        const step = values.recurrence;
-        let cursor = alignToContractStart(baseStart, contractStart, step);
-        const nextDate = (date: Date) => {
-          switch (step) {
-            case 'semanal':
-              return addDays(date, 7);
-            case 'quincenal':
-              return addDays(date, 15);
-            case 'mensual':
-              return addMonths(date, 1);
-            case 'bimensual':
-              return addMonths(date, 2);
-            case 'semestral':
-              return addMonths(date, 6);
-            default:
-              return addMonths(date, 1);
-          }
-        };
-
-        const seriesId = crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`;
-        const tasks: Promise<unknown>[] = [];
-        while (!isAfter(cursor, contractEnd)) {
-          const scheduledStart = nextWorkingDate(cursor);
-          if (!isAfter(scheduledStart, contractEnd)) {
-            const end = new Date(scheduledStart.getTime() + durationMs);
-            tasks.push(
-              createDoc('appointments', {
-                ...payload,
-                seriesId,
-                startAt: formatLocalIso(scheduledStart),
-                endAt: formatLocalIso(end)
-              })
-            );
-          }
-          cursor = nextDate(cursor);
-        }
-        console.log('[Scheduling] series tasks', tasks.length);
-        await Promise.all(tasks);
+        await createRecurringSeries({
+          values: values as SchedulingFormValues,
+          buildings,
+          contracts,
+          alignToContractStart,
+          nextWorkingDate,
+          setError,
+          toast,
+          t
+        });
       } else {
-        console.log('[Scheduling] creating appointment');
-        const result = await createDoc('appointments', payload);
-        console.log('[Scheduling] created appointment', result);
+        await saveAppointment({ values: values as SchedulingFormValues, editingId: null, appointments });
       }
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await invalidateAppointments();
       reset();
       setEditingId(null);
       setModalOpen(false);
@@ -664,8 +515,19 @@ export default function SchedulingPage() {
     }
     const current = appointments.find((item) => item.id === editingId) ?? null;
     try {
-      await regenerateSeries(pendingSeriesValues, current);
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await regenerateSeries({
+        values: pendingSeriesValues as SchedulingFormValues,
+        current,
+        appointments,
+        buildings,
+        contracts,
+        alignToContractStart,
+        nextWorkingDate,
+        setError,
+        toast,
+        t
+      });
+      await invalidateAppointments();
       reset();
       setEditingId(null);
       setModalOpen(false);
@@ -763,7 +625,6 @@ export default function SchedulingPage() {
     setBombaPanelsOpen({ 1: true });
   };
 
-  const hasMinTwoPhotos = (photos: File[]) => photos.filter((photo) => photo instanceof File).length >= 2;
 
   const addIssue = () => {
     setIssueError(null);
@@ -784,125 +645,43 @@ export default function SchedulingPage() {
     setIssues((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const safeStorageName = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, '_');
-
-  const uploadIssuePhotos = async (appointmentId: string, issueId: string, photos: File[]) => {
-    const uploads = await Promise.all(
-      photos
-        .filter((file): file is File => file instanceof File)
-        .map(async (file, index) => {
-          const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${safeStorageName(file.name)}`);
-          await uploadBytes(storageRef, file);
-          return getDownloadURL(storageRef);
-        })
-    );
-    return uploads;
-  };
-
-  const uploadCompletionPhotos = async (appointmentId: string, photos: File[]) => {
-    const uploads = await Promise.all(
-      photos
-        .filter((file): file is File => file instanceof File)
-        .map(async (file, index) => {
-          const storageRef = ref(storage, `appointments/${appointmentId}/completion-photos/${Date.now()}-${index}-${safeStorageName(file.name)}`);
-          await uploadBytes(storageRef, file);
-          return getDownloadURL(storageRef);
-        })
-    );
-    return uploads;
-  };
-
   const completeService = async () => {
     if (!completeTarget) return;
-    if (!hasIssues) {
-      setIssueError(t('scheduling.issueDecisionRequired'));
-      return;
-    }
-    if (hasIssues === 'yes' && issues.length === 0) {
-      setIssueError(t('scheduling.issueAtLeastOne'));
-      return;
-    }
-    if (completionPhotos.length < 1) {
-      setIssueError('Debes agregar al menos 1 foto adicional del servicio.');
-      return;
-    }
-    if (!completionReport.entryHour || !completionReport.exitHour || !completionReport.observations.trim()) {
-      setIssueError('Debes completar todos los campos obligatorios del reporte.');
+    const completionError = validateCompletion({
+      t,
+      hasIssues,
+      issues,
+      completionPhotos,
+      completionReport
+    });
+    if (completionError) {
+      setIssueError(completionError);
       return;
     }
 
-    const toMinutes = (time: string) => {
-      const [hour = '0', minute = '0'] = time.split(':');
-      return Number(hour) * 60 + Number(minute);
-    };
-
-    if (toMinutes(completionReport.exitHour) <= toMinutes(completionReport.entryHour)) {
-      setIssueError('La hora de salida debe ser posterior a la hora de entrada.');
-      return;
-    }
-    const normalizedChecklist = completionChecklistItems.reduce<Record<string, 'ok' | 'regular' | 'malo' | 'na'>>(
-      (acc, item) => {
-        if (!completionChecklistGroup1.includes(item)) {
-          const value = completionReport.checklist[item];
-          acc[item] = (value as 'ok' | 'regular' | 'malo' | 'na') || 'na';
-        }
-        return acc;
-      },
-      {}
-    );
-
-    group1Units.forEach((unit) => {
-      completionChecklistGroup1.forEach((item) => {
-        const key = makeGroup1Key(unit, item);
-        const redKey = makeGroup1RedKey(unit, item);
-        normalizedChecklist[key] = (completionReport.checklist[key] as 'ok' | 'regular' | 'malo' | 'na') || 'na';
-        normalizedChecklist[redKey] = (completionReport.checklist[redKey] as 'ok' | 'regular' | 'malo' | 'na') || 'na';
-      });
+    const normalizedChecklist = buildNormalizedChecklist({
+      completionReport,
+      completionChecklistItems,
+      completionChecklistGroup1,
+      group1Units,
+      makeGroup1Key,
+      makeGroup1RedKey
     });
     setCompleteSubmitting(true);
     try {
-      const completionPhotoUrls = await uploadCompletionPhotos(completeTarget.id, completionPhotos);
-      let payload: Record<string, unknown> = {
-        status: 'completado',
-        completedAt: new Date().toISOString(),
-        completionReport: {
-          ...completionReport,
-          checklist: normalizedChecklist
-        },
-        completionPhotos: completionPhotoUrls
-      };
-      if (hasIssues === 'yes') {
-        const resolvedIssues = await Promise.all(
-          issues.map(async (issue) => {
-            const photoUrls = await uploadIssuePhotos(completeTarget.id, issue.id, issue.photos);
-            return {
-              id: issue.id,
-              type: issue.type,
-              category: issue.category,
-              description: issue.description?.trim() || null,
-              photos: photoUrls,
-              createdAt: new Date().toISOString()
-            };
-          })
-        );
-        payload = { ...payload, issues: resolvedIssues };
-      }
+      const payload = await buildCompletionPayload({
+        appointmentId: completeTarget.id,
+        hasIssues,
+        issues,
+        completionPhotos,
+        completionReport,
+        normalizedChecklist
+      });
       await updateDocById('appointments', completeTarget.id, payload);
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await invalidateAppointments();
       toast(t('scheduling.toastCompleted'), 'success');
       if (selected?.id === completeTarget.id) {
-        setSelected((prev) =>
-          prev
-            ? {
-                ...prev,
-                status: 'completado',
-                completedAt: payload.completedAt as string,
-                issues: payload.issues as Appointment['issues'],
-                completionPhotos: payload.completionPhotos as Appointment['completionPhotos'],
-                completionReport: payload.completionReport as Appointment['completionReport']
-              }
-            : prev
-        );
+        setSelected((prev) => applyCompletionToSelected(prev, completeTarget.id, payload));
       }
       setCompleteTarget(null);
     } catch (error) {
@@ -918,15 +697,11 @@ export default function SchedulingPage() {
     }
   };
 
-  const onCancel = async (values: CancelValues) => {
+  const onCancel = async (values: LocalCancelValues) => {
     if (!cancelTarget) return;
     try {
-      await updateDocById('appointments', cancelTarget.id, {
-        status: 'cancelado',
-        cancelReason: values.reason || null,
-        cancelNote: values.note?.trim() || null
-      });
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await cancelAppointment(cancelTarget.id, values);
+      await invalidateAppointments();
       toast(t('scheduling.toastCanceled'), 'success');
       setCancelTarget(null);
     } catch {
@@ -937,8 +712,8 @@ export default function SchedulingPage() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await deleteDocById('appointments', deleteTarget.id);
-      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await deleteAppointment(deleteTarget.id);
+      await invalidateAppointments();
       if (editingId === deleteTarget.id) {
         setModalOpen(false);
         setEditingId(null);
@@ -953,6 +728,8 @@ export default function SchedulingPage() {
       setDeleteTarget(null);
     }
   };
+
+  const invalidateAppointments = () => queryClient.invalidateQueries({ queryKey: ['appointments'] });
 
   const statusLabel = (status: string) => translateAppointmentStatus(status, t);
 
@@ -1209,59 +986,33 @@ export default function SchedulingPage() {
                   if (!canEdit) return;
                   if (!info.event.start || !info.event.end) return;
                   const type = (info.event.extendedProps as { type?: string }).type;
-                  if (type !== 'emergencia') {
-                    const startIso = formatLocalIso(info.event.start);
-                    const endIso = formatLocalIso(info.event.end);
-                    if (!isWithinBusinessHours(startIso, endIso)) {
-                      toast(t('scheduling.businessHoursToast'), 'error');
-                      info.revert();
-                      return;
-                    }
-                  }
-                  if (
-                    (isRestrictedDate(formatLocalIso(info.event.start)) || isRestrictedDate(formatLocalIso(info.event.end))) &&
-                    type !== 'emergencia'
-                  ) {
-                    toast(t('scheduling.dateBlocked'), 'error');
-                    info.revert();
-                    return;
-                  }
-                  void updateDocById('appointments', info.event.id, {
-                    startAt: formatLocalIso(info.event.start),
-                    endAt: formatLocalIso(info.event.end)
-                  })
-                    .then(() => queryClient.invalidateQueries({ queryKey: ['appointments'] }))
-                    .then(() => toast(t('scheduling.toastUpdated'), 'success'))
-                    .catch(() => toast(t('common.actionError'), 'error'));
+                  void moveAppointmentOnCalendar({
+                    appointmentId: info.event.id,
+                    start: info.event.start,
+                    end: info.event.end,
+                    type,
+                    isRestrictedDate,
+                    toast,
+                    t,
+                    invalidateAppointments,
+                    revert: () => info.revert()
+                  }).catch(() => toast(t('common.actionError'), 'error'));
                 }}
                 eventResize={(info) => {
                   if (!canEdit) return;
                   if (!info.event.start || !info.event.end) return;
                   const type = (info.event.extendedProps as { type?: string }).type;
-                  if (type !== 'emergencia') {
-                    const startIso = formatLocalIso(info.event.start);
-                    const endIso = formatLocalIso(info.event.end);
-                    if (!isWithinBusinessHours(startIso, endIso)) {
-                      toast(t('scheduling.businessHoursToast'), 'error');
-                      info.revert();
-                      return;
-                    }
-                  }
-                  if (
-                    (isRestrictedDate(formatLocalIso(info.event.start)) || isRestrictedDate(formatLocalIso(info.event.end))) &&
-                    type !== 'emergencia'
-                  ) {
-                    toast(t('scheduling.dateBlocked'), 'error');
-                    info.revert();
-                    return;
-                  }
-                  void updateDocById('appointments', info.event.id, {
-                    startAt: formatLocalIso(info.event.start),
-                    endAt: formatLocalIso(info.event.end)
-                  })
-                    .then(() => queryClient.invalidateQueries({ queryKey: ['appointments'] }))
-                    .then(() => toast(t('scheduling.toastUpdated'), 'success'))
-                    .catch(() => toast(t('common.actionError'), 'error'));
+                  void moveAppointmentOnCalendar({
+                    appointmentId: info.event.id,
+                    start: info.event.start,
+                    end: info.event.end,
+                    type,
+                    isRestrictedDate,
+                    toast,
+                    t,
+                    invalidateAppointments,
+                    revert: () => info.revert()
+                  }).catch(() => toast(t('common.actionError'), 'error'));
                 }}
               />
             </div>

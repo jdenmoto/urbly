@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
@@ -21,7 +21,7 @@ import { useI18n } from '@/lib/i18n';
 import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/app/Auth';
 import { loadGoogleMaps } from '@/lib/googleMaps';
-import BuildingsMap from '@/components/BuildingsMap';
+const BuildingsMap = lazy(() => import('@/components/BuildingsMap'));
 import { EditIcon, TrashIcon, EyeIcon } from '@/components/ActionIcons';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
@@ -546,10 +546,12 @@ export default function ManagementPage() {
               {t('common.close')}
             </button>
           </div>
-          <BuildingsMap
-            buildings={buildings.filter((building) => building.managementCompanyId === selectedCompany.id)}
-            ready={mapsReady}
-          />
+          <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading')}</div>}>
+            <BuildingsMap
+              buildings={buildings.filter((building) => building.managementCompanyId === selectedCompany.id)}
+              ready={mapsReady}
+            />
+          </Suspense>
           <DataTable
             columns={[
               { header: t('buildings.name'), accessorKey: 'name', enableSorting: true },

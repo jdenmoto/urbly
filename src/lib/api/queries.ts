@@ -6,6 +6,35 @@ import type { ManagementCompany } from '@/core/models/managementCompany';
 import { mapAppointmentToServiceOrder } from './serviceOrders';
 import { listDocs } from './firestore';
 
+export function indexById<T extends { id: string }>(items: T[]) {
+  return new Map(items.map((item) => [item.id, item]));
+}
+
+export function buildServiceOrders(
+  appointments: Appointment[],
+  buildings: Building[],
+  contracts: Contract[],
+  managements: ManagementCompany[]
+) {
+  const buildingsById = indexById(buildings);
+  const contractsById = indexById(contracts);
+  const managementsById = indexById(managements);
+
+  return appointments.map((appointment) => {
+    const building = buildingsById.get(appointment.buildingId) ?? null;
+    const contract = building?.contractId ? contractsById.get(building.contractId) ?? null : null;
+    const management = building?.managementCompanyId
+      ? managementsById.get(building.managementCompanyId) ?? null
+      : null;
+
+    return mapAppointmentToServiceOrder(appointment, {
+      building,
+      contract,
+      management
+    });
+  });
+}
+
 export function useList<T>(key: string, path: string) {
   return useQuery({
     queryKey: [key],
@@ -24,13 +53,7 @@ export function useServiceOrders() {
         listDocs<ManagementCompany>('management_companies')
       ]);
 
-      return appointments.map((appointment) =>
-        mapAppointmentToServiceOrder(appointment, {
-          buildings,
-          contracts,
-          managements
-        })
-      );
+      return buildServiceOrders(appointments, buildings, contracts, managements);
     }
   });
 }

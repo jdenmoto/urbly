@@ -10,6 +10,12 @@ import type {
   ServiceOrderTimelineEvent
 } from '@/core/models/serviceOrder';
 
+export type AppointmentRelations = {
+  building?: Building | null;
+  contract?: Contract | null;
+  management?: ManagementCompany | null;
+};
+
 function mapStatus(status: Appointment['status']): ServiceOrderStatus {
   switch (status) {
     case 'programado':
@@ -44,7 +50,7 @@ function mapIssues(issues?: AppointmentIssue[]): ServiceOrderIssue[] {
   }));
 }
 
-function buildTimeline(appointment: Appointment): ServiceOrderTimelineEvent[] {
+export function buildAppointmentTimeline(appointment: Appointment): ServiceOrderTimelineEvent[] {
   const timeline: ServiceOrderTimelineEvent[] = [];
 
   if (appointment.createdAt) {
@@ -99,19 +105,13 @@ function buildTimeline(appointment: Appointment): ServiceOrderTimelineEvent[] {
   return timeline.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 }
 
-export type ServiceOrderRelations = {
-  buildings?: Building[];
-  contracts?: Contract[];
-  managements?: ManagementCompany[];
-};
-
 export function mapAppointmentToServiceOrder(
   appointment: Appointment,
-  relations: ServiceOrderRelations = {}
+  relations: AppointmentRelations = {}
 ): ServiceOrder {
-  const building = relations.buildings?.find((item) => item.id === appointment.buildingId);
-  const contract = relations.contracts?.find((item) => item.id === building?.contractId);
-  const management = relations.managements?.find((item) => item.id === building?.managementCompanyId);
+  const building = relations.building ?? null;
+  const contract = relations.contract ?? null;
+  const management = relations.management ?? null;
 
   return {
     id: appointment.id,
@@ -134,7 +134,7 @@ export function mapAppointmentToServiceOrder(
     communication: {
       internalSummary: management ? `Cliente asociado: ${management.name}` : undefined
     },
-    timeline: buildTimeline(appointment),
+    timeline: buildAppointmentTimeline(appointment),
     cancelReason: appointment.cancelReason ?? null,
     cancelNote: appointment.cancelNote ?? null,
     completedAt: appointment.completedAt ?? null,
