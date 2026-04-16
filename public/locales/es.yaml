@@ -699,7 +699,6 @@ scheduling:
   issueCategory: Categoria
   issueDescription: Descripcion
   issuePhotos: Fotos (2 obligatorias)
-  issuePhotosHint: Selecciona exactamente 2 fotos.
   addPhoto: Agregar foto
   addIssue: Agregar novedad
   issueList: Novedades agregadas
