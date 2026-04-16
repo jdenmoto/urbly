@@ -8,6 +8,7 @@ import multiMonthPlugin from '@fullcalendar/multimonth';
 import esLocale from '@fullcalendar/core/locales/es';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { updateDocById } from '@/lib/api/firestore';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { doc, getDoc } from 'firebase/firestore';
@@ -31,7 +32,6 @@ import {
   issueTypeOptions,
   issueCategoryOptions
 } from '@/core/appointments';
-import { updateDocById } from '@/lib/api/firestore';
 import { generateAppointmentsPdf } from '@/lib/api/functions';
 import { useList } from '@/lib/api/queries';
 import { isValidDateRange } from '@/core/validators';
@@ -53,6 +53,7 @@ import {
 } from './schedulingCompletion';
 import { cancelAppointment, deleteAppointment, type CancelValues } from './schedulingMutations';
 import { createRecurringSeries, regenerateSeries, saveAppointment, type SchedulingFormValues } from './schedulingSeries';
+import { moveAppointmentOnCalendar } from './schedulingCalendarMutations';
 
 export default function SchedulingPage() {
   const { t } = useI18n();
@@ -728,6 +729,8 @@ export default function SchedulingPage() {
     }
   };
 
+  const invalidateAppointments = () => queryClient.invalidateQueries({ queryKey: ['appointments'] });
+
   const statusLabel = (status: string) => translateAppointmentStatus(status, t);
 
   const resolveIssueLabel = (prefix: 'scheduling.issueTypes' | 'scheduling.issueCategories', value: string) => {
@@ -983,59 +986,33 @@ export default function SchedulingPage() {
                   if (!canEdit) return;
                   if (!info.event.start || !info.event.end) return;
                   const type = (info.event.extendedProps as { type?: string }).type;
-                  if (type !== 'emergencia') {
-                    const startIso = formatLocalIso(info.event.start);
-                    const endIso = formatLocalIso(info.event.end);
-                    if (!isWithinBusinessHours(startIso, endIso)) {
-                      toast(t('scheduling.businessHoursToast'), 'error');
-                      info.revert();
-                      return;
-                    }
-                  }
-                  if (
-                    (isRestrictedDate(formatLocalIso(info.event.start)) || isRestrictedDate(formatLocalIso(info.event.end))) &&
-                    type !== 'emergencia'
-                  ) {
-                    toast(t('scheduling.dateBlocked'), 'error');
-                    info.revert();
-                    return;
-                  }
-                  void updateDocById('appointments', info.event.id, {
-                    startAt: formatLocalIso(info.event.start),
-                    endAt: formatLocalIso(info.event.end)
-                  })
-                    .then(() => queryClient.invalidateQueries({ queryKey: ['appointments'] }))
-                    .then(() => toast(t('scheduling.toastUpdated'), 'success'))
-                    .catch(() => toast(t('common.actionError'), 'error'));
+                  void moveAppointmentOnCalendar({
+                    appointmentId: info.event.id,
+                    start: info.event.start,
+                    end: info.event.end,
+                    type,
+                    isRestrictedDate,
+                    toast,
+                    t,
+                    invalidateAppointments,
+                    revert: () => info.revert()
+                  }).catch(() => toast(t('common.actionError'), 'error'));
                 }}
                 eventResize={(info) => {
                   if (!canEdit) return;
                   if (!info.event.start || !info.event.end) return;
                   const type = (info.event.extendedProps as { type?: string }).type;
-                  if (type !== 'emergencia') {
-                    const startIso = formatLocalIso(info.event.start);
-                    const endIso = formatLocalIso(info.event.end);
-                    if (!isWithinBusinessHours(startIso, endIso)) {
-                      toast(t('scheduling.businessHoursToast'), 'error');
-                      info.revert();
-                      return;
-                    }
-                  }
-                  if (
-                    (isRestrictedDate(formatLocalIso(info.event.start)) || isRestrictedDate(formatLocalIso(info.event.end))) &&
-                    type !== 'emergencia'
-                  ) {
-                    toast(t('scheduling.dateBlocked'), 'error');
-                    info.revert();
-                    return;
-                  }
-                  void updateDocById('appointments', info.event.id, {
-                    startAt: formatLocalIso(info.event.start),
-                    endAt: formatLocalIso(info.event.end)
-                  })
-                    .then(() => queryClient.invalidateQueries({ queryKey: ['appointments'] }))
-                    .then(() => toast(t('scheduling.toastUpdated'), 'success'))
-                    .catch(() => toast(t('common.actionError'), 'error'));
+                  void moveAppointmentOnCalendar({
+                    appointmentId: info.event.id,
+                    start: info.event.start,
+                    end: info.event.end,
+                    type,
+                    isRestrictedDate,
+                    toast,
+                    t,
+                    invalidateAppointments,
+                    revert: () => info.revert()
+                  }).catch(() => toast(t('common.actionError'), 'error'));
                 }}
               />
             </div>
