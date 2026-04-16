@@ -13,11 +13,11 @@ export default function AppLayout() {
   const showSidebar = isDesktop || isIpad;
 
   return (
-    <div className="flex min-h-screen bg-[#eef2f6]">
+    <div className="flex min-h-screen bg-[#e8edf3] text-slate-900">
       {showSidebar ? <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} /> : null}
       <div className="flex min-h-screen flex-1 flex-col">
         <TopBar />
-        <main className="flex-1 px-4 py-6 pb-24 ipad:px-6">
+        <main className="flex-1 px-4 py-5 pb-24 ipad:px-6 desktop:px-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -25,7 +25,7 @@ export default function AppLayout() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ type: 'spring', stiffness: 170, damping: 22 }}
-              className="space-y-8"
+              className="mx-auto w-full max-w-[1600px] space-y-6"
             >
               <Outlet />
             </motion.div>

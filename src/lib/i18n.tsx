@@ -2,9 +2,10 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import yaml from 'js-yaml';
 
 type Dictionary = Record<string, unknown>;
+type TranslateParams = Record<string, string | number | undefined>;
 
 type I18nState = {
-  t: (key: string, params?: Record<string, string | number>) => string;
+  t: (key: string, params?: TranslateParams) => string;
   loading: boolean;
 };
 
@@ -45,13 +46,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const value = useMemo<I18nState>(() => {
     return {
       loading,
-      t: (key: string, params?: Record<string, string | number>) => {
+      t: (key: string, params?: TranslateParams) => {
         const result = getValue(dictionary, key);
-        if (typeof result !== 'string') return key;
-        if (!params) return result;
+        const fallback = params?.defaultValue;
+        const baseText = typeof result === 'string' ? result : typeof fallback === 'string' ? fallback : key;
+        if (!params) return baseText;
         return Object.entries(params).reduce((text, [paramKey, paramValue]) => {
+          if (paramKey === 'defaultValue' || paramValue === undefined) return text;
           return text.split(`{${paramKey}}`).join(String(paramValue));
-        }, result);
+        }, baseText);
       }
     };
   }, [dictionary, loading]);

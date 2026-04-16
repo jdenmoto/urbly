@@ -13,7 +13,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom') || id.includes('@fullcalendar')) {
               return 'vendor-react';
             }
             if (id.includes('@tanstack')) {
@@ -21,9 +21,6 @@ export default defineConfig({
             }
             if (id.includes('firebase')) {
               return 'vendor-firebase';
-            }
-            if (id.includes('@fullcalendar')) {
-              return 'vendor-fullcalendar';
             }
             if (id.includes('framer-motion') || id.includes('recharts')) {
               return 'vendor-ui';

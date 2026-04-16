@@ -73,10 +73,29 @@ nav:
   settingsCalendarSection: Calendario
   settingsCalendarHolidays: Festivos
   settingsCalendarNonWorking: No laborables
+  mobilePrimary: Navegacion principal movil
+  shortDashboard: Inicio
+  shortServices: Servicios
+  shortManagement: Cuentas
+  shortReports: Reportes
+  shortAi: IA
+  shortCustomers: Clientes
+  shortAssets: Activos
+  shortTeam: Equipo
+  shortBuildings: Edificios
+  operationsSection: Operación diaria
+  operationsSectionDescription: Servicios, seguimiento y acciones prioritarias del día.
+  portfolioSection: Portafolio y cuentas
+  portfolioSectionDescription: Clientes, administraciones, activos y visión comercial del portafolio.
+  teamSection: Equipo y capacidad
+  teamSectionDescription: Gestión del equipo operativo y visibilidad de carga de trabajo.
   mainSection: Operacion
+  mainSectionDescription: Accesos principales para la operación diaria.
   adminSection: Administracion
   settingsSection: Configuraciones
+  settingsSectionDescription: Parámetros maestros, usuarios y reglas operativas del sistema.
   portalSection: Portal
+  portalSectionDescription: Resumen operativo para clientes y administradores del edificio.
 auth:
   title: Bienvenido a Urbly
   subtitle: Ingresa con tu cuenta de administrador.
