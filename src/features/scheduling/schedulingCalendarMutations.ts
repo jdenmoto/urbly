@@ -1,4 +1,4 @@
-import { updateDocById } from '@/lib/api/firestore';
+import { moveServiceOrderOnCalendar } from '@/lib/api/serviceOrders';
 import { formatLocalIso, isWithinBusinessHours } from './schedulingUtils';
 
 export async function moveAppointmentOnCalendar(args: {
@@ -30,9 +30,10 @@ export async function moveAppointmentOnCalendar(args: {
     return;
   }
 
-  await updateDocById('appointments', appointmentId, {
-    startAt: formatLocalIso(start),
-    endAt: formatLocalIso(end)
+  await moveServiceOrderOnCalendar({
+    serviceOrderId: appointmentId,
+    scheduledStartAt: formatLocalIso(start),
+    scheduledEndAt: formatLocalIso(end)
   });
   await invalidateAppointments();
   toast(t('scheduling.toastUpdated'), 'success');
