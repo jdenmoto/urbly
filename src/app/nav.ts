@@ -108,6 +108,13 @@ export function useNavGroups(role: AppUserRole = 'view') {
             enabled: flags.settings
           },
           {
+            to: '/settings/automation',
+            label: 'Plantillas e IA',
+            icon: Settings,
+            adminOnly: true,
+            enabled: flags.settings
+          },
+          {
             to: '/settings/contracts',
             label: t('nav.settingsContracts'),
             icon: Settings,

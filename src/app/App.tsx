@@ -29,6 +29,7 @@ const CalendarSettingsPage = lazy(() => import('@/features/settings/CalendarSett
 const CalendarHolidaysPage = lazy(() => import('@/features/settings/CalendarHolidaysPage'));
 const CalendarNonWorkingPage = lazy(() => import('@/features/settings/CalendarNonWorkingPage'));
 const ServiceTypesSettingsPage = lazy(() => import('@/features/settings/ServiceTypesSettingsPage'));
+const TenantAutomationSettingsPage = lazy(() => import('@/features/settings/TenantAutomationSettingsPage'));
 
 function RouteLoader() {
   return <div className="p-8 text-sm text-ink-600">Cargando modulo...</div>;
@@ -250,6 +251,16 @@ export default function App() {
               <RoleGuard allow={['admin']}>
                 <FeatureGuard feature="settings">
                   <ServiceTypesSettingsPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="settings/automation"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'building_admin', 'client']}>
+                <FeatureGuard feature="settings">
+                  <TenantAutomationSettingsPage />
                 </FeatureGuard>
               </RoleGuard>
             }
