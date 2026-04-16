@@ -1,6 +1,21 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { authAdmin, db, FieldValue } from './admin';
 
+const allowedRoles = [
+  'admin',
+  'editor',
+  'view',
+  'building_admin',
+  'emergency_scheduler',
+  'supervisor',
+  'scheduler',
+  'operator',
+  'auditoria',
+  'client'
+] as const;
+
+type AllowedRole = (typeof allowedRoles)[number];
+
 function requireAdmin(auth: { token?: Record<string, unknown> } | null | undefined) {
   if (!auth) {
     throw new HttpsError('unauthenticated', 'Debe autenticarse.');
@@ -19,19 +34,21 @@ function generatePassword(length = 12) {
   return result;
 }
 
-export const createUser = onCall(async (request) => {
-  requireAdmin(request.auth);
-  const email = request.data?.email as string | undefined;
-  const role = request.data?.role as string | undefined;
-  const administrationId = request.data?.administrationId as string | undefined;
-  if (!email || !role) {
-    throw new HttpsError('invalid-argument', 'Email y rol son requeridos.');
+function resolvePermissions(role: AllowedRole) {
+  switch (role) {
+    case 'admin':
+      return ['export_audit', 'manage_templates', 'manage_ai_policy', 'regenerate_secure_tokens', 'review_reports', 'approve_quotations_internal'];
+    case 'supervisor':
+      return ['review_reports'];
+    case 'auditoria':
+      return ['export_audit'];
+    default:
+      return [];
   }
-  if (!['admin', 'editor', 'view', 'building_admin', 'emergency_scheduler'].includes(role)) {
-    throw new HttpsError('invalid-argument', 'Rol invalido.');
-  }
-  let resolvedAdministrationId: string | null = null;
-  if (role === 'building_admin') {
+}
+
+async function resolveAdministrationId(role: AllowedRole, administrationId: string | undefined) {
+  if (role === 'building_admin' || role === 'client') {
     if (!administrationId) {
       throw new HttpsError('invalid-argument', 'Administracion requerida.');
     }
@@ -39,18 +56,36 @@ export const createUser = onCall(async (request) => {
     if (!administrationSnap.exists) {
       throw new HttpsError('not-found', 'Administracion no encontrada.');
     }
-    resolvedAdministrationId = administrationId;
+    return administrationId;
   }
+  return null;
+}
+
+export const createUser = onCall(async (request) => {
+  requireAdmin(request.auth);
+  const email = request.data?.email as string | undefined;
+  const role = request.data?.role as AllowedRole | undefined;
+  const administrationId = request.data?.administrationId as string | undefined;
+  if (!email || !role) {
+    throw new HttpsError('invalid-argument', 'Email y rol son requeridos.');
+  }
+  if (!allowedRoles.includes(role)) {
+    throw new HttpsError('invalid-argument', 'Rol invalido.');
+  }
+  const resolvedAdministrationId = await resolveAdministrationId(role, administrationId);
+  const permissions = resolvePermissions(role);
   const password = generatePassword(12);
   const userRecord = await authAdmin.createUser({ email, password, disabled: false });
   await authAdmin.setCustomUserClaims(userRecord.uid, {
     role,
-    administrationId: resolvedAdministrationId
+    administrationId: resolvedAdministrationId,
+    permissions
   });
   await db.collection('users').doc(userRecord.uid).set({
     email,
     role,
     administrationId: resolvedAdministrationId,
+    permissions,
     active: true,
     createdAt: FieldValue.serverTimestamp()
   });
@@ -61,7 +96,7 @@ export const updateUser = onCall(async (request) => {
   requireAdmin(request.auth);
   const uid = request.data?.uid as string | undefined;
   const email = request.data?.email as string | undefined;
-  const role = request.data?.role as string | undefined;
+  const role = request.data?.role as AllowedRole | undefined;
   const administrationId = request.data?.administrationId as string | undefined;
   if (!uid) {
     throw new HttpsError('invalid-argument', 'UID requerido.');
@@ -72,28 +107,21 @@ export const updateUser = onCall(async (request) => {
     await authAdmin.updateUser(uid, updatePayload);
   }
   if (role) {
-    if (!['admin', 'editor', 'view', 'building_admin', 'emergency_scheduler'].includes(role)) {
+    if (!allowedRoles.includes(role)) {
       throw new HttpsError('invalid-argument', 'Rol invalido.');
     }
-    let resolvedAdministrationId: string | null = null;
-    if (role === 'building_admin') {
-      if (!administrationId) {
-        throw new HttpsError('invalid-argument', 'Administracion requerida.');
-      }
-      const administrationSnap = await db.collection('management_companies').doc(administrationId).get();
-      if (!administrationSnap.exists) {
-        throw new HttpsError('not-found', 'Administracion no encontrada.');
-      }
-      resolvedAdministrationId = administrationId;
-    }
+    const resolvedAdministrationId = await resolveAdministrationId(role, administrationId);
+    const permissions = resolvePermissions(role);
     await authAdmin.setCustomUserClaims(uid, {
       role,
-      administrationId: resolvedAdministrationId
+      administrationId: resolvedAdministrationId,
+      permissions
     });
     await db.collection('users').doc(uid).set(
       {
         role,
-        administrationId: resolvedAdministrationId
+        administrationId: resolvedAdministrationId,
+        permissions
       },
       { merge: true }
     );
