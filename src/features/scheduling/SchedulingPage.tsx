@@ -31,7 +31,7 @@ import {
   issueTypeOptions,
   issueCategoryOptions
 } from '@/core/appointments';
-import { createDoc, updateDocById, deleteDocById } from '@/lib/api/firestore';
+import { updateDocById } from '@/lib/api/firestore';
 import { generateAppointmentsPdf } from '@/lib/api/functions';
 import { useList } from '@/lib/api/queries';
 import { isValidDateRange } from '@/core/validators';
@@ -51,7 +51,8 @@ import {
   hasMinTwoPhotos,
   validateCompletion
 } from './schedulingCompletion';
-import { cancelAppointment, deleteAppointment } from './schedulingMutations';
+import { cancelAppointment, deleteAppointment, type CancelValues } from './schedulingMutations';
+import { createRecurringSeries, regenerateSeries, saveAppointment, type SchedulingFormValues } from './schedulingSeries';
 
 export default function SchedulingPage() {
   const { t } = useI18n();
@@ -290,13 +291,13 @@ export default function SchedulingPage() {
         });
       }
     });
-  type CancelValues = z.infer<typeof cancelSchema>;
+  type LocalCancelValues = CancelValues;
   const {
     register: cancelRegister,
     handleSubmit: handleCancelSubmit,
     formState: { errors: cancelErrors, isSubmitting: cancelSubmitting },
     reset: resetCancel
-  } = useForm<CancelValues>({ resolver: zodResolver(cancelSchema) });
+  } = useForm<LocalCancelValues>({ resolver: zodResolver(cancelSchema) });
 
   const filtered = useMemo(() => filterAppointments(appointments, filters), [appointments, filters]);
 
@@ -440,89 +441,6 @@ export default function SchedulingPage() {
     ];
   }, [buildings, employees, t, canEdit]);
 
-  const regenerateSeries = async (values: FormValues, current: Appointment | null) => {
-    const seriesId = current?.seriesId ?? (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
-    const related = appointments.filter((item) => item.seriesId === seriesId);
-    if (related.length) {
-      await Promise.all(related.map((item) => deleteDocById('appointments', item.id)));
-    } else if (current) {
-      await deleteDocById('appointments', current.id);
-    }
-
-    const building = buildings.find((item) => item.id === values.buildingId);
-    const contract = building?.contractId
-      ? contracts.find((item) => item.id === building.contractId)
-      : null;
-    if (!contract?.startAt || !contract?.endAt) {
-      toast(t('scheduling.contractRequired'), 'error');
-      return;
-    }
-    const contractStart = new Date(contract.startAt);
-    const contractEnd = new Date(contract.endAt);
-    const baseStart = new Date(toLocalIso(values.startAt));
-    const baseEnd = new Date(toLocalIso(values.endAt));
-    const durationMs = baseEnd.getTime() - baseStart.getTime();
-    if (Number.isNaN(contractStart.getTime()) || Number.isNaN(contractEnd.getTime())) {
-      toast(t('scheduling.contractRequired'), 'error');
-      return;
-    }
-    if (isAfter(baseStart, contractEnd)) {
-      toast(t('scheduling.contractOutOfRange'), 'error');
-      return;
-    }
-    if (durationMs <= 0) {
-      setError('endAt', { message: t('errors.invalidDateRange') });
-      return;
-    }
-    const step = values.recurrence;
-    let cursor = alignToContractStart(baseStart, contractStart, step);
-    const nextDate = (date: Date) => {
-      switch (step) {
-        case 'semanal':
-          return addDays(date, 7);
-        case 'quincenal':
-          return addDays(date, 15);
-        case 'mensual':
-          return addMonths(date, 1);
-        case 'bimensual':
-          return addMonths(date, 2);
-        case 'semestral':
-          return addMonths(date, 6);
-        default:
-          return addMonths(date, 1);
-      }
-    };
-
-    const payload = {
-      buildingId: values.buildingId,
-      title: values.title,
-      description: values.description ?? '',
-      startAt: toLocalIso(values.startAt),
-      endAt: toLocalIso(values.endAt),
-      status: values.status,
-      recurrence: values.recurrence || null,
-      type: values.type,
-      employeeId: values.employeeId || null,
-      seriesId
-    };
-    const tasks: Promise<unknown>[] = [];
-    while (!isAfter(cursor, contractEnd)) {
-      const scheduledStart = nextWorkingDate(cursor);
-      if (!isAfter(scheduledStart, contractEnd)) {
-        const end = new Date(scheduledStart.getTime() + durationMs);
-        tasks.push(
-          createDoc('appointments', {
-            ...payload,
-            startAt: formatLocalIso(scheduledStart),
-            endAt: formatLocalIso(end)
-          })
-        );
-      }
-      cursor = nextDate(cursor);
-    }
-    await Promise.all(tasks);
-  };
-
   const onSubmit = async (values: FormValues) => {
     console.log('[Scheduling] submit values', values);
     if (!canCreate) {
@@ -557,102 +475,27 @@ export default function SchedulingPage() {
       setError('type', { message: t('scheduling.emergencyPermission') });
       return;
     }
-    const payload = {
-      buildingId: values.buildingId,
-      title: values.title,
-      description: values.description ?? '',
-      startAt: toLocalIso(values.startAt),
-      endAt: toLocalIso(values.endAt),
-      status: values.status,
-      recurrence: values.recurrence || null,
-      type: values.type,
-      employeeId: values.employeeId || null,
-      seriesId: null as string | null
-    };
-    console.log('[Scheduling] payload', payload);
     try {
-      const current = editingId ? appointments.find((item) => item.id === editingId) : null;
       if (editingId && values.recurrence) {
         setPendingSeriesValues(values);
         setSeriesConfirmOpen(true);
         return;
       }
       if (editingId && !values.recurrence) {
-        if (current?.seriesId) {
-          const related = appointments.filter((item) => item.seriesId === current.seriesId && item.id !== editingId);
-          await Promise.all(related.map((item) => deleteDocById('appointments', item.id)));
-        }
-        console.log('[Scheduling] updating appointment', editingId);
-        await updateDocById('appointments', editingId, { ...payload, seriesId: null });
+        await saveAppointment({ values: values as SchedulingFormValues, editingId, appointments });
       } else if (values.recurrence) {
-        console.log('[Scheduling] creating recurring series', values.recurrence);
-        const building = buildings.find((item) => item.id === values.buildingId);
-        const contract = building?.contractId
-          ? contracts.find((item) => item.id === building.contractId)
-          : null;
-        if (!contract?.startAt || !contract?.endAt) {
-          toast(t('scheduling.contractRequired'), 'error');
-          return;
-        }
-        const contractStart = new Date(contract.startAt);
-        const contractEnd = new Date(contract.endAt);
-        const baseStart = new Date(toLocalIso(values.startAt));
-        const baseEnd = new Date(toLocalIso(values.endAt));
-        const durationMs = baseEnd.getTime() - baseStart.getTime();
-        if (Number.isNaN(contractStart.getTime()) || Number.isNaN(contractEnd.getTime())) {
-          toast(t('scheduling.contractRequired'), 'error');
-          return;
-        }
-        if (isAfter(baseStart, contractEnd)) {
-          toast(t('scheduling.contractOutOfRange'), 'error');
-          return;
-        }
-        if (durationMs <= 0) {
-          setError('endAt', { message: t('errors.invalidDateRange') });
-          return;
-        }
-        const step = values.recurrence;
-        let cursor = alignToContractStart(baseStart, contractStart, step);
-        const nextDate = (date: Date) => {
-          switch (step) {
-            case 'semanal':
-              return addDays(date, 7);
-            case 'quincenal':
-              return addDays(date, 15);
-            case 'mensual':
-              return addMonths(date, 1);
-            case 'bimensual':
-              return addMonths(date, 2);
-            case 'semestral':
-              return addMonths(date, 6);
-            default:
-              return addMonths(date, 1);
-          }
-        };
-
-        const seriesId = crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`;
-        const tasks: Promise<unknown>[] = [];
-        while (!isAfter(cursor, contractEnd)) {
-          const scheduledStart = nextWorkingDate(cursor);
-          if (!isAfter(scheduledStart, contractEnd)) {
-            const end = new Date(scheduledStart.getTime() + durationMs);
-            tasks.push(
-              createDoc('appointments', {
-                ...payload,
-                seriesId,
-                startAt: formatLocalIso(scheduledStart),
-                endAt: formatLocalIso(end)
-              })
-            );
-          }
-          cursor = nextDate(cursor);
-        }
-        console.log('[Scheduling] series tasks', tasks.length);
-        await Promise.all(tasks);
+        await createRecurringSeries({
+          values: values as SchedulingFormValues,
+          buildings,
+          contracts,
+          alignToContractStart,
+          nextWorkingDate,
+          setError,
+          toast,
+          t
+        });
       } else {
-        console.log('[Scheduling] creating appointment');
-        const result = await createDoc('appointments', payload);
-        console.log('[Scheduling] created appointment', result);
+        await saveAppointment({ values: values as SchedulingFormValues, editingId: null, appointments });
       }
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
       reset();
@@ -671,7 +514,18 @@ export default function SchedulingPage() {
     }
     const current = appointments.find((item) => item.id === editingId) ?? null;
     try {
-      await regenerateSeries(pendingSeriesValues, current);
+      await regenerateSeries({
+        values: pendingSeriesValues as SchedulingFormValues,
+        current,
+        appointments,
+        buildings,
+        contracts,
+        alignToContractStart,
+        nextWorkingDate,
+        setError,
+        toast,
+        t
+      });
       await queryClient.invalidateQueries({ queryKey: ['appointments'] });
       reset();
       setEditingId(null);
@@ -842,7 +696,7 @@ export default function SchedulingPage() {
     }
   };
 
-  const onCancel = async (values: CancelValues) => {
+  const onCancel = async (values: LocalCancelValues) => {
     if (!cancelTarget) return;
     try {
       await cancelAppointment(cancelTarget.id, values);
