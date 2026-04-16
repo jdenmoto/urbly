@@ -61,7 +61,7 @@ export function buildServiceSummary(serviceOrder: ServiceOrderLike, t: Translate
       .join('; ');
     parts.push(`Novedades detectadas: ${issueList}.`);
   } else {
-    parts.push('No hay novedades registradas hasta ahora.');
+    parts.push('No hay novedades registradas por ahora.');
   }
 
   if (lastEvent) {
@@ -81,7 +81,7 @@ export function buildCustomerMessage(serviceOrder: ServiceOrderLike, t: Translat
         .map((issue) => getIssueTypeLabel(t, issue.type).toLowerCase())
         .join(', ')}.`
     : 'Por ahora no tenemos novedades críticas registradas.';
-  const close = 'Quedo atento para confirmar próximos pasos o resolver cualquier duda.';
+  const close = 'Quedo atento para confirmar próximos pasos o resolver cualquier duda adicional.';
   return [intro, status, issuesText, close].join(' ');
 }
 
@@ -90,7 +90,7 @@ export function buildFollowUp(serviceOrder: ServiceOrderLike, t: TranslateFn = d
   const photos = serviceOrder.completionPhotos?.length ?? 0;
   const actions = [] as string[];
 
-  if (issues.length) actions.push(`validar tratamiento de novedades antes de dejar el servicio en ${getServiceOrderStatusLabel(t, serviceOrder.status).toLowerCase()}`);
+  if (issues.length) actions.push(`validar el tratamiento de las novedades antes de dejar el servicio en ${getServiceOrderStatusLabel(t, serviceOrder.status).toLowerCase()}`);
   if (!photos) actions.push('pedir o cargar evidencia fotográfica');
   if (serviceOrder.status !== 'completed') actions.push('confirmar cierre técnico y actualización de estado');
   if (!actions.length) actions.push('compartir reporte final con el cliente');
@@ -115,6 +115,6 @@ export function buildTechnicalReport(serviceOrder: ServiceOrderLike, t: Translat
     `Evidencias fotográficas: ${photos}`,
     issues.length
       ? `Detalle de novedades: ${issues.map((issue) => `${getIssueTypeLabel(t, issue.type)}/${getIssueCategoryLabel(t, issue.category)}`).join(', ')}`
-      : 'Detalle de novedades: sin novedades registradas'
+      : 'Detalle de novedades: sin novedades registradas por ahora'
   ].join('\n');
 }

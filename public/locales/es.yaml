@@ -145,9 +145,9 @@ services:
   timelineSubtitle: Eventos derivados del appointment actual mientras se migra el dominio.
   timelineEmpty: Este servicio todavia no tiene eventos registrados.
   closeoutTitle: Cierre tecnico
-  closeoutSubtitle: Primer corte del cierre dedicado de service orders.
-  closeoutEmpty: No se encontro el servicio solicitado.
-  closeoutHint: Esta vista sera la base para separar checklist, reporte y evidencias del scheduling legacy.
+  closeoutSubtitle: Vista de cierre enfocada en reporte, evidencias y comunicación final.
+  closeoutEmpty: No se encontró el servicio solicitado.
+  closeoutHint: Aquí consolidamos reporte, evidencias, novedades y comunicación final del servicio.
   reportTitle: Reporte actual
   evidenceTitle: Evidencia actual
   evidenceCount: "Fotos registradas: {count}"
@@ -176,7 +176,7 @@ services:
   timelineLabel: Timeline
   aiCloseoutBadge: IA para cierre
   aiCloseoutTitle: Acciones listas para enviar o ajustar
-  aiCloseoutSubtitle: Este bloque resume el servicio, sugiere reporte y deja listo el siguiente paso con mejor legibilidad.
+  aiCloseoutSubtitle: Este bloque resume el servicio, propone el reporte y deja listo el siguiente paso para enviar o ajustar.
   statusScheduled: Programado
   statusConfirmed: Confirmado
   statusInProgress: En progreso
@@ -249,10 +249,10 @@ ai:
   subtitle: Asistente transversal para informes, mensajes y seguimiento.
   comingSoon: Aqui se integraran acciones de IA con foco en ahorro operativo real.
   workspaceTitle: Sugerencias operativas
-  workspaceSubtitle: Primer corte de acciones sugeridas usando el backlog actual de service orders.
-  suggestionUrgent: Prioriza este servicio, prepara mensaje al cliente y revisa seguimiento inmediato.
-  suggestionIssues: Resume novedades, prepara informe y valida si hace falta seguimiento tecnico.
-  suggestionDefault: Revisa contexto del caso y deja listo el siguiente paso operativo.
+  workspaceSubtitle: Acciones sugeridas para destrabar seguimiento, comunicación y cierre operativo.
+  suggestionUrgent: Prioriza este servicio, prepara mensaje al cliente y define seguimiento inmediato.
+  suggestionIssues: Resume las novedades, deja listo el informe y valida si hace falta seguimiento técnico.
+  suggestionDefault: Revisa el contexto del caso y deja claro el siguiente paso operativo.
   caseSummaryTitle: Resumen del caso
   customerMessageTitle: Mensaje sugerido al cliente
   followUpTitle: Siguiente paso sugerido
