@@ -1,6 +1,7 @@
 import { Building2, Users, Landmark, LayoutDashboard, ShieldUser, Settings, Briefcase, Sparkles, FileText } from './navIcons';
 import { useI18n } from '@/lib/i18n';
 import { useFeatureFlags } from '@/lib/featureFlags';
+import type { AppUserRole } from '@/core/models/appUser';
 
 export type NavItem = {
   to?: string;
