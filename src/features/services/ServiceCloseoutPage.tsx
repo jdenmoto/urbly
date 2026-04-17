@@ -70,8 +70,9 @@ export default function ServiceCloseoutPage() {
               {pdfLoading ? 'Generando PDF...' : 'Descargar reporte técnico'}
             </Button>
             <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
-            <p className="font-semibold text-ink-900">{getServiceOrderStatusLabel(t, serviceOrder.status)}</p>
-            <p>{t('services.closeoutStatusHint')}</p>
+              <p className="font-semibold text-ink-900">{getServiceOrderStatusLabel(t, serviceOrder.status)}</p>
+              <p>{t('services.closeoutStatusHint')}</p>
+            </div>
           </div>
         </div>
 
