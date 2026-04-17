@@ -97,6 +97,7 @@ export default function BuildingsPage() {
   const queryClient = useQueryClient();
   const [place, setPlace] = useState<PlaceResult | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [remoteValidation, setRemoteValidation] = useState<ImportResult | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [errorUrl, setErrorUrl] = useState<string | null>(null);
   const [previewRows, setPreviewRows] = useState<PreviewRow[]>([]);
@@ -449,6 +450,7 @@ export default function BuildingsPage() {
   const handleFile = async (file: File) => {
     setImportFile(file);
     setImportResult(null);
+    setRemoteValidation(null);
     const extension = file.name.split('.').pop()?.toLowerCase();
 
     if (extension === 'csv') {
@@ -603,6 +605,13 @@ export default function BuildingsPage() {
                   <p><span className="font-semibold text-ink-900">Entidad validada:</span> {validationSummary.entity}</p>
                   <p><span className="font-semibold text-ink-900">Filas válidas:</span> {validationSummary.validRows}</p>
                   <p><span className="font-semibold text-ink-900">Filas inválidas:</span> {validationSummary.invalidRows}</p>
+                </div>
+              ) : null}
+              {remoteValidation ? (
+                <div className="rounded-xl border border-fog-200 bg-white p-3 text-sm text-ink-700">
+                  <p><span className="font-semibold text-ink-900">Validación remota:</span> {remoteValidation.dryRun ? 'dry-run' : 'final'}</p>
+                  <p><span className="font-semibold text-ink-900">Entidad:</span> {remoteValidation.entity ?? validationSummary.entity}</p>
+                  <p><span className="font-semibold text-ink-900">Filas evaluadas:</span> {remoteValidation.previewCount ?? previewRows.length}</p>
                 </div>
               ) : null}
               {importResult ? (
