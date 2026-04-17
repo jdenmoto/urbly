@@ -826,7 +826,7 @@ export default function SchedulingPage() {
   };
 
   const wizardSteps = [
-    { id: 1, title: editingId ? 'Servicio y contexto' : 'Crear servicio' },
+    { id: 1, title: editingId ? t('scheduling.wizardStepServiceContext') : t('scheduling.wizardStepCreateService') },
     { id: 2, title: 'Agenda y asignación' },
     { id: 3, title: editingId ? 'Revisar reprogramación' : 'Revisar creación' }
   ] as const;
@@ -1164,7 +1164,7 @@ export default function SchedulingPage() {
               </p>
               <p><span className="font-semibold text-ink-900">{t('scheduling.statusLabel')}:</span> {statusLabel(selected.status)}</p>
               <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
-                <p className="font-semibold text-ink-900">Mapa de dependencias legacy</p>
+                <p className="font-semibold text-ink-900">{t('scheduling.legacyDependencyMapTitle')}</p>
                 <ul className="mt-2 space-y-1 text-xs text-ink-600">
                   {legacyDependencySummary.map((dependency) => (
                     <li key={dependency.key}>
@@ -1574,7 +1574,7 @@ export default function SchedulingPage() {
                   </Select>
                   {assignmentSuggestions.length ? (
                     <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
-                      <p className="font-semibold text-ink-900">Sugerencias de asignación</p>
+                      <p className="font-semibold text-ink-900">{t('scheduling.assignmentSuggestionsTitle')}</p>
                       <div className="mt-2 space-y-2">
                         {assignmentSuggestions.map((suggestion: { employeeId: string; score: number; reason: string }) => {
                           const employee = employees.find((item) => item.id === suggestion.employeeId);
@@ -1631,7 +1631,7 @@ export default function SchedulingPage() {
                 <Button type="button" onClick={() => void nextWizardStep()} className="flex-1">Siguiente</Button>
               ) : (
                 <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                  {isSubmitting ? t('scheduling.saving') : editingId ? 'Guardar reprogramación' : 'Crear servicio'}
+                  {isSubmitting ? t('scheduling.saving') : editingId ? t('scheduling.wizardSaveReschedule') : t('scheduling.wizardStepCreateService')}
                 </Button>
               )}
             </div>

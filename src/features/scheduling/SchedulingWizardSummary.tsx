@@ -1,5 +1,6 @@
 import type { Employee } from '@/core/models/employee';
 import type { Building } from '@/core/models/building';
+import { useI18n } from '@/lib/i18n';
 
 type Props = {
   buildingId: string;
@@ -15,16 +16,17 @@ type Props = {
 };
 
 export default function SchedulingWizardSummary(props: Props) {
+  const { t } = useI18n();
   const { buildingId, title, type, startAt, endAt, employeeId, recurrence, editingId, buildings, employees } = props;
   return (
     <div className="rounded-xl border border-fog-200 bg-fog-50 p-4 text-sm text-ink-700 space-y-2">
-      <p><span className="font-semibold text-ink-900">Edificio:</span> {buildings.find((building) => building.id === buildingId)?.name ?? 'Sin seleccionar'}</p>
-      <p><span className="font-semibold text-ink-900">Servicio:</span> {title || 'Sin título'}</p>
-      <p><span className="font-semibold text-ink-900">Tipo:</span> {type || 'Sin tipo'}</p>
-      <p><span className="font-semibold text-ink-900">Inicio:</span> {startAt || 'Sin fecha'}</p>
-      <p><span className="font-semibold text-ink-900">Fin:</span> {endAt || 'Sin fecha'}</p>
-      <p><span className="font-semibold text-ink-900">Técnico:</span> {employees.find((employee) => employee.id === employeeId)?.fullName ?? 'Sin asignar'}</p>
-      <p><span className="font-semibold text-ink-900">Recurrencia:</span> {recurrence || 'Sin recurrencia'}</p>
+      <p><span className="font-semibold text-ink-900">{t('scheduling.wizardSummaryBuilding')}:</span> {buildings.find((building) => building.id === buildingId)?.name ?? t('scheduling.wizardSummaryNoSelection')}</p>
+      <p><span className="font-semibold text-ink-900">{t('scheduling.wizardSummaryService')}:</span> {title || t('scheduling.wizardSummaryNoTitle')}</p>
+      <p><span className="font-semibold text-ink-900">{t('scheduling.wizardSummaryType')}:</span> {type || t('scheduling.wizardSummaryNoType')}</p>
+      <p><span className="font-semibold text-ink-900">{t('scheduling.wizardSummaryStart')}:</span> {startAt || t('scheduling.wizardSummaryNoDate')}</p>
+      <p><span className="font-semibold text-ink-900">{t('scheduling.wizardSummaryEnd')}:</span> {endAt || t('scheduling.wizardSummaryNoDate')}</p>
+      <p><span className="font-semibold text-ink-900">{t('scheduling.wizardSummaryTechnician')}:</span> {employees.find((employee) => employee.id === employeeId)?.fullName ?? t('scheduling.wizardSummaryUnassigned')}</p>
+      <p><span className="font-semibold text-ink-900">{t('scheduling.wizardSummaryRecurrence')}:</span> {recurrence || t('scheduling.wizardSummaryNoRecurrence')}</p>
       {editingId ? <p className="text-xs text-amber-700">Estás reprogramando o actualizando un servicio existente.</p> : null}
     </div>
   );

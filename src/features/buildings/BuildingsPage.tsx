@@ -589,31 +589,31 @@ export default function BuildingsPage() {
                   variant="secondary"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  Seleccionar archivo
+                  {t('buildings.importSelectFile')}
                 </Button>
                 <Button
                   type="button"
                   onClick={() => void handleImport(importFile)}
                   disabled={!importFile || uploading || validationSummary.invalidRows > 0}
                 >
-                  Importar archivo
+                  {t('buildings.importRun')}
                 </Button>
               </div>
               {uploading ? <p className="text-sm text-ink-600">{t('buildings.uploading')}</p> : null}
               {previewRows.length ? (
                 <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
-                  <p><span className="font-semibold text-ink-900">Entidad validada:</span> {validationSummary.entity}</p>
-                  <p><span className="font-semibold text-ink-900">Filas válidas:</span> {validationSummary.validRows}</p>
-                  <p><span className="font-semibold text-ink-900">Filas inválidas:</span> {validationSummary.invalidRows}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importValidatedEntity')}:</span> {validationSummary.entity}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importValidRows')}:</span> {validationSummary.validRows}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importInvalidRows')}:</span> {validationSummary.invalidRows}</p>
                 </div>
               ) : null}
               {remoteValidation ? (
                 <div className="rounded-xl border border-fog-200 bg-white p-3 text-sm text-ink-700">
-                  <p><span className="font-semibold text-ink-900">Validación remota:</span> {remoteValidation.dryRun ? 'dry-run' : 'final'}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importRemoteValidation')}:</span> {remoteValidation.dryRun ? 'dry-run' : 'final'}</p>
                   <p><span className="font-semibold text-ink-900">Entidad:</span> {remoteValidation.entity ?? validationSummary.entity}</p>
-                  <p><span className="font-semibold text-ink-900">Filas evaluadas:</span> {remoteValidation.previewCount ?? previewRows.length}</p>
-                  <p><span className="font-semibold text-ink-900">Filas válidas:</span> {remoteValidation.validRows ?? validationSummary.validRows}</p>
-                  <p>{remoteValidation.summaryMessage ?? 'Sin resumen remoto'}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importEvaluatedRows')}:</span> {remoteValidation.previewCount ?? previewRows.length}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importValidRows')}:</span> {remoteValidation.validRows ?? validationSummary.validRows}</p>
+                  <p>{remoteValidation.summaryMessage ?? t('buildings.importNoRemoteSummary')}</p>
                 </div>
               ) : null}
               {importResult ? (
@@ -644,7 +644,7 @@ export default function BuildingsPage() {
               {previewRows.length ? (
                 <div className="space-y-3">
                   <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
-                    <p><span className="font-semibold text-ink-900">Entidad detectada:</span> {previewGroup.entity}</p>
+                    <p><span className="font-semibold text-ink-900">{t('buildings.importDetectedEntity')}:</span> {previewGroup.entity}</p>
                     <p><span className="font-semibold text-ink-900">Columnas:</span> {previewGroup.headers.join(', ')}</p>
                     <p><span className="font-semibold text-ink-900">Preview:</span> {previewRows.length} fila(s)</p>
                   </div>
@@ -921,24 +921,24 @@ export default function BuildingsPage() {
                 </div>
                 <div className="rounded-xl border border-fog-200 bg-white p-4 text-sm text-ink-700">
                   <div className="mb-3">
-                    <p className="text-xs uppercase text-ink-400">Contexto técnico</p>
-                    <p className="text-sm font-semibold text-ink-900">Modelo mínimo de equipos por edificio</p>
+                    <p className="text-xs uppercase text-ink-400">{t('buildings.technicalContextTitle')}</p>
+                    <p className="text-sm font-semibold text-ink-900">{t('buildings.technicalContextSubtitle')}</p>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
-                      <p className="text-xs uppercase text-ink-400">Equipos</p>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.technicalEquipmentLabel')}</p>
                       <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.equipmentSummary || 'Sin contexto técnico cargado'}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">Cuarto mecánico</p>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.technicalMechanicalRoomLabel')}</p>
                       <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.mechanicalRoomNotes || t('common.notAvailable')}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">Configuración eléctrica</p>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.technicalElectricalLabel')}</p>
                       <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.electricalSetup || t('common.notAvailable')}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">Observaciones críticas</p>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.technicalObservationsLabel')}</p>
                       <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.criticalObservations || t('common.notAvailable')}</p>
                     </div>
                   </div>
