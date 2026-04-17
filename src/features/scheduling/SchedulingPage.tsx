@@ -736,7 +736,7 @@ export default function SchedulingPage() {
         completionReport,
         normalizedChecklist
       });
-      await updateDocById(completeTarget.source === 'service_order' ? 'service_orders' : 'appointments', completeTarget.id, payload);
+      await updateDocById('service_orders', completeTarget.id, payload);
       await invalidateScheduling();
       toast(t('scheduling.toastCompleted'), 'success');
       if (selected?.id === completeTarget.id) {
@@ -748,7 +748,7 @@ export default function SchedulingPage() {
             completedAt: payload.completedAt as string,
             issues: payload.issues as SchedulingItem['issues'],
             completionPhotos: payload.completionPhotos as SchedulingItem['completionPhotos'],
-            completionReport: payload.completionReport as SchedulingItem['completionReport']
+            completionReport: payload.report as SchedulingItem['completionReport']
           };
         });
       }

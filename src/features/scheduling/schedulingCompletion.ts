@@ -1,5 +1,6 @@
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import type { Appointment, AppointmentStatus } from '@/core/models/appointment';
+import type { ServiceOrder, ServiceOrderChecklistValue, ServiceOrderIssue, ServiceOrderReport } from '@/core/models/serviceOrder';
+import type { SchedulingItem } from './schedulingItem';
 import { storage } from '@/lib/firebase/client';
 
 export type IssueDraft = {
@@ -17,7 +18,7 @@ export type CompletionReport = {
   checklist: Record<string, string>;
 };
 
-export type CompletionChecklistValue = 'ok' | 'regular' | 'malo' | 'na';
+export type CompletionChecklistValue = ServiceOrderChecklistValue;
 
 export function hasMinTwoPhotos(photos: File[]) {
   return photos.filter((photo) => photo instanceof File).length >= 2;
@@ -131,12 +132,12 @@ export async function buildCompletionPayload(args: {
   const completionPhotoUrls = await uploadCompletionPhotos(schedulingItemId, completionPhotos);
 
   let payload: Record<string, unknown> = {
-    status: 'completado' as AppointmentStatus,
+    status: 'completed',
     completedAt: new Date().toISOString(),
-    completionReport: {
+    report: {
       ...completionReport,
       checklist: normalizedChecklist
-    },
+    } as ServiceOrderReport,
     completionPhotos: completionPhotoUrls
   };
 
@@ -161,15 +162,15 @@ export async function buildCompletionPayload(args: {
   return payload;
 }
 
-export function applyCompletionToSelected(selected: Appointment | null, schedulingItemId: string, payload: Record<string, unknown>) {
+export function applyCompletionToSelected(selected: SchedulingItem | null, schedulingItemId: string, payload: Record<string, unknown>) {
   if (!selected || selected.id !== schedulingItemId) return selected;
 
   return {
     ...selected,
-    status: 'completado' as AppointmentStatus,
+    status: 'completado',
     completedAt: payload.completedAt as string,
-    issues: payload.issues as Appointment['issues'],
-    completionPhotos: payload.completionPhotos as Appointment['completionPhotos'],
-    completionReport: payload.completionReport as Appointment['completionReport']
+    issues: payload.issues as ServiceOrderIssue[],
+    completionPhotos: payload.completionPhotos as string[],
+    completionReport: payload.report as SchedulingItem['completionReport']
   };
 }
