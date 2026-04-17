@@ -1,22 +1,10 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
-import { db, FieldValue } from './admin';
 import { parseImportWorkbook } from './importParser';
 import { validateImportRows } from './importValidation';
+import { persistBuildingImport, type BuildingImportRow, type GeocodeResult } from './importBuildingPipeline';
 
-type ImportRow = {
-  building_name?: string;
-  address?: string;
-  porter_phone?: string;
-  management_name?: string;
-};
-
-type GeocodeResult = {
-  formattedAddress: string;
-  placeId: string;
-  location: { lat: number; lng: number };
-};
 
 const mapsApiKey = defineSecret('GOOGLE_MAPS_API_KEY');
 
@@ -75,7 +63,7 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
   if (!parsed.rows.length) {
     throw new HttpsError('invalid-argument', 'Archivo sin datos.');
   }
-  const rows = parsed.rows as ImportRow[];
+  const rows = parsed.rows as BuildingImportRow[];
   logger.info('Import rows parsed', { count: rows.length });
 
   const validation = validateImportRows({ headers: parsed.headers, rows: parsed.rows });
@@ -101,63 +89,7 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
     };
   }
 
-  const managementSnapshot = await db.collection('management_companies').get();
-  const managementByName = new Map<string, string>();
-  managementSnapshot.forEach((doc) => {
-    const data = doc.data() as { name?: string };
-    if (data.name) {
-      managementByName.set(data.name.toLowerCase(), doc.id);
-    }
-  });
-
-  const errors: Array<{ row: number; message: string }> = [];
-  let created = 0;
-
-  for (const [index, row] of rows.entries()) {
-    const rowNumber = index + 2;
-    if (!row.building_name || !row.address || !row.porter_phone || !row.management_name) {
-      logger.warn('Missing required fields', { row: rowNumber });
-      errors.push({ row: rowNumber, message: 'Campos requeridos faltantes.' });
-      continue;
-    }
-
-    const managementKey = row.management_name.toLowerCase();
-    let managementId = managementByName.get(managementKey);
-    if (!managementId) {
-      logger.info('Creating management company', { name: row.management_name });
-      const newDoc = await db.collection('management_companies').add({
-        name: row.management_name,
-        contactPhone: '',
-        email: '',
-        nit: 'PENDING',
-        address: '',
-        createdAt: FieldValue.serverTimestamp()
-      });
-      managementId = newDoc.id;
-      managementByName.set(managementKey, managementId);
-    }
-
-    let geocode: GeocodeResult;
-    try {
-      geocode = await geocodeAddress(row.address);
-    } catch {
-      logger.warn('Geocode failed', { row: rowNumber, address: row.address });
-      errors.push({ row: rowNumber, message: 'Direccion no valida o no encontrada.' });
-      continue;
-    }
-
-    await db.collection('buildings').add({
-      name: row.building_name,
-      porterPhone: row.porter_phone,
-      managementCompanyId: managementId,
-      addressText: geocode.formattedAddress,
-      googlePlaceId: geocode.placeId,
-      location: geocode.location,
-      active: true,
-      createdAt: FieldValue.serverTimestamp()
-    });
-    created += 1;
-  }
+  const { created, errors } = await persistBuildingImport({ rows, geocodeAddress });
 
   logger.info('Import completed', { created, failed: errors.length });
   return {
