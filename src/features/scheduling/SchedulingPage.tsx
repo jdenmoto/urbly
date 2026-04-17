@@ -727,7 +727,7 @@ export default function SchedulingPage() {
     setCompleteSubmitting(true);
     try {
       const payload = await buildCompletionPayload({
-        appointmentId: completeTarget.id,
+        schedulingItemId: completeTarget.id,
         hasIssues,
         issues,
         completionPhotos,
@@ -796,7 +796,10 @@ export default function SchedulingPage() {
     }
   };
 
-  const invalidateScheduling = () => queryClient.invalidateQueries({ queryKey: ['appointments'] });
+  const invalidateScheduling = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['appointments'] }),
+    queryClient.invalidateQueries({ queryKey: ['serviceOrders'] })
+  ]);
 
   const statusLabel = (status: string) => translateAppointmentStatus(status, t);
 

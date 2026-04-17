@@ -27,12 +27,12 @@ function safeStorageName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_');
 }
 
-export async function uploadIssuePhotos(appointmentId: string, issueId: string, photos: File[]) {
+export async function uploadIssuePhotos(schedulingItemId: string, issueId: string, photos: File[]) {
   const uploads = await Promise.all(
     photos
       .filter((file): file is File => file instanceof File)
       .map(async (file, index) => {
-        const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${safeStorageName(file.name)}`);
+        const storageRef = ref(storage, `service-orders/${schedulingItemId}/issues/${issueId}/${index}-${safeStorageName(file.name)}`);
         await uploadBytes(storageRef, file);
         return getDownloadURL(storageRef);
       })
@@ -41,12 +41,12 @@ export async function uploadIssuePhotos(appointmentId: string, issueId: string, 
   return uploads;
 }
 
-export async function uploadCompletionPhotos(appointmentId: string, photos: File[]) {
+export async function uploadCompletionPhotos(schedulingItemId: string, photos: File[]) {
   const uploads = await Promise.all(
     photos
       .filter((file): file is File => file instanceof File)
       .map(async (file, index) => {
-        const storageRef = ref(storage, `appointments/${appointmentId}/completion-photos/${Date.now()}-${index}-${safeStorageName(file.name)}`);
+        const storageRef = ref(storage, `service-orders/${schedulingItemId}/completion-photos/${Date.now()}-${index}-${safeStorageName(file.name)}`);
         await uploadBytes(storageRef, file);
         return getDownloadURL(storageRef);
       })
@@ -120,15 +120,15 @@ export function buildNormalizedChecklist(args: {
 }
 
 export async function buildCompletionPayload(args: {
-  appointmentId: string;
+  schedulingItemId: string;
   hasIssues: 'yes' | 'no' | '';
   issues: IssueDraft[];
   completionPhotos: File[];
   completionReport: CompletionReport;
   normalizedChecklist: Record<string, CompletionChecklistValue>;
 }) {
-  const { appointmentId, hasIssues, issues, completionPhotos, completionReport, normalizedChecklist } = args;
-  const completionPhotoUrls = await uploadCompletionPhotos(appointmentId, completionPhotos);
+  const { schedulingItemId, hasIssues, issues, completionPhotos, completionReport, normalizedChecklist } = args;
+  const completionPhotoUrls = await uploadCompletionPhotos(schedulingItemId, completionPhotos);
 
   let payload: Record<string, unknown> = {
     status: 'completado' as AppointmentStatus,
@@ -143,7 +143,7 @@ export async function buildCompletionPayload(args: {
   if (hasIssues === 'yes') {
     const resolvedIssues = await Promise.all(
       issues.map(async (issue) => {
-        const photoUrls = await uploadIssuePhotos(appointmentId, issue.id, issue.photos);
+        const photoUrls = await uploadIssuePhotos(schedulingItemId, issue.id, issue.photos);
         return {
           id: issue.id,
           type: issue.type,
@@ -161,8 +161,8 @@ export async function buildCompletionPayload(args: {
   return payload;
 }
 
-export function applyCompletionToSelected(selected: Appointment | null, appointmentId: string, payload: Record<string, unknown>) {
-  if (!selected || selected.id !== appointmentId) return selected;
+export function applyCompletionToSelected(selected: Appointment | null, schedulingItemId: string, payload: Record<string, unknown>) {
+  if (!selected || selected.id !== schedulingItemId) return selected;
 
   return {
     ...selected,
