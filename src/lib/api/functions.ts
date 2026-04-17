@@ -60,3 +60,16 @@ export async function generateServiceReportPdf(params: { serviceOrderId: string 
   const response = await callable(params);
   return response.data as { filename: string; contentBase64: string };
 }
+
+
+export async function generateClientPortalToken(params: { serviceOrderId: string; customerId: string }) {
+  const fn = httpsCallable(functions, 'generateClientPortalToken');
+  const result = await fn(params);
+  return result.data as { token: string };
+}
+
+export async function validateClientPortalToken(params: { token: string }) {
+  const fn = httpsCallable(functions, 'validateClientPortalToken');
+  const result = await fn(params);
+  return result.data as { valid: boolean; serviceOrderId: string; customerId: string; serviceOrder: { title: string; status: string } };
+}
