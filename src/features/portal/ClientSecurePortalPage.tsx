@@ -4,7 +4,7 @@ import Card from '@/components/Card';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
 import { validateClientPortalToken } from '@/lib/api/functions';
-import { useDoc } from '@/lib/api/queries';
+import { useServiceOrders } from '@/lib/api/queries';
 import type { ServiceOrder } from '@/core/models/serviceOrder';
 import { buildTechnicalReport } from '@/features/services/serviceOrderAi';
 import { useI18n } from '@/lib/i18n';
@@ -35,7 +35,8 @@ export default function ClientSecurePortalPage() {
     };
   }, [token]);
 
-  const { data: serviceOrder } = useDoc<ServiceOrder>('service_orders', validated?.serviceOrderId ?? '');
+  const { data: serviceOrders = [] } = useServiceOrders();
+  const serviceOrder = serviceOrders.find((item) => item.id === validated?.serviceOrderId) as ServiceOrder | undefined;
 
   if (error) {
     return <EmptyState title="Portal de cliente" description={error} />;
@@ -45,7 +46,7 @@ export default function ClientSecurePortalPage() {
     return <div className="p-8 text-sm text-ink-600">Validando acceso seguro...</div>;
   }
 
-  const latestQuote = serviceOrder.quoteVersions?.slice().sort((a, b) => b.version - a.version)[0];
+  const latestQuote = serviceOrder.quoteVersions?.slice().sort((a: NonNullable<ServiceOrder['quoteVersions']>[number], b: NonNullable<ServiceOrder['quoteVersions']>[number]) => b.version - a.version)[0];
   const technicalReport = buildTechnicalReport(serviceOrder, t);
 
   return (
