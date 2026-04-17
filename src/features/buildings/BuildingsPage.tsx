@@ -11,6 +11,7 @@ import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type { ServiceOrder } from '@/core/models/serviceOrder';
 import PageHeader from '@/components/PageHeader';
+import { MetricCard, StatusPill } from '@/components/premium';
 import Input from '@/components/Input';
 import Select from '@/components/Select';
 import Button from '@/components/Button';
@@ -304,6 +305,24 @@ export default function BuildingsPage() {
       .filter((serviceOrder) => serviceOrder.buildingId === detailTarget.id && serviceOrder.type === 'mantenimiento')
       .sort((a, b) => new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime());
   }, [detailTarget, serviceOrders]);
+
+  const detailServiceOrders = useMemo(() => {
+    if (!detailTarget) return [];
+    return serviceOrders
+      .filter((serviceOrder) => serviceOrder.buildingId === detailTarget.id)
+      .sort((a, b) => new Date(b.scheduledStartAt).getTime() - new Date(a.scheduledStartAt).getTime());
+  }, [detailTarget, serviceOrders]);
+
+  const recentServiceOrders = useMemo(() => detailServiceOrders.slice(0, 5), [detailServiceOrders]);
+
+  const buildingOperationalMetrics = useMemo(() => {
+    if (!detailTarget) return null;
+    const completed = detailServiceOrders.filter((item) => item.status === 'completed').length;
+    const pending = detailServiceOrders.filter((item) => ['draft', 'scheduled', 'confirmed', 'in_progress'].includes(item.status)).length;
+    const incidents = detailServiceOrders.reduce((acc, item) => acc + (item.issues?.length ?? 0), 0);
+    const lastService = detailServiceOrders[0] ?? null;
+    return { completed, pending, incidents, lastService };
+  }, [detailTarget, detailServiceOrders]);
   const detailContract = useMemo(() => {
     if (!detailTarget?.contractId) return null;
     return contracts.find((contract) => contract.id === detailTarget.contractId) ?? null;
@@ -774,7 +793,22 @@ export default function BuildingsPage() {
           >
             {detailTarget ? (
               <div className="space-y-4">
+                <div className="grid gap-3 md:grid-cols-4">
+                  <MetricCard label="Servicios registrados" value={detailServiceOrders.length} hint="histórico total" />
+                  <MetricCard label="Servicios completados" value={buildingOperationalMetrics?.completed ?? 0} hint="ejecución cerrada" />
+                  <MetricCard label="Servicios pendientes" value={buildingOperationalMetrics?.pending ?? 0} hint="agenda activa" />
+                  <MetricCard label="Novedades acumuladas" value={buildingOperationalMetrics?.incidents ?? 0} hint="issues registradas" />
+                </div>
                 <div className="rounded-xl border border-fog-200 bg-fog-50 p-4 text-sm text-ink-700">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Ficha operativa</p>
+                      <p className="text-sm font-semibold text-ink-900">Datos maestros del edificio</p>
+                    </div>
+                    <StatusPill tone={detailTarget.active === false ? 'warning' : 'success'}>
+                      {detailTarget.active === false ? t('buildings.disabled') : t('buildings.active')}
+                    </StatusPill>
+                  </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
                       <p className="text-xs uppercase text-ink-400">{t('buildings.name')}</p>
@@ -790,6 +824,32 @@ export default function BuildingsPage() {
                         {managements.find((company) => company.id === detailTarget.managementCompanyId)?.name ??
                           t('common.notAvailable')}
                       </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Tipo</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.type}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Grupo</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.group || t('common.notAvailable')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Delegado</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.delegateName || t('common.notAvailable')}</p>
+                      <p className="text-xs text-ink-500">{detailTarget.delegatePhone || t('common.notAvailable')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Portería</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.porterPhone || t('common.notAvailable')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">NIT</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.nit || t('common.notAvailable')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Emails</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.email || t('common.notAvailable')}</p>
+                      <p className="text-xs text-ink-500">Facturación: {detailTarget.billingEmail || t('common.notAvailable')}</p>
                     </div>
                     <div>
                       <p className="text-xs uppercase text-ink-400">{t('buildings.contract')}</p>
@@ -811,6 +871,20 @@ export default function BuildingsPage() {
                       </div>
                     </div>
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold text-ink-900">Últimos servicios</h3>
+                  <DataTable
+                    columns={maintenanceColumns}
+                    data={recentServiceOrders}
+                    pageSize={5}
+                    emptyState={
+                      <EmptyState
+                        title="Sin servicios registrados"
+                        description="Aún no hay ejecución operativa asociada a este edificio."
+                      />
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-sm font-semibold text-ink-900">{t('buildings.maintenanceTitle')}</h3>
@@ -838,6 +912,15 @@ export default function BuildingsPage() {
             {detailContract ? (
               <div className="space-y-4">
                 <div className="rounded-xl border border-fog-200 bg-fog-50 p-4 text-sm text-ink-700">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Ficha operativa</p>
+                      <p className="text-sm font-semibold text-ink-900">Datos maestros del edificio</p>
+                    </div>
+                    <StatusPill tone={detailTarget.active === false ? 'warning' : 'success'}>
+                      {detailTarget.active === false ? t('buildings.disabled') : t('buildings.active')}
+                    </StatusPill>
+                  </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
                       <p className="text-xs uppercase text-ink-400">{t('contracts.name')}</p>
