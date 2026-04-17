@@ -32,6 +32,7 @@ const CalendarHolidaysPage = lazy(() => import('@/features/settings/CalendarHoli
 const CalendarNonWorkingPage = lazy(() => import('@/features/settings/CalendarNonWorkingPage'));
 const ServiceTypesSettingsPage = lazy(() => import('@/features/settings/ServiceTypesSettingsPage'));
 const TenantAutomationSettingsPage = lazy(() => import('@/features/settings/TenantAutomationSettingsPage'));
+const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage'));
 
 function RouteLoader() {
   return <div className="p-8 text-sm text-ink-600">Cargando modulo...</div>;
@@ -168,6 +169,14 @@ export default function App() {
                 <FeatureGuard feature="scheduling">
                   <SchedulingPage />
                 </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="notifications"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria']}>
+                <NotificationsPage />
               </RoleGuard>
             }
           />
