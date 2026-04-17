@@ -22,6 +22,8 @@
     "firestore:clear:buildings": "node scripts/clear-buildings.mjs",
     "firestore:clear": "node scripts/clear-firestore.mjs",
     "sync:users": "node scripts/sync-users.mjs",
+    "seed:users": "node scripts/seed-demo-users.mjs",
+    "seed:all": "npm run firestore:seed && npm run seed:users",
     "firestore:re-init": "npm run firestore:clear && npm run firestore:seed",
     "deploy:preview": "PATH=$PATH:/snap/bin node scripts/deploy-preview.mjs",
     "deploy:preview:branch": "PATH=$PATH:/snap/bin node scripts/deploy-preview.mjs",
