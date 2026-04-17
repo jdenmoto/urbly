@@ -805,8 +805,8 @@ export default function BuildingsPage() {
                       <p className="text-xs uppercase text-ink-400">Ficha operativa</p>
                       <p className="text-sm font-semibold text-ink-900">Datos maestros del edificio</p>
                     </div>
-                    <StatusPill tone={detailTarget.active === false ? 'warning' : 'success'}>
-                      {detailTarget.active === false ? t('buildings.disabled') : t('buildings.active')}
+                    <StatusPill tone={detailTarget?.active === false ? 'warning' : 'success'}>
+                      {detailTarget?.active === false ? t('buildings.disabled') : t('buildings.active')}
                     </StatusPill>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
@@ -917,8 +917,8 @@ export default function BuildingsPage() {
                       <p className="text-xs uppercase text-ink-400">Ficha operativa</p>
                       <p className="text-sm font-semibold text-ink-900">Datos maestros del edificio</p>
                     </div>
-                    <StatusPill tone={detailTarget.active === false ? 'warning' : 'success'}>
-                      {detailTarget.active === false ? t('buildings.disabled') : t('buildings.active')}
+                    <StatusPill tone={detailTarget?.active === false ? 'warning' : 'success'}>
+                      {detailTarget?.active === false ? t('buildings.disabled') : t('buildings.active')}
                     </StatusPill>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
