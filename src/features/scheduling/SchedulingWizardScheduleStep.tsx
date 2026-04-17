@@ -54,7 +54,7 @@ export default function SchedulingWizardScheduleStep(props: Props) {
                   className="block w-full rounded-lg border border-fog-200 bg-white px-3 py-2 text-left hover:bg-fog-100"
                   onClick={() => setValue('employeeId', suggestion.employeeId, { shouldValidate: true })}
                 >
-                  <p className="font-medium text-ink-900">{employee?.fullName ?? suggestion.employeeId} · score {suggestion.score}</p>
+                  <p className="font-medium text-ink-900">{employee?.fullName ?? suggestion.employeeId} · {t('scheduling.assignmentScoreLabel')} {suggestion.score}</p>
                   <p className="text-xs text-ink-500">{suggestion.reason}</p>
                 </button>
               );

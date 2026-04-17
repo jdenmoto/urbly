@@ -72,12 +72,12 @@ export function validateCompletion(args: {
 
   if (!hasIssues) return t('scheduling.issueDecisionRequired');
   if (hasIssues === 'yes' && issues.length === 0) return t('scheduling.issueAtLeastOne');
-  if (completionPhotos.length < 1) return 'Debes agregar al menos 1 foto adicional del servicio.';
+  if (completionPhotos.length < 1) return t('scheduling.completionPhotoRequired');
   if (!completionReport.entryHour || !completionReport.exitHour || !completionReport.observations.trim()) {
-    return 'Debes completar todos los campos obligatorios del reporte.';
+    return t('scheduling.completionRequiredFields');
   }
   if (toMinutes(completionReport.exitHour) <= toMinutes(completionReport.entryHour)) {
-    return 'La hora de salida debe ser posterior a la hora de entrada.';
+    return t('scheduling.completionExitAfterEntry');
   }
 
   return null;

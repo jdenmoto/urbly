@@ -609,8 +609,8 @@ export default function BuildingsPage() {
               ) : null}
               {remoteValidation ? (
                 <div className="rounded-xl border border-fog-200 bg-white p-3 text-sm text-ink-700">
-                  <p><span className="font-semibold text-ink-900">{t('buildings.importRemoteValidation')}:</span> {remoteValidation.dryRun ? 'dry-run' : 'final'}</p>
-                  <p><span className="font-semibold text-ink-900">Entidad:</span> {remoteValidation.entity ?? validationSummary.entity}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importRemoteValidation')}:</span> {remoteValidation.dryRun ? t('buildings.importDryRunLabel') : t('buildings.importFinalLabel')}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importEntityLabel')}:</span> {remoteValidation.entity ?? validationSummary.entity}</p>
                   <p><span className="font-semibold text-ink-900">{t('buildings.importEvaluatedRows')}:</span> {remoteValidation.previewCount ?? previewRows.length}</p>
                   <p><span className="font-semibold text-ink-900">{t('buildings.importValidRows')}:</span> {remoteValidation.validRows ?? validationSummary.validRows}</p>
                   <p>{remoteValidation.summaryMessage ?? t('buildings.importNoRemoteSummary')}</p>

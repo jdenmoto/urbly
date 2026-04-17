@@ -1517,9 +1517,9 @@ export default function SchedulingPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button type="button" variant="secondary" onClick={prevWizardStep} disabled={wizardStep === 1} className="flex-1">Anterior</Button>
+              <Button type="button" variant="secondary" onClick={prevWizardStep} disabled={wizardStep === 1} className="flex-1">{t('scheduling.wizardPrevious')}</Button>
               {wizardStep < 3 ? (
-                <Button type="button" onClick={() => void nextWizardStep()} className="flex-1">Siguiente</Button>
+                <Button type="button" onClick={() => void nextWizardStep()} className="flex-1">{t('scheduling.wizardNext')}</Button>
               ) : (
                 <Button type="submit" className="flex-1" disabled={isSubmitting}>
                   {isSubmitting ? t('scheduling.saving') : editingId ? t('scheduling.wizardSaveReschedule') : t('scheduling.wizardStepCreateService')}

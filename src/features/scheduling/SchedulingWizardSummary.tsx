@@ -27,7 +27,7 @@ export default function SchedulingWizardSummary(props: Props) {
       <p><span className="font-semibold text-ink-900">{t('scheduling.wizardSummaryEnd')}:</span> {endAt || t('scheduling.wizardSummaryNoDate')}</p>
       <p><span className="font-semibold text-ink-900">{t('scheduling.wizardSummaryTechnician')}:</span> {employees.find((employee) => employee.id === employeeId)?.fullName ?? t('scheduling.wizardSummaryUnassigned')}</p>
       <p><span className="font-semibold text-ink-900">{t('scheduling.wizardSummaryRecurrence')}:</span> {recurrence || t('scheduling.wizardSummaryNoRecurrence')}</p>
-      {editingId ? <p className="text-xs text-amber-700">Estás reprogramando o actualizando un servicio existente.</p> : null}
+      {editingId ? <p className="text-xs text-amber-700">{t('scheduling.wizardEditingHint')}</p> : null}
     </div>
   );
 }
