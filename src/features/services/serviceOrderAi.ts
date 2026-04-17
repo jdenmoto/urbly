@@ -1,3 +1,4 @@
+import { renderTenantTemplate } from '@/lib/tenantTemplateEngine';
 import type { ServiceOrderPriority, ServiceOrderStatus } from '@/core/models/serviceOrder';
 import {
   formatServiceDateTime,
@@ -11,7 +12,8 @@ import {
 
 type Issue = { type: string; category: string; description?: string };
 type TimelineEvent = { summary: string; createdAt: string };
-type ServiceOrderLike = {
+export type ServiceOrderLike = {
+  administrationId?: string | null;
   title: string;
   status: ServiceOrderStatus;
   priority: ServiceOrderPriority;
@@ -117,4 +119,24 @@ export function buildTechnicalReport(serviceOrder: ServiceOrderLike, t: Translat
       ? `Detalle de novedades: ${issues.map((issue) => `${getIssueTypeLabel(t, issue.type)}/${getIssueCategoryLabel(t, issue.category)}`).join(', ')}`
       : 'Detalle de novedades: sin novedades registradas por ahora'
   ].join('\n');
+}
+
+
+export async function buildTenantAwareTechnicalReport(serviceOrder: ServiceOrderLike, t: TranslateFn = defaultTranslate) {
+  const fallback = buildTechnicalReport(serviceOrder, t);
+  const rendered = await renderTenantTemplate({
+    administrationId: serviceOrder.administrationId ?? null,
+    templateType: 'technical_report',
+    context: {
+      service_title: serviceOrder.title,
+      service_status: getServiceOrderStatusLabel(t, serviceOrder.status),
+      service_priority: getServiceOrderPriorityLabel(t, serviceOrder.priority),
+      service_type: getServiceOrderTypeLabel(t, serviceOrder.type),
+      scheduled_start: formatServiceDateTime(serviceOrder.scheduledStartAt),
+      scheduled_end: formatServiceDateTime(serviceOrder.scheduledEndAt),
+      technical_report: fallback
+    }
+  });
+
+  return rendered?.content?.trim() || fallback;
 }
