@@ -56,6 +56,7 @@ import { createRecurringSeries, regenerateSeries, saveAppointment, type Scheduli
 import { moveAppointmentOnCalendar } from './schedulingCalendarMutations';
 import { mapAppointmentToSchedulingItem, mapServiceOrderToSchedulingItem, type SchedulingItem } from './schedulingItem';
 import { validateSchedulingRules } from './schedulingRules';
+import { buildAssignmentSuggestions } from './assignmentSuggestions';
 
 export default function SchedulingPage() {
   const { t } = useI18n();
@@ -318,6 +319,14 @@ export default function SchedulingPage() {
   }, [serviceOrders, appointments]);
 
   const filtered = useMemo(() => filterAppointments(schedulingItems, filters), [schedulingItems, filters]);
+
+  const assignmentSuggestions = useMemo(() => buildAssignmentSuggestions({
+    employees,
+    schedulingItems,
+    startAt: watch('startAt'),
+    endAt: watch('endAt'),
+    currentEmployeeId: watch('employeeId')
+  }), [employees, schedulingItems, watch]);
 
   const restrictedDates = useMemo(() => buildRestrictedDates(calendarSettings), [calendarSettings]);
 
@@ -1549,7 +1558,7 @@ export default function SchedulingPage() {
                     <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
                       <p className="font-semibold text-ink-900">Sugerencias de asignación</p>
                       <div className="mt-2 space-y-2">
-                        {assignmentSuggestions.map((suggestion) => {
+                        {assignmentSuggestions.map((suggestion: { employeeId: string; score: number; reason: string }) => {
                           const employee = employees.find((item) => item.id === suggestion.employeeId);
                           return (
                             <button
