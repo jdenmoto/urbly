@@ -2,7 +2,7 @@ import type { ServiceOrder } from '@/core/models/serviceOrder';
 import type { AiSuggestion } from '@/core/models/aiSuggestion';
 import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from './serviceOrderAi';
 
-export function buildServiceSuggestions(serviceOrder: ServiceOrder, t: (key: string, params?: Record<string, unknown>) => string): AiSuggestion[] {
+export function buildServiceSuggestions(serviceOrder: ServiceOrder, t: (key: string, params?: Record<string, string | number | undefined>) => string): AiSuggestion[] {
   const generatedAt = new Date().toISOString();
   const inputSummary = `${serviceOrder.title} | ${serviceOrder.status} | issues:${serviceOrder.issues?.length ?? 0}`;
 
