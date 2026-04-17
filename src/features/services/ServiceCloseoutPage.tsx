@@ -1,11 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Card from '@/components/Card';
+import Button from '@/components/Button';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
 import { useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
 import { buildCustomerMessage, buildFollowUp, buildTechnicalReport } from './serviceOrderAi';
+import { generateServiceReportPdf } from '@/lib/api/functions';
 import {
   getIssueCategoryLabel,
   getIssueTypeLabel,
@@ -21,9 +23,28 @@ export default function ServiceCloseoutPage() {
     () => serviceOrders.find((item) => item.id === serviceOrderId) ?? null,
     [serviceOrderId, serviceOrders]
   );
+  const [pdfLoading, setPdfLoading] = useState(false);
   const aiReport = serviceOrder ? buildTechnicalReport(serviceOrder, t) : '';
   const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder, t) : '';
+
+  const handleDownloadReport = async () => {
+    if (!serviceOrder) return;
+    try {
+      setPdfLoading(true);
+      const response = await generateServiceReportPdf({ serviceOrderId: serviceOrder.id });
+      const bytes = Uint8Array.from(atob(response.contentBase64), (char) => char.charCodeAt(0));
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = response.filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   if (!serviceOrder) {
     return <EmptyState title={t('services.closeoutTitle')} description={t('services.closeoutEmpty')} />;
@@ -44,7 +65,11 @@ export default function ServiceCloseoutPage() {
               <p className="max-w-2xl text-sm leading-6 text-ink-600">{t('services.closeoutHint')}</p>
             </div>
           </div>
-          <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
+          <div className="flex items-center gap-3">
+            <Button variant="secondary" onClick={() => void handleDownloadReport()} disabled={pdfLoading}>
+              {pdfLoading ? 'Generando PDF...' : 'Descargar reporte técnico'}
+            </Button>
+            <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
             <p className="font-semibold text-ink-900">{getServiceOrderStatusLabel(t, serviceOrder.status)}</p>
             <p>{t('services.closeoutStatusHint')}</p>
           </div>

@@ -54,3 +54,9 @@ export async function generateAppointmentsPdf(params: {
   const response = await callable(params);
   return response.data as { filename: string; contentBase64: string };
 }
+
+export async function generateServiceReportPdf(params: { serviceOrderId: string }) {
+  const callable = httpsCallable(functions, 'generateServiceReportPdf');
+  const response = await callable(params);
+  return response.data as { filename: string; contentBase64: string };
+}
