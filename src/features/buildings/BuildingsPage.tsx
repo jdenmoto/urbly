@@ -21,6 +21,7 @@ import PlacesAutocomplete, { type PlaceResult } from '@/components/PlacesAutocom
 import { loadGoogleMaps } from '@/lib/googleMaps';
 import { importBuildingsFile, type ImportResult } from '@/lib/api/functions';
 import { groupPreviewRows, type GenericPreviewRow } from './importPreview';
+import { validateImportRows } from './importValidation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
 const BuildingsMap = lazy(() => import('@/components/BuildingsMap'));
@@ -249,6 +250,7 @@ export default function BuildingsPage() {
   }, [t, canEdit, contracts]);
 
   const previewGroup = useMemo(() => groupPreviewRows(previewRows), [previewRows]);
+  const validationSummary = useMemo(() => validateImportRows(previewRows), [previewRows]);
 
   const previewColumns = useMemo<ColumnDef<PreviewRow>[]>(
     () => previewGroup.headers.map((header) => ({ header, accessorKey: header, enableSorting: false })),
@@ -461,6 +463,12 @@ export default function BuildingsPage() {
 
   const handleImport = async (file: File | null) => {
     if (!file) return;
+    const summary = validateImportRows(previewRows);
+    if (summary.invalidRows > 0) {
+      setImportResult({ created: 0, failed: summary.invalidRows, errors: summary.issues });
+      toast('Corrige los errores del archivo antes de importar.', 'error');
+      return;
+    }
     setUploading(true);
     try {
       const result = await importBuildingsFile(file);
@@ -571,6 +579,13 @@ export default function BuildingsPage() {
                 }}
               />
               {uploading ? <p className="text-sm text-ink-600">{t('buildings.uploading')}</p> : null}
+              {previewRows.length ? (
+                <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
+                  <p><span className="font-semibold text-ink-900">Entidad validada:</span> {validationSummary.entity}</p>
+                  <p><span className="font-semibold text-ink-900">Filas válidas:</span> {validationSummary.validRows}</p>
+                  <p><span className="font-semibold text-ink-900">Filas inválidas:</span> {validationSummary.invalidRows}</p>
+                </div>
+              ) : null}
               {importResult ? (
                 <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
                   <p>
