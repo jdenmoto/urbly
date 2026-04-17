@@ -2,8 +2,8 @@ import { moveServiceOrderOnCalendar } from '@/lib/api/serviceOrders';
 import { formatLocalIso } from './schedulingUtils';
 import { validateSchedulingRules } from './schedulingRules';
 
-export async function moveAppointmentOnCalendar(args: {
-  appointmentId: string;
+export async function moveSchedulingItemOnCalendar(args: {
+  schedulingItemId: string;
   buildingId: string;
   employeeId?: string | null;
   schedulingItems: import('./schedulingItem').SchedulingItem[];
@@ -13,10 +13,10 @@ export async function moveAppointmentOnCalendar(args: {
   isRestrictedDate: (value?: string) => boolean;
   toast: (message: string, tone?: 'success' | 'error') => void;
   t: (key: string) => string;
-  invalidateAppointments: () => Promise<unknown>;
+  invalidateScheduling: () => Promise<unknown>;
   revert: () => void;
 }) {
-  const { appointmentId, start, end, type, isRestrictedDate, toast, t, invalidateAppointments, revert } = args;
+  const { schedulingItemId, start, end, type, isRestrictedDate, toast, t, invalidateScheduling, revert } = args;
 
   const startIso = formatLocalIso(start);
   const endIso = formatLocalIso(end);
@@ -27,7 +27,7 @@ export async function moveAppointmentOnCalendar(args: {
     startIso,
     endIso,
     type,
-    editingId: appointmentId,
+    editingId: schedulingItemId,
     isRestrictedDate
   });
   if (violation) {
@@ -37,10 +37,10 @@ export async function moveAppointmentOnCalendar(args: {
   }
 
   await moveServiceOrderOnCalendar({
-    serviceOrderId: appointmentId,
+    serviceOrderId: schedulingItemId,
     scheduledStartAt: formatLocalIso(start),
     scheduledEndAt: formatLocalIso(end)
   });
-  await invalidateAppointments();
+  await invalidateScheduling();
   toast(t('scheduling.toastUpdated'), 'success');
 }

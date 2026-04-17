@@ -5,10 +5,10 @@ export type CancelValues = {
   note?: string;
 };
 
-export async function cancelAppointment(appointmentId: string, values: CancelValues) {
-  await cancelServiceOrder(appointmentId, values);
+export async function cancelSchedulingItem(schedulingItemId: string, values: CancelValues) {
+  await cancelServiceOrder(schedulingItemId, values);
 }
 
-export async function deleteAppointment(appointmentId: string) {
-  await deleteServiceOrder(appointmentId);
+export async function deleteSchedulingItem(schedulingItemId: string) {
+  await deleteServiceOrder(schedulingItemId);
 }

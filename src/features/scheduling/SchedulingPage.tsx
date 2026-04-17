@@ -51,9 +51,9 @@ import {
   hasMinTwoPhotos,
   validateCompletion
 } from './schedulingCompletion';
-import { cancelAppointment, deleteAppointment, type CancelValues } from './schedulingMutations';
+import { cancelSchedulingItem, deleteSchedulingItem, type CancelValues } from './schedulingMutations';
 import { createRecurringSeries, regenerateSeries, saveAppointment, type SchedulingFormValues } from './schedulingSeries';
-import { moveAppointmentOnCalendar } from './schedulingCalendarMutations';
+import { moveSchedulingItemOnCalendar } from './schedulingCalendarMutations';
 import { type SchedulingItem } from './schedulingItem';
 import { buildCanonicalSchedulingItems } from './schedulingSelectors';
 import { validateSchedulingRules } from './schedulingRules';
@@ -549,7 +549,7 @@ export default function SchedulingPage() {
       } else {
         await saveAppointment({ values: values as SchedulingFormValues, editingId: null, appointments });
       }
-      await invalidateAppointments();
+      await invalidateScheduling();
       reset();
       setEditingId(null);
       setModalOpen(false);
@@ -580,7 +580,7 @@ export default function SchedulingPage() {
         t,
         isRestrictedDate
       });
-      await invalidateAppointments();
+      await invalidateScheduling();
       reset();
       setEditingId(null);
       setModalOpen(false);
@@ -735,7 +735,7 @@ export default function SchedulingPage() {
         normalizedChecklist
       });
       await updateDocById(completeTarget.source === 'service_order' ? 'service_orders' : 'appointments', completeTarget.id, payload);
-      await invalidateAppointments();
+      await invalidateScheduling();
       toast(t('scheduling.toastCompleted'), 'success');
       if (selected?.id === completeTarget.id) {
         setSelected((prev) => {
@@ -767,8 +767,8 @@ export default function SchedulingPage() {
   const onCancel = async (values: LocalCancelValues) => {
     if (!cancelTarget) return;
     try {
-      await cancelAppointment(cancelTarget.id, values);
-      await invalidateAppointments();
+      await cancelSchedulingItem(cancelTarget.id, values);
+      await invalidateScheduling();
       toast(t('scheduling.toastCanceled'), 'success');
       setCancelTarget(null);
     } catch {
@@ -779,8 +779,8 @@ export default function SchedulingPage() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await deleteAppointment(deleteTarget.id);
-      await invalidateAppointments();
+      await deleteSchedulingItem(deleteTarget.id);
+      await invalidateScheduling();
       if (editingId === deleteTarget.id) {
         setModalOpen(false);
         setEditingId(null);
@@ -796,7 +796,7 @@ export default function SchedulingPage() {
     }
   };
 
-  const invalidateAppointments = () => queryClient.invalidateQueries({ queryKey: ['appointments'] });
+  const invalidateScheduling = () => queryClient.invalidateQueries({ queryKey: ['appointments'] });
 
   const statusLabel = (status: string) => translateAppointmentStatus(status, t);
 
@@ -1076,15 +1076,15 @@ export default function SchedulingPage() {
                   if (!info.event.start || !info.event.end) return;
                   const appointment = schedulingItems.find((item) => item.id === info.event.id);
                   const type = (info.event.extendedProps as { type?: string }).type;
-                  void moveAppointmentOnCalendar({
-                    appointmentId: info.event.id,
+                  void moveSchedulingItemOnCalendar({
+                    schedulingItemId: info.event.id,
                     start: info.event.start,
                     end: info.event.end,
                     type,
                     isRestrictedDate,
                     toast,
                     t,
-                    invalidateAppointments,
+                    invalidateScheduling,
                     revert: () => info.revert(),
                     buildingId: appointment?.buildingId ?? '',
                     employeeId: appointment?.employeeId ?? null,
@@ -1096,15 +1096,15 @@ export default function SchedulingPage() {
                   if (!info.event.start || !info.event.end) return;
                   const appointment = schedulingItems.find((item) => item.id === info.event.id);
                   const type = (info.event.extendedProps as { type?: string }).type;
-                  void moveAppointmentOnCalendar({
-                    appointmentId: info.event.id,
+                  void moveSchedulingItemOnCalendar({
+                    schedulingItemId: info.event.id,
                     start: info.event.start,
                     end: info.event.end,
                     type,
                     isRestrictedDate,
                     toast,
                     t,
-                    invalidateAppointments,
+                    invalidateScheduling,
                     revert: () => info.revert(),
                     buildingId: appointment?.buildingId ?? '',
                     employeeId: appointment?.employeeId ?? null,
