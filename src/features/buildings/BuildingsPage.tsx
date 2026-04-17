@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -108,6 +108,8 @@ export default function BuildingsPage() {
   const [contractDetailOpen, setContractDetailOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const buildingGroups = useMemo(() => groupSettings?.groups ?? [], [groupSettings]);
   const statusLabels = useMemo(
     () => ({
@@ -445,6 +447,7 @@ export default function BuildingsPage() {
   };
 
   const handleFile = async (file: File) => {
+    setImportFile(file);
     setImportResult(null);
     const extension = file.name.split('.').pop()?.toLowerCase();
 
@@ -461,7 +464,7 @@ export default function BuildingsPage() {
     setPreviewRows([]);
   };
 
-  const handleImport = async (file: File | null) => {
+  const handleImport = async (file: File | null = importFile) => {
     if (!file) return;
     const summary = validateImportRows(previewRows);
     if (summary.invalidRows > 0) {
@@ -568,16 +571,32 @@ export default function BuildingsPage() {
             <div className="space-y-4">
               <p className="text-xs text-ink-500">{t('buildings.bulkHint')}</p>
               <input
+                ref={fileInputRef}
                 type="file"
                 accept=".csv,.xlsx,.xls"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
                   if (file) {
                     void handleFile(file);
-                    void handleImport(file);
                   }
                 }}
               />
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Seleccionar archivo
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => void handleImport(importFile)}
+                  disabled={!importFile || uploading || validationSummary.invalidRows > 0}
+                >
+                  Importar archivo
+                </Button>
+              </div>
               {uploading ? <p className="text-sm text-ink-600">{t('buildings.uploading')}</p> : null}
               {previewRows.length ? (
                 <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
