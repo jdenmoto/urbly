@@ -30,9 +30,53 @@ export default function ServiceCloseoutPage() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [reviewFeedback, setReviewFeedback] = useState('');
   const [reviewSaving, setReviewSaving] = useState(false);
+  const [quoteScope, setQuoteScope] = useState('');
+  const [quoteAmount, setQuoteAmount] = useState('');
+  const [quoteNotes, setQuoteNotes] = useState('');
+  const [quoteFeedback, setQuoteFeedback] = useState('');
   const aiReport = serviceOrder ? buildTechnicalReport(serviceOrder, t) : '';
   const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder, t) : '';
+
+
+  const saveQuoteVersion = async () => {
+    if (!serviceOrder || !quoteScope.trim() || !quoteAmount) return;
+    const current = serviceOrder.quoteVersions ?? [];
+    const nextVersion = current.length + 1;
+    await updateDocById('service_orders', serviceOrder.id, {
+      quoteVersions: [
+        ...current,
+        {
+          id: crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`,
+          version: nextVersion,
+          status: 'pending_internal_review',
+          scope: quoteScope.trim(),
+          amount: Number(quoteAmount),
+          currency: 'COP',
+          notes: quoteNotes.trim(),
+          createdAt: new Date().toISOString(),
+          createdBy: user?.uid ?? null
+        }
+      ]
+    });
+    setQuoteScope('');
+    setQuoteAmount('');
+    setQuoteNotes('');
+  };
+
+  const updateLatestQuoteReview = async (status: 'changes_requested' | 'approved') => {
+    if (!serviceOrder?.quoteVersions?.length) return;
+    const current = [...serviceOrder.quoteVersions];
+    const latest = current[current.length - 1];
+    current[current.length - 1] = {
+      ...latest,
+      status,
+      reviewFeedback: quoteFeedback.trim(),
+      reviewedAt: new Date().toISOString(),
+      reviewedBy: user?.uid ?? null
+    };
+    await updateDocById('service_orders', serviceOrder.id, { quoteVersions: current });
+  };
 
   const saveReview = async (status: 'changes_requested' | 'approved') => {
     if (!serviceOrder) return;
@@ -168,6 +212,41 @@ export default function ServiceCloseoutPage() {
             <div className="rounded-2xl bg-fog-50 p-4 text-sm text-ink-700">
               <p className="font-semibold text-ink-900">Último feedback</p>
               <p className="mt-2 whitespace-pre-wrap">{serviceOrder.review.feedback}</p>
+            </div>
+          ) : null}
+        </div>
+
+
+        <div className="rounded-3xl border border-fog-200 bg-white p-5 space-y-4">
+          <div>
+            <h3 className="text-sm font-semibold text-ink-900">Cotización versionada</h3>
+            <p className="mt-1 text-sm text-ink-600">Versiones internas para revisar antes de compartir con cliente.</p>
+          </div>
+          <Input label="Alcance" value={quoteScope} onChange={(event) => setQuoteScope(event.target.value)} />
+          <Input label="Monto" type="number" value={quoteAmount} onChange={(event) => setQuoteAmount(event.target.value)} />
+          <Input label="Notas" value={quoteNotes} onChange={(event) => setQuoteNotes(event.target.value)} />
+          <Button onClick={() => void saveQuoteVersion()}>Crear nueva versión</Button>
+          <div className="space-y-3">
+            {(serviceOrder.quoteVersions ?? []).length ? (serviceOrder.quoteVersions ?? []).slice().reverse().map((quote) => (
+              <div key={quote.id} className="rounded-2xl border border-fog-200 p-4">
+                <div className="flex flex-wrap gap-2 text-xs text-ink-500">
+                  <span>v{quote.version}</span>
+                  <span>{quote.status}</span>
+                  <span>{quote.amount} {quote.currency}</span>
+                </div>
+                <p className="mt-2 text-sm font-medium text-ink-900">{quote.scope}</p>
+                {quote.notes ? <p className="mt-1 text-sm text-ink-600">{quote.notes}</p> : null}
+                {quote.reviewFeedback ? <p className="mt-2 text-sm text-amber-700">Feedback: {quote.reviewFeedback}</p> : null}
+              </div>
+            )) : <p className="text-sm text-ink-500">Sin versiones de cotización todavía.</p>}
+          </div>
+          {hasPermission('approve_quotations_internal') ? (
+            <div className="space-y-3">
+              <Input label="Feedback interno" value={quoteFeedback} onChange={(event) => setQuoteFeedback(event.target.value)} />
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => void updateLatestQuoteReview('changes_requested')}>Devolver cotización</Button>
+                <Button onClick={() => void updateLatestQuoteReview('approved')}>Aprobar cotización</Button>
+              </div>
             </div>
           ) : null}
         </div>

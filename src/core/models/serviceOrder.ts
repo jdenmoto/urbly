@@ -37,6 +37,21 @@ export type ServiceOrderReview = {
   feedback?: string;
 };
 
+export type ServiceOrderQuoteVersion = {
+  id: string;
+  version: number;
+  status: 'draft' | 'pending_internal_review' | 'changes_requested' | 'approved';
+  scope: string;
+  amount: number;
+  currency: string;
+  notes?: string;
+  createdAt: string;
+  createdBy?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  reviewFeedback?: string;
+};
+
 export type ServiceOrderCommunication = {
   customerMessage?: string;
   internalSummary?: string;
@@ -73,6 +88,7 @@ export type ServiceOrder = {
   completionPhotos?: string[];
   report?: ServiceOrderReport;
   communication?: ServiceOrderCommunication;
+  quoteVersions?: ServiceOrderQuoteVersion[];
   review?: ServiceOrderReview;
   timeline?: ServiceOrderTimelineEvent[];
   cancelReason?: string | null;
