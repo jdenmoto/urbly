@@ -11,14 +11,9 @@ export const schedulingLegacyDependencies: SchedulingLegacyDependency[] = [
     detail: 'SchedulingPage sigue usando appointments como fallback cuando serviceOrders no tiene datos canónicos.'
   },
   {
-    area: 'mutation',
-    key: 'appointment-naming',
-    detail: 'Las mutaciones de agenda conservan naming legacy: saveAppointment, moveAppointmentOnCalendar, cancelAppointment y deleteAppointment.'
-  },
-  {
     area: 'query',
     key: 'appointments-query',
-    detail: 'SchedulingPage invalida todavía la query appointments como parte del flujo principal de agenda.'
+    detail: 'SchedulingPage todavía invalida la query appointments por compatibilidad legacy, aunque ya invalida también serviceOrders en el flujo principal.'
   },
   {
     area: 'type',
