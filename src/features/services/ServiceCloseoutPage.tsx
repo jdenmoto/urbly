@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { updateDocById } from '@/lib/api/firestore';
 import { useAuth } from '@/app/Auth';
 import Input from '@/components/Input';
+import { uploadServiceAttachments } from './serviceAttachments';
 import { useParams } from 'react-router-dom';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
@@ -34,10 +35,27 @@ export default function ServiceCloseoutPage() {
   const [quoteAmount, setQuoteAmount] = useState('');
   const [quoteNotes, setQuoteNotes] = useState('');
   const [quoteFeedback, setQuoteFeedback] = useState('');
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
+  const [attachmentUploading, setAttachmentUploading] = useState(false);
   const aiReport = serviceOrder ? buildTechnicalReport(serviceOrder, t) : '';
   const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder, t) : '';
 
+
+
+  const saveAttachments = async () => {
+    if (!serviceOrder || !attachmentFiles.length) return;
+    try {
+      setAttachmentUploading(true);
+      const uploaded = await uploadServiceAttachments(serviceOrder.id, attachmentFiles);
+      await updateDocById('service_orders', serviceOrder.id, {
+        attachments: [...(serviceOrder.attachments ?? []), ...uploaded]
+      });
+      setAttachmentFiles([]);
+    } finally {
+      setAttachmentUploading(false);
+    }
+  };
 
   const saveQuoteVersion = async () => {
     if (!serviceOrder || !quoteScope.trim() || !quoteAmount) return;
@@ -249,6 +267,29 @@ export default function ServiceCloseoutPage() {
               </div>
             </div>
           ) : null}
+        </div>
+
+
+        <div className="rounded-3xl border border-fog-200 bg-white p-5 space-y-4">
+          <div>
+            <h3 className="text-sm font-semibold text-ink-900">Documentos y adjuntos</h3>
+            <p className="mt-1 text-sm text-ink-600">Carga base de archivos asociados al servicio.</p>
+          </div>
+          <input type="file" multiple onChange={(event) => setAttachmentFiles(Array.from(event.target.files ?? []))} />
+          <Button onClick={() => void saveAttachments()} disabled={attachmentUploading || !attachmentFiles.length}>
+            {attachmentUploading ? 'Subiendo...' : 'Subir adjuntos'}
+          </Button>
+          {(serviceOrder.attachments ?? []).length ? (
+            <div className="space-y-2">
+              {(serviceOrder.attachments ?? []).map((url, index) => (
+                <a key={`${url}-${index}`} href={url} target="_blank" rel="noreferrer" className="block text-sm text-sky-700 underline">
+                  Adjunto {index + 1}
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-ink-500">Sin adjuntos todavía.</p>
+          )}
         </div>
 
       <Card className="space-y-6 p-6">
