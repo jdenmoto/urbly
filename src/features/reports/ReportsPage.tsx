@@ -18,7 +18,7 @@ function downloadCsv(rows: AuditEvent[]) {
     (row.summary ?? '').replace(/\n/g, ' '),
     row.actor?.uid ?? ''
   ]);
-  const csv = [header, ...body].map((line) => line.map((value) => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\n');
+  const csv = [header, ...body].map((line) => line.map((value) => `"${String(value ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
