@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { updateDocById } from '@/lib/api/firestore';
 import { recordAuditEvent } from '@/lib/audit';
+import { createInternalNotification } from '@/lib/internalNotifications';
 import { useAuth } from '@/app/Auth';
 import Input from '@/components/Input';
 import { uploadServiceAttachments } from './serviceAttachments';
@@ -141,6 +142,12 @@ export default function ServiceCloseoutPage() {
         summary: `Se actualizó la revisión del reporte a ${status}`,
         actor: { uid: user?.uid ?? null, role: null },
         metadata: { status, feedback: reviewFeedback.trim() }
+      });
+      await createInternalNotification({
+        userId: null,
+        title: 'Revisión de reporte actualizada',
+        message: `El servicio ${serviceOrder.title} quedó en estado ${status}.`,
+        tone: status === 'approved' ? 'success' : 'warning'
       });
     } finally {
       setReviewSaving(false);
