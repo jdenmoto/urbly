@@ -127,6 +127,8 @@ export async function buildTenantAwareTechnicalReport(serviceOrder: ServiceOrder
   const rendered = await renderTenantTemplate({
     administrationId: serviceOrder.administrationId ?? null,
     templateType: 'technical_report',
+    module: 'services',
+    roleScope: 'operator',
     context: {
       service_title: serviceOrder.title,
       service_status: getServiceOrderStatusLabel(t, serviceOrder.status),

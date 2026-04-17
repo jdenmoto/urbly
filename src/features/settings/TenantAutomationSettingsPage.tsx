@@ -10,10 +10,11 @@ import { useList } from '@/lib/api/queries';
 import { createDoc, updateDocById } from '@/lib/api/firestore';
 import { listTenantAiPolicies, listTenantTemplates } from '@/lib/tenantSettings';
 import type { ManagementCompany } from '@/core/models/managementCompany';
-import type { TenantAiPolicySetting, TenantTemplateSetting } from '@/core/models/tenantSettings';
+import type { TenantAiPolicyModule, TenantAiPolicySetting, TenantTemplateSetting } from '@/core/models/tenantSettings';
 import { useToast } from '@/components/ToastProvider';
 
 const templateTypes: TenantTemplateSetting['templateType'][] = ['customer_message', 'technical_report', 'follow_up'];
+const policyModules: TenantAiPolicyModule[] = ['general', 'services', 'reports', 'portal'];
 
 export default function TenantAutomationSettingsPage() {
   const { role, administrationId } = useAuth();
@@ -34,6 +35,8 @@ export default function TenantAutomationSettingsPage() {
     id: '',
     administrationId: defaultAdministrationId,
     name: '',
+    module: 'general' as TenantAiPolicyModule,
+    roleScope: '',
     tone: 'profesional',
     instructions: '',
     customerMessagePrompt: '',
@@ -81,6 +84,8 @@ export default function TenantAutomationSettingsPage() {
       scope: policyForm.administrationId ? 'tenant' : 'global',
       active: true,
       name: policyForm.name.trim(),
+      module: policyForm.module,
+      roleScope: policyForm.roleScope.trim() || null,
       tone: policyForm.tone.trim(),
       instructions: policyForm.instructions.trim(),
       customerMessagePrompt: policyForm.customerMessagePrompt.trim(),
@@ -92,7 +97,7 @@ export default function TenantAutomationSettingsPage() {
     else await createDoc('tenant_ai_policies', payload);
     await queryClient.invalidateQueries({ queryKey: ['tenantAiPolicies'] });
     toast('Política IA guardada', 'success');
-    setPolicyForm({ id: '', administrationId: defaultAdministrationId, name: '', tone: 'profesional', instructions: '', customerMessagePrompt: '', technicalReportPrompt: '', followUpPrompt: '' });
+    setPolicyForm({ id: '', administrationId: defaultAdministrationId, name: '', module: 'general', roleScope: '', tone: 'profesional', instructions: '', customerMessagePrompt: '', technicalReportPrompt: '', followUpPrompt: '' });
   };
 
   return (
@@ -123,6 +128,10 @@ export default function TenantAutomationSettingsPage() {
         <h3 className="text-sm font-semibold text-ink-900">Políticas IA</h3>
         <div className="grid gap-3 md:grid-cols-2">
           <Input label="Nombre" value={policyForm.name} onChange={(e) => setPolicyForm((p) => ({ ...p, name: e.target.value }))} />
+          <Select label="Módulo" value={policyForm.module} onChange={(e) => setPolicyForm((p) => ({ ...p, module: e.target.value as TenantAiPolicyModule }))}>
+            {policyModules.map((item) => <option key={item} value={item}>{item}</option>)}
+          </Select>
+          <Input label="Rol" value={policyForm.roleScope} onChange={(e) => setPolicyForm((p) => ({ ...p, roleScope: e.target.value }))} />
           <Input label="Tono" value={policyForm.tone} onChange={(e) => setPolicyForm((p) => ({ ...p, tone: e.target.value }))} />
           <Select label="Administración" value={policyForm.administrationId} onChange={(e) => setPolicyForm((p) => ({ ...p, administrationId: e.target.value }))} disabled={!canManageGlobal && Boolean(administrationId)}>
             {administrationOptions.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}
@@ -134,7 +143,7 @@ export default function TenantAutomationSettingsPage() {
         <Input label="Prompt seguimiento" value={policyForm.followUpPrompt} onChange={(e) => setPolicyForm((p) => ({ ...p, followUpPrompt: e.target.value }))} />
         <Button type="button" onClick={savePolicy}>Guardar política IA</Button>
         <div className="space-y-2">
-          {policies.map((item) => <div key={item.id} className="rounded-xl border border-fog-200 p-3 text-sm"><div className="font-semibold">{item.name}</div><div className="text-xs text-ink-500">{item.tone} · {item.administrationId ?? 'global'}</div></div>)}
+          {policies.map((item) => <div key={item.id} className="rounded-xl border border-fog-200 p-3 text-sm"><div className="font-semibold">{item.name}</div><div className="text-xs text-ink-500">{item.module ?? 'general'} · {item.roleScope ?? 'all'} · {item.tone} · {item.administrationId ?? 'global'}</div></div>)}
         </div>
       </Card>
     </div>

@@ -16,15 +16,23 @@ function pickBestTemplate(templates: TenantTemplateSetting[], type: TenantTempla
     ?? null;
 }
 
-function pickBestPolicy(policies: TenantAiPolicySetting[], administrationId: string | null) {
-  return policies.find((item) => item.administrationId === administrationId)
-    ?? policies.find((item) => item.administrationId === null)
-    ?? null;
+function pickBestPolicy(policies: TenantAiPolicySetting[], administrationId: string | null, module: string, roleScope?: string | null) {
+  const score = (item: TenantAiPolicySetting) => {
+    let current = 0;
+    current += item.administrationId === administrationId ? 8 : item.administrationId === null ? 4 : 0;
+    current += item.module === module ? 4 : item.module === 'general' || !item.module ? 2 : 0;
+    current += item.roleScope === roleScope ? 2 : item.roleScope == null ? 1 : 0;
+    return current;
+  };
+
+  return [...policies].sort((a, b) => score(b) - score(a))[0] ?? null;
 }
 
 export async function renderTenantTemplate(params: {
   administrationId: string | null;
   templateType: TenantTemplateSetting['templateType'];
+  module?: string;
+  roleScope?: string | null;
   context: TemplateRenderContext;
 }) {
   const [templates, policies] = await Promise.all([
@@ -33,7 +41,7 @@ export async function renderTenantTemplate(params: {
   ]);
 
   const template = pickBestTemplate(templates, params.templateType, params.administrationId);
-  const policy = pickBestPolicy(policies, params.administrationId);
+  const policy = pickBestPolicy(policies, params.administrationId, params.module ?? 'general', params.roleScope);
 
   if (!template) return null;
 

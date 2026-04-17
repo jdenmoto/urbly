@@ -13,8 +13,12 @@ export type TenantTemplateSetting = TenantScopedSetting & {
   content: string;
 };
 
+export type TenantAiPolicyModule = 'services' | 'reports' | 'portal' | 'general';
+
 export type TenantAiPolicySetting = TenantScopedSetting & {
   name: string;
+  module?: TenantAiPolicyModule;
+  roleScope?: string | null;
   tone: string;
   instructions: string;
   customerMessagePrompt?: string;
