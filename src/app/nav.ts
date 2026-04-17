@@ -75,7 +75,7 @@ export function useNavGroups(role: AppUserRole = 'view') {
           { to: '/customers', label: t('nav.customers'), shortLabel: t('nav.shortCustomers'), icon: Landmark, enabled: flags.customers, mobile: false },
           { to: '/assets', label: t('nav.assets'), shortLabel: t('nav.shortAssets'), icon: Building2, enabled: flags.assets, mobile: false },
           { to: '/reports', label: t('nav.reports'), shortLabel: t('nav.shortReports'), icon: FileText, enabled: flags.reports, mobile: true, mobileOrder: 4 },
-          { to: '/notifications', label: 'Notificaciones', shortLabel: 'Alertas', icon: FileText, enabled: true, mobile: false }
+          { to: '/notifications', label: t('nav.notifications'), shortLabel: t('nav.shortNotifications'), icon: FileText, enabled: true, mobile: false }
         ]
       },
       {
@@ -103,14 +103,14 @@ export function useNavGroups(role: AppUserRole = 'view') {
           },
           {
             to: '/settings/service-types',
-            label: 'Tipos de servicio',
+            label: t('nav.settingsServiceTypes'),
             icon: Settings,
             adminOnly: true,
             enabled: flags.settings
           },
           {
             to: '/settings/automation',
-            label: 'Plantillas e IA',
+            label: t('nav.settingsAutomation'),
             icon: Settings,
             adminOnly: true,
             enabled: flags.settings

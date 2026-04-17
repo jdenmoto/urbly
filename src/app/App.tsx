@@ -164,13 +164,7 @@ export default function App() {
           />
           <Route
             path="scheduling"
-            element={
-              <RoleGuard allow={['admin', 'editor', 'scheduler', 'supervisor', 'emergency_scheduler']}>
-                <FeatureGuard feature="scheduling">
-                  <SchedulingPage />
-                </FeatureGuard>
-              </RoleGuard>
-            }
+            element={<Navigate to="/services" replace />}
           />
           <Route
             path="notifications"
