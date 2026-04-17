@@ -74,7 +74,9 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
       failed: validation.invalidRows,
       errors: validation.issues,
       entity: validation.entity,
-      dryRun
+      dryRun,
+      validRows: validation.validRows,
+      summaryMessage: 'La validación detectó filas inválidas antes de importar.'
     };
   }
 
@@ -85,7 +87,9 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
       errors: [],
       entity: validation.entity,
       dryRun: true,
-      previewCount: rows.length
+      previewCount: rows.length,
+      validRows: validation.validRows,
+      summaryMessage: 'Validación remota completada.'
     };
   }
 
@@ -97,6 +101,8 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
     failed: errors.length,
     errors,
     entity: validation.entity,
-    dryRun: false
+    dryRun: false,
+    validRows: created,
+    summaryMessage: errors.length ? 'Importación finalizada con observaciones.' : 'Importación completada correctamente.'
   };
 });

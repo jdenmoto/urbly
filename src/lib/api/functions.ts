@@ -10,6 +10,8 @@ export type ImportResult = {
   entity?: string;
   dryRun?: boolean;
   previewCount?: number;
+  validRows?: number;
+  summaryMessage?: string;
 };
 
 export async function importBuildingsFile(file: File, options?: { dryRun?: boolean }) {

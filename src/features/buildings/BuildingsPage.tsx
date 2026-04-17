@@ -490,7 +490,7 @@ export default function BuildingsPage() {
       } else {
         setErrorUrl(null);
       }
-      toast(t('buildings.toastUpdated'), result.errors.length ? 'error' : 'success');
+      toast(result.summaryMessage ?? t('buildings.toastUpdated'), result.errors.length ? 'error' : 'success');
     } finally {
       setUploading(false);
     }
@@ -612,6 +612,8 @@ export default function BuildingsPage() {
                   <p><span className="font-semibold text-ink-900">Validación remota:</span> {remoteValidation.dryRun ? 'dry-run' : 'final'}</p>
                   <p><span className="font-semibold text-ink-900">Entidad:</span> {remoteValidation.entity ?? validationSummary.entity}</p>
                   <p><span className="font-semibold text-ink-900">Filas evaluadas:</span> {remoteValidation.previewCount ?? previewRows.length}</p>
+                  <p><span className="font-semibold text-ink-900">Filas válidas:</span> {remoteValidation.validRows ?? validationSummary.validRows}</p>
+                  <p>{remoteValidation.summaryMessage ?? 'Sin resumen remoto'}</p>
                 </div>
               ) : null}
               {importResult ? (
