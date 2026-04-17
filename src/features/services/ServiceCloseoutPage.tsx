@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react';
+import { updateDocById } from '@/lib/api/firestore';
+import { useAuth } from '@/app/Auth';
+import Input from '@/components/Input';
 import { useParams } from 'react-router-dom';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
@@ -16,6 +19,7 @@ import {
 
 export default function ServiceCloseoutPage() {
   const { t } = useI18n();
+  const { user, hasPermission } = useAuth();
   const { serviceOrderId = '' } = useParams();
   const { data: serviceOrders = [] } = useServiceOrders();
 
@@ -24,9 +28,28 @@ export default function ServiceCloseoutPage() {
     [serviceOrderId, serviceOrders]
   );
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [reviewFeedback, setReviewFeedback] = useState('');
+  const [reviewSaving, setReviewSaving] = useState(false);
   const aiReport = serviceOrder ? buildTechnicalReport(serviceOrder, t) : '';
   const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder, t) : '';
+
+  const saveReview = async (status: 'changes_requested' | 'approved') => {
+    if (!serviceOrder) return;
+    try {
+      setReviewSaving(true);
+      await updateDocById('service_orders', serviceOrder.id, {
+        review: {
+          status,
+          feedback: reviewFeedback.trim(),
+          reviewerId: user?.uid ?? null,
+          reviewedAt: new Date().toISOString()
+        }
+      });
+    } finally {
+      setReviewSaving(false);
+    }
+  };
 
   const handleDownloadReport = async () => {
     if (!serviceOrder) return;
@@ -126,6 +149,28 @@ export default function ServiceCloseoutPage() {
           </div>
         </div>
       </Card>
+
+
+        <div className="rounded-3xl border border-fog-200 bg-white p-5 space-y-4">
+          <div>
+            <h3 className="text-sm font-semibold text-ink-900">Revisión del reporte</h3>
+            <p className="mt-1 text-sm text-ink-600">Estado actual: {serviceOrder.review?.status ?? 'pending_review'}</p>
+            {serviceOrder.review?.reviewedAt ? <p className="text-xs text-ink-500">Última revisión: {serviceOrder.review.reviewedAt}</p> : null}
+          </div>
+          <Input label="Feedback de revisión" value={reviewFeedback} onChange={(event) => setReviewFeedback(event.target.value)} />
+          {hasPermission('review_reports') ? (
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => void saveReview('changes_requested')} disabled={reviewSaving}>Solicitar cambios</Button>
+              <Button onClick={() => void saveReview('approved')} disabled={reviewSaving}>Aprobar reporte</Button>
+            </div>
+          ) : null}
+          {serviceOrder.review?.feedback ? (
+            <div className="rounded-2xl bg-fog-50 p-4 text-sm text-ink-700">
+              <p className="font-semibold text-ink-900">Último feedback</p>
+              <p className="mt-2 whitespace-pre-wrap">{serviceOrder.review.feedback}</p>
+            </div>
+          ) : null}
+        </div>
 
       <Card className="space-y-6 p-6">
         <div>
