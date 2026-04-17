@@ -1545,6 +1545,27 @@ export default function SchedulingPage() {
                       </option>
                     ))}
                   </Select>
+                  {assignmentSuggestions.length ? (
+                    <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
+                      <p className="font-semibold text-ink-900">Sugerencias de asignación</p>
+                      <div className="mt-2 space-y-2">
+                        {assignmentSuggestions.map((suggestion) => {
+                          const employee = employees.find((item) => item.id === suggestion.employeeId);
+                          return (
+                            <button
+                              key={suggestion.employeeId}
+                              type="button"
+                              className="block w-full rounded-lg border border-fog-200 bg-white px-3 py-2 text-left hover:bg-fog-100"
+                              onClick={() => setValue('employeeId', suggestion.employeeId, { shouldValidate: true })}
+                            >
+                              <p className="font-medium text-ink-900">{employee?.fullName ?? suggestion.employeeId} · score {suggestion.score}</p>
+                              <p className="text-xs text-ink-500">{suggestion.reason}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
                   <Select
                     label={t('scheduling.recurrence')}
                     error={errors.recurrence?.message}
