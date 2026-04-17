@@ -1,9 +1,13 @@
 import { addDays, addMonths, isAfter } from 'date-fns';
-import type { Appointment } from '@/core/models/appointment';
 import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
-import { createDoc, deleteDocById, updateDocById } from '@/lib/api/firestore';
+import type { ServiceOrder } from '@/core/models/serviceOrder';
+import { createDoc, deleteDocById } from '@/lib/api/firestore';
+import { buildServiceOrderPayload, saveServiceOrder } from '@/lib/api/serviceOrders';
 import { formatLocalIso, toLocalIso } from './schedulingUtils';
+import { validateSchedulingRules } from './schedulingRules';
+import { buildSchedulingItemsForValidation } from './schedulingSelectors';
+import type { SchedulingItem } from './schedulingItem';
 
 export type SchedulingFormValues = {
   buildingId: string;
@@ -34,8 +38,9 @@ export function buildAppointmentPayload(values: SchedulingFormValues) {
 
 export async function regenerateSeries(args: {
   values: SchedulingFormValues;
-  current: Appointment | null;
-  appointments: Appointment[];
+  current: SchedulingItem | null;
+  appointments?: never[];
+  serviceOrders?: ServiceOrder[];
   buildings: Building[];
   contracts: Contract[];
   alignToContractStart: (baseStart: Date, contractStart: Date, step: string) => Date;
@@ -43,13 +48,16 @@ export async function regenerateSeries(args: {
   setError: (field: 'endAt', error: { message: string }) => void;
   toast: (message: string, tone?: 'success' | 'error') => void;
   t: (key: string) => string;
+  isRestrictedDate: (value?: string) => boolean;
 }) {
-  const { values, current, appointments, buildings, contracts, alignToContractStart, nextWorkingDate, setError, toast, t } = args;
+  const { values, current, serviceOrders = [], buildings, contracts, alignToContractStart, nextWorkingDate, setError, toast, t, isRestrictedDate } = args;
   const seriesId = current?.seriesId ?? (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
-  const related = appointments.filter((item) => item.seriesId === seriesId);
-  if (related.length) {
-    await Promise.all(related.map((item) => deleteDocById('appointments', item.id)));
-  } else if (current) {
+  const relatedOrders = serviceOrders.filter((item) => (item as ServiceOrder & { seriesId?: string | null }).seriesId === seriesId);
+  if (relatedOrders.length) {
+    await Promise.all(relatedOrders.map((item) => deleteDocById('service_orders', item.id)));
+  } else if (current?.source === 'service_order') {
+    await deleteDocById('service_orders', current.id);
+  } else if (current?.source === 'appointment') {
     await deleteDocById('appointments', current.id);
   }
 
@@ -97,20 +105,42 @@ export async function regenerateSeries(args: {
     }
   };
 
-  const payload = {
-    ...buildAppointmentPayload(values),
-    seriesId
-  };
   const tasks: Promise<unknown>[] = [];
   while (!isAfter(cursor, contractEnd)) {
     const scheduledStart = nextWorkingDate(cursor);
     if (!isAfter(scheduledStart, contractEnd)) {
       const end = new Date(scheduledStart.getTime() + durationMs);
+      const schedulingItems = buildSchedulingItemsForValidation({
+        appointments: [],
+        serviceOrders
+      });
+      const violation = validateSchedulingRules({
+        schedulingItems,
+        buildingId: values.buildingId,
+        employeeId: values.employeeId || null,
+        startIso: formatLocalIso(scheduledStart),
+        endIso: formatLocalIso(end),
+        type: values.type,
+        isRestrictedDate
+      });
+      if (violation) {
+        cursor = nextDate(cursor);
+        continue;
+      }
       tasks.push(
-        createDoc('appointments', {
-          ...payload,
-          startAt: formatLocalIso(scheduledStart),
-          endAt: formatLocalIso(end)
+        createDoc('service_orders', {
+          ...buildServiceOrderPayload({
+            buildingId: values.buildingId,
+            title: values.title,
+            description: values.description,
+            scheduledStartAt: formatLocalIso(scheduledStart),
+            scheduledEndAt: formatLocalIso(end),
+            status: values.status === 'programado' ? 'scheduled' : values.status === 'confirmado' ? 'confirmed' : values.status === 'completado' ? 'completed' : values.status === 'cancelado' ? 'cancelled' : 'draft',
+            recurrence: values.recurrence || null,
+            type: values.type,
+            assignedTechnicianId: values.employeeId || null,
+            seriesId
+          })
         })
       );
     }
@@ -122,23 +152,26 @@ export async function regenerateSeries(args: {
 export async function saveAppointment(args: {
   values: SchedulingFormValues;
   editingId: string | null;
-  appointments: Appointment[];
+  appointments?: never[];
+  serviceOrders?: ServiceOrder[];
 }) {
-  const { values, editingId, appointments } = args;
-  const payload = buildAppointmentPayload(values);
-
-  if (editingId) {
-    const current = appointments.find((item) => item.id === editingId) ?? null;
-    if (current?.seriesId) {
-      const related = appointments.filter((item) => item.seriesId === current.seriesId && item.id !== editingId);
-      await Promise.all(related.map((item) => deleteDocById('appointments', item.id)));
-    }
-    await updateDocById('appointments', editingId, { ...payload, seriesId: null });
-    return 'updated' as const;
-  }
-
-  await createDoc('appointments', payload);
-  return 'created' as const;
+  const { values, editingId, serviceOrders = [] } = args;
+  return saveServiceOrder({
+    values: {
+      buildingId: values.buildingId,
+      title: values.title,
+      description: values.description,
+      scheduledStartAt: toLocalIso(values.startAt),
+      scheduledEndAt: toLocalIso(values.endAt),
+      status: values.status === 'programado' ? 'scheduled' : values.status === 'confirmado' ? 'confirmed' : values.status === 'completado' ? 'completed' : values.status === 'cancelado' ? 'cancelled' : 'draft',
+      recurrence: values.recurrence || null,
+      type: values.type,
+      assignedTechnicianId: values.employeeId || null,
+      seriesId: null
+    },
+    editingId,
+    serviceOrders
+  });
 }
 
 export async function createRecurringSeries(args: {
@@ -150,10 +183,11 @@ export async function createRecurringSeries(args: {
   setError: (field: 'endAt', error: { message: string }) => void;
   toast: (message: string, tone?: 'success' | 'error') => void;
   t: (key: string) => string;
+  serviceOrders?: ServiceOrder[];
+  isRestrictedDate: (value?: string) => boolean;
 }) {
   await regenerateSeries({
     ...args,
     current: null,
-    appointments: []
   });
 }

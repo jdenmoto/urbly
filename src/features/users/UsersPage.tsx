@@ -16,18 +16,18 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/app/Auth';
 import { useList } from '@/lib/api/queries';
-import type { AppUser } from '@/core/models/appUser';
+import type { AppUser, AppUserRole } from '@/core/models/appUser';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createAppUser, updateAppUser, setAppUserDisabled, deleteAppUser } from '@/lib/api/functions';
 import { useToast } from '@/components/ToastProvider';
 import { EditIcon, TrashIcon, PowerIcon } from '@/components/ActionIcons';
 
-const roleOptions = ['view', 'editor', 'admin', 'building_admin', 'emergency_scheduler'] as const;
+const roleOptions = ['view', 'editor', 'admin', 'building_admin', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria', 'client'] as const satisfies readonly AppUserRole[];
 
 type FormValues = {
   email: string;
-  role: 'admin' | 'editor' | 'view' | 'building_admin' | 'emergency_scheduler';
+  role: AppUserRole;
   administrationId?: string;
 };
 
@@ -55,7 +55,7 @@ export default function UsersPage() {
       administrationId: z.string().optional()
     })
     .superRefine((values, ctx) => {
-      if (values.role === 'building_admin' && !values.administrationId) {
+      if ((values.role === 'building_admin' || values.role === 'client') && !values.administrationId) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['administrationId'],
@@ -92,13 +92,13 @@ export default function UsersPage() {
   const editRoleValue = editWatch('role');
 
   useEffect(() => {
-    if (roleValue !== 'building_admin') {
+    if (roleValue !== 'building_admin' && roleValue !== 'client') {
       resetField('administrationId');
     }
   }, [roleValue, resetField]);
 
   useEffect(() => {
-    if (editRoleValue !== 'building_admin') {
+    if (editRoleValue !== 'building_admin' && editRoleValue !== 'client') {
       resetEditField('administrationId');
     }
   }, [editRoleValue, resetEditField]);
@@ -262,7 +262,7 @@ export default function UsersPage() {
               </option>
             ))}
           </Select>
-          {roleValue === 'building_admin' ? (
+          {roleValue === 'building_admin' || roleValue === 'client' ? (
             <Select
               label={t('users.administration')}
               error={errors.administrationId?.message}
@@ -306,7 +306,7 @@ export default function UsersPage() {
               </option>
             ))}
           </Select>
-          {editRoleValue === 'building_admin' ? (
+          {editRoleValue === 'building_admin' || editRoleValue === 'client' ? (
             <Select
               label={t('users.administration')}
               error={editErrors.administrationId?.message}

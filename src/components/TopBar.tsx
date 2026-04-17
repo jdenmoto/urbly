@@ -1,14 +1,23 @@
+import { useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/app/Auth';
+import { useList } from '@/lib/api/queries';
+import type { InternalNotification } from '@/core/models/internalNotification';
+import { markInternalNotificationRead } from '@/lib/internalNotifications';
+import type { AppUserRole } from '@/core/models/appUser';
 import { useNavGroups } from '@/app/nav';
 
 export default function TopBar() {
   const { t } = useI18n();
   const location = useLocation();
-  const { role } = useAuth();
+  const { role, user } = useAuth();
+  const [openNotifications, setOpenNotifications] = useState(false);
+  const { data: notifications = [] } = useList<InternalNotification>('internalNotifications', 'internal_notifications');
   const navGroups = useNavGroups(role);
   const currentItem = navGroups.flatMap((group) => group.items).find((item) => item.to === location.pathname);
+  const scopedNotifications = useMemo(() => notifications.filter((item) => !item.userId || item.userId === user?.uid).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()), [notifications, user?.uid]);
+  const unreadCount = scopedNotifications.filter((item) => !item.read).length;
   const currentGroup = navGroups.find((group) => group.items.some((item) => item.to === location.pathname));
 
   return (
@@ -31,9 +40,23 @@ export default function TopBar() {
           <button className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
             {t('shell.globalSearchPlaceholder')}
           </button>
-          <button className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
-            {t('shell.quickActionLabel')}
-          </button>
+          <div className="relative">
+            <button className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm" onClick={() => setOpenNotifications((v) => !v)}>
+              Notificaciones {unreadCount ? `(${unreadCount})` : ''}
+            </button>
+            {openNotifications ? (
+              <div className="absolute right-0 mt-2 w-96 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+                <div className="space-y-2">
+                  {scopedNotifications.length ? scopedNotifications.slice(0, 8).map((item) => (
+                    <button key={item.id} className="block w-full rounded-xl border border-slate-100 px-3 py-3 text-left hover:bg-slate-50" onClick={() => void markInternalNotificationRead(item.id)}>
+                      <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                      <p className="mt-1 text-xs text-slate-600">{item.message}</p>
+                    </button>
+                  )) : <p className="text-sm text-slate-500">Sin notificaciones.</p>}
+                </div>
+              </div>
+            ) : null}
+          </div>
           <div className="rounded-full border border-slate-900 bg-slate-950 px-3 py-1 text-xs font-semibold text-white shadow-sm">
             {t('common.panelTitle')}
           </div>

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,6 +11,7 @@ import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type { ServiceOrder } from '@/core/models/serviceOrder';
 import PageHeader from '@/components/PageHeader';
+import { MetricCard, StatusPill } from '@/components/premium';
 import Input from '@/components/Input';
 import Select from '@/components/Select';
 import Button from '@/components/Button';
@@ -19,6 +20,8 @@ import EmptyState from '@/components/EmptyState';
 import PlacesAutocomplete, { type PlaceResult } from '@/components/PlacesAutocomplete';
 import { loadGoogleMaps } from '@/lib/googleMaps';
 import { importBuildingsFile, type ImportResult } from '@/lib/api/functions';
+import { groupPreviewRows, type GenericPreviewRow } from './importPreview';
+import { validateImportRows } from './importValidation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
 const BuildingsMap = lazy(() => import('@/components/BuildingsMap'));
@@ -30,12 +33,7 @@ import { EditIcon, TrashIcon, PowerIcon, EyeIcon } from '@/components/ActionIcon
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 
-type PreviewRow = {
-  building_name: string;
-  address: string;
-  porter_phone: string;
-  management_name: string;
-};
+type PreviewRow = GenericPreviewRow;
 
 const mapCsvRows = async (file: File) => {
   const Papa = (await import('papaparse')).default;
@@ -99,6 +97,7 @@ export default function BuildingsPage() {
   const queryClient = useQueryClient();
   const [place, setPlace] = useState<PlaceResult | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [remoteValidation, setRemoteValidation] = useState<ImportResult | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [errorUrl, setErrorUrl] = useState<string | null>(null);
   const [previewRows, setPreviewRows] = useState<PreviewRow[]>([]);
@@ -110,6 +109,8 @@ export default function BuildingsPage() {
   const [contractDetailOpen, setContractDetailOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const buildingGroups = useMemo(() => groupSettings?.groups ?? [], [groupSettings]);
   const statusLabels = useMemo(
     () => ({
@@ -251,14 +252,12 @@ export default function BuildingsPage() {
     ];
   }, [t, canEdit, contracts]);
 
+  const previewGroup = useMemo(() => groupPreviewRows(previewRows), [previewRows]);
+  const validationSummary = useMemo(() => validateImportRows(previewRows), [previewRows]);
+
   const previewColumns = useMemo<ColumnDef<PreviewRow>[]>(
-    () => [
-      { header: t('buildings.name'), accessorKey: 'building_name', enableSorting: false },
-      { header: t('buildings.address'), accessorKey: 'address', enableSorting: false },
-      { header: t('buildings.porterPhone'), accessorKey: 'porter_phone', enableSorting: false },
-      { header: t('buildings.managementCompany'), accessorKey: 'management_name', enableSorting: false }
-    ],
-    [t]
+    () => previewGroup.headers.map((header) => ({ header, accessorKey: header, enableSorting: false })),
+    [previewGroup.headers]
   );
 
   const errorColumns = useMemo<ColumnDef<{ row: number; message: string }>[]>( 
@@ -304,6 +303,24 @@ export default function BuildingsPage() {
       .filter((serviceOrder) => serviceOrder.buildingId === detailTarget.id && serviceOrder.type === 'mantenimiento')
       .sort((a, b) => new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime());
   }, [detailTarget, serviceOrders]);
+
+  const detailServiceOrders = useMemo(() => {
+    if (!detailTarget) return [];
+    return serviceOrders
+      .filter((serviceOrder) => serviceOrder.buildingId === detailTarget.id)
+      .sort((a, b) => new Date(b.scheduledStartAt).getTime() - new Date(a.scheduledStartAt).getTime());
+  }, [detailTarget, serviceOrders]);
+
+  const recentServiceOrders = useMemo(() => detailServiceOrders.slice(0, 5), [detailServiceOrders]);
+
+  const buildingOperationalMetrics = useMemo(() => {
+    if (!detailTarget) return null;
+    const completed = detailServiceOrders.filter((item) => item.status === 'completed').length;
+    const pending = detailServiceOrders.filter((item) => ['draft', 'scheduled', 'confirmed', 'in_progress'].includes(item.status)).length;
+    const incidents = detailServiceOrders.reduce((acc, item) => acc + (item.issues?.length ?? 0), 0);
+    const lastService = detailServiceOrders[0] ?? null;
+    return { completed, pending, incidents, lastService };
+  }, [detailTarget, detailServiceOrders]);
   const detailContract = useMemo(() => {
     if (!detailTarget?.contractId) return null;
     return contracts.find((contract) => contract.id === detailTarget.contractId) ?? null;
@@ -431,7 +448,9 @@ export default function BuildingsPage() {
   };
 
   const handleFile = async (file: File) => {
+    setImportFile(file);
     setImportResult(null);
+    setRemoteValidation(null);
     const extension = file.name.split('.').pop()?.toLowerCase();
 
     if (extension === 'csv') {
@@ -447,8 +466,14 @@ export default function BuildingsPage() {
     setPreviewRows([]);
   };
 
-  const handleImport = async (file: File | null) => {
+  const handleImport = async (file: File | null = importFile) => {
     if (!file) return;
+    const summary = validateImportRows(previewRows);
+    if (summary.invalidRows > 0) {
+      setImportResult({ created: 0, failed: summary.invalidRows, errors: summary.issues });
+      toast('Corrige los errores del archivo antes de importar.', 'error');
+      return;
+    }
     setUploading(true);
     try {
       const result = await importBuildingsFile(file);
@@ -465,7 +490,7 @@ export default function BuildingsPage() {
       } else {
         setErrorUrl(null);
       }
-      toast(t('buildings.toastUpdated'), result.errors.length ? 'error' : 'success');
+      toast(result.summaryMessage ?? t('buildings.toastUpdated'), result.errors.length ? 'error' : 'success');
     } finally {
       setUploading(false);
     }
@@ -548,17 +573,49 @@ export default function BuildingsPage() {
             <div className="space-y-4">
               <p className="text-xs text-ink-500">{t('buildings.bulkHint')}</p>
               <input
+                ref={fileInputRef}
                 type="file"
                 accept=".csv,.xlsx,.xls"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
                   if (file) {
                     void handleFile(file);
-                    void handleImport(file);
                   }
                 }}
               />
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {t('buildings.importSelectFile')}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => void handleImport(importFile)}
+                  disabled={!importFile || uploading || validationSummary.invalidRows > 0}
+                >
+                  {t('buildings.importRun')}
+                </Button>
+              </div>
               {uploading ? <p className="text-sm text-ink-600">{t('buildings.uploading')}</p> : null}
+              {previewRows.length ? (
+                <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importValidatedEntity')}:</span> {validationSummary.entity}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importValidRows')}:</span> {validationSummary.validRows}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importInvalidRows')}:</span> {validationSummary.invalidRows}</p>
+                </div>
+              ) : null}
+              {remoteValidation ? (
+                <div className="rounded-xl border border-fog-200 bg-white p-3 text-sm text-ink-700">
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importRemoteValidation')}:</span> {remoteValidation.dryRun ? t('buildings.importDryRunLabel') : t('buildings.importFinalLabel')}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importEntityLabel')}:</span> {remoteValidation.entity ?? validationSummary.entity}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importEvaluatedRows')}:</span> {remoteValidation.previewCount ?? previewRows.length}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.importValidRows')}:</span> {remoteValidation.validRows ?? validationSummary.validRows}</p>
+                  <p>{remoteValidation.summaryMessage ?? t('buildings.importNoRemoteSummary')}</p>
+                </div>
+              ) : null}
               {importResult ? (
                 <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
                   <p>
@@ -584,7 +641,16 @@ export default function BuildingsPage() {
                   {t('common.downloadErrors')}
                 </a>
               ) : null}
-              {previewRows.length ? <DataTable columns={previewColumns} data={previewRows.slice(0, 5)} /> : null}
+              {previewRows.length ? (
+                <div className="space-y-3">
+                  <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
+                    <p><span className="font-semibold text-ink-900">{t('buildings.importDetectedEntity')}:</span> {previewGroup.entity}</p>
+                    <p><span className="font-semibold text-ink-900">Columnas:</span> {previewGroup.headers.join(', ')}</p>
+                    <p><span className="font-semibold text-ink-900">Preview:</span> {previewRows.length} fila(s)</p>
+                  </div>
+                  <DataTable columns={previewColumns} data={previewRows.slice(0, 5)} />
+                </div>
+              ) : null}
             </div>
           </Modal>
           <Modal open={createOpen} title={t('buildings.newTitle')} onClose={() => setCreateOpen(false)}>
@@ -774,7 +840,22 @@ export default function BuildingsPage() {
           >
             {detailTarget ? (
               <div className="space-y-4">
+                <div className="grid gap-3 md:grid-cols-4">
+                  <MetricCard label="Servicios registrados" value={detailServiceOrders.length} hint="histórico total" />
+                  <MetricCard label="Servicios completados" value={buildingOperationalMetrics?.completed ?? 0} hint="ejecución cerrada" />
+                  <MetricCard label="Servicios pendientes" value={buildingOperationalMetrics?.pending ?? 0} hint="agenda activa" />
+                  <MetricCard label="Novedades acumuladas" value={buildingOperationalMetrics?.incidents ?? 0} hint="issues registradas" />
+                </div>
                 <div className="rounded-xl border border-fog-200 bg-fog-50 p-4 text-sm text-ink-700">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Ficha operativa</p>
+                      <p className="text-sm font-semibold text-ink-900">Datos maestros del edificio</p>
+                    </div>
+                    <StatusPill tone={detailTarget?.active === false ? 'warning' : 'success'}>
+                      {detailTarget?.active === false ? t('buildings.disabled') : t('buildings.active')}
+                    </StatusPill>
+                  </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
                       <p className="text-xs uppercase text-ink-400">{t('buildings.name')}</p>
@@ -790,6 +871,32 @@ export default function BuildingsPage() {
                         {managements.find((company) => company.id === detailTarget.managementCompanyId)?.name ??
                           t('common.notAvailable')}
                       </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Tipo</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.type}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Grupo</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.group || t('common.notAvailable')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Delegado</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.delegateName || t('common.notAvailable')}</p>
+                      <p className="text-xs text-ink-500">{detailTarget.delegatePhone || t('common.notAvailable')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Portería</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.porterPhone || t('common.notAvailable')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">NIT</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.nit || t('common.notAvailable')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Emails</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.email || t('common.notAvailable')}</p>
+                      <p className="text-xs text-ink-500">Facturación: {detailTarget.billingEmail || t('common.notAvailable')}</p>
                     </div>
                     <div>
                       <p className="text-xs uppercase text-ink-400">{t('buildings.contract')}</p>
@@ -811,6 +918,44 @@ export default function BuildingsPage() {
                       </div>
                     </div>
                   </div>
+                </div>
+                <div className="rounded-xl border border-fog-200 bg-white p-4 text-sm text-ink-700">
+                  <div className="mb-3">
+                    <p className="text-xs uppercase text-ink-400">{t('buildings.technicalContextTitle')}</p>
+                    <p className="text-sm font-semibold text-ink-900">{t('buildings.technicalContextSubtitle')}</p>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.technicalEquipmentLabel')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.equipmentSummary || 'Sin contexto técnico cargado'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.technicalMechanicalRoomLabel')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.mechanicalRoomNotes || t('common.notAvailable')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.technicalElectricalLabel')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.electricalSetup || t('common.notAvailable')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.technicalObservationsLabel')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.criticalObservations || t('common.notAvailable')}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold text-ink-900">Últimos servicios</h3>
+                  <DataTable
+                    columns={maintenanceColumns}
+                    data={recentServiceOrders}
+                    pageSize={5}
+                    emptyState={
+                      <EmptyState
+                        title="Sin servicios registrados"
+                        description="Aún no hay ejecución operativa asociada a este edificio."
+                      />
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-sm font-semibold text-ink-900">{t('buildings.maintenanceTitle')}</h3>
@@ -838,6 +983,15 @@ export default function BuildingsPage() {
             {detailContract ? (
               <div className="space-y-4">
                 <div className="rounded-xl border border-fog-200 bg-fog-50 p-4 text-sm text-ink-700">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Ficha operativa</p>
+                      <p className="text-sm font-semibold text-ink-900">Datos maestros del edificio</p>
+                    </div>
+                    <StatusPill tone={detailTarget?.active === false ? 'warning' : 'success'}>
+                      {detailTarget?.active === false ? t('buildings.disabled') : t('buildings.active')}
+                    </StatusPill>
+                  </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
                       <p className="text-xs uppercase text-ink-400">{t('contracts.name')}</p>

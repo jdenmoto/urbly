@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
+import { filters, listDocs } from './firestore';
 import type { Appointment } from '@/core/models/appointment';
 import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
-import { mapAppointmentToServiceOrder } from './serviceOrders';
-import { listDocs } from './firestore';
+import type { ServiceOrder } from '@/core/models/serviceOrder';
+import { enrichServiceOrder, mapAppointmentToServiceOrder } from './serviceOrders';
 
 export function indexById<T extends { id: string }>(items: T[]) {
   return new Map(items.map((item) => [item.id, item]));
@@ -35,6 +36,37 @@ export function buildServiceOrders(
   });
 }
 
+export function hydrateServiceOrders(
+  serviceOrders: ServiceOrder[],
+  buildings: Building[],
+  contracts: Contract[],
+  managements: ManagementCompany[]
+) {
+  const buildingsById = indexById(buildings);
+  const contractsById = indexById(contracts);
+  const managementsById = indexById(managements);
+
+  return serviceOrders.map((serviceOrder) => {
+    const building = buildingsById.get(serviceOrder.buildingId) ?? null;
+    const contract = serviceOrder.contractId
+      ? contractsById.get(serviceOrder.contractId) ?? null
+      : building?.contractId
+        ? contractsById.get(building.contractId) ?? null
+        : null;
+    const management = serviceOrder.customerId
+      ? managementsById.get(serviceOrder.customerId) ?? null
+      : building?.managementCompanyId
+        ? managementsById.get(building.managementCompanyId) ?? null
+        : null;
+
+    return enrichServiceOrder(serviceOrder, {
+      building,
+      contract,
+      management
+    });
+  });
+}
+
 export function useList<T>(key: string, path: string) {
   return useQuery({
     queryKey: [key],
@@ -46,14 +78,55 @@ export function useServiceOrders() {
   return useQuery({
     queryKey: ['serviceOrders'],
     queryFn: async () => {
-      const [appointments, buildings, contracts, managements] = await Promise.all([
-        listDocs<Appointment>('appointments'),
+      const [serviceOrders, appointments, buildings, contracts, managements] = await Promise.all([
+        listDocs<ServiceOrder>('service_orders').catch(() => []),
+        listDocs<Appointment>('appointments').catch(() => []),
         listDocs<Building>('buildings'),
         listDocs<Contract>('contracts'),
         listDocs<ManagementCompany>('management_companies')
       ]);
 
+      if (serviceOrders.length > 0) {
+        return hydrateServiceOrders(serviceOrders, buildings, contracts, managements);
+      }
+
       return buildServiceOrders(appointments, buildings, contracts, managements);
+    }
+  });
+}
+
+
+export function useTenantServiceOrders(administrationId: string | null, role: string) {
+  return useQuery({
+    queryKey: ['serviceOrders', administrationId ?? 'all', role],
+    queryFn: async () => {
+      const [serviceOrders, appointments, buildings, contracts, managements] = await Promise.all([
+        listDocs<ServiceOrder>('service_orders').catch(() => []),
+        listDocs<Appointment>('appointments').catch(() => []),
+        administrationId
+          ? listDocs<Building>('buildings', [filters().where('managementCompanyId', '==', administrationId)])
+          : listDocs<Building>('buildings'),
+        administrationId
+          ? listDocs<Contract>('contracts', [filters().where('administrationId', '==', administrationId)])
+          : listDocs<Contract>('contracts'),
+        administrationId
+          ? listDocs<ManagementCompany>('management_companies', [filters().where('__name__', '==', administrationId)]).catch(() => [])
+          : listDocs<ManagementCompany>('management_companies')
+      ]);
+
+      const buildingIds = new Set(buildings.map((item) => item.id));
+      const allowedAppointments = administrationId
+        ? appointments.filter((item) => buildingIds.has(item.buildingId))
+        : appointments;
+      const allowedServiceOrders = administrationId
+        ? serviceOrders.filter((item) => buildingIds.has(item.buildingId) || item.customerId === administrationId)
+        : serviceOrders;
+
+      if (allowedServiceOrders.length > 0) {
+        return hydrateServiceOrders(allowedServiceOrders, buildings, contracts, managements);
+      }
+
+      return buildServiceOrders(allowedAppointments, buildings, contracts, managements);
     }
   });
 }

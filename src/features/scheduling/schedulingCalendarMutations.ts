@@ -1,39 +1,46 @@
-import { updateDocById } from '@/lib/api/firestore';
-import { formatLocalIso, isWithinBusinessHours } from './schedulingUtils';
+import { moveServiceOrderOnCalendar } from '@/lib/api/serviceOrders';
+import { formatLocalIso } from './schedulingUtils';
+import { validateSchedulingRules } from './schedulingRules';
 
-export async function moveAppointmentOnCalendar(args: {
-  appointmentId: string;
+export async function moveSchedulingItemOnCalendar(args: {
+  schedulingItemId: string;
+  buildingId: string;
+  employeeId?: string | null;
+  schedulingItems: import('./schedulingItem').SchedulingItem[];
   start: Date;
   end: Date;
   type?: string;
   isRestrictedDate: (value?: string) => boolean;
   toast: (message: string, tone?: 'success' | 'error') => void;
   t: (key: string) => string;
-  invalidateAppointments: () => Promise<unknown>;
+  invalidateScheduling: () => Promise<unknown>;
   revert: () => void;
 }) {
-  const { appointmentId, start, end, type, isRestrictedDate, toast, t, invalidateAppointments, revert } = args;
+  const { schedulingItemId, start, end, type, isRestrictedDate, toast, t, invalidateScheduling, revert } = args;
 
-  if (type !== 'emergencia') {
-    const startIso = formatLocalIso(start);
-    const endIso = formatLocalIso(end);
-    if (!isWithinBusinessHours(startIso, endIso)) {
-      toast(t('scheduling.businessHoursToast'), 'error');
-      revert();
-      return;
-    }
-  }
-
-  if ((isRestrictedDate(formatLocalIso(start)) || isRestrictedDate(formatLocalIso(end))) && type !== 'emergencia') {
-    toast(t('scheduling.dateBlocked'), 'error');
+  const startIso = formatLocalIso(start);
+  const endIso = formatLocalIso(end);
+  const violation = validateSchedulingRules({
+    schedulingItems: args.schedulingItems,
+    buildingId: args.buildingId,
+    employeeId: args.employeeId ?? null,
+    startIso,
+    endIso,
+    type,
+    editingId: schedulingItemId,
+    isRestrictedDate
+  });
+  if (violation) {
+    toast(violation.message, 'error');
     revert();
     return;
   }
 
-  await updateDocById('appointments', appointmentId, {
-    startAt: formatLocalIso(start),
-    endAt: formatLocalIso(end)
+  await moveServiceOrderOnCalendar({
+    serviceOrderId: schedulingItemId,
+    scheduledStartAt: formatLocalIso(start),
+    scheduledEndAt: formatLocalIso(end)
   });
-  await invalidateAppointments();
+  await invalidateScheduling();
   toast(t('scheduling.toastUpdated'), 'success');
 }

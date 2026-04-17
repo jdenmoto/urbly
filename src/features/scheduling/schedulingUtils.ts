@@ -1,7 +1,7 @@
-import type { Appointment } from '@/core/models/appointment';
+import type { SchedulingItem } from './schedulingItem';
 
 export function filterAppointments(
-  appointments: Appointment[],
+  appointments: SchedulingItem[],
   filters: { buildingId: string; from: string; to: string }
 ) {
   const filterFromDate = filters.from ? new Date(`${filters.from}T00:00:00`) : null;

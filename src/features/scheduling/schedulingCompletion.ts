@@ -1,5 +1,6 @@
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import type { Appointment, AppointmentStatus } from '@/core/models/appointment';
+import type { ServiceOrder, ServiceOrderChecklistValue, ServiceOrderIssue, ServiceOrderReport } from '@/core/models/serviceOrder';
+import type { SchedulingItem } from './schedulingItem';
 import { storage } from '@/lib/firebase/client';
 
 export type IssueDraft = {
@@ -17,7 +18,7 @@ export type CompletionReport = {
   checklist: Record<string, string>;
 };
 
-export type CompletionChecklistValue = 'ok' | 'regular' | 'malo' | 'na';
+export type CompletionChecklistValue = ServiceOrderChecklistValue;
 
 export function hasMinTwoPhotos(photos: File[]) {
   return photos.filter((photo) => photo instanceof File).length >= 2;
@@ -27,12 +28,12 @@ function safeStorageName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_');
 }
 
-export async function uploadIssuePhotos(appointmentId: string, issueId: string, photos: File[]) {
+export async function uploadIssuePhotos(schedulingItemId: string, issueId: string, photos: File[]) {
   const uploads = await Promise.all(
     photos
       .filter((file): file is File => file instanceof File)
       .map(async (file, index) => {
-        const storageRef = ref(storage, `appointments/${appointmentId}/issues/${issueId}/${index}-${safeStorageName(file.name)}`);
+        const storageRef = ref(storage, `service-orders/${schedulingItemId}/issues/${issueId}/${index}-${safeStorageName(file.name)}`);
         await uploadBytes(storageRef, file);
         return getDownloadURL(storageRef);
       })
@@ -41,12 +42,12 @@ export async function uploadIssuePhotos(appointmentId: string, issueId: string, 
   return uploads;
 }
 
-export async function uploadCompletionPhotos(appointmentId: string, photos: File[]) {
+export async function uploadCompletionPhotos(schedulingItemId: string, photos: File[]) {
   const uploads = await Promise.all(
     photos
       .filter((file): file is File => file instanceof File)
       .map(async (file, index) => {
-        const storageRef = ref(storage, `appointments/${appointmentId}/completion-photos/${Date.now()}-${index}-${safeStorageName(file.name)}`);
+        const storageRef = ref(storage, `service-orders/${schedulingItemId}/completion-photos/${Date.now()}-${index}-${safeStorageName(file.name)}`);
         await uploadBytes(storageRef, file);
         return getDownloadURL(storageRef);
       })
@@ -71,12 +72,12 @@ export function validateCompletion(args: {
 
   if (!hasIssues) return t('scheduling.issueDecisionRequired');
   if (hasIssues === 'yes' && issues.length === 0) return t('scheduling.issueAtLeastOne');
-  if (completionPhotos.length < 1) return 'Debes agregar al menos 1 foto adicional del servicio.';
+  if (completionPhotos.length < 1) return t('scheduling.completionPhotoRequired');
   if (!completionReport.entryHour || !completionReport.exitHour || !completionReport.observations.trim()) {
-    return 'Debes completar todos los campos obligatorios del reporte.';
+    return t('scheduling.completionRequiredFields');
   }
   if (toMinutes(completionReport.exitHour) <= toMinutes(completionReport.entryHour)) {
-    return 'La hora de salida debe ser posterior a la hora de entrada.';
+    return t('scheduling.completionExitAfterEntry');
   }
 
   return null;
@@ -120,30 +121,30 @@ export function buildNormalizedChecklist(args: {
 }
 
 export async function buildCompletionPayload(args: {
-  appointmentId: string;
+  schedulingItemId: string;
   hasIssues: 'yes' | 'no' | '';
   issues: IssueDraft[];
   completionPhotos: File[];
   completionReport: CompletionReport;
   normalizedChecklist: Record<string, CompletionChecklistValue>;
 }) {
-  const { appointmentId, hasIssues, issues, completionPhotos, completionReport, normalizedChecklist } = args;
-  const completionPhotoUrls = await uploadCompletionPhotos(appointmentId, completionPhotos);
+  const { schedulingItemId, hasIssues, issues, completionPhotos, completionReport, normalizedChecklist } = args;
+  const completionPhotoUrls = await uploadCompletionPhotos(schedulingItemId, completionPhotos);
 
   let payload: Record<string, unknown> = {
-    status: 'completado' as AppointmentStatus,
+    status: 'completed',
     completedAt: new Date().toISOString(),
-    completionReport: {
+    report: {
       ...completionReport,
       checklist: normalizedChecklist
-    },
+    } as ServiceOrderReport,
     completionPhotos: completionPhotoUrls
   };
 
   if (hasIssues === 'yes') {
     const resolvedIssues = await Promise.all(
       issues.map(async (issue) => {
-        const photoUrls = await uploadIssuePhotos(appointmentId, issue.id, issue.photos);
+        const photoUrls = await uploadIssuePhotos(schedulingItemId, issue.id, issue.photos);
         return {
           id: issue.id,
           type: issue.type,
@@ -161,15 +162,15 @@ export async function buildCompletionPayload(args: {
   return payload;
 }
 
-export function applyCompletionToSelected(selected: Appointment | null, appointmentId: string, payload: Record<string, unknown>) {
-  if (!selected || selected.id !== appointmentId) return selected;
+export function applyCompletionToSelected(selected: SchedulingItem | null, schedulingItemId: string, payload: Record<string, unknown>) {
+  if (!selected || selected.id !== schedulingItemId) return selected;
 
   return {
     ...selected,
-    status: 'completado' as AppointmentStatus,
+    status: 'completado',
     completedAt: payload.completedAt as string,
-    issues: payload.issues as Appointment['issues'],
-    completionPhotos: payload.completionPhotos as Appointment['completionPhotos'],
-    completionReport: payload.completionReport as Appointment['completionReport']
+    issues: payload.issues as ServiceOrderIssue[],
+    completionPhotos: payload.completionPhotos as string[],
+    completionReport: payload.report as SchedulingItem['completionReport']
   };
 }

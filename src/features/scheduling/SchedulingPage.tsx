@@ -21,19 +21,18 @@ import DataTable from '@/components/DataTable';
 import EmptyState from '@/components/EmptyState';
 import useBreakpoint from '@/components/useBreakpoint';
 import Modal from '@/components/Modal';
-import type { Appointment } from '@/core/models/appointment';
 import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { Employee } from '@/core/models/employee';
 import {
   recurrenceOptions,
-  appointmentTypeOptions,
   cancelReasonOptions,
   issueTypeOptions,
   issueCategoryOptions
 } from '@/core/appointments';
 import { generateAppointmentsPdf } from '@/lib/api/functions';
-import { useList } from '@/lib/api/queries';
+import { listServiceTypes } from '@/lib/serviceTypes';
+import { useList, useTenantServiceOrders } from '@/lib/api/queries';
 import { isValidDateRange } from '@/core/validators';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
@@ -51,22 +50,30 @@ import {
   hasMinTwoPhotos,
   validateCompletion
 } from './schedulingCompletion';
-import { cancelAppointment, deleteAppointment, type CancelValues } from './schedulingMutations';
+import { cancelSchedulingItem, deleteSchedulingItem, type CancelValues } from './schedulingMutations';
 import { createRecurringSeries, regenerateSeries, saveAppointment, type SchedulingFormValues } from './schedulingSeries';
-import { moveAppointmentOnCalendar } from './schedulingCalendarMutations';
+import { moveSchedulingItemOnCalendar } from './schedulingCalendarMutations';
+import { type SchedulingItem } from './schedulingItem';
+import { buildCanonicalSchedulingItems } from './schedulingSelectors';
+import { validateSchedulingRules } from './schedulingRules';
+import { schedulingLegacyDependencies } from './schedulingLegacyMap';
+import SchedulingWizardSummary from './SchedulingWizardSummary';
+import SchedulingWizardBasicsStep from './SchedulingWizardBasicsStep';
+import SchedulingWizardScheduleStep from './SchedulingWizardScheduleStep';
+import { buildAssignmentSuggestions } from './assignmentSuggestions';
 
 export default function SchedulingPage() {
   const { t } = useI18n();
   const { toast } = useToast();
-  const { role } = useAuth();
-  const canEdit = role === 'admin' || role === 'editor';
+  const { role, administrationId } = useAuth();
+  const canEdit = role === 'admin' || role === 'editor' || role === 'supervisor' || role === 'scheduler';
   const canScheduleEmergency = role === 'admin' || role === 'editor' || role === 'emergency_scheduler';
   const canCreate = canEdit || role === 'emergency_scheduler';
   const { isMobile } = useBreakpoint();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: contracts = [] } = useList<Contract>('contracts', 'contracts');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
-  const { data: appointments = [] } = useList<Appointment>('appointments', 'appointments');
+  const { data: serviceOrders = [] } = useTenantServiceOrders(administrationId, role);
   const { data: issueSettings } = useQuery({
     queryKey: ['issueSettings'],
     queryFn: async () => {
@@ -85,6 +92,12 @@ export default function SchedulingPage() {
     },
     staleTime: 60_000
   });
+  const { data: serviceTypes = [] } = useQuery({
+    queryKey: ['serviceTypes'],
+    queryFn: listServiceTypes,
+    staleTime: 60_000
+  });
+
   const { data: calendarSettings } = useQuery({
     queryKey: ['calendarSettings'],
     queryFn: async () => {
@@ -98,7 +111,7 @@ export default function SchedulingPage() {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ buildingId: '', from: '', to: '' });
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [selected, setSelected] = useState<Appointment | null>(null);
+  const [selected, setSelected] = useState<SchedulingItem | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
@@ -106,13 +119,13 @@ export default function SchedulingPage() {
   const [filterBuildingSearch, setFilterBuildingSearch] = useState('');
   const [buildingDropdownOpen, setBuildingDropdownOpen] = useState(false);
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
-  const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Appointment | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<SchedulingItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<SchedulingItem | null>(null);
   const [seriesConfirmOpen, setSeriesConfirmOpen] = useState(false);
   const [pendingSeriesValues, setPendingSeriesValues] = useState<FormValues | null>(null);
   const [calendarRange, setCalendarRange] = useState<{ start: string; end: string } | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
-  const [completeTarget, setCompleteTarget] = useState<Appointment | null>(null);
+  const [completeTarget, setCompleteTarget] = useState<SchedulingItem | null>(null);
   const [hasIssues, setHasIssues] = useState<'yes' | 'no' | ''>('');
   const [issues, setIssues] = useState<
     Array<{
@@ -160,7 +173,9 @@ export default function SchedulingPage() {
     reset,
     watch,
     setValue,
-    setError
+    setError,
+    trigger,
+    getValues
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const selectedType = watch('type');
@@ -191,6 +206,7 @@ export default function SchedulingPage() {
   });
   const [bombaPanelsOpen, setBombaPanelsOpen] = useState<Record<number, boolean>>({ 1: true });
   const [photoViewer, setPhotoViewer] = useState<{ src: string; title?: string } | null>(null);
+  const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
   const [photoZoom, setPhotoZoom] = useState(1);
   const [photoPan, setPhotoPan] = useState({ x: 0, y: 0 });
   const [photoDragging, setPhotoDragging] = useState(false);
@@ -300,7 +316,22 @@ export default function SchedulingPage() {
     reset: resetCancel
   } = useForm<LocalCancelValues>({ resolver: zodResolver(cancelSchema) });
 
-  const filtered = useMemo(() => filterAppointments(appointments, filters), [appointments, filters]);
+  const schedulingItems = useMemo(() => buildCanonicalSchedulingItems({
+    appointments: [],
+    serviceOrders
+  }), [serviceOrders]);
+
+  const filtered = useMemo(() => filterAppointments(schedulingItems, filters), [schedulingItems, filters]);
+
+  const legacyDependencySummary = useMemo(() => schedulingLegacyDependencies, []);
+
+  const assignmentSuggestions = useMemo(() => buildAssignmentSuggestions({
+    employees,
+    schedulingItems,
+    startAt: watch('startAt'),
+    endAt: watch('endAt'),
+    currentEmployeeId: watch('employeeId')
+  }), [employees, schedulingItems, watch]);
 
   const restrictedDates = useMemo(() => buildRestrictedDates(calendarSettings), [calendarSettings]);
 
@@ -337,8 +368,12 @@ export default function SchedulingPage() {
   };
 
   const activeBuildings = useMemo(
-    () => buildings.filter((building) => building.active !== false),
-    [buildings]
+    () => buildings.filter((building) => {
+      if (building.active === false) return false;
+      if (!administrationId) return true;
+      return building.managementCompanyId === administrationId;
+    }),
+    [buildings, administrationId]
   );
 
   const dynamicIssueTypes = useMemo(
@@ -360,8 +395,8 @@ export default function SchedulingPage() {
     [activeBuildings, buildingSearch]
   );
 
-  const columns = useMemo<ColumnDef<Appointment>[]>(() => {
-    const base: ColumnDef<Appointment>[] = [
+  const columns = useMemo<ColumnDef<SchedulingItem>[]>(() => {
+    const base: ColumnDef<SchedulingItem>[] = [
       { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: true },
       {
         header: t('scheduling.building'),
@@ -477,13 +512,28 @@ export default function SchedulingPage() {
       return;
     }
     try {
+      const ruleViolation = validateSchedulingRules({
+        schedulingItems,
+        buildingId: values.buildingId,
+        employeeId: values.employeeId || null,
+        startIso,
+        endIso,
+        type: values.type,
+        editingId,
+        isRestrictedDate
+      });
+      if (ruleViolation) {
+        setError('startAt', { message: ruleViolation.message });
+        return;
+      }
+
       if (editingId && values.recurrence) {
         setPendingSeriesValues(values);
         setSeriesConfirmOpen(true);
         return;
       }
       if (editingId && !values.recurrence) {
-        await saveAppointment({ values: values as SchedulingFormValues, editingId, appointments });
+        await saveAppointment({ values: values as SchedulingFormValues, editingId, serviceOrders });
       } else if (values.recurrence) {
         await createRecurringSeries({
           values: values as SchedulingFormValues,
@@ -493,15 +543,17 @@ export default function SchedulingPage() {
           nextWorkingDate,
           setError,
           toast,
-          t
+          t,
+          isRestrictedDate
         });
       } else {
-        await saveAppointment({ values: values as SchedulingFormValues, editingId: null, appointments });
+        await saveAppointment({ values: values as SchedulingFormValues, editingId: null, serviceOrders });
       }
-      await invalidateAppointments();
+      await invalidateScheduling();
       reset();
       setEditingId(null);
       setModalOpen(false);
+      setWizardStep(1);
       toast(editingId ? t('scheduling.toastUpdated') : t('scheduling.toastCreated'), 'success');
     } catch {
       toast(t('common.actionError'), 'error');
@@ -513,24 +565,26 @@ export default function SchedulingPage() {
       setSeriesConfirmOpen(false);
       return;
     }
-    const current = appointments.find((item) => item.id === editingId) ?? null;
+    const current = schedulingItems.find((item) => item.id === editingId) ?? null;
     try {
       await regenerateSeries({
         values: pendingSeriesValues as SchedulingFormValues,
         current,
-        appointments,
+        serviceOrders,
         buildings,
         contracts,
         alignToContractStart,
         nextWorkingDate,
         setError,
         toast,
-        t
+        t,
+        isRestrictedDate
       });
-      await invalidateAppointments();
+      await invalidateScheduling();
       reset();
       setEditingId(null);
       setModalOpen(false);
+      setWizardStep(1);
       toast(t('scheduling.toastUpdated'), 'success');
     } catch {
       toast(t('common.actionError'), 'error');
@@ -541,6 +595,7 @@ export default function SchedulingPage() {
   };
 
   const startCreate = () => {
+    setWizardStep(1);
     setEditingId(null);
     reset({
       buildingId: '',
@@ -558,6 +613,7 @@ export default function SchedulingPage() {
   };
 
   const startCreateAt = (start: Date) => {
+    setWizardStep(1);
     const end = new Date(start);
     end.setHours(start.getHours() + 1);
     setEditingId(null);
@@ -576,7 +632,8 @@ export default function SchedulingPage() {
     setModalOpen(true);
   };
 
-  const startEdit = (appointment: Appointment) => {
+  const startEdit = (appointment: SchedulingItem) => {
+    setWizardStep(1);
     setEditingId(appointment.id);
     setValue('buildingId', appointment.buildingId);
     setValue('title', appointment.title);
@@ -602,12 +659,12 @@ export default function SchedulingPage() {
     }
   }, [selectedType, setValue]);
 
-  const openCancel = (appointment: Appointment) => {
+  const openCancel = (appointment: SchedulingItem) => {
     setCancelTarget(appointment);
     resetCancel({ reason: '', note: '' });
   };
 
-  const startComplete = (appointment: Appointment) => {
+  const startComplete = (appointment: SchedulingItem) => {
     setCompleteTarget(appointment);
     setHasIssues('');
     setIssues([]);
@@ -670,18 +727,28 @@ export default function SchedulingPage() {
     setCompleteSubmitting(true);
     try {
       const payload = await buildCompletionPayload({
-        appointmentId: completeTarget.id,
+        schedulingItemId: completeTarget.id,
         hasIssues,
         issues,
         completionPhotos,
         completionReport,
         normalizedChecklist
       });
-      await updateDocById('appointments', completeTarget.id, payload);
-      await invalidateAppointments();
+      await updateDocById('service_orders', completeTarget.id, payload);
+      await invalidateScheduling();
       toast(t('scheduling.toastCompleted'), 'success');
       if (selected?.id === completeTarget.id) {
-        setSelected((prev) => applyCompletionToSelected(prev, completeTarget.id, payload));
+        setSelected((prev) => {
+          if (!prev || prev.id !== completeTarget.id) return prev;
+          return {
+            ...prev,
+            status: 'completado',
+            completedAt: payload.completedAt as string,
+            issues: payload.issues as SchedulingItem['issues'],
+            completionPhotos: payload.completionPhotos as SchedulingItem['completionPhotos'],
+            completionReport: payload.report as SchedulingItem['completionReport']
+          };
+        });
       }
       setCompleteTarget(null);
     } catch (error) {
@@ -700,8 +767,8 @@ export default function SchedulingPage() {
   const onCancel = async (values: LocalCancelValues) => {
     if (!cancelTarget) return;
     try {
-      await cancelAppointment(cancelTarget.id, values);
-      await invalidateAppointments();
+      await cancelSchedulingItem(cancelTarget.id, values);
+      await invalidateScheduling();
       toast(t('scheduling.toastCanceled'), 'success');
       setCancelTarget(null);
     } catch {
@@ -712,8 +779,8 @@ export default function SchedulingPage() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await deleteAppointment(deleteTarget.id);
-      await invalidateAppointments();
+      await deleteSchedulingItem(deleteTarget.id);
+      await invalidateScheduling();
       if (editingId === deleteTarget.id) {
         setModalOpen(false);
         setEditingId(null);
@@ -729,7 +796,7 @@ export default function SchedulingPage() {
     }
   };
 
-  const invalidateAppointments = () => queryClient.invalidateQueries({ queryKey: ['appointments'] });
+  const invalidateScheduling = () => queryClient.invalidateQueries({ queryKey: ['serviceOrders'] });
 
   const statusLabel = (status: string) => translateAppointmentStatus(status, t);
 
@@ -754,6 +821,28 @@ export default function SchedulingPage() {
     end.setDate(end.getDate() + 7);
     return { rangeStart: start.toISOString(), rangeEnd: end.toISOString() };
   };
+
+  const wizardSteps = [
+    { id: 1, title: editingId ? t('scheduling.wizardStepServiceContext') : t('scheduling.wizardStepCreateService') },
+    { id: 2, title: 'Agenda y asignación' },
+    { id: 3, title: editingId ? 'Revisar reprogramación' : 'Revisar creación' }
+  ] as const;
+
+  const nextWizardStep = async () => {
+    const fieldsByStep: Record<number, FormValues extends infer _ ? string[] : string[]> = {
+      1: ['buildingId', 'title', 'description', 'type'],
+      2: ['startAt', 'endAt', 'status', 'employeeId', 'recurrence'],
+      3: []
+    };
+    const fields = fieldsByStep[wizardStep] ?? [];
+    if (fields.length > 0) {
+      const valid = await trigger(fields as (keyof FormValues)[]);
+      if (!valid) return;
+    }
+    setWizardStep((prev) => (prev === 3 ? 3 : ((prev + 1) as 1 | 2 | 3)));
+  };
+
+  const prevWizardStep = () => setWizardStep((prev) => (prev === 1 ? 1 : ((prev - 1) as 1 | 2 | 3)));
 
   const handleGeneratePdf = async () => {
     if (!filters.buildingId) return;
@@ -977,7 +1066,7 @@ export default function SchedulingPage() {
                   }))
                 ]}
                 eventClick={(info) => {
-                  const appointment = appointments.find((item) => item.id === info.event.id);
+                  const appointment = schedulingItems.find((item) => item.id === info.event.id);
                   if (appointment) {
                     setSelected(appointment);
                   }
@@ -985,33 +1074,41 @@ export default function SchedulingPage() {
                 eventDrop={(info) => {
                   if (!canEdit) return;
                   if (!info.event.start || !info.event.end) return;
+                  const appointment = schedulingItems.find((item) => item.id === info.event.id);
                   const type = (info.event.extendedProps as { type?: string }).type;
-                  void moveAppointmentOnCalendar({
-                    appointmentId: info.event.id,
+                  void moveSchedulingItemOnCalendar({
+                    schedulingItemId: info.event.id,
                     start: info.event.start,
                     end: info.event.end,
                     type,
                     isRestrictedDate,
                     toast,
                     t,
-                    invalidateAppointments,
-                    revert: () => info.revert()
+                    invalidateScheduling,
+                    revert: () => info.revert(),
+                    buildingId: appointment?.buildingId ?? '',
+                    employeeId: appointment?.employeeId ?? null,
+                    schedulingItems
                   }).catch(() => toast(t('common.actionError'), 'error'));
                 }}
                 eventResize={(info) => {
                   if (!canEdit) return;
                   if (!info.event.start || !info.event.end) return;
+                  const appointment = schedulingItems.find((item) => item.id === info.event.id);
                   const type = (info.event.extendedProps as { type?: string }).type;
-                  void moveAppointmentOnCalendar({
-                    appointmentId: info.event.id,
+                  void moveSchedulingItemOnCalendar({
+                    schedulingItemId: info.event.id,
                     start: info.event.start,
                     end: info.event.end,
                     type,
                     isRestrictedDate,
                     toast,
                     t,
-                    invalidateAppointments,
-                    revert: () => info.revert()
+                    invalidateScheduling,
+                    revert: () => info.revert(),
+                    buildingId: appointment?.buildingId ?? '',
+                    employeeId: appointment?.employeeId ?? null,
+                    schedulingItems
                   }).catch(() => toast(t('common.actionError'), 'error'));
                 }}
               />
@@ -1063,6 +1160,16 @@ export default function SchedulingPage() {
                 {formatDateTime(selected.endAt)}
               </p>
               <p><span className="font-semibold text-ink-900">{t('scheduling.statusLabel')}:</span> {statusLabel(selected.status)}</p>
+              <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
+                <p className="font-semibold text-ink-900">{t('scheduling.legacyDependencyMapTitle')}</p>
+                <ul className="mt-2 space-y-1 text-xs text-ink-600">
+                  {legacyDependencySummary.map((dependency) => (
+                    <li key={dependency.key}>
+                      <span className="font-semibold text-ink-900">{dependency.area}:</span> {dependency.detail}
+                    </li>
+                  ))}
+                </ul>
+              </div>
               <p>
                 <span className="font-semibold text-ink-900">{t('scheduling.type')}:</span>{' '}
                 {selected.type ? t(`scheduling.types.${selected.type}`) : t('common.noData')}
@@ -1352,113 +1459,73 @@ export default function SchedulingPage() {
           onClose={() => setModalOpen(false)}
         >
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-            <div className="space-y-1 text-sm text-ink-700">
-              <label className="font-medium text-ink-800">
-                {t('scheduling.building')} <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  value={buildingSearch}
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    setBuildingSearch(value);
-                    setBuildingDropdownOpen(true);
-                    const match = buildings.find(
-                      (building) => building.name.toLowerCase() === value.trim().toLowerCase()
-                    );
-                    setValue('buildingId', match ? match.id : '', { shouldValidate: true });
-                  }}
-                  onFocus={() => setBuildingDropdownOpen(true)}
-                  onBlur={() => {
-                    setTimeout(() => setBuildingDropdownOpen(false), 100);
-                  }}
-                  placeholder={t('scheduling.searchBuilding')}
-                  className={[
-                    'w-full rounded-lg border bg-white px-3 py-2 text-sm text-ink-900 shadow-sm outline-none transition focus:border-ink-900',
-                    errors.buildingId ? 'border-red-400 focus:border-red-500' : 'border-fog-200'
-                  ].join(' ')}
-                />
-                {buildingDropdownOpen ? (
-                  <div className="absolute z-20 mt-2 w-full rounded-lg border border-fog-200 bg-white shadow-soft">
-                    <div className="max-h-[220px] overflow-y-auto py-1">
-                      {filteredBuildings.map((building) => (
-                        <button
-                          key={building.id}
-                          type="button"
-                          className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-ink-700 hover:bg-fog-100"
-                          onMouseDown={(event) => {
-                            event.preventDefault();
-                            setBuildingSearch(building.name);
-                            setValue('buildingId', building.id, { shouldValidate: true });
-                            setBuildingDropdownOpen(false);
-                          }}
-                        >
-                          {building.name}
-                        </button>
-                      ))}
-                      {!filteredBuildings.length ? (
-                        <div className="px-3 py-2 text-xs text-ink-500">{t('common.noResults')}</div>
-                      ) : null}
-                    </div>
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {wizardSteps.map((step) => (
+                  <div
+                    key={step.id}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${wizardStep === step.id ? 'bg-slate-950 text-white' : wizardStep > step.id ? 'bg-emerald-100 text-emerald-700' : 'bg-fog-100 text-ink-600'}`}
+                  >
+                    {step.id}. {step.title}
                   </div>
-                ) : null}
+                ))}
               </div>
-              {errors.buildingId ? <span className="text-xs text-red-500">{errors.buildingId.message}</span> : null}
-              <input type="hidden" {...register('buildingId')} />
+
+              {wizardStep === 1 ? (
+                <SchedulingWizardBasicsStep
+                  t={t}
+                  buildings={buildings}
+                  filteredBuildings={filteredBuildings}
+                  buildingSearch={buildingSearch}
+                  buildingDropdownOpen={buildingDropdownOpen}
+                  setBuildingSearch={setBuildingSearch}
+                  setBuildingDropdownOpen={setBuildingDropdownOpen}
+                  setValue={setValue}
+                  register={register}
+                  errors={errors}
+                  serviceTypes={serviceTypes}
+                />
+              ) : null}
+
+              {wizardStep === 2 ? (
+                <SchedulingWizardScheduleStep
+                  t={t}
+                  errors={errors}
+                  register={register}
+                  setValue={setValue}
+                  employees={employees}
+                  assignmentSuggestions={assignmentSuggestions}
+                  recurrenceOptions={recurrenceOptions}
+                  selectedType={selectedType}
+                />
+              ) : null}
+
+              {wizardStep === 3 ? (
+                <SchedulingWizardSummary
+                  buildingId={getValues('buildingId')}
+                  title={getValues('title')}
+                  type={getValues('type')}
+                  startAt={getValues('startAt')}
+                  endAt={getValues('endAt')}
+                  employeeId={getValues('employeeId')}
+                  recurrence={getValues('recurrence')}
+                  editingId={editingId}
+                  buildings={buildings}
+                  employees={employees}
+                />
+              ) : null}
             </div>
-            <Input label={t('scheduling.titleLabel')} error={errors.title?.message} required {...register('title')} />
-            <Input label={t('scheduling.description')} {...register('description')} />
-            <Input
-              label={t('scheduling.startAt')}
-              type="datetime-local"
-              error={errors.startAt?.message}
-              required
-              {...register('startAt')}
-            />
-            <Input
-              label={t('scheduling.endAt')}
-              type="datetime-local"
-              error={errors.endAt?.message}
-              required
-              {...register('endAt')}
-            />
-            <Select label={t('scheduling.status')} error={errors.status?.message} required {...register('status')}>
-              <option value="programado">{t('scheduling.statusProgrammed')}</option>
-              <option value="confirmado">{t('scheduling.statusConfirmed')}</option>
-              <option value="completado">{t('scheduling.statusCompleted')}</option>
-            </Select>
-            <Select label={t('scheduling.type')} error={errors.type?.message} required {...register('type')}>
-              <option value="">{t('common.select')}</option>
-              {appointmentTypeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {t(`scheduling.types.${option}`)}
-                </option>
-              ))}
-            </Select>
-            <Select label={t('scheduling.employee')} error={errors.employeeId?.message} {...register('employeeId')}>
-              <option value="">{t('common.unassigned')}</option>
-              {employees.map((employee) => (
-                <option key={employee.id} value={employee.id}>
-                  {employee.fullName}
-                </option>
-              ))}
-            </Select>
-            <Select
-              label={t('scheduling.recurrence')}
-              error={errors.recurrence?.message}
-              disabled={selectedType === 'emergencia'}
-              {...register('recurrence')}
-            >
-              <option value="">{t('scheduling.noRecurrence')}</option>
-              {recurrenceOptions.map((option) => (
-                <option key={option} value={option}>
-                  {t(`scheduling.recurrenceOptions.${option}`)}
-                </option>
-              ))}
-            </Select>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? t('scheduling.saving') : editingId ? t('scheduling.update') : t('scheduling.create')}
-            </Button>
+
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="secondary" onClick={prevWizardStep} disabled={wizardStep === 1} className="flex-1">{t('scheduling.wizardPrevious')}</Button>
+              {wizardStep < 3 ? (
+                <Button type="button" onClick={() => void nextWizardStep()} className="flex-1">{t('scheduling.wizardNext')}</Button>
+              ) : (
+                <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                  {isSubmitting ? t('scheduling.saving') : editingId ? t('scheduling.wizardSaveReschedule') : t('scheduling.wizardStepCreateService')}
+                </Button>
+              )}
+            </div>
           </form>
         </Modal>
       ) : null}

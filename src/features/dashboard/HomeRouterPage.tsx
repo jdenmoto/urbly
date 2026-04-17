@@ -9,7 +9,7 @@ export default function HomeRouterPage() {
     return <Navigate to="/technician" replace />;
   }
 
-  if (role === 'building_admin') {
+  if (role === 'building_admin' || role === 'client') {
     return <Navigate to="/portal" replace />;
   }
 

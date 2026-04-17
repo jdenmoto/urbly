@@ -9,6 +9,8 @@ import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from './serviceOrderAi';
+import { buildServiceSuggestions } from './serviceSuggestions';
+import { getServiceDailyProgress } from './serviceProgress';
 import {
   formatServiceDateTime,
   getIssueCategoryLabel,
@@ -45,8 +47,10 @@ export default function ServiceDetailPage() {
   const technician = employees.find((item) => item.id === serviceOrder?.assignedTechnicianId);
   const management = managements.find((item) => item.id === building?.managementCompanyId);
   const aiSummary = serviceOrder ? buildServiceSummary(serviceOrder, t) : '';
+  const dailyProgress = serviceOrder ? getServiceDailyProgress(serviceOrder) : [];
   const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder) : '';
+  const aiSuggestions = serviceOrder ? buildServiceSuggestions(serviceOrder, t) : [];
 
   if (!serviceOrder) {
     return <EmptyState title={t('services.detailTitle')} description={t('services.detailEmpty')} />;
@@ -155,6 +159,54 @@ export default function ServiceDetailPage() {
           </Card>
         </div>
       </div>
+
+
+      <Card className="space-y-4 p-6">
+        <div>
+          <h2 className="text-lg font-semibold text-ink-900">Avances diarios</h2>
+          <p className="text-sm text-ink-600">Seguimiento operativo para servicios largos en ejecución.</p>
+        </div>
+        {dailyProgress.length ? (
+          <div className="space-y-3">
+            {dailyProgress.map((entry, index) => (
+              <div key={`${entry.date}-${index}`} className="rounded-2xl border border-fog-200 bg-fog-50 p-4">
+                <div className="flex flex-wrap gap-2 text-xs text-ink-500">
+                  <span>{entry.date}</span>
+                  {entry.percentComplete != null ? <span>{entry.percentComplete}% completado</span> : null}
+                  {entry.hoursWorked != null ? <span>{entry.hoursWorked}h trabajadas</span> : null}
+                </div>
+                <p className="mt-2 text-sm text-ink-700">{entry.summary}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState title="Sin avances diarios" description="Este servicio aún no registra seguimiento diario." />
+        )}
+      </Card>
+
+
+      <Card className="space-y-6 p-6">
+        <div>
+          <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">IA trace</div>
+          <h2 className="mt-3 text-xl font-semibold text-ink-900">Suggestions y trazabilidad</h2>
+          <p className="text-sm leading-6 text-ink-600">Salida sugerida por IA con contexto y metadata de generación.</p>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-3 text-sm text-ink-700">
+          {aiSuggestions.map((item) => (
+            <div key={item.id} className="rounded-3xl border border-fog-200 bg-white p-5">
+              <p className="font-semibold text-ink-900">{item.type}</p>
+              <p className="mt-3 whitespace-pre-wrap leading-6">{item.content}</p>
+              <div className="mt-4 rounded-2xl bg-fog-50 p-3 text-xs text-ink-500">
+                <p>Módulo: {item.trace.module}</p>
+                <p>Rol: {item.trace.roleScope ?? 'n/a'}</p>
+                <p>Generado: {item.trace.generatedAt}</p>
+                <p>Input: {item.trace.inputSummary}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <Card className="space-y-6 p-6">
         <div>

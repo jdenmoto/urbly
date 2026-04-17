@@ -1,18 +1,14 @@
-import { deleteDocById, updateDocById } from '@/lib/api/firestore';
+import { cancelServiceOrder, deleteServiceOrder } from '@/lib/api/serviceOrders';
 
 export type CancelValues = {
   reason?: string;
   note?: string;
 };
 
-export async function cancelAppointment(appointmentId: string, values: CancelValues) {
-  await updateDocById('appointments', appointmentId, {
-    status: 'cancelado',
-    cancelReason: values.reason || null,
-    cancelNote: values.note?.trim() || null
-  });
+export async function cancelSchedulingItem(schedulingItemId: string, values: CancelValues) {
+  await cancelServiceOrder(schedulingItemId, values);
 }
 
-export async function deleteAppointment(appointmentId: string) {
-  await deleteDocById('appointments', appointmentId);
+export async function deleteSchedulingItem(schedulingItemId: string) {
+  await deleteServiceOrder(schedulingItemId);
 }

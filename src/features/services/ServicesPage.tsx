@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react';
+import { updateDocById } from '@/lib/api/firestore';
+import Modal from '@/components/Modal';
+import Button from '@/components/Button';
 import { Link } from 'react-router-dom';
 import EmptyState from '@/components/EmptyState';
 import Input from '@/components/Input';
@@ -6,6 +9,7 @@ import PageHeader from '@/components/PageHeader';
 import Select from '@/components/Select';
 import { GlassPanel, MetricCard, SectionHeader, StatusPill } from '@/components/premium';
 import { useList, useServiceOrders } from '@/lib/api/queries';
+import { buildDailyProgressEvent, getServiceDailyProgress } from './serviceProgress';
 import { useI18n } from '@/lib/i18n';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
@@ -31,6 +35,11 @@ export default function ServicesPage() {
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const [filters, setFilters] = useState({ buildingId: '', from: '', to: '', status: '' });
+  const [progressTarget, setProgressTarget] = useState<(typeof serviceOrders)[number] | null>(null);
+  const [progressDate, setProgressDate] = useState(new Date().toISOString().slice(0, 10));
+  const [progressSummary, setProgressSummary] = useState('');
+  const [progressPercent, setProgressPercent] = useState('');
+  const [progressHours, setProgressHours] = useState('');
 
   const summary = useMemo(() => {
     const scheduled = serviceOrders.filter((item) => item.status === 'scheduled' || item.status === 'confirmed').length;
@@ -60,6 +69,24 @@ export default function ServicesPage() {
   );
 
   const statusLabel = (value: string) => getServiceOrderStatusLabel(t, value as Parameters<typeof getServiceOrderStatusLabel>[1]);
+
+  const saveDailyProgress = async () => {
+    if (!progressTarget || !progressSummary.trim()) return;
+    const nextTimeline = [...(progressTarget.timeline ?? []), buildDailyProgressEvent({
+      date: progressDate,
+      summary: progressSummary,
+      percentComplete: progressPercent ? Number(progressPercent) : null,
+      hoursWorked: progressHours ? Number(progressHours) : null
+    })];
+    await updateDocById('service_orders', progressTarget.id, {
+      status: progressTarget.status === 'scheduled' || progressTarget.status === 'confirmed' ? 'in_progress' : progressTarget.status,
+      timeline: nextTimeline
+    });
+    setProgressTarget(null);
+    setProgressSummary('');
+    setProgressPercent('');
+    setProgressHours('');
+  };
 
   return (
     <div className="space-y-8">
@@ -151,6 +178,7 @@ export default function ServicesPage() {
                       <div className="rounded-2xl bg-slate-50 p-3">
                         <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
                         <p className="mt-1 font-semibold text-ink-900">{order.issues?.length ?? 0}</p>
+                        <p className="mt-1 text-xs text-ink-500">{getServiceDailyProgress(order).length} avances diarios</p>
                       </div>
                     </div>
                   </div>
@@ -162,6 +190,12 @@ export default function ServicesPage() {
                     >
                       {t('services.viewDetail')}
                     </Link>
+                    <button
+                      className="inline-flex items-center rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
+                      onClick={() => setProgressTarget(order)}
+                    >
+                      Registrar avance diario
+                    </button>
                     <Link
                       className="inline-flex items-center rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
                       to={`/services/${order.id}/closeout`}
@@ -175,6 +209,15 @@ export default function ServicesPage() {
           </div>
         )}
       </GlassPanel>
+      <Modal open={Boolean(progressTarget)} title="Registrar avance diario" onClose={() => setProgressTarget(null)}>
+        <div className="space-y-4">
+          <Input type="date" value={progressDate} onChange={(event) => setProgressDate(event.target.value)} />
+          <Input label="% completado" type="number" value={progressPercent} onChange={(event) => setProgressPercent(event.target.value)} />
+          <Input label="Horas trabajadas" type="number" value={progressHours} onChange={(event) => setProgressHours(event.target.value)} />
+          <Input label="Resumen del avance" value={progressSummary} onChange={(event) => setProgressSummary(event.target.value)} />
+          <Button onClick={() => void saveDailyProgress()} className="w-full">Guardar avance</Button>
+        </div>
+      </Modal>
     </div>
   );
 }

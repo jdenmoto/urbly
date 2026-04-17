@@ -15,12 +15,14 @@ const BuildingAdminPage = lazy(() => import('@/features/buildingAdmin/BuildingAd
 const ServicesPage = lazy(() => import('@/features/services/ServicesPage'));
 const ServiceDetailPage = lazy(() => import('@/features/services/ServiceDetailPage'));
 const ServiceCloseoutPage = lazy(() => import('@/features/services/ServiceCloseoutPage'));
+const ServiceReportPrintPage = lazy(() => import('@/features/services/ServiceReportPrintPage'));
 const CustomersPage = lazy(() => import('@/features/customers/CustomersPage'));
 const AssetsPage = lazy(() => import('@/features/assets/AssetsPage'));
 const ReportsPage = lazy(() => import('@/features/reports/ReportsPage'));
 const AiWorkspacePage = lazy(() => import('@/features/ai/AiWorkspacePage'));
 const TechnicianHomePage = lazy(() => import('@/features/technician/TechnicianHomePage'));
 const ClientSummaryPage = lazy(() => import('@/features/portal/ClientSummaryPage'));
+const ClientSecurePortalPage = lazy(() => import('@/features/portal/ClientSecurePortalPage'));
 const GroupsSettingsPage = lazy(() => import('@/features/settings/GroupsSettingsPage'));
 const IssuesSettingsPage = lazy(() => import('@/features/settings/IssuesSettingsPage'));
 const ContractsSettingsPage = lazy(() => import('@/features/settings/ContractsSettingsPage'));
@@ -28,6 +30,9 @@ const LabsSettingsPage = lazy(() => import('@/features/settings/LabsSettingsPage
 const CalendarSettingsPage = lazy(() => import('@/features/settings/CalendarSettingsPage'));
 const CalendarHolidaysPage = lazy(() => import('@/features/settings/CalendarHolidaysPage'));
 const CalendarNonWorkingPage = lazy(() => import('@/features/settings/CalendarNonWorkingPage'));
+const ServiceTypesSettingsPage = lazy(() => import('@/features/settings/ServiceTypesSettingsPage'));
+const TenantAutomationSettingsPage = lazy(() => import('@/features/settings/TenantAutomationSettingsPage'));
+const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage'));
 
 function RouteLoader() {
   return <div className="p-8 text-sm text-ink-600">Cargando modulo...</div>;
@@ -50,7 +55,7 @@ export default function App() {
           <Route
             index
             element={
-              <RoleGuard allow={['admin', 'editor', 'view']}>
+              <RoleGuard allow={['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria']}>
                 <FeatureGuard feature="dashboard">
                   <HomeRouterPage />
                 </FeatureGuard>
@@ -70,7 +75,7 @@ export default function App() {
           <Route
             path="services"
             element={
-              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler']}>
+              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria']}>
                 <FeatureGuard feature="services">
                   <ServicesPage />
                 </FeatureGuard>
@@ -80,7 +85,7 @@ export default function App() {
           <Route
             path="services/:serviceOrderId"
             element={
-              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler']}>
+              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria']}>
                 <FeatureGuard feature="services">
                   <ServiceDetailPage />
                 </FeatureGuard>
@@ -88,9 +93,19 @@ export default function App() {
             }
           />
           <Route
+            path="services/:serviceOrderId/print"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria']}>
+                <FeatureGuard feature="services">
+                  <ServiceReportPrintPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
             path="services/:serviceOrderId/closeout"
             element={
-              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler']}>
+              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria']}>
                 <FeatureGuard feature="services">
                   <ServiceCloseoutPage />
                 </FeatureGuard>
@@ -149,18 +164,20 @@ export default function App() {
           />
           <Route
             path="scheduling"
+            element={<Navigate to="/services" replace />}
+          />
+          <Route
+            path="notifications"
             element={
-              <RoleGuard allow={['admin', 'editor']}>
-                <FeatureGuard feature="scheduling">
-                  <SchedulingPage />
-                </FeatureGuard>
+              <RoleGuard allow={['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria']}>
+                <NotificationsPage />
               </RoleGuard>
             }
           />
           <Route
             path="reports"
             element={
-              <RoleGuard allow={['admin', 'editor', 'view']}>
+              <RoleGuard allow={['admin', 'editor', 'view', 'supervisor', 'auditoria']}>
                 <FeatureGuard feature="reports">
                   <ReportsPage />
                 </FeatureGuard>
@@ -170,7 +187,7 @@ export default function App() {
           <Route
             path="ai"
             element={
-              <RoleGuard allow={['admin', 'editor', 'view']}>
+              <RoleGuard allow={['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria']}>
                 <FeatureGuard feature="aiWorkspace">
                   <AiWorkspacePage />
                 </FeatureGuard>
@@ -187,7 +204,8 @@ export default function App() {
               </RoleGuard>
             }
           />
-          <Route
+          <Route path="portal/access" element={<ClientSecurePortalPage />} />
+        <Route
             path="portal"
             element={
               <RoleGuard allow={['building_admin']}>
@@ -239,6 +257,26 @@ export default function App() {
               <RoleGuard allow={['admin']}>
                 <FeatureGuard feature="settings">
                   <IssuesSettingsPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="settings/service-types"
+            element={
+              <RoleGuard allow={['admin']}>
+                <FeatureGuard feature="settings">
+                  <ServiceTypesSettingsPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="settings/automation"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'building_admin', 'client', 'supervisor']}>
+                <FeatureGuard feature="settings">
+                  <TenantAutomationSettingsPage />
                 </FeatureGuard>
               </RoleGuard>
             }
