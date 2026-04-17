@@ -21,6 +21,7 @@ const ReportsPage = lazy(() => import('@/features/reports/ReportsPage'));
 const AiWorkspacePage = lazy(() => import('@/features/ai/AiWorkspacePage'));
 const TechnicianHomePage = lazy(() => import('@/features/technician/TechnicianHomePage'));
 const ClientSummaryPage = lazy(() => import('@/features/portal/ClientSummaryPage'));
+const ClientSecurePortalPage = lazy(() => import('@/features/portal/ClientSecurePortalPage'));
 const GroupsSettingsPage = lazy(() => import('@/features/settings/GroupsSettingsPage'));
 const IssuesSettingsPage = lazy(() => import('@/features/settings/IssuesSettingsPage'));
 const ContractsSettingsPage = lazy(() => import('@/features/settings/ContractsSettingsPage'));
@@ -189,7 +190,8 @@ export default function App() {
               </RoleGuard>
             }
           />
-          <Route
+          <Route path="portal/access" element={<ClientSecurePortalPage />} />
+        <Route
             path="portal"
             element={
               <RoleGuard allow={['building_admin']}>
