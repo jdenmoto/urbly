@@ -535,7 +535,7 @@ export default function SchedulingPage() {
         return;
       }
       if (editingId && !values.recurrence) {
-        await saveAppointment({ values: values as SchedulingFormValues, editingId, appointments });
+        await saveAppointment({ values: values as SchedulingFormValues, editingId, serviceOrders });
       } else if (values.recurrence) {
         await createRecurringSeries({
           values: values as SchedulingFormValues,
@@ -549,7 +549,7 @@ export default function SchedulingPage() {
           isRestrictedDate
         });
       } else {
-        await saveAppointment({ values: values as SchedulingFormValues, editingId: null, appointments });
+        await saveAppointment({ values: values as SchedulingFormValues, editingId: null, serviceOrders });
       }
       await invalidateScheduling();
       reset();
@@ -567,12 +567,12 @@ export default function SchedulingPage() {
       setSeriesConfirmOpen(false);
       return;
     }
-    const current = appointments.find((item) => item.id === editingId) ?? null;
+    const current = schedulingItems.find((item) => item.id === editingId) ?? null;
     try {
       await regenerateSeries({
         values: pendingSeriesValues as SchedulingFormValues,
         current,
-        appointments,
+        serviceOrders,
         buildings,
         contracts,
         alignToContractStart,

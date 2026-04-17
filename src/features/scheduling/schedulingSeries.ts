@@ -1,5 +1,4 @@
 import { addDays, addMonths, isAfter } from 'date-fns';
-import type { Appointment } from '@/core/models/appointment';
 import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { ServiceOrder } from '@/core/models/serviceOrder';
@@ -8,6 +7,7 @@ import { buildServiceOrderPayload, saveServiceOrder } from '@/lib/api/serviceOrd
 import { formatLocalIso, toLocalIso } from './schedulingUtils';
 import { validateSchedulingRules } from './schedulingRules';
 import { buildSchedulingItemsForValidation } from './schedulingSelectors';
+import type { SchedulingItem } from './schedulingItem';
 
 export type SchedulingFormValues = {
   buildingId: string;
@@ -38,8 +38,8 @@ export function buildAppointmentPayload(values: SchedulingFormValues) {
 
 export async function regenerateSeries(args: {
   values: SchedulingFormValues;
-  current: Appointment | null;
-  appointments: Appointment[];
+  current: SchedulingItem | null;
+  appointments?: never[];
   serviceOrders?: ServiceOrder[];
   buildings: Building[];
   contracts: Contract[];
@@ -50,16 +50,14 @@ export async function regenerateSeries(args: {
   t: (key: string) => string;
   isRestrictedDate: (value?: string) => boolean;
 }) {
-  const { values, current, appointments, serviceOrders = [], buildings, contracts, alignToContractStart, nextWorkingDate, setError, toast, t, isRestrictedDate } = args;
+  const { values, current, serviceOrders = [], buildings, contracts, alignToContractStart, nextWorkingDate, setError, toast, t, isRestrictedDate } = args;
   const seriesId = current?.seriesId ?? (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
-  const relatedLegacy = appointments.filter((item) => item.seriesId === seriesId);
   const relatedOrders = serviceOrders.filter((item) => (item as ServiceOrder & { seriesId?: string | null }).seriesId === seriesId);
-  if (relatedLegacy.length) {
-    await Promise.all(relatedLegacy.map((item) => deleteDocById('appointments', item.id)));
-  }
   if (relatedOrders.length) {
     await Promise.all(relatedOrders.map((item) => deleteDocById('service_orders', item.id)));
-  } else if (current) {
+  } else if (current?.source === 'service_order') {
+    await deleteDocById('service_orders', current.id);
+  } else if (current?.source === 'appointment') {
     await deleteDocById('appointments', current.id);
   }
 
@@ -113,7 +111,7 @@ export async function regenerateSeries(args: {
     if (!isAfter(scheduledStart, contractEnd)) {
       const end = new Date(scheduledStart.getTime() + durationMs);
       const schedulingItems = buildSchedulingItemsForValidation({
-        appointments,
+        appointments: [],
         serviceOrders
       });
       const violation = validateSchedulingRules({
@@ -154,7 +152,7 @@ export async function regenerateSeries(args: {
 export async function saveAppointment(args: {
   values: SchedulingFormValues;
   editingId: string | null;
-  appointments: Appointment[];
+  appointments?: never[];
   serviceOrders?: ServiceOrder[];
 }) {
   const { values, editingId, serviceOrders = [] } = args;
@@ -191,6 +189,5 @@ export async function createRecurringSeries(args: {
   await regenerateSeries({
     ...args,
     current: null,
-    appointments: []
   });
 }
