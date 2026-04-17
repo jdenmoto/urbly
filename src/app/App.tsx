@@ -15,6 +15,7 @@ const BuildingAdminPage = lazy(() => import('@/features/buildingAdmin/BuildingAd
 const ServicesPage = lazy(() => import('@/features/services/ServicesPage'));
 const ServiceDetailPage = lazy(() => import('@/features/services/ServiceDetailPage'));
 const ServiceCloseoutPage = lazy(() => import('@/features/services/ServiceCloseoutPage'));
+const ServiceReportPrintPage = lazy(() => import('@/features/services/ServiceReportPrintPage'));
 const CustomersPage = lazy(() => import('@/features/customers/CustomersPage'));
 const AssetsPage = lazy(() => import('@/features/assets/AssetsPage'));
 const ReportsPage = lazy(() => import('@/features/reports/ReportsPage'));
@@ -86,6 +87,16 @@ export default function App() {
               <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria']}>
                 <FeatureGuard feature="services">
                   <ServiceDetailPage />
+                </FeatureGuard>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="services/:serviceOrderId/print"
+            element={
+              <RoleGuard allow={['admin', 'editor', 'view', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria']}>
+                <FeatureGuard feature="services">
+                  <ServiceReportPrintPage />
                 </FeatureGuard>
               </RoleGuard>
             }

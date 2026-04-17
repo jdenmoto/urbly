@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { updateDocById } from '@/lib/api/firestore';
 import { useAuth } from '@/app/Auth';
 import Input from '@/components/Input';
@@ -154,6 +155,9 @@ export default function ServiceCloseoutPage() {
             <Button variant="secondary" onClick={() => void handleDownloadReport()} disabled={pdfLoading}>
               {pdfLoading ? 'Generando PDF...' : 'Descargar reporte técnico'}
             </Button>
+            <Link to={`/services/${serviceOrder.id}/print`} className="inline-flex items-center rounded-full border border-fog-200 px-4 py-2 text-sm font-semibold text-ink-700 transition hover:bg-fog-50">
+              Vista imprimible
+            </Link>
             <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
               <p className="font-semibold text-ink-900">{getServiceOrderStatusLabel(t, serviceOrder.status)}</p>
               <p>{t('services.closeoutStatusHint')}</p>
