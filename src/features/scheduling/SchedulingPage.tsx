@@ -54,7 +54,8 @@ import {
 import { cancelAppointment, deleteAppointment, type CancelValues } from './schedulingMutations';
 import { createRecurringSeries, regenerateSeries, saveAppointment, type SchedulingFormValues } from './schedulingSeries';
 import { moveAppointmentOnCalendar } from './schedulingCalendarMutations';
-import { mapAppointmentToSchedulingItem, mapServiceOrderToSchedulingItem, type SchedulingItem } from './schedulingItem';
+import { type SchedulingItem } from './schedulingItem';
+import { buildCanonicalSchedulingItems } from './schedulingSelectors';
 import { validateSchedulingRules } from './schedulingRules';
 import { schedulingLegacyDependencies } from './schedulingLegacyMap';
 import { buildAssignmentSuggestions } from './assignmentSuggestions';
@@ -314,10 +315,10 @@ export default function SchedulingPage() {
     reset: resetCancel
   } = useForm<LocalCancelValues>({ resolver: zodResolver(cancelSchema) });
 
-  const schedulingItems = useMemo(() => {
-    if (serviceOrders.length > 0) return serviceOrders.map(mapServiceOrderToSchedulingItem);
-    return appointments.map(mapAppointmentToSchedulingItem);
-  }, [serviceOrders, appointments]);
+  const schedulingItems = useMemo(() => buildCanonicalSchedulingItems({
+    appointments,
+    serviceOrders
+  }), [appointments, serviceOrders]);
 
   const filtered = useMemo(() => filterAppointments(schedulingItems, filters), [schedulingItems, filters]);
 

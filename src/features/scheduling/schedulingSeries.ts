@@ -7,7 +7,7 @@ import { createDoc, deleteDocById } from '@/lib/api/firestore';
 import { buildServiceOrderPayload, saveServiceOrder } from '@/lib/api/serviceOrders';
 import { formatLocalIso, toLocalIso } from './schedulingUtils';
 import { validateSchedulingRules } from './schedulingRules';
-import { mapAppointmentToSchedulingItem, mapServiceOrderToSchedulingItem } from './schedulingItem';
+import { buildSchedulingItemsForValidation } from './schedulingSelectors';
 
 export type SchedulingFormValues = {
   buildingId: string;
@@ -112,10 +112,10 @@ export async function regenerateSeries(args: {
     const scheduledStart = nextWorkingDate(cursor);
     if (!isAfter(scheduledStart, contractEnd)) {
       const end = new Date(scheduledStart.getTime() + durationMs);
-      const schedulingItems = [
-        ...appointments.map(mapAppointmentToSchedulingItem),
-        ...serviceOrders.map(mapServiceOrderToSchedulingItem)
-      ];
+      const schedulingItems = buildSchedulingItemsForValidation({
+        appointments,
+        serviceOrders
+      });
       const violation = validateSchedulingRules({
         schedulingItems,
         buildingId: values.buildingId,
