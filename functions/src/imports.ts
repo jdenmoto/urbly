@@ -3,6 +3,7 @@ import { logger } from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
 import { db, FieldValue } from './admin';
 import { parseImportWorkbook } from './importParser';
+import { validateImportRows } from './importValidation';
 
 type ImportRow = {
   building_name?: string;
@@ -75,6 +76,16 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
   }
   const rows = parsed.rows as ImportRow[];
   logger.info('Import rows parsed', { count: rows.length });
+
+  const validation = validateImportRows({ headers: parsed.headers, rows: parsed.rows });
+  if (validation.invalidRows > 0) {
+    logger.warn('Import validation failed', { invalidRows: validation.invalidRows, entity: validation.entity });
+    return {
+      created: 0,
+      failed: validation.invalidRows,
+      errors: validation.issues
+    };
+  }
 
   const managementSnapshot = await db.collection('management_companies').get();
   const managementByName = new Map<string, string>();
