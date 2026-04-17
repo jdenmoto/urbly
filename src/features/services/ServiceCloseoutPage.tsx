@@ -6,6 +6,7 @@ import { createInternalNotification } from '@/lib/internalNotifications';
 import { useAuth } from '@/app/Auth';
 import Input from '@/components/Input';
 import { uploadServiceAttachments } from './serviceAttachments';
+import { analyzeReportQuality } from './reportQuality';
 import { useParams } from 'react-router-dom';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
@@ -43,6 +44,7 @@ export default function ServiceCloseoutPage() {
   const aiReport = serviceOrder ? buildTechnicalReport(serviceOrder, t) : '';
   const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder, t) : '';
+  const qualityAnalysis = serviceOrder ? analyzeReportQuality(serviceOrder) : null;
 
 
 
@@ -335,6 +337,29 @@ export default function ServiceCloseoutPage() {
             <p className="text-sm text-ink-500">Sin adjuntos todavía.</p>
           )}
         </div>
+
+
+      <Card className="space-y-6 p-6">
+        <div>
+          <div className="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">Calidad IA</div>
+          <h2 className="mt-3 text-xl font-semibold text-ink-900">Calidad del reporte y hallazgos críticos</h2>
+          <p className="text-sm leading-6 text-ink-600">Evaluación base para detectar faltantes y riesgos en el cierre técnico.</p>
+        </div>
+
+        <div className="rounded-3xl border border-fog-200 bg-white p-5">
+          <p className="text-sm font-semibold text-ink-900">Score de calidad</p>
+          <p className="mt-2 text-3xl font-bold text-ink-900">{qualityAnalysis?.score ?? 0}/100</p>
+        </div>
+
+        <div className="space-y-3">
+          {qualityAnalysis?.findings.map((finding, index) => (
+            <div key={`${finding.message}-${index}`} className="rounded-2xl border border-fog-200 bg-fog-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">{finding.severity}</p>
+              <p className="mt-2 text-sm text-ink-800">{finding.message}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <Card className="space-y-6 p-6">
         <div>
