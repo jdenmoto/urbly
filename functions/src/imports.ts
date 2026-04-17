@@ -60,6 +60,7 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
 
   const downloadUrl = data?.downloadUrl as string | undefined;
   const fileName = data?.fileName as string | undefined;
+  const dryRun = Boolean(data?.dryRun);
   if (!downloadUrl || !fileName) {
     throw new HttpsError('invalid-argument', 'Archivo invalido.');
   }
@@ -83,7 +84,20 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
     return {
       created: 0,
       failed: validation.invalidRows,
-      errors: validation.issues
+      errors: validation.issues,
+      entity: validation.entity,
+      dryRun
+    };
+  }
+
+  if (dryRun) {
+    return {
+      created: 0,
+      failed: 0,
+      errors: [],
+      entity: validation.entity,
+      dryRun: true,
+      previewCount: rows.length
     };
   }
 
@@ -149,6 +163,8 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
   return {
     created,
     failed: errors.length,
-    errors
+    errors,
+    entity: validation.entity,
+    dryRun: false
   };
 });

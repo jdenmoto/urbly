@@ -7,14 +7,17 @@ export type ImportResult = {
   created: number;
   failed: number;
   errors: Array<{ row: number; message: string }>;
+  entity?: string;
+  dryRun?: boolean;
+  previewCount?: number;
 };
 
-export async function importBuildingsFile(file: File) {
+export async function importBuildingsFile(file: File, options?: { dryRun?: boolean }) {
   const storageRef = ref(storage, `imports/${Date.now()}-${file.name}`);
   await uploadBytes(storageRef, file);
   const downloadUrl = await getDownloadURL(storageRef);
   const callable = httpsCallable(functions, 'importBuildings');
-  const response = await callable({ downloadUrl, fileName: file.name });
+  const response = await callable({ downloadUrl, fileName: file.name, dryRun: options?.dryRun ?? false });
   return response.data as ImportResult;
 }
 
