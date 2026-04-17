@@ -21,7 +21,6 @@ import DataTable from '@/components/DataTable';
 import EmptyState from '@/components/EmptyState';
 import useBreakpoint from '@/components/useBreakpoint';
 import Modal from '@/components/Modal';
-import type { Appointment } from '@/core/models/appointment';
 import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { Employee } from '@/core/models/employee';
@@ -74,7 +73,6 @@ export default function SchedulingPage() {
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: contracts = [] } = useList<Contract>('contracts', 'contracts');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
-  const { data: appointments = [] } = useList<Appointment>('appointments', 'appointments');
   const { data: serviceOrders = [] } = useTenantServiceOrders(administrationId, role);
   const { data: issueSettings } = useQuery({
     queryKey: ['issueSettings'],
@@ -319,9 +317,9 @@ export default function SchedulingPage() {
   } = useForm<LocalCancelValues>({ resolver: zodResolver(cancelSchema) });
 
   const schedulingItems = useMemo(() => buildCanonicalSchedulingItems({
-    appointments,
+    appointments: [],
     serviceOrders
-  }), [appointments, serviceOrders]);
+  }), [serviceOrders]);
 
   const filtered = useMemo(() => filterAppointments(schedulingItems, filters), [schedulingItems, filters]);
 
@@ -798,10 +796,7 @@ export default function SchedulingPage() {
     }
   };
 
-  const invalidateScheduling = () => Promise.all([
-    queryClient.invalidateQueries({ queryKey: ['appointments'] }),
-    queryClient.invalidateQueries({ queryKey: ['serviceOrders'] })
-  ]);
+  const invalidateScheduling = () => queryClient.invalidateQueries({ queryKey: ['serviceOrders'] });
 
   const statusLabel = (status: string) => translateAppointmentStatus(status, t);
 
