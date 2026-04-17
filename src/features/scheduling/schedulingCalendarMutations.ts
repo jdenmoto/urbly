@@ -1,8 +1,12 @@
 import { moveServiceOrderOnCalendar } from '@/lib/api/serviceOrders';
-import { formatLocalIso, isWithinBusinessHours } from './schedulingUtils';
+import { formatLocalIso } from './schedulingUtils';
+import { validateSchedulingRules } from './schedulingRules';
 
 export async function moveAppointmentOnCalendar(args: {
   appointmentId: string;
+  buildingId: string;
+  employeeId?: string | null;
+  schedulingItems: import('./schedulingItem').SchedulingItem[];
   start: Date;
   end: Date;
   type?: string;
@@ -14,18 +18,20 @@ export async function moveAppointmentOnCalendar(args: {
 }) {
   const { appointmentId, start, end, type, isRestrictedDate, toast, t, invalidateAppointments, revert } = args;
 
-  if (type !== 'emergencia') {
-    const startIso = formatLocalIso(start);
-    const endIso = formatLocalIso(end);
-    if (!isWithinBusinessHours(startIso, endIso)) {
-      toast(t('scheduling.businessHoursToast'), 'error');
-      revert();
-      return;
-    }
-  }
-
-  if ((isRestrictedDate(formatLocalIso(start)) || isRestrictedDate(formatLocalIso(end))) && type !== 'emergencia') {
-    toast(t('scheduling.dateBlocked'), 'error');
+  const startIso = formatLocalIso(start);
+  const endIso = formatLocalIso(end);
+  const violation = validateSchedulingRules({
+    schedulingItems: args.schedulingItems,
+    buildingId: args.buildingId,
+    employeeId: args.employeeId ?? null,
+    startIso,
+    endIso,
+    type,
+    editingId: appointmentId,
+    isRestrictedDate
+  });
+  if (violation) {
+    toast(violation.message, 'error');
     revert();
     return;
   }

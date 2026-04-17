@@ -6,6 +6,8 @@ import type { ServiceOrder } from '@/core/models/serviceOrder';
 import { createDoc, deleteDocById } from '@/lib/api/firestore';
 import { buildServiceOrderPayload, saveServiceOrder } from '@/lib/api/serviceOrders';
 import { formatLocalIso, toLocalIso } from './schedulingUtils';
+import { validateSchedulingRules } from './schedulingRules';
+import { mapAppointmentToSchedulingItem, mapServiceOrderToSchedulingItem } from './schedulingItem';
 
 export type SchedulingFormValues = {
   buildingId: string;
@@ -46,8 +48,9 @@ export async function regenerateSeries(args: {
   setError: (field: 'endAt', error: { message: string }) => void;
   toast: (message: string, tone?: 'success' | 'error') => void;
   t: (key: string) => string;
+  isRestrictedDate: (value?: string) => boolean;
 }) {
-  const { values, current, appointments, serviceOrders = [], buildings, contracts, alignToContractStart, nextWorkingDate, setError, toast, t } = args;
+  const { values, current, appointments, serviceOrders = [], buildings, contracts, alignToContractStart, nextWorkingDate, setError, toast, t, isRestrictedDate } = args;
   const seriesId = current?.seriesId ?? (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
   const relatedLegacy = appointments.filter((item) => item.seriesId === seriesId);
   const relatedOrders = serviceOrders.filter((item) => (item as ServiceOrder & { seriesId?: string | null }).seriesId === seriesId);
@@ -109,6 +112,23 @@ export async function regenerateSeries(args: {
     const scheduledStart = nextWorkingDate(cursor);
     if (!isAfter(scheduledStart, contractEnd)) {
       const end = new Date(scheduledStart.getTime() + durationMs);
+      const schedulingItems = [
+        ...appointments.map(mapAppointmentToSchedulingItem),
+        ...serviceOrders.map(mapServiceOrderToSchedulingItem)
+      ];
+      const violation = validateSchedulingRules({
+        schedulingItems,
+        buildingId: values.buildingId,
+        employeeId: values.employeeId || null,
+        startIso: formatLocalIso(scheduledStart),
+        endIso: formatLocalIso(end),
+        type: values.type,
+        isRestrictedDate
+      });
+      if (violation) {
+        cursor = nextDate(cursor);
+        continue;
+      }
       tasks.push(
         createDoc('service_orders', {
           ...buildServiceOrderPayload({
@@ -166,6 +186,7 @@ export async function createRecurringSeries(args: {
   toast: (message: string, tone?: 'success' | 'error') => void;
   t: (key: string) => string;
   serviceOrders?: ServiceOrder[];
+  isRestrictedDate: (value?: string) => boolean;
 }) {
   await regenerateSeries({
     ...args,

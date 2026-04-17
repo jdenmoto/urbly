@@ -55,6 +55,7 @@ import { cancelAppointment, deleteAppointment, type CancelValues } from './sched
 import { createRecurringSeries, regenerateSeries, saveAppointment, type SchedulingFormValues } from './schedulingSeries';
 import { moveAppointmentOnCalendar } from './schedulingCalendarMutations';
 import { mapAppointmentToSchedulingItem, mapServiceOrderToSchedulingItem, type SchedulingItem } from './schedulingItem';
+import { validateSchedulingRules } from './schedulingRules';
 
 export default function SchedulingPage() {
   const { t } = useI18n();
@@ -497,6 +498,21 @@ export default function SchedulingPage() {
       return;
     }
     try {
+      const ruleViolation = validateSchedulingRules({
+        schedulingItems,
+        buildingId: values.buildingId,
+        employeeId: values.employeeId || null,
+        startIso,
+        endIso,
+        type: values.type,
+        editingId,
+        isRestrictedDate
+      });
+      if (ruleViolation) {
+        setError('startAt', { message: ruleViolation.message });
+        return;
+      }
+
       if (editingId && values.recurrence) {
         setPendingSeriesValues(values);
         setSeriesConfirmOpen(true);
@@ -513,7 +529,8 @@ export default function SchedulingPage() {
           nextWorkingDate,
           setError,
           toast,
-          t
+          t,
+          isRestrictedDate
         });
       } else {
         await saveAppointment({ values: values as SchedulingFormValues, editingId: null, appointments });
@@ -546,7 +563,8 @@ export default function SchedulingPage() {
         nextWorkingDate,
         setError,
         toast,
-        t
+        t,
+        isRestrictedDate
       });
       await invalidateAppointments();
       reset();
@@ -1042,6 +1060,7 @@ export default function SchedulingPage() {
                 eventDrop={(info) => {
                   if (!canEdit) return;
                   if (!info.event.start || !info.event.end) return;
+                  const appointment = schedulingItems.find((item) => item.id === info.event.id);
                   const type = (info.event.extendedProps as { type?: string }).type;
                   void moveAppointmentOnCalendar({
                     appointmentId: info.event.id,
@@ -1052,12 +1071,16 @@ export default function SchedulingPage() {
                     toast,
                     t,
                     invalidateAppointments,
-                    revert: () => info.revert()
+                    revert: () => info.revert(),
+                    buildingId: appointment?.buildingId ?? '',
+                    employeeId: appointment?.employeeId ?? null,
+                    schedulingItems
                   }).catch(() => toast(t('common.actionError'), 'error'));
                 }}
                 eventResize={(info) => {
                   if (!canEdit) return;
                   if (!info.event.start || !info.event.end) return;
+                  const appointment = schedulingItems.find((item) => item.id === info.event.id);
                   const type = (info.event.extendedProps as { type?: string }).type;
                   void moveAppointmentOnCalendar({
                     appointmentId: info.event.id,
@@ -1068,7 +1091,10 @@ export default function SchedulingPage() {
                     toast,
                     t,
                     invalidateAppointments,
-                    revert: () => info.revert()
+                    revert: () => info.revert(),
+                    buildingId: appointment?.buildingId ?? '',
+                    employeeId: appointment?.employeeId ?? null,
+                    schedulingItems
                   }).catch(() => toast(t('common.actionError'), 'error'));
                 }}
               />
