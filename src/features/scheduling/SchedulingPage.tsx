@@ -58,6 +58,7 @@ import { type SchedulingItem } from './schedulingItem';
 import { buildCanonicalSchedulingItems } from './schedulingSelectors';
 import { validateSchedulingRules } from './schedulingRules';
 import { schedulingLegacyDependencies } from './schedulingLegacyMap';
+import SchedulingWizardSummary from './SchedulingWizardSummary';
 import { buildAssignmentSuggestions } from './assignmentSuggestions';
 
 export default function SchedulingPage() {
@@ -1606,16 +1607,18 @@ export default function SchedulingPage() {
               ) : null}
 
               {wizardStep === 3 ? (
-                <div className="rounded-xl border border-fog-200 bg-fog-50 p-4 text-sm text-ink-700 space-y-2">
-                  <p><span className="font-semibold text-ink-900">Edificio:</span> {buildings.find((building) => building.id === getValues('buildingId'))?.name ?? 'Sin seleccionar'}</p>
-                  <p><span className="font-semibold text-ink-900">Servicio:</span> {getValues('title') || 'Sin título'}</p>
-                  <p><span className="font-semibold text-ink-900">Tipo:</span> {getValues('type') || 'Sin tipo'}</p>
-                  <p><span className="font-semibold text-ink-900">Inicio:</span> {getValues('startAt') || 'Sin fecha'}</p>
-                  <p><span className="font-semibold text-ink-900">Fin:</span> {getValues('endAt') || 'Sin fecha'}</p>
-                  <p><span className="font-semibold text-ink-900">Técnico:</span> {employees.find((employee) => employee.id === getValues('employeeId'))?.fullName ?? 'Sin asignar'}</p>
-                  <p><span className="font-semibold text-ink-900">Recurrencia:</span> {getValues('recurrence') || 'Sin recurrencia'}</p>
-                  {editingId ? <p className="text-xs text-amber-700">Estás reprogramando o actualizando un servicio existente.</p> : null}
-                </div>
+                <SchedulingWizardSummary
+                  buildingId={getValues('buildingId')}
+                  title={getValues('title')}
+                  type={getValues('type')}
+                  startAt={getValues('startAt')}
+                  endAt={getValues('endAt')}
+                  employeeId={getValues('employeeId')}
+                  recurrence={getValues('recurrence')}
+                  editingId={editingId}
+                  buildings={buildings}
+                  employees={employees}
+                />
               ) : null}
             </div>
 
