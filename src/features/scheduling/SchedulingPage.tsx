@@ -56,6 +56,7 @@ import { createRecurringSeries, regenerateSeries, saveAppointment, type Scheduli
 import { moveAppointmentOnCalendar } from './schedulingCalendarMutations';
 import { mapAppointmentToSchedulingItem, mapServiceOrderToSchedulingItem, type SchedulingItem } from './schedulingItem';
 import { validateSchedulingRules } from './schedulingRules';
+import { schedulingLegacyDependencies } from './schedulingLegacyMap';
 import { buildAssignmentSuggestions } from './assignmentSuggestions';
 
 export default function SchedulingPage() {
@@ -319,6 +320,8 @@ export default function SchedulingPage() {
   }, [serviceOrders, appointments]);
 
   const filtered = useMemo(() => filterAppointments(schedulingItems, filters), [schedulingItems, filters]);
+
+  const legacyDependencySummary = useMemo(() => schedulingLegacyDependencies, []);
 
   const assignmentSuggestions = useMemo(() => buildAssignmentSuggestions({
     employees,
@@ -1155,6 +1158,16 @@ export default function SchedulingPage() {
                 {formatDateTime(selected.endAt)}
               </p>
               <p><span className="font-semibold text-ink-900">{t('scheduling.statusLabel')}:</span> {statusLabel(selected.status)}</p>
+              <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
+                <p className="font-semibold text-ink-900">Mapa de dependencias legacy</p>
+                <ul className="mt-2 space-y-1 text-xs text-ink-600">
+                  {legacyDependencySummary.map((dependency) => (
+                    <li key={dependency.key}>
+                      <span className="font-semibold text-ink-900">{dependency.area}:</span> {dependency.detail}
+                    </li>
+                  ))}
+                </ul>
+              </div>
               <p>
                 <span className="font-semibold text-ink-900">{t('scheduling.type')}:</span>{' '}
                 {selected.type ? t(`scheduling.types.${selected.type}`) : t('common.noData')}
