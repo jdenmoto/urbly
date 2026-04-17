@@ -908,6 +908,30 @@ export default function BuildingsPage() {
                     </div>
                   </div>
                 </div>
+                <div className="rounded-xl border border-fog-200 bg-white p-4 text-sm text-ink-700">
+                  <div className="mb-3">
+                    <p className="text-xs uppercase text-ink-400">Contexto técnico</p>
+                    <p className="text-sm font-semibold text-ink-900">Modelo mínimo de equipos por edificio</p>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Equipos</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.equipmentSummary || 'Sin contexto técnico cargado'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Cuarto mecánico</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.mechanicalRoomNotes || t('common.notAvailable')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Configuración eléctrica</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.electricalSetup || t('common.notAvailable')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-ink-400">Observaciones críticas</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.criticalObservations || t('common.notAvailable')}</p>
+                    </div>
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <h3 className="text-sm font-semibold text-ink-900">Últimos servicios</h3>
                   <DataTable
