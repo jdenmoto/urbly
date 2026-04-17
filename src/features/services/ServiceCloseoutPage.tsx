@@ -55,7 +55,7 @@ export default function ServiceCloseoutPage() {
           currency: 'COP',
           notes: quoteNotes.trim(),
           createdAt: new Date().toISOString(),
-          createdBy: user?.uid ?? null
+          createdBy: user?.uid ?? undefined
         }
       ]
     });
@@ -73,7 +73,7 @@ export default function ServiceCloseoutPage() {
       status,
       reviewFeedback: quoteFeedback.trim(),
       reviewedAt: new Date().toISOString(),
-      reviewedBy: user?.uid ?? null
+      reviewedBy: user?.uid ?? undefined
     };
     await updateDocById('service_orders', serviceOrder.id, { quoteVersions: current });
   };
