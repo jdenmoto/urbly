@@ -59,6 +59,8 @@ import { buildCanonicalSchedulingItems } from './schedulingSelectors';
 import { validateSchedulingRules } from './schedulingRules';
 import { schedulingLegacyDependencies } from './schedulingLegacyMap';
 import SchedulingWizardSummary from './SchedulingWizardSummary';
+import SchedulingWizardBasicsStep from './SchedulingWizardBasicsStep';
+import SchedulingWizardScheduleStep from './SchedulingWizardScheduleStep';
 import { buildAssignmentSuggestions } from './assignmentSuggestions';
 
 export default function SchedulingPage() {
@@ -1475,138 +1477,32 @@ export default function SchedulingPage() {
               </div>
 
               {wizardStep === 1 ? (
-                <>
-                  <div className="space-y-1 text-sm text-ink-700">
-                    <label className="font-medium text-ink-800">
-                      {t('scheduling.building')} <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        value={buildingSearch}
-                        onChange={(event) => {
-                          const value = event.target.value;
-                          setBuildingSearch(value);
-                          setBuildingDropdownOpen(true);
-                          const match = buildings.find(
-                            (building) => building.name.toLowerCase() === value.trim().toLowerCase()
-                          );
-                          setValue('buildingId', match ? match.id : '', { shouldValidate: true });
-                        }}
-                        onFocus={() => setBuildingDropdownOpen(true)}
-                        onBlur={() => {
-                          setTimeout(() => setBuildingDropdownOpen(false), 100);
-                        }}
-                        placeholder={t('scheduling.searchBuilding')}
-                        className={[
-                          'w-full rounded-lg border bg-white px-3 py-2 text-sm text-ink-900 shadow-sm outline-none transition focus:border-ink-900',
-                          errors.buildingId ? 'border-red-400 focus:border-red-500' : 'border-fog-200'
-                        ].join(' ')}
-                      />
-                      {buildingDropdownOpen ? (
-                        <div className="absolute z-20 mt-2 w-full rounded-lg border border-fog-200 bg-white shadow-soft">
-                          <div className="max-h-[220px] overflow-y-auto py-1">
-                            {filteredBuildings.map((building) => (
-                              <button
-                                key={building.id}
-                                type="button"
-                                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-ink-700 hover:bg-fog-100"
-                                onMouseDown={(event) => {
-                                  event.preventDefault();
-                                  setBuildingSearch(building.name);
-                                  setValue('buildingId', building.id, { shouldValidate: true });
-                                  setBuildingDropdownOpen(false);
-                                }}
-                              >
-                                {building.name}
-                              </button>
-                            ))}
-                            {!filteredBuildings.length ? (
-                              <div className="px-3 py-2 text-xs text-ink-500">{t('common.noResults')}</div>
-                            ) : null}
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                    {errors.buildingId ? <span className="text-xs text-red-500">{errors.buildingId.message}</span> : null}
-                    <input type="hidden" {...register('buildingId')} />
-                  </div>
-                  <Input label={t('scheduling.titleLabel')} error={errors.title?.message} required {...register('title')} />
-                  <Input label={t('scheduling.description')} {...register('description')} />
-                  <Select label={t('scheduling.type')} error={errors.type?.message} required {...register('type')}>
-                    <option value="">{t('common.select')}</option>
-                    {serviceTypes.map((option) => (
-                      <option key={option.id} value={option.code}>
-                        {t(`scheduling.types.${option.code}`) !== `scheduling.types.${option.code}` ? t(`scheduling.types.${option.code}`) : option.name}
-                      </option>
-                    ))}
-                  </Select>
-                </>
+                <SchedulingWizardBasicsStep
+                  t={t}
+                  buildings={buildings}
+                  filteredBuildings={filteredBuildings}
+                  buildingSearch={buildingSearch}
+                  buildingDropdownOpen={buildingDropdownOpen}
+                  setBuildingSearch={setBuildingSearch}
+                  setBuildingDropdownOpen={setBuildingDropdownOpen}
+                  setValue={setValue}
+                  register={register}
+                  errors={errors}
+                  serviceTypes={serviceTypes}
+                />
               ) : null}
 
               {wizardStep === 2 ? (
-                <>
-                  <Input
-                    label={t('scheduling.startAt')}
-                    type="datetime-local"
-                    error={errors.startAt?.message}
-                    required
-                    {...register('startAt')}
-                  />
-                  <Input
-                    label={t('scheduling.endAt')}
-                    type="datetime-local"
-                    error={errors.endAt?.message}
-                    required
-                    {...register('endAt')}
-                  />
-                  <Select label={t('scheduling.status')} error={errors.status?.message} required {...register('status')}>
-                    <option value="programado">{t('scheduling.statusProgrammed')}</option>
-                    <option value="confirmado">{t('scheduling.statusConfirmed')}</option>
-                    <option value="completado">{t('scheduling.statusCompleted')}</option>
-                  </Select>
-                  <Select label={t('scheduling.employee')} error={errors.employeeId?.message} {...register('employeeId')}>
-                    <option value="">{t('common.unassigned')}</option>
-                    {employees.map((employee) => (
-                      <option key={employee.id} value={employee.id}>
-                        {employee.fullName}
-                      </option>
-                    ))}
-                  </Select>
-                  {assignmentSuggestions.length ? (
-                    <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
-                      <p className="font-semibold text-ink-900">{t('scheduling.assignmentSuggestionsTitle')}</p>
-                      <div className="mt-2 space-y-2">
-                        {assignmentSuggestions.map((suggestion: { employeeId: string; score: number; reason: string }) => {
-                          const employee = employees.find((item) => item.id === suggestion.employeeId);
-                          return (
-                            <button
-                              key={suggestion.employeeId}
-                              type="button"
-                              className="block w-full rounded-lg border border-fog-200 bg-white px-3 py-2 text-left hover:bg-fog-100"
-                              onClick={() => setValue('employeeId', suggestion.employeeId, { shouldValidate: true })}
-                            >
-                              <p className="font-medium text-ink-900">{employee?.fullName ?? suggestion.employeeId} · score {suggestion.score}</p>
-                              <p className="text-xs text-ink-500">{suggestion.reason}</p>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
-                  <Select
-                    label={t('scheduling.recurrence')}
-                    error={errors.recurrence?.message}
-                    disabled={selectedType === 'emergencia'}
-                    {...register('recurrence')}
-                  >
-                    <option value="">{t('scheduling.noRecurrence')}</option>
-                    {recurrenceOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {t(`scheduling.recurrenceOptions.${option}`)}
-                      </option>
-                    ))}
-                  </Select>
-                </>
+                <SchedulingWizardScheduleStep
+                  t={t}
+                  errors={errors}
+                  register={register}
+                  setValue={setValue}
+                  employees={employees}
+                  assignmentSuggestions={assignmentSuggestions}
+                  recurrenceOptions={recurrenceOptions}
+                  selectedType={selectedType}
+                />
               ) : null}
 
               {wizardStep === 3 ? (
