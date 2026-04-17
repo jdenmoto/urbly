@@ -20,6 +20,7 @@ import EmptyState from '@/components/EmptyState';
 import PlacesAutocomplete, { type PlaceResult } from '@/components/PlacesAutocomplete';
 import { loadGoogleMaps } from '@/lib/googleMaps';
 import { importBuildingsFile, type ImportResult } from '@/lib/api/functions';
+import { groupPreviewRows, type GenericPreviewRow } from './importPreview';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
 const BuildingsMap = lazy(() => import('@/components/BuildingsMap'));
@@ -31,12 +32,7 @@ import { EditIcon, TrashIcon, PowerIcon, EyeIcon } from '@/components/ActionIcon
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 
-type PreviewRow = {
-  building_name: string;
-  address: string;
-  porter_phone: string;
-  management_name: string;
-};
+type PreviewRow = GenericPreviewRow;
 
 const mapCsvRows = async (file: File) => {
   const Papa = (await import('papaparse')).default;
@@ -252,14 +248,11 @@ export default function BuildingsPage() {
     ];
   }, [t, canEdit, contracts]);
 
+  const previewGroup = useMemo(() => groupPreviewRows(previewRows), [previewRows]);
+
   const previewColumns = useMemo<ColumnDef<PreviewRow>[]>(
-    () => [
-      { header: t('buildings.name'), accessorKey: 'building_name', enableSorting: false },
-      { header: t('buildings.address'), accessorKey: 'address', enableSorting: false },
-      { header: t('buildings.porterPhone'), accessorKey: 'porter_phone', enableSorting: false },
-      { header: t('buildings.managementCompany'), accessorKey: 'management_name', enableSorting: false }
-    ],
-    [t]
+    () => previewGroup.headers.map((header) => ({ header, accessorKey: header, enableSorting: false })),
+    [previewGroup.headers]
   );
 
   const errorColumns = useMemo<ColumnDef<{ row: number; message: string }>[]>( 
@@ -603,7 +596,16 @@ export default function BuildingsPage() {
                   {t('common.downloadErrors')}
                 </a>
               ) : null}
-              {previewRows.length ? <DataTable columns={previewColumns} data={previewRows.slice(0, 5)} /> : null}
+              {previewRows.length ? (
+                <div className="space-y-3">
+                  <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
+                    <p><span className="font-semibold text-ink-900">Entidad detectada:</span> {previewGroup.entity}</p>
+                    <p><span className="font-semibold text-ink-900">Columnas:</span> {previewGroup.headers.join(', ')}</p>
+                    <p><span className="font-semibold text-ink-900">Preview:</span> {previewRows.length} fila(s)</p>
+                  </div>
+                  <DataTable columns={previewColumns} data={previewRows.slice(0, 5)} />
+                </div>
+              ) : null}
             </div>
           </Modal>
           <Modal open={createOpen} title={t('buildings.newTitle')} onClose={() => setCreateOpen(false)}>
