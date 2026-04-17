@@ -1,9 +1,8 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
 import { defineSecret } from 'firebase-functions/params';
-import ExcelJS from 'exceljs';
-import { Readable } from 'stream';
 import { db, FieldValue } from './admin';
+import { parseImportWorkbook } from './importParser';
 
 type ImportRow = {
   building_name?: string;
@@ -70,34 +69,11 @@ export const importBuildings = onCall({ secrets: [mapsApiKey] }, async (request)
   }
 
   const arrayBuffer = await response.arrayBuffer();
-  const workbook = new ExcelJS.Workbook();
-  const extension = fileName.split('.').pop()?.toLowerCase();
-  if (extension === 'csv') {
-    const csvBuffer = Buffer.from(arrayBuffer);
-    await workbook.csv.read(Readable.from([csvBuffer]));
-  } else {
-    await workbook.xlsx.load(arrayBuffer);
-  }
-  const worksheet = workbook.worksheets[0];
-  if (!worksheet) {
+  const parsed = await parseImportWorkbook({ arrayBuffer, fileName });
+  if (!parsed.rows.length) {
     throw new HttpsError('invalid-argument', 'Archivo sin datos.');
   }
-  const headerRow = worksheet.getRow(1);
-  const headers = Array.from({ length: headerRow.cellCount }, (_, index) => {
-    const cell = headerRow.getCell(index + 1).value;
-    return String(cell ?? '').trim();
-  });
-  const rows: ImportRow[] = [];
-  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-    if (rowNumber === 1) return;
-    const entry: ImportRow = {};
-    headers.forEach((header, idx) => {
-      if (!header) return;
-      const value = row.getCell(idx + 1).value;
-      entry[header as keyof ImportRow] = value ? String(value) : '';
-    });
-    rows.push(entry);
-  });
+  const rows = parsed.rows as ImportRow[];
   logger.info('Import rows parsed', { count: rows.length });
 
   const managementSnapshot = await db.collection('management_companies').get();
