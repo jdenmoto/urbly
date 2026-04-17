@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { updateDocById } from '@/lib/api/firestore';
+import { recordAuditEvent } from '@/lib/audit';
 import { useAuth } from '@/app/Auth';
 import Input from '@/components/Input';
 import { uploadServiceAttachments } from './serviceAttachments';
@@ -52,6 +53,14 @@ export default function ServiceCloseoutPage() {
       await updateDocById('service_orders', serviceOrder.id, {
         attachments: [...(serviceOrder.attachments ?? []), ...uploaded]
       });
+      await recordAuditEvent({
+        entityType: 'service_order',
+        entityId: serviceOrder.id,
+        action: 'attachments_uploaded',
+        summary: `Se cargaron ${uploaded.length} adjuntos al servicio`,
+        actor: { uid: user?.uid ?? null, role: null },
+        metadata: { uploadedCount: uploaded.length }
+      });
       setAttachmentFiles([]);
     } finally {
       setAttachmentUploading(false);
@@ -78,6 +87,14 @@ export default function ServiceCloseoutPage() {
         }
       ]
     });
+    await recordAuditEvent({
+      entityType: 'service_order',
+      entityId: serviceOrder.id,
+      action: 'quote_version_created',
+      summary: `Se creó la versión ${nextVersion} de cotización`,
+      actor: { uid: user?.uid ?? null, role: null },
+      metadata: { version: nextVersion, amount: Number(quoteAmount) }
+    });
     setQuoteScope('');
     setQuoteAmount('');
     setQuoteNotes('');
@@ -95,6 +112,14 @@ export default function ServiceCloseoutPage() {
       reviewedBy: user?.uid ?? undefined
     };
     await updateDocById('service_orders', serviceOrder.id, { quoteVersions: current });
+    await recordAuditEvent({
+      entityType: 'service_order',
+      entityId: serviceOrder.id,
+      action: 'quote_review_updated',
+      summary: `Se marcó la cotización como ${status}`,
+      actor: { uid: user?.uid ?? null, role: null },
+      metadata: { status, feedback: quoteFeedback.trim() }
+    });
   };
 
   const saveReview = async (status: 'changes_requested' | 'approved') => {
@@ -108,6 +133,14 @@ export default function ServiceCloseoutPage() {
           reviewerId: user?.uid ?? null,
           reviewedAt: new Date().toISOString()
         }
+      });
+      await recordAuditEvent({
+        entityType: 'service_order',
+        entityId: serviceOrder.id,
+        action: 'report_review_updated',
+        summary: `Se actualizó la revisión del reporte a ${status}`,
+        actor: { uid: user?.uid ?? null, role: null },
+        metadata: { status, feedback: reviewFeedback.trim() }
       });
     } finally {
       setReviewSaving(false);
