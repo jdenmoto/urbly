@@ -4,6 +4,7 @@ import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type {
   ServiceOrder,
+  ServiceOrderDataSource,
   ServiceOrderIssue,
   ServiceOrderPriority,
   ServiceOrderStatus,
@@ -18,6 +19,12 @@ export type AppointmentRelations = {
 };
 
 export type ServiceOrderRelations = AppointmentRelations;
+
+export type ServiceOrderResolution = {
+  items: ServiceOrder[];
+  source: ServiceOrderDataSource;
+  fallbackReason?: string;
+};
 
 export type ServiceOrderMutationValues = {
   buildingId: string;
@@ -45,6 +52,10 @@ function mapStatus(status: Appointment['status']): ServiceOrderStatus {
     default:
       return 'draft';
   }
+}
+
+export function mapAppointmentStatusToServiceOrderStatus(status: Appointment['status']): ServiceOrderStatus {
+  return mapStatus(status);
 }
 
 function mapPriority(type: string): ServiceOrderPriority {
@@ -132,6 +143,7 @@ export function mapAppointmentToServiceOrder(
   return {
     id: appointment.id,
     appointmentId: appointment.id,
+    dataSource: 'appointment_fallback',
     customerId: management?.id ?? building?.managementCompanyId ?? null,
     buildingId: appointment.buildingId,
     contractId: contract?.id ?? building?.contractId ?? null,
@@ -143,6 +155,8 @@ export function mapAppointmentToServiceOrder(
     scheduledStartAt: appointment.startAt,
     scheduledEndAt: appointment.endAt,
     assignedTechnicianId: appointment.employeeId ?? null,
+    recurrence: appointment.recurrence ?? null,
+    seriesId: appointment.seriesId ?? null,
     issues: mapIssues(appointment.issues),
     attachments: appointment.completionPhotos ?? [],
     completionPhotos: appointment.completionPhotos ?? [],
@@ -166,6 +180,7 @@ export function enrichServiceOrder(serviceOrder: ServiceOrder, relations: Servic
 
   return {
     ...serviceOrder,
+    dataSource: serviceOrder.dataSource ?? 'service_order',
     customerId: serviceOrder.customerId ?? management?.id ?? building?.managementCompanyId ?? null,
     contractId: serviceOrder.contractId ?? contract?.id ?? building?.contractId ?? null,
     priority: serviceOrder.priority ?? mapPriority(serviceOrder.type),
@@ -179,8 +194,31 @@ export function enrichServiceOrder(serviceOrder: ServiceOrder, relations: Servic
   };
 }
 
+export function resolveServiceOrders(args: {
+  serviceOrders: ServiceOrder[];
+  appointments: Appointment[];
+  buildFromAppointments: () => ServiceOrder[];
+  hydrateCanonical: () => ServiceOrder[];
+}): ServiceOrderResolution {
+  const { serviceOrders, appointments, buildFromAppointments, hydrateCanonical } = args;
+
+  if (serviceOrders.length > 0) {
+    return {
+      items: hydrateCanonical(),
+      source: 'service_order'
+    };
+  }
+
+  return {
+    items: buildFromAppointments(),
+    source: 'appointment_fallback',
+    fallbackReason: appointments.length > 0 ? 'service_orders vacío, se proyecta desde appointments legacy' : 'sin datos canónicos ni legacy'
+  };
+}
+
 export function buildServiceOrderPayload(values: ServiceOrderMutationValues) {
   return {
+    dataSource: 'service_order' as const,
     buildingId: values.buildingId,
     title: values.title,
     description: values.description ?? '',
@@ -206,9 +244,9 @@ export async function saveServiceOrder(args: {
 
   if (editingId) {
     const current = serviceOrders.find((item) => item.id === editingId) ?? null;
-    if ((current as ServiceOrder & { seriesId?: string | null })?.seriesId) {
+    if (current?.seriesId) {
       const related = serviceOrders.filter(
-        (item) => (item as ServiceOrder & { seriesId?: string | null }).seriesId === (current as ServiceOrder & { seriesId?: string | null }).seriesId && item.id !== editingId
+        (item) => item.seriesId === current.seriesId && item.id !== editingId
       );
       await Promise.all(related.map((item) => deleteDocById('service_orders', item.id)));
     }

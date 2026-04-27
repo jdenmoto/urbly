@@ -22,6 +22,7 @@ type Props = {
   register: UseFormRegister<SchedulingFormValues>;
   errors: FieldErrors<SchedulingFormValues>;
   serviceTypes: ServiceTypeOption[];
+  selectedBuilding: Building | null;
 };
 
 export default function SchedulingWizardBasicsStep(props: Props) {
@@ -36,7 +37,8 @@ export default function SchedulingWizardBasicsStep(props: Props) {
     setValue,
     register,
     errors,
-    serviceTypes
+    serviceTypes,
+    selectedBuilding
   } = props;
 
   return (
@@ -93,6 +95,12 @@ export default function SchedulingWizardBasicsStep(props: Props) {
         {errors.buildingId ? <span className="text-xs text-red-500">{errors.buildingId.message}</span> : null}
         <input type="hidden" {...register('buildingId')} />
       </div>
+      {selectedBuilding ? (
+        <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
+          <p className="font-semibold">Edificio seleccionado</p>
+          <p className="mt-1">La programación se creará para {selectedBuilding.name}.</p>
+        </div>
+      ) : null}
       <Input label={t('scheduling.titleLabel')} error={errors.title?.message} required {...register('title')} />
       <Input label={t('scheduling.description')} {...register('description')} />
       <Select label={t('scheduling.type')} error={errors.type?.message} required {...register('type')}>

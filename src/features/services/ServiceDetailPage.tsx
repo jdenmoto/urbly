@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom';
 import Card from '@/components/Card';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
-import { useList, useServiceOrders } from '@/lib/api/queries';
+import { useList } from '@/lib/api/queries';
+import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
@@ -33,7 +34,7 @@ const statusTone: Record<string, string> = {
 export default function ServiceDetailPage() {
   const { t } = useI18n();
   const { serviceOrderId = '' } = useParams();
-  const { data: serviceOrders = [] } = useServiceOrders();
+  const { data: serviceOrders = [] } = useOperationalServiceOrders();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');

@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
@@ -534,6 +535,16 @@ export default function ManagementPage() {
           subtitle={activeTab === 'administrations' ? t('management.tabs.administrations') : t('management.tabs.contracts')}
           aside={<StatusPill tone="info">{activeTab === 'administrations' ? t('management.tabs.administrations') : t('management.tabs.contracts')}</StatusPill>}
         />
+
+        <div className="flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+          <span className="font-semibold text-slate-900">Flujo operativo:</span>
+          <span>1. crear administración</span>
+          <span>2. crear contrato</span>
+          <span>3. registrar edificio</span>
+          <Link className="font-semibold text-sky-700 underline" to="/buildings">
+            Ir a edificios
+          </Link>
+        </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <Button
