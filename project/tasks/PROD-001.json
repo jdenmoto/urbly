@@ -1,0 +1,20 @@
+{
+  "id": "PROD-001",
+  "title": "Generate skeptical QA checklist",
+  "owner": "product-analyst",
+  "profile": "qa",
+  "command": "python3 \"/home/syalar/.openclaw/agent-team/shared-dev-runtime/scripts/qa_checklist.py\"",
+  "verification_type": "file_exists",
+  "verification_target": "/home/syalar/.openclaw/workspace/urbly/project/artifacts/qa-checklist.md",
+  "retry_limit": 1,
+  "attempts": 1,
+  "status": "done",
+  "next_on_success": [
+    "VERIFY-001"
+  ],
+  "depends_on": [
+    "DOC-001"
+  ],
+  "priority": "medium",
+  "updated_at": 1777216604.6143937
+}

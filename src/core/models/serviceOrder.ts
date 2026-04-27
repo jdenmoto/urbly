@@ -68,9 +68,12 @@ export type ServiceOrderTimelineEvent = {
   summary: string;
 };
 
+export type ServiceOrderDataSource = 'service_order' | 'appointment_fallback';
+
 export type ServiceOrder = {
   id: string;
   appointmentId?: string | null;
+  dataSource?: ServiceOrderDataSource;
   customerId?: string | null;
   buildingId: string;
   contractId?: string | null;
@@ -82,6 +85,8 @@ export type ServiceOrder = {
   scheduledStartAt: string;
   scheduledEndAt: string;
   assignedTechnicianId?: string | null;
+  recurrence?: string | null;
+  seriesId?: string | null;
   checklist?: ServiceOrderChecklist;
   issues?: ServiceOrderIssue[];
   attachments?: string[];

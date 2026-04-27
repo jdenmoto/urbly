@@ -2,19 +2,29 @@ import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import { useNavGroups } from '@/app/nav';
 import { useAuth } from '@/app/Auth';
-import type { AppUserRole } from '@/core/models/appUser';
 import { useI18n } from '@/lib/i18n';
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from './ActionIcons';
 import { useState } from 'react';
+
+const roleLabel: Record<string, string> = {
+  admin: 'Empresa',
+  editor: 'Empresa',
+  view: 'Empresa',
+  supervisor: 'Operación',
+  scheduler: 'Operación',
+  operator: 'Operación',
+  auditoria: 'Auditoría',
+  emergency_scheduler: 'Técnico',
+  building_admin: 'Cliente',
+  client: 'Cliente'
+};
 
 export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
   const { logout, role } = useAuth();
   const { t } = useI18n();
   const navGroups = useNavGroups(role);
   const [sectionOpen, setSectionOpen] = useState<Record<string, boolean>>({
-    calendar: false,
-    main: true,
-    settings: false
+    calendar: false
   });
 
   return (
@@ -32,7 +42,7 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
           {!collapsed ? (
             <div>
               <p className="text-base font-semibold tracking-tight text-white">{t('common.appName')}</p>
-              <p className="text-xs text-slate-400">{t('common.tagline')}</p>
+              <p className="text-xs text-slate-400">{roleLabel[role] ?? t('common.tagline')}</p>
             </div>
           ) : null}
         </div>
@@ -54,8 +64,8 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
       </div>
       <nav className="flex flex-1 flex-col gap-4">
         {navGroups.map((group, index) => {
-          const groupKey = index === 0 ? 'main' : 'settings';
-          const isGroupOpen = sectionOpen[groupKey] ?? true;
+          const groupKey = group.label || `group-${index}`;
+          const isGroupOpen = sectionOpen[groupKey] ?? index === 0;
           return (
             <div key={group.label} className="space-y-2">
               {!collapsed ? (
@@ -119,7 +129,9 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
           >
             {t('common.logout')}
           </button>
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-xs text-slate-300">{t('common.planLabel')}</div>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-xs text-slate-300">
+            Vista actual: {roleLabel[role] ?? 'Panel'}
+          </div>
         </div>
       ) : null}
     </aside>

@@ -1,0 +1,20 @@
+{
+  "id": "DEV-001",
+  "title": "Create implementation backlog from docs",
+  "owner": "developer",
+  "profile": "coding",
+  "command": "python3 \"/home/syalar/.openclaw/agent-team/shared-dev-runtime/scripts/dev_backlog.py\"",
+  "verification_type": "file_exists",
+  "verification_target": "/home/syalar/.openclaw/workspace/urbly/project/artifacts/dev-backlog.md",
+  "retry_limit": 1,
+  "attempts": 1,
+  "status": "done",
+  "next_on_success": [
+    "VERIFY-001"
+  ],
+  "depends_on": [
+    "COORD-001"
+  ],
+  "priority": "high",
+  "updated_at": 1777216584.4908288
+}

@@ -32,6 +32,9 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
 
       - name: Install web dependencies
         run: npm ci
@@ -67,6 +70,10 @@ jobs:
           GITHUB_BEFORE: ${{ github.event.before }}
           GITHUB_SHA: ${{ github.sha }}
         run: npm run lint:ci
+
+      - name: Lint full web app on PRs and protected branches
+        if: ${{ github.event_name == 'pull_request' || github.ref_name == 'develop' || github.ref_name == 'main' }}
+        run: npm run lint
 
       - name: Typecheck web app
         run: npm run typecheck

@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useI18n } from '@/lib/i18n';
 import type { AppUserPermission, AppUserRole } from '@/core/models/appUser';
 
@@ -11,6 +11,8 @@ type AuthState = {
   role: AppUserRole;
   permissions: AppUserPermission[];
   administrationId: string | null;
+  isQaMode: boolean;
+  qaRole: AppUserRole | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   hasRole: (...roles: AppUserRole[]) => boolean;
@@ -19,7 +21,46 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
+const qaRoleClaims: Record<AppUserRole, true> = {
+  admin: true,
+  editor: true,
+  view: true,
+  scheduler: true,
+  supervisor: true,
+  operator: true,
+  auditoria: true,
+  emergency_scheduler: true,
+  building_admin: true,
+  client: true
+};
+
+function isLocalQaEnabled() {
+  return import.meta.env.DEV && typeof window !== 'undefined' && ['127.0.0.1', 'localhost'].includes(window.location.hostname);
+}
+
+function readQaRole(search: string): AppUserRole | null {
+  if (!isLocalQaEnabled()) return null;
+  const params = new URLSearchParams(search);
+  const mode = params.get('qa');
+  const role = params.get('role');
+  if (mode === '1' && role && Object.prototype.hasOwnProperty.call(qaRoleClaims, role)) {
+    return role as AppUserRole;
+  }
+
+  const pathMatch = typeof window !== 'undefined'
+    ? window.location.pathname.match(/^\/__qa__\/([a-z_]+)$/)
+    : null;
+  const pathRole = pathMatch?.[1] ?? null;
+  return pathRole && Object.prototype.hasOwnProperty.call(qaRoleClaims, pathRole)
+    ? (pathRole as AppUserRole)
+    : null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const qaRole = readQaRole(location.search);
+  const isQaMode = qaRole !== null;
+  const qaHandledRef = useRef<AppUserRole | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<AppUserRole>('view');
@@ -30,6 +71,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser);
       if (!nextUser) {
+        if (isQaMode && qaHandledRef.current === qaRole) {
+          setLoading(true);
+          return;
+        }
         setRole('view');
         setPermissions([]);
         setAdministrationId(null);
@@ -40,6 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .getIdTokenResult(true)
         .then((result) => {
           const claimRole = (result.claims.role as AppUserRole | undefined) || 'view';
+          if (isQaMode) {
+            qaHandledRef.current = claimRole;
+          }
           const claimPermissions = Array.isArray(result.claims.permissions)
             ? (result.claims.permissions as AppUserPermission[])
             : [];
@@ -51,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .finally(() => setLoading(false));
     });
     return () => unsubscribe();
-  }, []);
+  }, [isQaMode, qaRole]);
 
   const value = useMemo(
     () => ({
@@ -60,16 +108,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
       permissions,
       administrationId,
+      isQaMode,
+      qaRole,
       login: async (email: string, password: string) => {
         await signInWithEmailAndPassword(auth, email, password);
       },
       logout: async () => {
+        if (isQaMode) return;
         await signOut(auth);
       },
       hasRole: (...roles: AppUserRole[]) => roles.includes(role),
       hasPermission: (...requested: AppUserPermission[]) => requested.every((item) => permissions.includes(item))
     }),
-    [user, loading, role, permissions, administrationId]
+    [user, loading, role, permissions, administrationId, isQaMode, qaRole]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -87,9 +138,9 @@ function AuthLoadingFallback() {
 }
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isQaMode } = useAuth();
   if (loading) return <AuthLoadingFallback />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user && !isQaMode) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 

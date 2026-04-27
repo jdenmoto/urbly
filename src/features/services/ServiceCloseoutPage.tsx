@@ -12,7 +12,7 @@ import Card from '@/components/Card';
 import Button from '@/components/Button';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
-import { useServiceOrders } from '@/lib/api/queries';
+import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
 import { buildCustomerMessage, buildFollowUp, buildTechnicalReport } from './serviceOrderAi';
 import { generateServiceReportPdf } from '@/lib/api/functions';
@@ -26,7 +26,7 @@ export default function ServiceCloseoutPage() {
   const { t } = useI18n();
   const { user, hasPermission } = useAuth();
   const { serviceOrderId = '' } = useParams();
-  const { data: serviceOrders = [] } = useServiceOrders();
+  const { data: serviceOrders = [] } = useOperationalServiceOrders();
 
   const serviceOrder = useMemo(
     () => serviceOrders.find((item) => item.id === serviceOrderId) ?? null,

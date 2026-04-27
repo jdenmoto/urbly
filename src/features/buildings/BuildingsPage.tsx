@@ -1,11 +1,11 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createDoc, updateDocById, deleteDocById } from '@/lib/api/firestore';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { buildServiceOrders, useList } from '@/lib/api/queries';
-import type { Appointment } from '@/core/models/appointment';
+import { useList, useTenantServiceOrders } from '@/lib/api/queries';
 import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
@@ -78,12 +78,13 @@ const mapSpreadsheetRows = async (file: File) => {
 export default function BuildingsPage() {
   const { t } = useI18n();
   const { toast } = useToast();
-  const { role } = useAuth();
+  const navigate = useNavigate();
+  const { role, administrationId } = useAuth();
   const canEdit = role === 'admin' || role === 'editor';
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
   const { data: contracts = [] } = useList<Contract>('contracts', 'contracts');
-  const { data: appointments = [] } = useList<Appointment>('appointments', 'appointments');
+  const { data: serviceOrders = [] } = useTenantServiceOrders(administrationId, role);
   const { data: groupSettings } = useQuery({
     queryKey: ['buildingGroups'],
     queryFn: async () => {
@@ -267,11 +268,6 @@ export default function BuildingsPage() {
     ],
     [t]
   );
-  const serviceOrders = useMemo(
-    () => buildServiceOrders(appointments, buildings, contracts, managements),
-    [appointments, buildings, contracts, managements]
-  );
-
   const maintenanceColumns = useMemo<ColumnDef<ServiceOrder>[]>(
     () => [
       { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: false },
@@ -549,6 +545,9 @@ export default function BuildingsPage() {
         actions={
           canEdit ? (
             <div className="flex items-center gap-2">
+              <Link className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" to="/management">
+                Ver administraciones y contratos
+              </Link>
               <Button variant="secondary" onClick={() => setImportOpen(true)}>
                 {t('buildings.bulkTitle')}
               </Button>
@@ -557,6 +556,15 @@ export default function BuildingsPage() {
           ) : null
         }
       />
+      <div className="flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        <span className="font-semibold text-slate-900">Flujo operativo:</span>
+        <span>1. crear administración</span>
+        <span>2. crear contrato</span>
+        <span>3. registrar edificio</span>
+        <Link className="font-semibold text-sky-700 underline" to="/management">
+          Ir a administraciones y contratos
+        </Link>
+      </div>
       <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading')}</div>}>
         <BuildingsMap buildings={buildings} ready={mapsReady} />
       </Suspense>
@@ -709,6 +717,11 @@ export default function BuildingsPage() {
                   </option>
                 ))}
               </Select>
+              {!managements.length ? (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  Primero debes crear una administración en <Link className="font-semibold underline" to="/management">Administraciones y contratos</Link>.
+                </div>
+              ) : null}
               <Select
                 label={t('buildings.contract')}
                 error={errors.contractId?.message}
@@ -722,6 +735,11 @@ export default function BuildingsPage() {
                   </option>
                 ))}
               </Select>
+              {selectedManagementId && !contractOptions.length ? (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  Esta administración todavía no tiene contratos operativos. Créalo en <Link className="font-semibold underline" to="/management">Administraciones y contratos</Link> antes de registrar el edificio.
+                </div>
+              ) : null}
               <PlacesAutocomplete
                 label={t('buildings.address')}
                 onSelect={(next) => setPlace(next)}
@@ -812,6 +830,11 @@ export default function BuildingsPage() {
                   </option>
                 ))}
               </Select>
+              {editManagementId && !editContractOptions.length ? (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  La administración seleccionada no tiene contratos disponibles. Revísalo en <Link className="font-semibold underline" to="/management">Administraciones y contratos</Link>.
+                </div>
+              ) : null}
               <PlacesAutocomplete
                 label={t('buildings.address')}
                 onSelect={(next) => setEditPlace(next)}
@@ -845,6 +868,18 @@ export default function BuildingsPage() {
                   <MetricCard label="Servicios completados" value={buildingOperationalMetrics?.completed ?? 0} hint="ejecución cerrada" />
                   <MetricCard label="Servicios pendientes" value={buildingOperationalMetrics?.pending ?? 0} hint="agenda activa" />
                   <MetricCard label="Novedades acumuladas" value={buildingOperationalMetrics?.incidents ?? 0} hint="issues registradas" />
+                </div>
+                <div className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+                  <p className="text-xs uppercase tracking-wide text-sky-700">Siguiente paso operativo</p>
+                  {buildingOperationalMetrics?.lastService ? (
+                    <p className="mt-1 font-semibold">
+                      Último servicio: {buildingOperationalMetrics.lastService.title} ({buildingOperationalMetrics.lastService.status}). Revisa su detalle o continúa la ejecución desde operación de servicios.
+                    </p>
+                  ) : (
+                    <p className="mt-1 font-semibold">
+                      Este edificio aún no tiene servicios registrados. El siguiente paso es continuar hacia operación de servicios y programar el primer servicio del edificio.
+                    </p>
+                  )}
                 </div>
                 <div className="rounded-xl border border-fog-200 bg-fog-50 p-4 text-sm text-ink-700">
                   <div className="mb-4 flex items-center justify-between gap-3">
@@ -943,8 +978,21 @@ export default function BuildingsPage() {
                     </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-sm font-semibold text-ink-900">Últimos servicios</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold text-ink-900">Últimos servicios</h3>
+                    <button
+                      type="button"
+                      className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                      onClick={() => {
+                        const buildingId = detailTarget?.id;
+                        setDetailTarget(null);
+                        navigate(buildingId ? `/services?buildingId=${buildingId}` : '/services');
+                      }}
+                    >
+                      Ir a operación de servicios
+                    </button>
+                  </div>
                   <DataTable
                     columns={maintenanceColumns}
                     data={recentServiceOrders}

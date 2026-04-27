@@ -1,8 +1,10 @@
 name: Deploy Production (main)
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
     branches: [main]
+    types: [completed]
 
 concurrency:
   group: deploy-main
@@ -10,13 +12,14 @@ concurrency:
 
 jobs:
   build-and-deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 2
 
       - name: Setup Node
@@ -24,6 +27,9 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
 
       - name: Install web dependencies
         run: npm ci
@@ -82,4 +88,4 @@ jobs:
 
       - name: Print production release summary
         run: |
-          echo "Production deploy completed for SHA ${{ github.sha }}"
+          echo "Production deploy completed for SHA ${{ github.event.workflow_run.head_sha }}"

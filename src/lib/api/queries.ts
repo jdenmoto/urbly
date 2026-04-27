@@ -5,7 +5,7 @@ import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type { ServiceOrder } from '@/core/models/serviceOrder';
-import { enrichServiceOrder, mapAppointmentToServiceOrder } from './serviceOrders';
+import { enrichServiceOrder, mapAppointmentToServiceOrder, resolveServiceOrders } from './serviceOrders';
 
 export function indexById<T extends { id: string }>(items: T[]) {
   return new Map(items.map((item) => [item.id, item]));
@@ -86,11 +86,12 @@ export function useServiceOrders() {
         listDocs<ManagementCompany>('management_companies')
       ]);
 
-      if (serviceOrders.length > 0) {
-        return hydrateServiceOrders(serviceOrders, buildings, contracts, managements);
-      }
-
-      return buildServiceOrders(appointments, buildings, contracts, managements);
+      return resolveServiceOrders({
+        serviceOrders,
+        appointments,
+        hydrateCanonical: () => hydrateServiceOrders(serviceOrders, buildings, contracts, managements),
+        buildFromAppointments: () => buildServiceOrders(appointments, buildings, contracts, managements)
+      }).items;
     }
   });
 }
@@ -122,11 +123,12 @@ export function useTenantServiceOrders(administrationId: string | null, role: st
         ? serviceOrders.filter((item) => buildingIds.has(item.buildingId) || item.customerId === administrationId)
         : serviceOrders;
 
-      if (allowedServiceOrders.length > 0) {
-        return hydrateServiceOrders(allowedServiceOrders, buildings, contracts, managements);
-      }
-
-      return buildServiceOrders(allowedAppointments, buildings, contracts, managements);
+      return resolveServiceOrders({
+        serviceOrders: allowedServiceOrders,
+        appointments: allowedAppointments,
+        hydrateCanonical: () => hydrateServiceOrders(allowedServiceOrders, buildings, contracts, managements),
+        buildFromAppointments: () => buildServiceOrders(allowedAppointments, buildings, contracts, managements)
+      }).items;
     }
   });
 }

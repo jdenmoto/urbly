@@ -1,0 +1,19 @@
+{
+  "id": "VERIFY-001",
+  "title": "Verify initial operating artifacts",
+  "owner": "main",
+  "profile": "verification",
+  "command": "python3 \"/home/syalar/.openclaw/agent-team/shared-dev-runtime/scripts/verify_bootstrap.py\"",
+  "verification_type": "file_exists",
+  "verification_target": "/home/syalar/.openclaw/workspace/urbly/project/control/bootstrap_verified.json",
+  "retry_limit": 1,
+  "attempts": 1,
+  "status": "done",
+  "next_on_success": [],
+  "depends_on": [
+    "DEV-001",
+    "PROD-001"
+  ],
+  "priority": "high",
+  "updated_at": 1777216604.9420981
+}

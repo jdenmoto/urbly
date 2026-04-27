@@ -6,13 +6,18 @@ import TopBar from '@/components/TopBar';
 import BottomNav from '@/components/BottomNav';
 import ShellContextPanel from '@/components/ShellContextPanel';
 import useBreakpoint from '@/components/useBreakpoint';
+import { useAuth } from '@/app/Auth';
+
+const compactShellRoles = new Set(['emergency_scheduler', 'building_admin', 'client']);
 
 export default function AppLayout() {
   const location = useLocation();
+  const { role } = useAuth();
   const { isDesktop, isIpad, isMobile } = useBreakpoint();
   const [collapsed, setCollapsed] = useState(false);
   const showSidebar = isDesktop || isIpad;
-  const showContextPanel = isDesktop;
+  const isCompactShell = compactShellRoles.has(role);
+  const showContextPanel = isDesktop && !isCompactShell;
 
   return (
     <div className="flex min-h-screen bg-[#e6ebf2] text-slate-900">
@@ -28,7 +33,7 @@ export default function AppLayout() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ type: 'spring', stiffness: 170, damping: 22 }}
-                className="mx-auto w-full max-w-[1600px] space-y-6"
+                className={`mx-auto w-full space-y-6 ${isCompactShell ? 'max-w-[1120px]' : 'max-w-[1600px]'}`}
               >
                 <Outlet />
               </motion.div>
