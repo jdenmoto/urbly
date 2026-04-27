@@ -1,8 +1,69 @@
+import type { Dispatch, SetStateAction } from 'react';
+import type {
+  FieldErrors,
+  SubmitHandler,
+  UseFormGetValues,
+  UseFormHandleSubmit,
+  UseFormRegister,
+  UseFormSetValue
+} from 'react-hook-form';
+import type { Building } from '@/core/models/building';
+import type { Employee } from '@/core/models/employee';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
+import type { SchedulingFormValues } from './schedulingSeries';
 import SchedulingWizardBasicsStep from './SchedulingWizardBasicsStep';
 import SchedulingWizardScheduleStep from './SchedulingWizardScheduleStep';
 import SchedulingWizardSummary from './SchedulingWizardSummary';
+
+type ServiceTypeOption = {
+  id: string;
+  code: string;
+  name: string;
+};
+
+type AssignmentSuggestion = {
+  employeeId: string;
+  score: number;
+  reason: string;
+};
+
+type WizardStep = {
+  id: 1 | 2 | 3;
+  title: string;
+};
+
+type Props = {
+  open: boolean;
+  canEdit: boolean;
+  editingId: string | null;
+  onClose: () => void;
+  handleSubmit: UseFormHandleSubmit<SchedulingFormValues>;
+  onSubmit: SubmitHandler<SchedulingFormValues>;
+  wizardSteps: readonly WizardStep[];
+  wizardStep: 1 | 2 | 3;
+  prevWizardStep: () => void;
+  nextWizardStep: () => void;
+  isSubmitting: boolean;
+  t: (key: string) => string;
+  buildings: Building[];
+  filteredBuildings: Building[];
+  buildingSearch: string;
+  buildingDropdownOpen: boolean;
+  setBuildingSearch: Dispatch<SetStateAction<string>>;
+  setBuildingDropdownOpen: Dispatch<SetStateAction<boolean>>;
+  setValue: UseFormSetValue<SchedulingFormValues>;
+  register: UseFormRegister<SchedulingFormValues>;
+  errors: FieldErrors<SchedulingFormValues>;
+  serviceTypes: ServiceTypeOption[];
+  selectedBuilding: Building | null;
+  employees: Employee[];
+  assignmentSuggestions: AssignmentSuggestion[];
+  recurrenceOptions: readonly string[];
+  selectedType: string;
+  getValues: UseFormGetValues<SchedulingFormValues>;
+  resolvedTypeLabel: string;
+};
 
 export default function SchedulingFormModal({
   open,
@@ -34,37 +95,7 @@ export default function SchedulingFormModal({
   selectedType,
   getValues,
   resolvedTypeLabel
-}: {
-  open: boolean;
-  canEdit: boolean;
-  editingId: string | null;
-  onClose: () => void;
-  handleSubmit: any;
-  onSubmit: any;
-  wizardSteps: readonly { id: 1 | 2 | 3; title: string }[];
-  wizardStep: 1 | 2 | 3;
-  prevWizardStep: () => void;
-  nextWizardStep: () => void;
-  isSubmitting: boolean;
-  t: (key: string) => string;
-  buildings: any[];
-  filteredBuildings: any[];
-  buildingSearch: string;
-  buildingDropdownOpen: boolean;
-  setBuildingSearch: any;
-  setBuildingDropdownOpen: any;
-  setValue: any;
-  register: any;
-  errors: any;
-  serviceTypes: any[];
-  selectedBuilding: any;
-  employees: any[];
-  assignmentSuggestions: any[];
-  recurrenceOptions: readonly string[];
-  selectedType: string;
-  getValues: any;
-  resolvedTypeLabel: string;
-}) {
+}: Props) {
   if (!canEdit) return null;
 
   return (

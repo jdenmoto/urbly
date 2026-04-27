@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import type { DateClickArg, EventResizeDoneArg } from '@fullcalendar/interaction';
 import type { DatesSetArg, EventClickArg, EventDropArg } from '@fullcalendar/core';
 import { generateAppointmentsPdf } from '@/lib/api/functions';
@@ -36,7 +36,7 @@ export default function useSchedulingAgenda({
   toast: (message: string, tone?: 'success' | 'error') => void;
   t: (key: string) => string;
   invalidateScheduling: () => Promise<unknown>;
-  setSelected: React.Dispatch<React.SetStateAction<SchedulingItem | null>>;
+  setSelected: Dispatch<SetStateAction<SchedulingItem | null>>;
 }) {
   const [calendarRange, setCalendarRange] = useState<{ start: string; end: string } | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);

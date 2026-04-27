@@ -1,7 +1,9 @@
+import type { Dispatch, SetStateAction } from 'react';
 import Card from '@/components/Card';
 import Input from '@/components/Input';
 import type { Building } from '@/core/models/building';
 import { useI18n } from '@/lib/i18n';
+import type { SchedulingFiltersState } from './useSchedulingFilters';
 
 export default function SchedulingFiltersCard({
   selectedFilterBuilding,
@@ -17,14 +19,14 @@ export default function SchedulingFiltersCard({
 }: {
   selectedFilterBuilding: Building | null;
   filtersOpen: boolean;
-  setFiltersOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setFiltersOpen: Dispatch<SetStateAction<boolean>>;
   filterBuildingSearch: string;
-  setFilterBuildingSearch: React.Dispatch<React.SetStateAction<string>>;
+  setFilterBuildingSearch: Dispatch<SetStateAction<string>>;
   filterDropdownOpen: boolean;
-  setFilterDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setFilterDropdownOpen: Dispatch<SetStateAction<boolean>>;
   activeBuildings: Building[];
-  filters: { buildingId: string; from: string; to: string };
-  setFilters: React.Dispatch<React.SetStateAction<{ buildingId: string; from: string; to: string }>>;
+  filters: SchedulingFiltersState;
+  setFilters: Dispatch<SetStateAction<SchedulingFiltersState>>;
 }) {
   const { t } = useI18n();
 
