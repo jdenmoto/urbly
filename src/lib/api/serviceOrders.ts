@@ -4,12 +4,13 @@ import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type {
   ServiceOrder,
+  ServiceOrderDataSource,
   ServiceOrderIssue,
   ServiceOrderPriority,
   ServiceOrderStatus,
   ServiceOrderTimelineEvent
 } from '@/core/models/serviceOrder';
-import { createDoc, deleteDocById, updateDocById } from './firestore';
+import { createDoc, deleteDocById, filters, listDocs, updateDocById } from './firestore';
 
 export type AppointmentRelations = {
   building?: Building | null;
@@ -18,6 +19,12 @@ export type AppointmentRelations = {
 };
 
 export type ServiceOrderRelations = AppointmentRelations;
+
+export type ServiceOrderResolution = {
+  items: ServiceOrder[];
+  source: ServiceOrderDataSource;
+  fallbackReason?: string;
+};
 
 export type ServiceOrderMutationValues = {
   buildingId: string;
@@ -45,6 +52,10 @@ function mapStatus(status: Appointment['status']): ServiceOrderStatus {
     default:
       return 'draft';
   }
+}
+
+export function mapAppointmentStatusToServiceOrderStatus(status: Appointment['status']): ServiceOrderStatus {
+  return mapStatus(status);
 }
 
 function mapPriority(type: string): ServiceOrderPriority {
@@ -132,6 +143,7 @@ export function mapAppointmentToServiceOrder(
   return {
     id: appointment.id,
     appointmentId: appointment.id,
+    dataSource: 'appointment_fallback',
     customerId: management?.id ?? building?.managementCompanyId ?? null,
     buildingId: appointment.buildingId,
     contractId: contract?.id ?? building?.contractId ?? null,
@@ -143,6 +155,8 @@ export function mapAppointmentToServiceOrder(
     scheduledStartAt: appointment.startAt,
     scheduledEndAt: appointment.endAt,
     assignedTechnicianId: appointment.employeeId ?? null,
+    recurrence: appointment.recurrence ?? null,
+    seriesId: appointment.seriesId ?? null,
     issues: mapIssues(appointment.issues),
     attachments: appointment.completionPhotos ?? [],
     completionPhotos: appointment.completionPhotos ?? [],
@@ -166,6 +180,7 @@ export function enrichServiceOrder(serviceOrder: ServiceOrder, relations: Servic
 
   return {
     ...serviceOrder,
+    dataSource: serviceOrder.dataSource ?? 'service_order',
     customerId: serviceOrder.customerId ?? management?.id ?? building?.managementCompanyId ?? null,
     contractId: serviceOrder.contractId ?? contract?.id ?? building?.contractId ?? null,
     priority: serviceOrder.priority ?? mapPriority(serviceOrder.type),
@@ -179,8 +194,162 @@ export function enrichServiceOrder(serviceOrder: ServiceOrder, relations: Servic
   };
 }
 
+export function indexById<T extends { id: string }>(items: T[]) {
+  return new Map(items.map((item) => [item.id, item]));
+}
+
+export function buildServiceOrders(
+  appointments: Appointment[],
+  buildings: Building[],
+  contracts: Contract[],
+  managements: ManagementCompany[]
+) {
+  const buildingsById = indexById(buildings);
+  const contractsById = indexById(contracts);
+  const managementsById = indexById(managements);
+
+  return appointments.map((appointment) => {
+    const building = buildingsById.get(appointment.buildingId) ?? null;
+    const contract = building?.contractId ? contractsById.get(building.contractId) ?? null : null;
+    const management = building?.managementCompanyId
+      ? managementsById.get(building.managementCompanyId) ?? null
+      : null;
+
+    return mapAppointmentToServiceOrder(appointment, {
+      building,
+      contract,
+      management
+    });
+  });
+}
+
+export function hydrateServiceOrders(
+  serviceOrders: ServiceOrder[],
+  buildings: Building[],
+  contracts: Contract[],
+  managements: ManagementCompany[]
+) {
+  const buildingsById = indexById(buildings);
+  const contractsById = indexById(contracts);
+  const managementsById = indexById(managements);
+
+  return serviceOrders.map((serviceOrder) => {
+    const building = buildingsById.get(serviceOrder.buildingId) ?? null;
+    const contract = serviceOrder.contractId
+      ? contractsById.get(serviceOrder.contractId) ?? null
+      : building?.contractId
+        ? contractsById.get(building.contractId) ?? null
+        : null;
+    const management = serviceOrder.customerId
+      ? managementsById.get(serviceOrder.customerId) ?? null
+      : building?.managementCompanyId
+        ? managementsById.get(building.managementCompanyId) ?? null
+        : null;
+
+    return enrichServiceOrder(serviceOrder, {
+      building,
+      contract,
+      management
+    });
+  });
+}
+
+export function resolveServiceOrders(args: {
+  serviceOrders: ServiceOrder[];
+  appointments: Appointment[];
+  buildFromAppointments: () => ServiceOrder[];
+  hydrateCanonical: () => ServiceOrder[];
+}): ServiceOrderResolution {
+  const { serviceOrders, appointments, buildFromAppointments, hydrateCanonical } = args;
+
+  if (serviceOrders.length > 0) {
+    return {
+      items: hydrateCanonical(),
+      source: 'service_order'
+    };
+  }
+
+  return {
+    items: buildFromAppointments(),
+    source: 'appointment_fallback',
+    fallbackReason: appointments.length > 0 ? 'service_orders vacío, se proyecta desde appointments legacy' : 'sin datos canónicos ni legacy'
+  };
+}
+
+export async function loadResolvedServiceOrders() {
+  const [serviceOrders, appointments, buildings, contracts, managements] = await Promise.all([
+    listDocs<ServiceOrder>('service_orders').catch(() => []),
+    listDocs<Appointment>('appointments').catch(() => []),
+    listDocs<Building>('buildings'),
+    listDocs<Contract>('contracts'),
+    listDocs<ManagementCompany>('management_companies')
+  ]);
+
+  return resolveServiceOrdersFromSources({
+    serviceOrders,
+    appointments,
+    buildings,
+    contracts,
+    managements
+  });
+}
+
+export async function loadResolvedTenantServiceOrders(args: {
+  administrationId: string | null;
+}) {
+  const { administrationId } = args;
+
+  const [serviceOrders, appointments, buildings, contracts, managements] = await Promise.all([
+    listDocs<ServiceOrder>('service_orders').catch(() => []),
+    listDocs<Appointment>('appointments').catch(() => []),
+    administrationId
+      ? listDocs<Building>('buildings', [filters().where('managementCompanyId', '==', administrationId)])
+      : listDocs<Building>('buildings'),
+    administrationId
+      ? listDocs<Contract>('contracts', [filters().where('administrationId', '==', administrationId)])
+      : listDocs<Contract>('contracts'),
+    administrationId
+      ? listDocs<ManagementCompany>('management_companies', [filters().where('__name__', '==', administrationId)]).catch(() => [])
+      : listDocs<ManagementCompany>('management_companies')
+  ]);
+
+  const buildingIds = new Set(buildings.map((item) => item.id));
+  const allowedAppointments = administrationId
+    ? appointments.filter((item) => buildingIds.has(item.buildingId))
+    : appointments;
+  const allowedServiceOrders = administrationId
+    ? serviceOrders.filter((item) => buildingIds.has(item.buildingId) || item.customerId === administrationId)
+    : serviceOrders;
+
+  return resolveServiceOrdersFromSources({
+    serviceOrders: allowedServiceOrders,
+    appointments: allowedAppointments,
+    buildings,
+    contracts,
+    managements
+  });
+}
+
+export function resolveServiceOrdersFromSources(args: {
+  serviceOrders: ServiceOrder[];
+  appointments: Appointment[];
+  buildings: Building[];
+  contracts: Contract[];
+  managements: ManagementCompany[];
+}): ServiceOrderResolution {
+  const { serviceOrders, appointments, buildings, contracts, managements } = args;
+
+  return resolveServiceOrders({
+    serviceOrders,
+    appointments,
+    hydrateCanonical: () => hydrateServiceOrders(serviceOrders, buildings, contracts, managements),
+    buildFromAppointments: () => buildServiceOrders(appointments, buildings, contracts, managements)
+  });
+}
+
 export function buildServiceOrderPayload(values: ServiceOrderMutationValues) {
   return {
+    dataSource: 'service_order' as const,
     buildingId: values.buildingId,
     title: values.title,
     description: values.description ?? '',
@@ -206,9 +375,9 @@ export async function saveServiceOrder(args: {
 
   if (editingId) {
     const current = serviceOrders.find((item) => item.id === editingId) ?? null;
-    if ((current as ServiceOrder & { seriesId?: string | null })?.seriesId) {
+    if (current?.seriesId) {
       const related = serviceOrders.filter(
-        (item) => (item as ServiceOrder & { seriesId?: string | null }).seriesId === (current as ServiceOrder & { seriesId?: string | null }).seriesId && item.id !== editingId
+        (item) => item.seriesId === current.seriesId && item.id !== editingId
       );
       await Promise.all(related.map((item) => deleteDocById('service_orders', item.id)));
     }

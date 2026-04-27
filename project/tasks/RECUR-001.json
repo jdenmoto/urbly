@@ -1,0 +1,16 @@
+{
+  "id": "RECUR-001",
+  "title": "Refresh queues and handoff",
+  "owner": "main",
+  "profile": "maintenance",
+  "command": "python3 \"/home/syalar/.openclaw/agent-team/shared-dev-runtime/scripts/refresh_queues.py\" && python3 \"/home/syalar/.openclaw/agent-team/shared-dev-runtime/scripts/update_handoff.py\"",
+  "verification_type": "file_contains",
+  "verification_target": "/home/syalar/.openclaw/workspace/urbly/project/control/handoff.md|Next actions",
+  "retry_limit": 1,
+  "attempts": 1,
+  "status": "done",
+  "next_on_success": [],
+  "depends_on": [],
+  "priority": "low",
+  "updated_at": 1777216584.5208168
+}

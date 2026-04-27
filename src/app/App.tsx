@@ -1,10 +1,11 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
-import { AuthProvider, ProtectedRoute, RoleGuard } from './Auth';
+import { AuthProvider, ProtectedRoute, RoleGuard, useAuth } from './Auth';
 import HomeRouterPage from '@/features/dashboard/HomeRouterPage';
 import LoginPage from '@/features/auth/LoginPage';
 import FeatureGuard from '@/components/FeatureGuard';
+import { getDefaultRouteForRole } from './nav';
 
 const BuildingsPage = lazy(() => import('@/features/buildings/BuildingsPage'));
 const ManagementPage = lazy(() => import('@/features/management/ManagementPage'));
@@ -44,6 +45,7 @@ export default function App() {
       <Suspense fallback={<RouteLoader />}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/__qa__/:role" element={<QaRoleEntryRedirect />} />
         <Route
           path="/"
           element={
@@ -205,10 +207,10 @@ export default function App() {
             }
           />
           <Route path="portal/access" element={<ClientSecurePortalPage />} />
-        <Route
+          <Route
             path="portal"
             element={
-              <RoleGuard allow={['building_admin']}>
+              <RoleGuard allow={['building_admin', 'client']}>
                 <FeatureGuard feature="clientSummary">
                   <ClientSummaryPage />
                 </FeatureGuard>
@@ -218,7 +220,7 @@ export default function App() {
           <Route
             path="portal/services"
             element={
-              <RoleGuard allow={['building_admin']}>
+              <RoleGuard allow={['building_admin', 'client']}>
                 <BuildingAdminPage />
               </RoleGuard>
             }
@@ -226,7 +228,7 @@ export default function App() {
           <Route
             path="portal/reports"
             element={
-              <RoleGuard allow={['building_admin']}>
+              <RoleGuard allow={['building_admin', 'client']}>
                 <BuildingAdminPage />
               </RoleGuard>
             }
@@ -331,9 +333,29 @@ export default function App() {
               </RoleGuard>
             }
           />
+          <Route path="*" element={<NavigateToRoleHome />} />
         </Route>
       </Routes>
       </Suspense>
     </AuthProvider>
   );
+}
+
+function NavigateToRoleHome() {
+  return (
+    <RoleGuard allow={['admin', 'editor', 'view', 'building_admin', 'client', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria']}>
+      <RoleAwareRedirect />
+    </RoleGuard>
+  );
+}
+
+function RoleAwareRedirect() {
+  const { role } = useAuth();
+  return <Navigate to={getDefaultRouteForRole(role)} replace />;
+}
+
+function QaRoleEntryRedirect() {
+  const params = useParams<{ role: string }>();
+  const qaRole = params.role ?? 'admin';
+  return <Navigate to={`/login?qa=1&role=${encodeURIComponent(qaRole)}`} replace />;
 }

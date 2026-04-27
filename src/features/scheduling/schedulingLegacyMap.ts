@@ -6,13 +6,23 @@ export type SchedulingLegacyDependency = {
 
 export const schedulingLegacyDependencies: SchedulingLegacyDependency[] = [
   {
-    area: 'data',
-    key: 'appointments-fallback',
-    detail: 'SchedulingPage sigue usando appointments como fallback cuando serviceOrders no tiene datos canónicos.'
+    area: 'query',
+    key: 'appointments-fallback-centralized',
+    detail: 'El fallback desde appointments sigue existiendo, pero ahora vive centralizado en resolveServiceOrders dentro de src/lib/api/serviceOrders.ts.'
   },
   {
     area: 'type',
-    key: 'appointment-shape',
-    detail: 'Completion, series y schedulingItem todavía dependen parcialmente del shape Appointment.'
+    key: 'appointment-shape-boundary',
+    detail: 'Appointment queda como contrato legacy de entrada. Scheduling y services consumen ServiceOrder canónico y solo traducen status/shape en adapters puntuales.'
+  },
+  {
+    area: 'mutation',
+    key: 'appointments-collection-cleanup',
+    detail: 'Aún hay ramas defensivas que borran appointments legacy si un item antiguo reaparece en edición/regeneración de series.'
+  },
+  {
+    area: 'query',
+    key: 'services-own-operational-flow',
+    detail: 'El seguimiento diario, detalle operativo y cierre viven en /services. Scheduling queda enfocado en agenda, reasignación y reprogramación.'
   }
 ];

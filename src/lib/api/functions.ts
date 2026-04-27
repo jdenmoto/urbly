@@ -50,6 +50,12 @@ export async function deleteAppUser(uid: string) {
   return response.data as { ok: boolean };
 }
 
+export async function getQaLogin(role: string) {
+  const callable = httpsCallable(functions, 'getQaLogin');
+  const response = await callable({ role });
+  return response.data as { email: string; password: string; role: string };
+}
+
 export async function generateAppointmentsPdf(params: {
   buildingId: string;
   rangeStart: string;

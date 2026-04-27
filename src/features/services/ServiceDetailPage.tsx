@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom';
 import Card from '@/components/Card';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
-import { useList, useServiceOrders } from '@/lib/api/queries';
+import { useList } from '@/lib/api/queries';
+import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
@@ -33,7 +34,7 @@ const statusTone: Record<string, string> = {
 export default function ServiceDetailPage() {
   const { t } = useI18n();
   const { serviceOrderId = '' } = useParams();
-  const { data: serviceOrders = [] } = useServiceOrders();
+  const { data: serviceOrders = [] } = useOperationalServiceOrders();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
@@ -106,7 +107,7 @@ export default function ServiceDetailPage() {
             </div>
             <div className="rounded-2xl bg-fog-50 p-4">
               <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
-              <p className="mt-1 font-semibold text-ink-900">{serviceOrder.issues?.length ?? 0}</p>
+              <p className="mt-1 font-semibold text-ink-900">{serviceOrder.issues.length}</p>
             </div>
           </div>
 
@@ -124,7 +125,7 @@ export default function ServiceDetailPage() {
               <h2 className="text-lg font-semibold text-ink-900">{t('services.timelineTitle')}</h2>
               <p className="text-sm text-ink-600">{t('services.timelineSubtitle')}</p>
             </div>
-            {serviceOrder.timeline?.length ? (
+            {serviceOrder.timeline.length ? (
               <div className="space-y-3">
                 {serviceOrder.timeline.map((event) => (
                   <div key={event.id} className="rounded-2xl border border-fog-200 bg-fog-50 p-4">
@@ -143,7 +144,7 @@ export default function ServiceDetailPage() {
               <h2 className="text-lg font-semibold text-ink-900">{t('services.issueSummaryTitle')}</h2>
               <p className="text-sm text-ink-600">{t('services.issueSummarySubtitle')}</p>
             </div>
-            {serviceOrder.issues?.length ? (
+            {serviceOrder.issues.length ? (
               <div className="space-y-3">
                 {serviceOrder.issues.map((issue) => (
                   <div key={issue.id} className="rounded-2xl border border-fog-200 bg-fog-50 p-4">

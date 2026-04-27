@@ -1,18 +1,26 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { updateDocById } from '@/lib/api/firestore';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import EmptyState from '@/components/EmptyState';
 import Input from '@/components/Input';
 import PageHeader from '@/components/PageHeader';
 import Select from '@/components/Select';
 import { GlassPanel, MetricCard, SectionHeader, StatusPill } from '@/components/premium';
-import { useList, useServiceOrders } from '@/lib/api/queries';
+import { useList } from '@/lib/api/queries';
+import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { buildDailyProgressEvent, getServiceDailyProgress } from './serviceProgress';
 import { useI18n } from '@/lib/i18n';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
+import {
+  buildServiceOrderSummary,
+  filterServiceOrders,
+  getRecentServiceOrders,
+  getSelectedServiceBuilding,
+  type ServiceOrderFilters
+} from './serviceOrderSelectors';
 import {
   getServiceOrderPriorityPill,
   getServiceOrderStatusLabel,
@@ -31,48 +39,43 @@ const statusTone: Record<string, string> = {
 
 export default function ServicesPage() {
   const { t } = useI18n();
-  const { data: serviceOrders = [], isLoading } = useServiceOrders();
+  const [searchParams] = useSearchParams();
+  const { data: serviceOrders = [], isLoading } = useOperationalServiceOrders();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
-  const [filters, setFilters] = useState({ buildingId: '', from: '', to: '', status: '' });
+  const [filters, setFilters] = useState<ServiceOrderFilters>({ buildingId: '', from: '', to: '', status: '' });
   const [progressTarget, setProgressTarget] = useState<(typeof serviceOrders)[number] | null>(null);
   const [progressDate, setProgressDate] = useState(new Date().toISOString().slice(0, 10));
   const [progressSummary, setProgressSummary] = useState('');
   const [progressPercent, setProgressPercent] = useState('');
   const [progressHours, setProgressHours] = useState('');
 
-  const summary = useMemo(() => {
-    const scheduled = serviceOrders.filter((item) => item.status === 'scheduled' || item.status === 'confirmed').length;
-    const inProgress = serviceOrders.filter((item) => item.status === 'in_progress').length;
-    const completed = serviceOrders.filter((item) => item.status === 'completed').length;
-    const urgent = serviceOrders.filter((item) => item.priority === 'urgent').length;
+  useEffect(() => {
+    const buildingId = searchParams.get('buildingId') ?? '';
+    const status = searchParams.get('status') ?? '';
+    setFilters((prev) => ({
+      ...prev,
+      buildingId: buildingId || prev.buildingId,
+      status: status || prev.status
+    }));
+  }, [searchParams]);
 
-    return { scheduled, inProgress, completed, urgent };
-  }, [serviceOrders]);
-
-  const filteredOrders = useMemo(() => {
-    return serviceOrders.filter((order) => {
-      if (filters.buildingId && order.buildingId !== filters.buildingId) return false;
-      if (filters.status && order.status !== filters.status) return false;
-      if (filters.from && new Date(order.scheduledStartAt) < new Date(`${filters.from}T00:00:00`)) return false;
-      if (filters.to && new Date(order.scheduledEndAt) > new Date(`${filters.to}T23:59:59`)) return false;
-      return true;
-    });
-  }, [filters, serviceOrders]);
-
-  const recentOrders = useMemo(
-    () =>
-      [...filteredOrders]
-        .sort((a, b) => new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime())
-        .slice(0, 12),
-    [filteredOrders]
+  const selectedBuilding = useMemo(
+    () => getSelectedServiceBuilding(buildings, filters.buildingId),
+    [buildings, filters.buildingId]
   );
+
+  const summary = useMemo(() => buildServiceOrderSummary(serviceOrders), [serviceOrders]);
+
+  const filteredOrders = useMemo(() => filterServiceOrders(serviceOrders, filters), [filters, serviceOrders]);
+
+  const recentOrders = useMemo(() => getRecentServiceOrders(filteredOrders), [filteredOrders]);
 
   const statusLabel = (value: string) => getServiceOrderStatusLabel(t, value as Parameters<typeof getServiceOrderStatusLabel>[1]);
 
   const saveDailyProgress = async () => {
     if (!progressTarget || !progressSummary.trim()) return;
-    const nextTimeline = [...(progressTarget.timeline ?? []), buildDailyProgressEvent({
+    const nextTimeline = [...progressTarget.timeline, buildDailyProgressEvent({
       date: progressDate,
       summary: progressSummary,
       percentComplete: progressPercent ? Number(progressPercent) : null,
@@ -103,9 +106,30 @@ export default function ServicesPage() {
         <SectionHeader
           eyebrow={t('services.v2Badge')}
           title={t('services.agendaTitle')}
-          subtitle={t('services.agendaSubtitle')}
+          subtitle={selectedBuilding ? `Contexto actual: ${selectedBuilding.name}` : t('services.agendaSubtitle')}
           aside={<StatusPill tone="info">{`${recentOrders.length} ${t('services.visibleCountHint')}`}</StatusPill>}
         />
+
+        {selectedBuilding ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+            <div className="space-y-1">
+              <p className="font-semibold">Filtro operativo activo</p>
+              <p>Estás viendo servicios del edificio {selectedBuilding.name}.</p>
+              <p className="text-xs text-sky-700">
+                {recentOrders.length
+                  ? 'Siguiente paso sugerido: revisar el servicio más próximo o continuar su ejecución.'
+                  : 'Siguiente paso sugerido: este edificio aún no muestra servicios visibles en el filtro actual.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="inline-flex items-center rounded-full border border-sky-300 bg-white px-3 py-1.5 text-xs font-semibold text-sky-800 transition hover:bg-sky-100"
+              onClick={() => setFilters((prev) => ({ ...prev, buildingId: '' }))}
+            >
+              Limpiar filtro
+            </button>
+          </div>
+        ) : null}
 
         <div className="grid gap-3 rounded-[24px] border border-white/70 bg-slate-50/80 p-4 md:grid-cols-2 xl:grid-cols-4">
           <Select value={filters.buildingId} onChange={(event) => setFilters((prev) => ({ ...prev, buildingId: event.target.value }))}>
@@ -177,7 +201,7 @@ export default function ServicesPage() {
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
                         <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
-                        <p className="mt-1 font-semibold text-ink-900">{order.issues?.length ?? 0}</p>
+                        <p className="mt-1 font-semibold text-ink-900">{order.issues.length}</p>
                         <p className="mt-1 text-xs text-ink-500">{getServiceDailyProgress(order).length} avances diarios</p>
                       </div>
                     </div>

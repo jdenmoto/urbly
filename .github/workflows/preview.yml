@@ -19,6 +19,10 @@ permissions:
   pull-requests: write
   checks: write
 
+concurrency:
+  group: preview-${{ github.event.inputs.channel || 'manual-preview' }}
+  cancel-in-progress: true
+
 jobs:
   deploy_preview:
     runs-on: ubuntu-latest
@@ -32,9 +36,16 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
 
-      - name: Install dependencies
+      - name: Install web dependencies
         run: npm ci
+
+      - name: Install functions dependencies
+        run: npm ci
+        working-directory: functions
 
       - name: Create .env.local from GitHub Secrets
         env:
@@ -59,8 +70,16 @@ jobs:
       - name: Typecheck web app
         run: npm run typecheck
 
+      - name: Typecheck functions
+        run: npm run typecheck
+        working-directory: functions
+
       - name: Build web app
         run: npm run build
+
+      - name: Build functions
+        run: npm run build
+        working-directory: functions
 
       - name: Deploy to Firebase Hosting preview channel
         uses: FirebaseExtended/action-hosting-deploy@v0

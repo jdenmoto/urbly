@@ -11,10 +11,12 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '@/lib/i18n';
 import { useToast } from '@/components/ToastProvider';
 import { auth } from '@/lib/firebase/client';
+import { getQaLogin } from '@/lib/api/functions';
 
 export default function LoginPage() {
   const { t } = useI18n();
-  const { login, user } = useAuth();
+  const { login, user, qaRole, isQaMode, role } = useAuth();
+  const qaEnabled = import.meta.env.DEV && typeof window !== 'undefined' && ['127.0.0.1', 'localhost'].includes(window.location.hostname);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [error, setError] = useState('');
@@ -62,8 +64,37 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    if (user) navigate('/');
-  }, [user, navigate]);
+    if (!user) return;
+    if (!isQaMode) {
+      navigate('/');
+      return;
+    }
+    if (qaRole && role === qaRole) {
+      navigate('/');
+    }
+  }, [user, navigate, isQaMode, qaRole, role]);
+
+  useEffect(() => {
+    if (!qaEnabled || !qaRole) return;
+
+    let cancelled = false;
+    setError('');
+    (async () => {
+      try {
+        const credentials = await getQaLogin(qaRole);
+        if (cancelled) return;
+        await login(credentials.email, credentials.password);
+      } catch {
+        if (!cancelled) {
+          setError('No fue posible iniciar la sesión QA local.');
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [qaEnabled, qaRole, login]);
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
@@ -107,6 +138,13 @@ export default function LoginPage() {
                 {resetSubmitting ? t('auth.sendingReset') : t('auth.sendReset')}
               </Button>
             </form>
+          ) : null}
+          {qaEnabled ? (
+            <div className="rounded-lg border border-dashed border-sky-200 bg-sky-50 px-3 py-3 text-xs text-sky-900">
+              <p className="font-semibold">QA local habilitado</p>
+              <p className="mt-1">Usa `/__qa__/admin` o `?qa=1&role=admin` y cambia `admin` por el actor que quieras probar.</p>
+              <p className="mt-1">Si la ruta QA está activa, el login usa un usuario demo real para cumplir reglas de Firestore.</p>
+            </div>
           ) : null}
         </div>
       </Card>

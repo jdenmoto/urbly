@@ -12,7 +12,7 @@ import Card from '@/components/Card';
 import Button from '@/components/Button';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
-import { useServiceOrders } from '@/lib/api/queries';
+import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
 import { buildCustomerMessage, buildFollowUp, buildTechnicalReport } from './serviceOrderAi';
 import { generateServiceReportPdf } from '@/lib/api/functions';
@@ -26,7 +26,7 @@ export default function ServiceCloseoutPage() {
   const { t } = useI18n();
   const { user, hasPermission } = useAuth();
   const { serviceOrderId = '' } = useParams();
-  const { data: serviceOrders = [] } = useServiceOrders();
+  const { data: serviceOrders = [] } = useOperationalServiceOrders();
 
   const serviceOrder = useMemo(
     () => serviceOrders.find((item) => item.id === serviceOrderId) ?? null,
@@ -54,7 +54,7 @@ export default function ServiceCloseoutPage() {
       setAttachmentUploading(true);
       const uploaded = await uploadServiceAttachments(serviceOrder.id, attachmentFiles);
       await updateDocById('service_orders', serviceOrder.id, {
-        attachments: [...(serviceOrder.attachments ?? []), ...uploaded]
+        attachments: [...serviceOrder.attachments, ...uploaded]
       });
       await recordAuditEvent({
         entityType: 'service_order',
@@ -72,7 +72,7 @@ export default function ServiceCloseoutPage() {
 
   const saveQuoteVersion = async () => {
     if (!serviceOrder || !quoteScope.trim() || !quoteAmount) return;
-    const current = serviceOrder.quoteVersions ?? [];
+    const current = serviceOrder.quoteVersions;
     const nextVersion = current.length + 1;
     await updateDocById('service_orders', serviceOrder.id, {
       quoteVersions: [
@@ -104,7 +104,7 @@ export default function ServiceCloseoutPage() {
   };
 
   const updateLatestQuoteReview = async (status: 'changes_requested' | 'approved') => {
-    if (!serviceOrder?.quoteVersions?.length) return;
+    if (!serviceOrder || !serviceOrder.quoteVersions.length) return;
     const current = [...serviceOrder.quoteVersions];
     const latest = current[current.length - 1];
     current[current.length - 1] = {
@@ -218,15 +218,15 @@ export default function ServiceCloseoutPage() {
           <div className="space-y-3">
             <div className="rounded-3xl bg-fog-50 p-4">
               <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.evidenceTitle')}</p>
-              <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.evidenceCount', { count: serviceOrder.completionPhotos?.length ?? 0 })}</p>
+              <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.evidenceCount', { count: serviceOrder.completionPhotos.length })}</p>
             </div>
             <div className="rounded-3xl bg-fog-50 p-4">
               <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
-              <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.issuesCount', { count: serviceOrder.issues?.length ?? 0 })}</p>
+              <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.issuesCount', { count: serviceOrder.issues.length })}</p>
             </div>
             <div className="rounded-3xl bg-fog-50 p-4">
               <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.timelineLabel')}</p>
-              <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.timelineCount', { count: serviceOrder.timeline?.length ?? 0 })}</p>
+              <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.timelineCount', { count: serviceOrder.timeline.length })}</p>
             </div>
           </div>
         </div>
@@ -234,7 +234,7 @@ export default function ServiceCloseoutPage() {
         <div className="grid gap-4 xl:grid-cols-2">
           <div className="rounded-3xl border border-fog-200 bg-white p-5">
             <h3 className="text-sm font-semibold text-ink-900">{t('services.issueSummaryTitle')}</h3>
-            {serviceOrder.issues?.length ? (
+            {serviceOrder.issues.length ? (
               <div className="mt-4 space-y-3">
                 {serviceOrder.issues.map((issue) => (
                   <div key={issue.id} className="rounded-2xl bg-fog-50 p-4 text-sm text-ink-700">

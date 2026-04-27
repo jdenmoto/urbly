@@ -5,8 +5,20 @@ import { useAuth } from '@/app/Auth';
 import { useList } from '@/lib/api/queries';
 import type { InternalNotification } from '@/core/models/internalNotification';
 import { markInternalNotificationRead } from '@/lib/internalNotifications';
-import type { AppUserRole } from '@/core/models/appUser';
 import { useNavGroups } from '@/app/nav';
+
+const roleBadgeLabel: Record<string, string> = {
+  admin: 'Empresa',
+  editor: 'Empresa',
+  view: 'Empresa',
+  supervisor: 'Supervisor',
+  scheduler: 'Operación',
+  operator: 'Operación',
+  auditoria: 'Auditoría',
+  emergency_scheduler: 'Técnico',
+  building_admin: 'Cliente',
+  client: 'Cliente'
+};
 
 export default function TopBar() {
   const { t } = useI18n();
@@ -35,7 +47,7 @@ export default function TopBar() {
         </div>
         <div className="hidden items-center gap-2 md:flex">
           <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
-            {t('common.tagline')}
+            {roleBadgeLabel[role] ?? t('common.tagline')}
           </div>
           <button className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
             {t('shell.globalSearchPlaceholder')}
@@ -58,7 +70,7 @@ export default function TopBar() {
             ) : null}
           </div>
           <div className="rounded-full border border-slate-900 bg-slate-950 px-3 py-1 text-xs font-semibold text-white shadow-sm">
-            {t('common.panelTitle')}
+            {user?.email ?? roleBadgeLabel[role] ?? t('common.panelTitle')}
           </div>
         </div>
       </div>

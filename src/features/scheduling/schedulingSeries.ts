@@ -3,7 +3,7 @@ import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { ServiceOrder } from '@/core/models/serviceOrder';
 import { createDoc, deleteDocById } from '@/lib/api/firestore';
-import { buildServiceOrderPayload, saveServiceOrder } from '@/lib/api/serviceOrders';
+import { buildServiceOrderPayload, mapAppointmentStatusToServiceOrderStatus, saveServiceOrder } from '@/lib/api/serviceOrders';
 import { formatLocalIso, toLocalIso } from './schedulingUtils';
 import { validateSchedulingRules } from './schedulingRules';
 import { buildSchedulingItemsForValidation } from './schedulingSelectors';
@@ -36,10 +36,15 @@ export function buildAppointmentPayload(values: SchedulingFormValues) {
   };
 }
 
+function toAppointmentStatus(status: string) {
+  return status === 'programado' || status === 'confirmado' || status === 'completado' || status === 'cancelado'
+    ? status
+    : 'programado';
+}
+
 export async function regenerateSeries(args: {
   values: SchedulingFormValues;
   current: SchedulingItem | null;
-  appointments?: never[];
   serviceOrders?: ServiceOrder[];
   buildings: Building[];
   contracts: Contract[];
@@ -52,13 +57,13 @@ export async function regenerateSeries(args: {
 }) {
   const { values, current, serviceOrders = [], buildings, contracts, alignToContractStart, nextWorkingDate, setError, toast, t, isRestrictedDate } = args;
   const seriesId = current?.seriesId ?? (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
-  const relatedOrders = serviceOrders.filter((item) => (item as ServiceOrder & { seriesId?: string | null }).seriesId === seriesId);
+  const relatedOrders = serviceOrders.filter((item) => item.seriesId === seriesId);
   if (relatedOrders.length) {
     await Promise.all(relatedOrders.map((item) => deleteDocById('service_orders', item.id)));
   } else if (current?.source === 'service_order') {
     await deleteDocById('service_orders', current.id);
-  } else if (current?.source === 'appointment') {
-    await deleteDocById('appointments', current.id);
+  } else if (current?.source === 'appointment_fallback') {
+    await deleteDocById('appointments', current.sourceId);
   }
 
   const building = buildings.find((item) => item.id === values.buildingId);
@@ -111,7 +116,6 @@ export async function regenerateSeries(args: {
     if (!isAfter(scheduledStart, contractEnd)) {
       const end = new Date(scheduledStart.getTime() + durationMs);
       const schedulingItems = buildSchedulingItemsForValidation({
-        appointments: [],
         serviceOrders
       });
       const violation = validateSchedulingRules({
@@ -135,7 +139,7 @@ export async function regenerateSeries(args: {
             description: values.description,
             scheduledStartAt: formatLocalIso(scheduledStart),
             scheduledEndAt: formatLocalIso(end),
-            status: values.status === 'programado' ? 'scheduled' : values.status === 'confirmado' ? 'confirmed' : values.status === 'completado' ? 'completed' : values.status === 'cancelado' ? 'cancelled' : 'draft',
+            status: mapAppointmentStatusToServiceOrderStatus(toAppointmentStatus(values.status)),
             recurrence: values.recurrence || null,
             type: values.type,
             assignedTechnicianId: values.employeeId || null,
@@ -152,7 +156,6 @@ export async function regenerateSeries(args: {
 export async function saveAppointment(args: {
   values: SchedulingFormValues;
   editingId: string | null;
-  appointments?: never[];
   serviceOrders?: ServiceOrder[];
 }) {
   const { values, editingId, serviceOrders = [] } = args;
@@ -163,7 +166,7 @@ export async function saveAppointment(args: {
       description: values.description,
       scheduledStartAt: toLocalIso(values.startAt),
       scheduledEndAt: toLocalIso(values.endAt),
-      status: values.status === 'programado' ? 'scheduled' : values.status === 'confirmado' ? 'confirmed' : values.status === 'completado' ? 'completed' : values.status === 'cancelado' ? 'cancelled' : 'draft',
+      status: mapAppointmentStatusToServiceOrderStatus(toAppointmentStatus(values.status)),
       recurrence: values.recurrence || null,
       type: values.type,
       assignedTechnicianId: values.employeeId || null,

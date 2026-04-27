@@ -2,14 +2,14 @@ import { useMemo } from 'react';
 import Card from '@/components/Card';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
-import { useServiceOrders } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
+import { useOperationalServiceOrders } from '@/features/services/useOperationalServiceOrders';
 import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from '@/features/services/serviceOrderAi';
 import { getServiceOrderPriorityPill, serviceOrderPriorityTone } from '@/features/services/serviceOrderPresentation';
 
 export default function AiWorkspacePage() {
   const { t } = useI18n();
-  const { data: serviceOrders = [] } = useServiceOrders();
+  const { data: serviceOrders = [] } = useOperationalServiceOrders();
 
   const suggestions = useMemo(() => {
     return serviceOrders
@@ -29,7 +29,7 @@ export default function AiWorkspacePage() {
         suggestion:
           item.priority === 'urgent'
             ? t('ai.suggestionUrgent')
-            : item.issues?.length
+            : item.issues.length
               ? t('ai.suggestionIssues')
               : t('ai.suggestionDefault'),
         summary: buildServiceSummary(item, t),

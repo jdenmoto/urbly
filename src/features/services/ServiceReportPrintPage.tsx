@@ -2,14 +2,14 @@ import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import EmptyState from '@/components/EmptyState';
 import Button from '@/components/Button';
-import { useServiceOrders } from '@/lib/api/queries';
 import { buildTechnicalReport } from './serviceOrderAi';
+import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
 
 export default function ServiceReportPrintPage() {
   const { t } = useI18n();
   const { serviceOrderId = '' } = useParams();
-  const { data: serviceOrders = [] } = useServiceOrders();
+  const { data: serviceOrders = [] } = useOperationalServiceOrders();
   const serviceOrder = useMemo(() => serviceOrders.find((item) => item.id === serviceOrderId) ?? null, [serviceOrders, serviceOrderId]);
 
   if (!serviceOrder) {
@@ -41,10 +41,10 @@ export default function ServiceReportPrintPage() {
 
       <section className="rounded-2xl border border-slate-200 p-6">
         <h2 className="text-lg font-semibold">Adjuntos y evidencias</h2>
-        {(serviceOrder.attachments?.length || serviceOrder.completionPhotos?.length) ? (
+        {(serviceOrder.attachments.length || serviceOrder.completionPhotos.length) ? (
           <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-slate-700">
-            {(serviceOrder.attachments ?? []).map((url, index) => <li key={`attachment-${index}`}>{url}</li>)}
-            {(serviceOrder.completionPhotos ?? []).map((url, index) => <li key={`photo-${index}`}>{url}</li>)}
+            {serviceOrder.attachments.map((url, index) => <li key={`attachment-${index}`}>{url}</li>)}
+            {serviceOrder.completionPhotos.map((url, index) => <li key={`photo-${index}`}>{url}</li>)}
           </ul>
         ) : (
           <p className="mt-4 text-sm text-slate-500">Sin adjuntos registrados.</p>
