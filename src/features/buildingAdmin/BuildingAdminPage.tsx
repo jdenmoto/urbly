@@ -5,7 +5,7 @@ import Card from '@/components/Card';
 import DataTable from '@/components/DataTable';
 import EmptyState from '@/components/EmptyState';
 const BuildingsMap = lazy(() => import('@/components/BuildingsMap'));
-import { useList, useServiceOrders } from '@/lib/api/queries';
+import { useList } from '@/lib/api/queries';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type { Building } from '@/core/models/building';
 import type { AppUser } from '@/core/models/appUser';
@@ -20,6 +20,7 @@ import {
   getServiceOrderTypeLabel,
   serviceOrderPriorityTone
 } from '@/features/services/serviceOrderPresentation';
+import { useOperationalServiceOrders } from '@/features/services/useOperationalServiceOrders';
 
 export default function BuildingAdminPage() {
   const { t } = useI18n();
@@ -28,7 +29,7 @@ export default function BuildingAdminPage() {
   const { data: users = [] } = useList<AppUser>('users', 'users');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
-  const { data: serviceOrders = [] } = useServiceOrders();
+  const { data: serviceOrders = [] } = useOperationalServiceOrders();
   const [mapsReady, setMapsReady] = useState(false);
 
   const currentUser = useMemo(() => users.find((item) => item.id === user?.uid), [users, user?.uid]);

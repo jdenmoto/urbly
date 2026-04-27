@@ -10,7 +10,7 @@ import type {
   ServiceOrderStatus,
   ServiceOrderTimelineEvent
 } from '@/core/models/serviceOrder';
-import { createDoc, deleteDocById, updateDocById } from './firestore';
+import { createDoc, deleteDocById, filters, listDocs, updateDocById } from './firestore';
 
 export type AppointmentRelations = {
   building?: Building | null;
@@ -194,6 +194,66 @@ export function enrichServiceOrder(serviceOrder: ServiceOrder, relations: Servic
   };
 }
 
+export function indexById<T extends { id: string }>(items: T[]) {
+  return new Map(items.map((item) => [item.id, item]));
+}
+
+export function buildServiceOrders(
+  appointments: Appointment[],
+  buildings: Building[],
+  contracts: Contract[],
+  managements: ManagementCompany[]
+) {
+  const buildingsById = indexById(buildings);
+  const contractsById = indexById(contracts);
+  const managementsById = indexById(managements);
+
+  return appointments.map((appointment) => {
+    const building = buildingsById.get(appointment.buildingId) ?? null;
+    const contract = building?.contractId ? contractsById.get(building.contractId) ?? null : null;
+    const management = building?.managementCompanyId
+      ? managementsById.get(building.managementCompanyId) ?? null
+      : null;
+
+    return mapAppointmentToServiceOrder(appointment, {
+      building,
+      contract,
+      management
+    });
+  });
+}
+
+export function hydrateServiceOrders(
+  serviceOrders: ServiceOrder[],
+  buildings: Building[],
+  contracts: Contract[],
+  managements: ManagementCompany[]
+) {
+  const buildingsById = indexById(buildings);
+  const contractsById = indexById(contracts);
+  const managementsById = indexById(managements);
+
+  return serviceOrders.map((serviceOrder) => {
+    const building = buildingsById.get(serviceOrder.buildingId) ?? null;
+    const contract = serviceOrder.contractId
+      ? contractsById.get(serviceOrder.contractId) ?? null
+      : building?.contractId
+        ? contractsById.get(building.contractId) ?? null
+        : null;
+    const management = serviceOrder.customerId
+      ? managementsById.get(serviceOrder.customerId) ?? null
+      : building?.managementCompanyId
+        ? managementsById.get(building.managementCompanyId) ?? null
+        : null;
+
+    return enrichServiceOrder(serviceOrder, {
+      building,
+      contract,
+      management
+    });
+  });
+}
+
 export function resolveServiceOrders(args: {
   serviceOrders: ServiceOrder[];
   appointments: Appointment[];
@@ -214,6 +274,77 @@ export function resolveServiceOrders(args: {
     source: 'appointment_fallback',
     fallbackReason: appointments.length > 0 ? 'service_orders vacío, se proyecta desde appointments legacy' : 'sin datos canónicos ni legacy'
   };
+}
+
+export async function loadResolvedServiceOrders() {
+  const [serviceOrders, appointments, buildings, contracts, managements] = await Promise.all([
+    listDocs<ServiceOrder>('service_orders').catch(() => []),
+    listDocs<Appointment>('appointments').catch(() => []),
+    listDocs<Building>('buildings'),
+    listDocs<Contract>('contracts'),
+    listDocs<ManagementCompany>('management_companies')
+  ]);
+
+  return resolveServiceOrdersFromSources({
+    serviceOrders,
+    appointments,
+    buildings,
+    contracts,
+    managements
+  });
+}
+
+export async function loadResolvedTenantServiceOrders(args: {
+  administrationId: string | null;
+}) {
+  const { administrationId } = args;
+
+  const [serviceOrders, appointments, buildings, contracts, managements] = await Promise.all([
+    listDocs<ServiceOrder>('service_orders').catch(() => []),
+    listDocs<Appointment>('appointments').catch(() => []),
+    administrationId
+      ? listDocs<Building>('buildings', [filters().where('managementCompanyId', '==', administrationId)])
+      : listDocs<Building>('buildings'),
+    administrationId
+      ? listDocs<Contract>('contracts', [filters().where('administrationId', '==', administrationId)])
+      : listDocs<Contract>('contracts'),
+    administrationId
+      ? listDocs<ManagementCompany>('management_companies', [filters().where('__name__', '==', administrationId)]).catch(() => [])
+      : listDocs<ManagementCompany>('management_companies')
+  ]);
+
+  const buildingIds = new Set(buildings.map((item) => item.id));
+  const allowedAppointments = administrationId
+    ? appointments.filter((item) => buildingIds.has(item.buildingId))
+    : appointments;
+  const allowedServiceOrders = administrationId
+    ? serviceOrders.filter((item) => buildingIds.has(item.buildingId) || item.customerId === administrationId)
+    : serviceOrders;
+
+  return resolveServiceOrdersFromSources({
+    serviceOrders: allowedServiceOrders,
+    appointments: allowedAppointments,
+    buildings,
+    contracts,
+    managements
+  });
+}
+
+export function resolveServiceOrdersFromSources(args: {
+  serviceOrders: ServiceOrder[];
+  appointments: Appointment[];
+  buildings: Building[];
+  contracts: Contract[];
+  managements: ManagementCompany[];
+}): ServiceOrderResolution {
+  const { serviceOrders, appointments, buildings, contracts, managements } = args;
+
+  return resolveServiceOrders({
+    serviceOrders,
+    appointments,
+    hydrateCanonical: () => hydrateServiceOrders(serviceOrders, buildings, contracts, managements),
+    buildFromAppointments: () => buildServiceOrders(appointments, buildings, contracts, managements)
+  });
 }
 
 export function buildServiceOrderPayload(values: ServiceOrderMutationValues) {

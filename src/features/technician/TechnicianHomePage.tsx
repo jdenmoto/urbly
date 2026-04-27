@@ -8,8 +8,9 @@ import { useAuth } from '@/app/Auth';
 import type { AppUser } from '@/core/models/appUser';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
-import { useList, useServiceOrders } from '@/lib/api/queries';
+import { useList } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
+import { useOperationalServiceOrders } from '@/features/services/useOperationalServiceOrders';
 import {
   formatServiceDateTime,
   getServiceOrderPriorityLabel,
@@ -24,7 +25,7 @@ export default function TechnicianHomePage() {
   const { data: users = [] } = useList<AppUser>('users', 'users');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
-  const { data: serviceOrders = [] } = useServiceOrders();
+  const { data: serviceOrders = [] } = useOperationalServiceOrders();
 
   const currentUser = useMemo(() => users.find((item) => item.id === user?.uid), [users, user?.uid]);
   const employee = useMemo(
@@ -53,7 +54,7 @@ export default function TechnicianHomePage() {
           label={t('technician.pendingServices')}
           value={assignedOrders.filter((item) => item.status !== 'completed' && item.status !== 'cancelled').length}
         />
-        <StatCard label={t('technician.issuesDetected')} value={assignedOrders.reduce((acc, item) => acc + (item.issues?.length ?? 0), 0)} />
+        <StatCard label={t('technician.issuesDetected')} value={assignedOrders.reduce((acc, item) => acc + item.issues.length, 0)} />
       </section>
 
       <Card className="space-y-6 p-6">
@@ -102,7 +103,7 @@ export default function TechnicianHomePage() {
               </div>
               <div className="rounded-2xl bg-fog-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.issuesLabel')}</p>
-                <p className="mt-1 font-semibold text-ink-900">{nextOrder.issues?.length ?? 0}</p>
+                <p className="mt-1 font-semibold text-ink-900">{nextOrder.issues.length}</p>
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-3">

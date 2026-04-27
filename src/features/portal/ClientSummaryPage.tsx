@@ -8,8 +8,9 @@ import { useAuth } from '@/app/Auth';
 import type { AppUser } from '@/core/models/appUser';
 import type { Building } from '@/core/models/building';
 import type { ManagementCompany } from '@/core/models/managementCompany';
-import { useList, useServiceOrders } from '@/lib/api/queries';
+import { useList } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
+import { useOperationalServiceOrders } from '@/features/services/useOperationalServiceOrders';
 import {
   formatServiceDateTime,
   getServiceOrderPriorityPill,
@@ -23,7 +24,7 @@ export default function ClientSummaryPage() {
   const { data: users = [] } = useList<AppUser>('users', 'users');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
-  const { data: serviceOrders = [] } = useServiceOrders();
+  const { data: serviceOrders = [] } = useOperationalServiceOrders();
 
   const currentUser = useMemo(() => users.find((item) => item.id === user?.uid), [users, user?.uid]);
   const administrationId = currentUser?.administrationId ?? null;
@@ -106,7 +107,7 @@ export default function ClientSummaryPage() {
                   </div>
                   <div className="mt-4 rounded-2xl bg-fog-50 p-4 text-sm text-ink-600">
                     <p><span className="font-semibold text-ink-900">{t('services.statusLabel')}:</span> {getServiceOrderStatusLabel(t, serviceOrder.status)}</p>
-                    <p className="mt-2"><span className="font-semibold text-ink-900">{t('services.issuesLabel')}:</span> {serviceOrder.issues?.length ?? 0}</p>
+                    <p className="mt-2"><span className="font-semibold text-ink-900">{t('services.issuesLabel')}:</span> {serviceOrder.issues.length}</p>
                   </div>
                 </article>
               );

@@ -8,12 +8,13 @@ import type { AppUser } from '@/core/models/appUser';
 import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { Employee } from '@/core/models/employee';
-import { useList, useServiceOrders } from '@/lib/api/queries';
+import { useList } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
+import { useOperationalServiceOrders } from '@/features/services/useOperationalServiceOrders';
 
 export default function DashboardPage() {
   const { t } = useI18n();
-  const { data: serviceOrders = [] } = useServiceOrders();
+  const { data: serviceOrders = [] } = useOperationalServiceOrders();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: contracts = [] } = useList<Contract>('contracts', 'contracts');
@@ -67,7 +68,7 @@ export default function DashboardPage() {
 
     const recentActivity = serviceOrders
       .flatMap((order) =>
-        (order.timeline ?? []).map((event) => ({
+        order.timeline.map((event) => ({
           id: event.id,
           title: event.summary,
           createdAt: event.createdAt,
@@ -172,7 +173,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
                         <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.issuesLabel')}</p>
-                        <p className="mt-1 font-semibold text-slate-900">{order.issues?.length ?? 0}</p>
+                        <p className="mt-1 font-semibold text-slate-900">{order.issues.length}</p>
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
                         <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.typeLabel')}</p>

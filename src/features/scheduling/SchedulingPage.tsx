@@ -17,13 +17,11 @@ import {
 } from '@/core/appointments';
 import { listServiceTypes } from '@/lib/serviceTypes';
 import { useList, useTenantServiceOrders } from '@/lib/api/queries';
-import type { ColumnDef } from '@tanstack/react-table';
 import { useI18n } from '@/lib/i18n';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { buildRestrictedDates, filterAppointments, formatDateTime, formatLocalIso, isRestrictedDate as isRestrictedDateValue } from './schedulingUtils';
 import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/app/Auth';
-import { CancelIcon, TrashIcon, CheckIcon, EditIcon } from '@/components/ActionIcons';
 import { db } from '@/lib/firebase/client';
 import { addDays, addMonths, isAfter } from 'date-fns';
 import { type CancelValues } from './schedulingMutations';
@@ -47,6 +45,7 @@ import useSchedulingFilters from './useSchedulingFilters';
 import useSchedulingFormFlow from './useSchedulingFormFlow';
 import useSchedulingSeriesFlow from './useSchedulingSeriesFlow';
 import useSchedulingSubmitFlow from './useSchedulingSubmitFlow';
+import useSchedulingListColumns from './useSchedulingListColumns';
 import usePhotoViewer from './usePhotoViewer';
 import { buildAssignmentSuggestions } from './assignmentSuggestions';
 import { buildSchedulingStatusLabels, checklistValueLabel, resolveSchedulingIssueLabel } from './schedulingPresentation';
@@ -356,80 +355,6 @@ export default function SchedulingPage() {
 
   const statusLabels = useMemo(() => buildSchedulingStatusLabels(t), [t]);
 
-  const columns = useMemo<ColumnDef<SchedulingItem>[]>(() => {
-    const base: ColumnDef<SchedulingItem>[] = [
-      { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: true },
-      {
-        header: t('scheduling.building'),
-        enableSorting: true,
-        accessorFn: (row) => buildings.find((b) => b.id === row.buildingId)?.name ?? t('common.noData')
-      },
-      {
-        header: t('scheduling.employee'),
-        enableSorting: true,
-        accessorFn: (row) =>
-          row.employeeId
-            ? employees.find((employee) => employee.id === row.employeeId)?.fullName ?? t('common.noData')
-            : t('common.unassigned')
-      },
-      { header: t('scheduling.startAt'), accessorKey: 'startAt', enableSorting: true },
-      {
-        header: t('scheduling.status'),
-        accessorKey: 'status',
-        enableSorting: true,
-        cell: ({ row }) => statusLabels[row.original.status] ?? row.original.status
-      }
-    ];
-    if (!canEdit) return base;
-    return [
-      ...base,
-      {
-        header: t('common.actions'),
-        enableSorting: false,
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <button
-              className="inline-flex items-center justify-center rounded-md border border-fog-200 p-1 text-ink-700 hover:border-ink-900"
-              onClick={() => startEdit(row.original)}
-              title={t('common.edit')}
-              aria-label={t('common.edit')}
-            >
-              <EditIcon className="h-4 w-4" aria-hidden />
-            </button>
-            {row.original.status !== 'completado' && row.original.status !== 'cancelado' ? (
-              <button
-                className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-emerald-600 hover:bg-emerald-50"
-                onClick={() => navigate(`/services/${row.original.id}/closeout`)}
-                title={t('scheduling.complete')}
-                aria-label={t('scheduling.complete')}
-              >
-                <CheckIcon className="h-4 w-4" aria-hidden />
-              </button>
-            ) : null}
-            {row.original.status !== 'cancelado' ? (
-              <button
-                className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-amber-600 hover:bg-amber-50"
-                onClick={() => openCancel(row.original)}
-                title={t('scheduling.cancel')}
-                aria-label={t('scheduling.cancel')}
-              >
-                <CancelIcon className="h-4 w-4" aria-hidden />
-              </button>
-            ) : null}
-            <button
-              className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-rose-600 hover:bg-rose-50"
-              onClick={() => setDeleteTarget(row.original)}
-              title={t('common.delete')}
-              aria-label={t('common.delete')}
-            >
-              <TrashIcon className="h-4 w-4" aria-hidden />
-            </button>
-          </div>
-        )
-      }
-    ];
-  }, [buildings, employees, t, canEdit, statusLabels]);
-
   const invalidateScheduling = () => queryClient.invalidateQueries({ queryKey: ['serviceOrders'] });
 
   const {
@@ -497,6 +422,18 @@ export default function SchedulingPage() {
     setModalOpen,
     selected,
     setSelected
+  });
+
+  const columns = useSchedulingListColumns({
+    t,
+    buildings,
+    employees,
+    canEdit,
+    statusLabels,
+    startEdit,
+    openCancel,
+    setDeleteTarget,
+    goToCloseout: (item) => navigate(`/services/${item.id}/closeout`)
   });
 
   const statusLabel = (status: SchedulingItem['status']) => statusLabels[status] ?? status;

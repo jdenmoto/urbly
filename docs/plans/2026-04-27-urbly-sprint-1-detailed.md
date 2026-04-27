@@ -1,7 +1,8 @@
-# Urbly — Sprint 1 detallado
+# Urbly — Sprint 1 detallado (pendiente real)
 
 Fecha: 2026-04-27
 Base: `docs/plans/2026-04-27-urbly-consolidation-file-plan.md`
+Estado: actualizado después de los cortes ya implementados en scheduling
 
 ## Objetivo del sprint
 Reducir ambigüedad estructural y dejar listo el terreno para ejecutar la consolidación del core sin seguir cargando deuda legacy.
@@ -14,134 +15,54 @@ Reducir ambigüedad estructural y dejar listo el terreno para ejecutar la consol
 
 ---
 
-# Tarea 1 — Inventario real del flujo legacy
+# Ya implementado en este sprint
 
-## 1.1 Mapear referencias legacy en capa API
-**Objetivo:** saber exactamente dónde `Appointment` sigue gobernando datos.
+## Base ya resuelta
+- auditoría inicial del flujo legacy
+- actualización de deuda técnica con evidencia real
+- confirmación de la frontera canónica actual de `service_orders`
+- migración de `BuildingsPage` para usar `useTenantServiceOrders(...)`
+- reducción de dependencia legacy en:
+  - `src/features/scheduling/schedulingItem.ts`
+  - `src/features/scheduling/schedulingSeries.ts`
+  - `src/features/scheduling/schedulingLegacyMap.ts`
 
-**Archivos:**
-- `src/lib/api/serviceOrders.ts`
-- `src/lib/api/queries.ts`
-- `src/core/models/appointment.ts`
+## Extracciones ya resueltas en scheduling
+`SchedulingPage` ya perdió estos bloques hacia componentes/hooks dedicados:
 
-**Acciones:**
-1. listar imports y usos de `Appointment`
-2. marcar qué usos son:
-   - adapter permitido
-   - fallback temporal
-   - dependencia que debe salir
-3. anotar qué función es hoy la frontera canónica real
+### Componentes extraídos
+- `SelectedSchedulingDetail`
+- `PhotoViewerModal`
+- `CompleteServiceModal`
+- `SchedulingFiltersCard`
+- `SchedulingAgendaSurface`
+- `SchedulingFormModal`
+- `CancelSchedulingModal`
+- `DeleteSchedulingConfirm`
+- `SchedulingStatusOverlays`
 
-**Salida esperada:**
-- listado corto por archivo con clasificación
+### Hooks/helpers extraídos
+- `useSchedulingCompletion`
+- `useSchedulingAgenda`
+- `useSchedulingFilters`
+- `useSchedulingFormFlow`
+- `useSchedulingSeriesFlow`
+- `useSchedulingSubmitFlow`
+- `useSchedulingListColumns`
+- `schedulingPresentation.ts`
 
-**Verificación:**
-- documento actualizado con mapa real
-
----
-
-## 1.2 Mapear referencias legacy en features
-**Objetivo:** detectar qué pantallas todavía piensan en `appointments`.
-
-**Archivos:**
-- `src/features/buildings/BuildingsPage.tsx`
-- `src/features/scheduling/SchedulingPage.tsx`
-- `src/features/scheduling/schedulingItem.ts`
-- `src/features/scheduling/schedulingSeries.ts`
-- `src/features/scheduling/schedulingLegacyMap.ts`
-- `src/features/services/useOperationalServiceOrders.ts`
-
-**Acciones:**
-1. revisar consumo de datos por feature
-2. identificar transformaciones legacy hechas en UI
-3. separar dependencias críticas vs accesorias
-
-**Salida esperada:**
-- tabla corta de feature → dependencia legacy → prioridad
+## Validación ya verificada
+- `npm run build` verde en los cortes recientes de scheduling
+- `npm --prefix functions run build` ya estaba validado antes en el sprint
 
 ---
 
-## 1.3 Mapear backend/reportes legacy
-**Objetivo:** saber si functions/reportes siguen amarrados al modelo viejo.
+# Trabajo pendiente real
 
-**Archivos:**
-- `functions/src/reports.ts`
-- `functions/src/serviceReports.ts`
-- `functions/src/index.ts`
+## Tarea A — Blindar mejor la capa canónica de service orders
 
-**Acciones:**
-1. revisar fuente de datos real de reportes
-2. marcar si lee `appointments`, `service_orders` o ambos
-3. identificar compatibilidad temporal necesaria
-
-**Salida esperada:**
-- nota clara de dependencia backend legacy
-
----
-
-## 1.4 Auditar responsabilidades de SchedulingPage
-**Objetivo:** bajar `SchedulingPage` a bloques concretos de responsabilidad.
-
-**Archivos:**
-- `src/features/scheduling/SchedulingPage.tsx`
-- `src/features/scheduling/SchedulingWizardBasicsStep.tsx`
-- `src/features/scheduling/SchedulingWizardScheduleStep.tsx`
-- `src/features/scheduling/SchedulingWizardSummary.tsx`
-
-**Acciones:**
-1. listar responsabilidades activas dentro de `SchedulingPage`
-2. agrupar en:
-   - agenda
-   - wizard
-   - detalle/edición
-   - cierre
-   - series
-   - legacy/debug UI
-3. marcar qué parte debe salir primero
-
-**Salida esperada:**
-- mapa de responsabilidades con prioridad de extracción
-
----
-
-## 1.5 Actualizar deuda técnica con evidencia real
-**Objetivo:** convertir hallazgos en backlog ejecutable.
-
-**Archivos:**
-- `docs/implementation/current-implementation-debt.md`
-- opcionalmente `project/artifacts/dev-backlog.md`
-
-**Acciones:**
-1. reemplazar deuda genérica por deuda observada
-2. etiquetar alta/media/baja prioridad
-3. dejar claro qué entra en Sprint 1 y qué no
-
-**Done:**
-- deuda técnica alineada con el código real
-
----
-
-# Tarea 2 — Blindar la capa canónica de service orders
-
-## 2.1 Identificar la frontera canónica actual
-**Objetivo:** decidir con precisión qué función/módulo manda.
-
-**Archivos:**
-- `src/lib/api/serviceOrders.ts`
-- `src/lib/api/queries.ts`
-
-**Acciones:**
-1. ubicar la función que ya resuelve `service_orders`
-2. confirmar cómo entra el fallback desde `appointments`
-3. decidir si hace falta una función pública única adicional
-
-**Salida esperada:**
-- frontera canónica definida por nombre y archivo
-
----
-
-## 2.2 Encapsular fallback legacy en un solo punto
-**Objetivo:** evitar fallback disperso.
+### A.1 Encapsular fallback legacy en un solo punto
+**Objetivo:** evitar fallback disperso entre API y consumers.
 
 **Archivos:**
 - `src/lib/api/serviceOrders.ts`
@@ -150,16 +71,14 @@ Reducir ambigüedad estructural y dejar listo el terreno para ejecutar la consol
 **Acciones:**
 1. mover decisiones de fallback a una sola capa
 2. evitar branches duplicados en queries
-3. documentar razones de fallback con nombres explícitos
+3. documentar claramente por qué sigue existiendo fallback
 
 **Verificación:**
 - menos lógica de fallback fuera del módulo canónico
 - build verde
 
----
-
-## 2.3 Normalizar tipos visibles hacia ServiceOrder
-**Objetivo:** que las features lean contrato canónico.
+### A.2 Normalizar tipos visibles hacia `ServiceOrder`
+**Objetivo:** que las features consuman contrato canónico y no shape legacy adaptado por accidente.
 
 **Archivos:**
 - `src/core/models/serviceOrder.ts`
@@ -174,15 +93,13 @@ Reducir ambigüedad estructural y dejar listo el terreno para ejecutar la consol
 **Verificación:**
 - hooks principales exportan `ServiceOrder` o derivados canónicos
 
----
-
-## 2.4 Reducir imports directos de Appointment fuera de adapters
+### A.3 Reducir imports directos de `Appointment` fuera de adapters
 **Objetivo:** bajar superficie legacy real.
 
 **Archivos objetivo inicial:**
-- `src/features/buildings/BuildingsPage.tsx`
 - `src/lib/api/queries.ts`
 - `src/lib/api/serviceOrders.ts`
+- revisar si queda algo adicional en `src/features` y `src/lib`
 
 **Acciones:**
 1. mover import directo si solo se usa para transición
@@ -190,27 +107,13 @@ Reducir ambigüedad estructural y dejar listo el terreno para ejecutar la consol
 3. dejar comentario temporal solo donde de verdad haga falta
 
 **Verificación:**
-- `rg -n "\bAppointment\b|appointments" src/features src/lib` baja o queda más acotado
+- `rg -n "\bAppointment\b|appointments" src/features src/lib` queda más acotado
 
 ---
 
-# Tarea 3 — Limpiar consumidores que aún piensan en appointments
+## Tarea B — Limpiar consumidores que aún piensan en appointments
 
-## 3.1 Revisar BuildingsPage como consumidor legacy
-**Objetivo:** decidir si debe seguir leyendo `appointments`.
-
-**Archivos:**
-- `src/features/buildings/BuildingsPage.tsx`
-- `src/lib/api/queries.ts`
-
-**Acciones:**
-1. verificar por qué lee `appointments`
-2. probar si puede usar `service_orders` resuelto
-3. documentar bloqueo si no se puede migrar aún
-
----
-
-## 3.2 Revisar hook operativo principal
+### B.1 Revisar hook operativo principal de services
 **Objetivo:** asegurar que el flujo nuevo no replique mapeos viejos.
 
 **Archivos:**
@@ -223,9 +126,7 @@ Reducir ambigüedad estructural y dejar listo el terreno para ejecutar la consol
 2. mover las que deban vivir en capa API/presentación
 3. simplificar contrato del hook si está filtrando demasiada complejidad
 
----
-
-## 3.3 Revisar helpers de sugerencias/calidad
+### B.2 Revisar helpers de sugerencias/calidad
 **Objetivo:** evitar lógica duplicada o shape inconsistente.
 
 **Archivos:**
@@ -238,9 +139,7 @@ Reducir ambigüedad estructural y dejar listo el terreno para ejecutar la consol
 2. alinear helpers con contrato actual
 3. sacar dependencias accidentales
 
----
-
-## 3.4 Confirmar punto de consumo canónico en services
+### B.3 Confirmar punto de consumo canónico en services
 **Objetivo:** dejar services como consumidor correcto.
 
 **Archivos:**
@@ -251,58 +150,40 @@ Reducir ambigüedad estructural y dejar listo el terreno para ejecutar la consol
 **Acciones:**
 1. revisar de dónde leen datos
 2. validar que no rehacen fallback o mapping en UI
-3. anotar huecos para siguiente tarea de extracción
+3. anotar huecos concretos para el siguiente sprint
 
 ---
 
-# Tarea 4 — Partir responsabilidades de SchedulingPage
+## Tarea C — Cerrar el adelgazamiento útil de SchedulingPage
 
-## 4.1 Delimitar bloques internos del archivo
-**Objetivo:** preparar extracción sin romper todo.
+### C.1 Extraer selectors livianos del formulario
+**Objetivo:** terminar de sacar cálculo derivado que sigue embebido en la página.
 
-**Archivo:**
-- `src/features/scheduling/SchedulingPage.tsx`
+**Candidatos actuales:**
+- `filteredBuildings`
+- `selectedWizardBuilding`
+- `selectedServiceTypeLabel`
+- posiblemente `statusLabel` como cierre final si deja de aportar inline
 
 **Acciones:**
-1. marcar regiones/bloques funcionales
-2. identificar estado, efectos y handlers por bloque
-3. detectar qué depende de wizard, qué depende de agenda y qué de cierre
+1. agrupar selectors del wizard en hook/helper pequeño
+2. mantener nombres actuales
+3. no cambiar comportamiento
 
----
+### C.2 Revisar qué sigue viviendo en `SchedulingPage` y decidir si queda o sale
+**Objetivo:** cerrar Sprint 1 con una frontera razonable, no con extracción infinita.
 
-## 4.2 Separar primero lo más barato de extraer
-**Objetivo:** elegir la primera extracción con mejor ROI.
+**Revisar especialmente:**
+- queries/config cargadas en la página
+- wiring entre hooks
+- si todavía hay estado local que debería vivir fuera
+- si ya conviene detenerse y documentar frontera actual
 
-**Candidatos:**
-- panel legacy/debug
-- resumen de dependencias legacy
-- bloques de UI auxiliares
-- filtros/presentación
+**Salida esperada:**
+- lista corta de “queda aquí por ahora” vs “sale en sprint siguiente”
 
-**Acciones:**
-1. elegir un primer corte pequeño
-2. moverlo a componente/helper propio
-3. verificar que el archivo baja complejidad sin cambiar comportamiento
-
----
-
-## 4.3 Delimitar frontera agenda vs services
-**Objetivo:** que scheduling deje de absorber responsabilidades operativas.
-
-**Archivos:**
-- `src/features/scheduling/SchedulingPage.tsx`
-- `src/features/services/ServicesPage.tsx`
-- `src/features/services/ServiceDetailPage.tsx`
-
-**Acciones:**
-1. identificar acciones que deberían vivir en services
-2. dejar lista de movimientos concretos para el siguiente sprint
-3. documentar transición mínima segura
-
----
-
-## 4.4 Revisar series y cierre como zona de riesgo
-**Objetivo:** ubicar lo que no conviene tocar a ciegas.
+### C.3 Revisar series y cierre como zona de riesgo antes de seguir tocando
+**Objetivo:** no seguir extrayendo a ciegas áreas delicadas.
 
 **Archivos:**
 - `src/features/scheduling/schedulingSeries.ts`
@@ -312,14 +193,34 @@ Reducir ambigüedad estructural y dejar listo el terreno para ejecutar la consol
 **Acciones:**
 1. revisar dependencia con cleanup legacy
 2. marcar ramas defensivas peligrosas
-3. anotar pruebas/manual checks necesarios antes de extraer
+3. anotar checks/manual tests necesarios antes de otra extracción relevante
 
 ---
 
-# Tarea 5 — Resolver placeholders o sacarlos de navegación
+## Tarea D — Delimitar frontera scheduling vs services
 
-## 5.1 Auditar placeholders visibles
-**Objetivo:** saber qué pantallas fantasma están expuestas.
+### D.1 Identificar acciones que deberían vivir en services
+**Objetivo:** que scheduling no siga absorbiendo responsabilidades operativas.
+
+**Archivos:**
+- `src/features/scheduling/SchedulingPage.tsx`
+- `src/features/services/ServicesPage.tsx`
+- `src/features/services/ServiceDetailPage.tsx`
+
+**Acciones:**
+1. identificar acciones que conceptualmente pertenecen a services
+2. dejar lista concreta de movimientos mínimos seguros
+3. documentar qué no entra en este sprint
+
+**Salida esperada:**
+- transición mínima segura documentada
+
+---
+
+## Tarea E — Resolver placeholders o sacarlos de navegación
+
+### E.1 Auditar placeholders visibles
+**Objetivo:** saber qué pantallas fantasma siguen expuestas.
 
 **Archivos:**
 - `src/features/customers/CustomersPage.tsx`
@@ -330,12 +231,10 @@ Reducir ambigüedad estructural y dejar listo el terreno para ejecutar la consol
 
 **Acciones:**
 1. listar rutas visibles con placeholder
-2. decidir si cada una se oculta o se mantiene fuera del flujo principal
-3. verificar si alguna tiene dependencia de permisos o menú
+2. decidir si cada una se oculta o queda fuera del flujo principal
+3. verificar dependencias de permisos o menú
 
----
-
-## 5.2 Limpiar navegación principal
+### E.2 Limpiar navegación principal
 **Objetivo:** no mostrar módulos sin valor operativo en esta ola.
 
 **Archivos:**
@@ -345,16 +244,14 @@ Reducir ambigüedad estructural y dejar listo el terreno para ejecutar la consol
 
 **Acciones:**
 1. ocultar o relegar entradas placeholder
-2. mantener foco en rutas que sí tienen flujo usable
+2. mantener foco en rutas usables
 3. evitar romper guards o layout
 
 **Verificación:**
 - navegación más limpia
 - build verde
 
----
-
-## 5.3 Documentar lo que queda fuera del corte
+### E.3 Documentar lo que queda fuera del corte
 **Objetivo:** no reabrir la discusión luego.
 
 **Archivos:**
@@ -368,35 +265,46 @@ Reducir ambigüedad estructural y dejar listo el terreno para ejecutar la consol
 
 ---
 
-# Orden recomendado de ejecución
-1. 1.1
-2. 1.2
-3. 1.3
-4. 1.4
-5. 1.5
-6. 2.1
-7. 2.2
-8. 2.3
-9. 2.4
-10. 3.1
-11. 3.2
-12. 3.3
-13. 3.4
-14. 4.1
-15. 4.2
-16. 4.3
-17. 4.4
-18. 5.1
-19. 5.2
-20. 5.3
+# Orden recomendado desde aquí
+1. A.1
+2. A.2
+3. A.3
+4. B.1
+5. B.2
+6. B.3
+7. C.1
+8. C.2
+9. C.3
+10. D.1
+11. E.1
+12. E.2
+13. E.3
 
 ---
 
-# Criterio de cierre del Sprint 1
+# Qué falta claramente por implementar
+
+## Alta prioridad
+- encapsular fallback legacy en un solo punto
+- normalizar contratos visibles hacia `ServiceOrder`
+- limpiar consumers de services que todavía dependan de shape legacy
+- cerrar la frontera real entre scheduling y services
+
+## Media prioridad
+- terminar el adelgazamiento útil de `SchedulingPage` con selectors/frontera final
+- revisar series/cierre como zona de riesgo antes de otra extracción mayor
+
+## Baja prioridad dentro de este sprint
+- limpiar placeholders expuestos en navegación
+- documentar explícitamente lo que queda fuera
+
+---
+
+# Criterio de cierre actualizado del Sprint 1
 El sprint se considera bien cerrado si:
-- existe mapa real de deuda legacy
-- la frontera canónica de `service_orders` quedó explícita
-- bajó la superficie de consumo directo de `Appointment`
-- `SchedulingPage` quedó dividido conceptualmente y con primer corte de extracción viable
-- la navegación principal dejó de exponer placeholders dudosos
+- la frontera canónica de `service_orders` queda más blindada
+- baja todavía más la superficie de consumo directo de `Appointment`
+- services queda alineado con el contrato canónico
+- `SchedulingPage` queda razonablemente orquestadora y con frontera explícita de lo que no sale aún
+- la navegación principal deja de exponer placeholders dudosos
 - `npm run build` y `npm --prefix functions run build` siguen verdes
