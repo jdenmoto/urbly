@@ -24,8 +24,9 @@ const globalFlag = '__URBLY_EMULATORS_CONNECTED__';
 const globalScope = globalThis as typeof globalThis & { [globalFlag]?: boolean };
 
 if (shouldUseEmulators && !globalScope[globalFlag]) {
-  connectAuthEmulator(auth, 'http://localhost:9099');
-  connectFirestoreEmulator(db, 'localhost', 8080);
-  connectStorageEmulator(storage, 'localhost', 9199);
+  const emulatorHost = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : '127.0.0.1';
+  connectAuthEmulator(auth, `http://${emulatorHost}:9099`, { disableWarnings: true });
+  connectFirestoreEmulator(db, emulatorHost, 8080);
+  connectStorageEmulator(storage, emulatorHost, 9199);
   globalScope[globalFlag] = true;
 }

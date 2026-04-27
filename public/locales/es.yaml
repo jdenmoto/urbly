@@ -19,8 +19,9 @@ common:
   loadingSession: Cargando sesion...
   actionSuccess: Accion completada
   actionError: Ocurrio un error
-  yes: Si
-  no: No
+  "yes": Si
+  "no": No
+  view: Ver
   all: Todos
   optional: Opcional
   select: Selecciona
@@ -72,10 +73,44 @@ nav:
   settingsCalendarSection: Calendario
   settingsCalendarHolidays: Festivos
   settingsCalendarNonWorking: No laborables
+  mobilePrimary: Navegacion principal movil
+  shortDashboard: Inicio
+  shortServices: Servicios
+  shortManagement: Cuentas
+  shortReports: Reportes
+  shortAi: IA
+  shortCustomers: Clientes
+  shortAssets: Activos
+  shortTeam: Equipo
+  shortBuildings: Edificios
+  operationsSection: Operación diaria
+  operationsSectionDescription: Servicios, seguimiento y acciones prioritarias del día.
+  portfolioSection: Portafolio y cuentas
+  portfolioSectionDescription: Clientes, administraciones, activos y visión comercial del portafolio.
+  teamSection: Equipo y capacidad
+  teamSectionDescription: Gestión del equipo operativo y visibilidad de carga de trabajo.
   mainSection: Operacion
+  mainSectionDescription: Accesos principales para la operación diaria.
   adminSection: Administracion
   settingsSection: Configuraciones
+  settingsSectionDescription: Parámetros maestros, usuarios y reglas operativas del sistema.
   portalSection: Portal
+  portalSectionDescription: Resumen operativo para clientes y administradores del edificio.
+shell:
+  workspaceLabel: Workspace activo
+  workspaceBadge: CRM operativo
+  usageLabel: Uso recomendado
+  usagePointOne: Prioriza servicios y seguimientos desde la navegación principal.
+  usagePointTwo: Usa el contexto lateral para mantener foco por dominio operativo.
+  usagePointThree: Deja configuraciones y administración como tareas secundarias, no como flujo principal.
+  executionModeLabel: Modo operativo
+  executionModeValue: Operación centralizada
+  focusLabel: Foco del workspace
+  focusTitle: Menos navegación, más ejecución
+  focusDescription: El shell prioriza seguimiento, servicio y control operativo antes que administración secundaria.
+  globalSearchPlaceholder: Búsqueda global
+  quickActionLabel: Acción rápida
+  sidebarHint: Accede rápido a la operación principal y deja configuraciones en segundo plano.
 auth:
   title: Bienvenido a Urbly
   subtitle: Ingresa con tu cuenta de administrador.
@@ -116,6 +151,9 @@ clientPortal:
   upcomingTitle: Proximos servicios
   upcomingSubtitle: Primer corte del resumen cliente basado en service orders.
   empty: No hay proximos servicios programados.
+  clientViewBadge: Vision cliente
+  visibleWindowHint: servicios visibles en la siguiente ventana
+  priorityPill: "Prioridad {value}"
 services:
   title: Servicios
   subtitle: Nuevo nucleo operativo basado en service orders.
@@ -141,9 +179,9 @@ services:
   timelineSubtitle: Eventos derivados del appointment actual mientras se migra el dominio.
   timelineEmpty: Este servicio todavia no tiene eventos registrados.
   closeoutTitle: Cierre tecnico
-  closeoutSubtitle: Primer corte del cierre dedicado de service orders.
-  closeoutEmpty: No se encontro el servicio solicitado.
-  closeoutHint: Esta vista sera la base para separar checklist, reporte y evidencias del scheduling legacy.
+  closeoutSubtitle: Vista de cierre enfocada en reporte, evidencias y comunicación final.
+  closeoutEmpty: No se encontró el servicio solicitado.
+  closeoutHint: Aquí consolidamos reporte, evidencias, novedades y comunicación final del servicio.
   reportTitle: Reporte actual
   evidenceTitle: Evidencia actual
   evidenceCount: "Fotos registradas: {count}"
@@ -159,6 +197,31 @@ services:
   aiCustomerMessageTitle: Mensaje sugerido al cliente
   aiFollowUpTitle: Siguiente paso sugerido
   aiReportTitle: Informe tecnico sugerido
+  v2Badge: Nucleo operativo v2
+  agendaTitle: Agenda operativa
+  agendaSubtitle: Vista enfocada en lectura rápida, prioridad y acceso directo a detalle y cierre mientras terminamos la migracion completa desde legacy.
+  visibleCountHint: servicios visibles con los filtros actuales
+  issuesLabel: Novedades
+  priorityPill: "Prioridad {value}"
+  activeTypeHint: tipo de servicio activo
+  aiBadge: IA operativa aplicada
+  closeoutBadge: Cierre operativo
+  closeoutStatusHint: estado actual para cierre y reporte
+  timelineLabel: Timeline
+  aiCloseoutBadge: IA para cierre
+  aiCloseoutTitle: Acciones listas para enviar o ajustar
+  aiCloseoutSubtitle: Este bloque resume el servicio, propone el reporte y deja listo el siguiente paso para enviar o ajustar.
+  statusScheduled: Programado
+  statusConfirmed: Confirmado
+  statusInProgress: En progreso
+  statusCompleted: Completado
+  statusCancelled: Cancelado
+  statusDraft: Borrador
+  urgentLabel: Urgentes
+  priorityUrgent: Urgente
+  priorityHigh: Alta
+  priorityMedium: Media
+  priorityLow: Baja
 customers:
   title: Clientes
   subtitle: Relacion comercial y operativa en una sola vista.
@@ -171,19 +234,66 @@ reports:
   title: Reportes
   subtitle: Informes, evidencias y trazabilidad operativa.
   comingSoon: Esta seccion reunira reportes tecnicos, historiales y entregables al cliente.
+missionControl:
+  title: Mission Control
+  subtitle: Centro de control premium para monitorear la operación diaria, asignar, agendar y coordinar el sistema completo.
+  eyebrow: Centro operativo premium
+  heroTitle: Operación del día bajo control
+  heroSubtitle: Supervisa servicios, asignaciones, cotizaciones, contratos y carga operativa desde una sola vista diseñada para respuesta rápida.
+  liveLabel: En vivo
+  quickSchedule: Nuevo agendamiento
+  quickAssign: Asignar técnico
+  quickQuote: Crear cotización
+  quickContract: Implementar contrato
+  activeServices: Servicios activos
+  activeServicesHint: servicios en curso o listos para ejecución inmediata
+  urgentAlerts: Alertas urgentes
+  urgentAlertsHint: servicios con prioridad crítica que requieren seguimiento ahora
+  unassigned: Sin asignación
+  unassignedHint: servicios sin técnico asignado o sin responsable claro
+  overdue: Fuera de ventana
+  overdueHint: servicios que ya entraron en riesgo operativo por tiempo
+  operationsTitle: Agenda y asignaciones
+  operationsSubtitle: Vista principal para coordinar servicios, responsables y próximos movimientos.
+  priorityPill: "Prioridad {value}"
+  assigneeLabel: Responsable
+  issuesLabel: Novedades
+  typeLabel: Tipo
+  teamLoadTitle: Carga del equipo
+  teamLoadSubtitle: Balance rápido del equipo técnico para decidir asignaciones.
+  assignedCount: "{count} asignados"
+  alertsTitle: Alertas operativas
+  alertsSubtitle: Bloqueos, urgencias y vencimientos que necesitan intervención.
+  alertUrgent: Urgente
+  alertUnassigned: Sin asignar
+  alertOverdue: Vencido
+  actionViewService: Ver servicio
+  actionAssignService: Revisar asignacion
+  actionCloseService: Ir al cierre
+  commercialTitle: Pipeline comercial y contractual
+  commercialSubtitle: Controles rápidos para lo que todavía necesita conversión o implementación.
+  quotesPending: Cotizaciones pendientes
+  contractsPending: Contratos por implementar
+  usersLabel: Usuarios activos
+  buildingsLabel: Edificios monitoreados
+  activityTitle: Actividad reciente
+  activitySubtitle: Últimos movimientos relevantes generados por la operación.
 ai:
   title: IA operativa
   subtitle: Asistente transversal para informes, mensajes y seguimiento.
   comingSoon: Aqui se integraran acciones de IA con foco en ahorro operativo real.
   workspaceTitle: Sugerencias operativas
-  workspaceSubtitle: Primer corte de acciones sugeridas usando el backlog actual de service orders.
-  suggestionUrgent: Prioriza este servicio, prepara mensaje al cliente y revisa seguimiento inmediato.
-  suggestionIssues: Resume novedades, prepara informe y valida si hace falta seguimiento tecnico.
-  suggestionDefault: Revisa contexto del caso y deja listo el siguiente paso operativo.
+  workspaceSubtitle: Acciones sugeridas para destrabar seguimiento, comunicación y cierre operativo.
+  suggestionUrgent: Prioriza este servicio, prepara mensaje al cliente y define seguimiento inmediato.
+  suggestionIssues: Resume las novedades, deja listo el informe y valida si hace falta seguimiento técnico.
+  suggestionDefault: Revisa el contexto del caso y deja claro el siguiente paso operativo.
   caseSummaryTitle: Resumen del caso
   customerMessageTitle: Mensaje sugerido al cliente
   followUpTitle: Siguiente paso sugerido
   empty: No hay servicios activos para sugerencias ahora mismo.
+  workspaceBadge: Workspace IA
+  visibleSuggestionsHint: sugerencias visibles en este corte operativo
+  priorityPill: "Prioridad {value}"
 technician:
   homeTitle: Hoy
   homeSubtitle: Espacio de trabajo movil para el tecnico.
@@ -198,6 +308,9 @@ technician:
   statusLabel: Estado
   priorityLabel: Prioridad
   issuesLabel: Novedades
+  mobileBadge: Vista movil
+  visibleServicesHint: servicios visibles para el tecnico actual
+  priorityPill: "Prioridad {value}"
 settings:
   title: Configuraciones
   subtitle: Administra tipos de novedad y categorias
@@ -282,6 +395,7 @@ settings:
   appliesYes: Aplica
   appliesNo: No aplica
   recommendedDatesTitle: Fechas recomendadas
+  priceValueLabel: Valor
   recWaterPotableSem1: Agua potable 1 semestre
   recWaterPotableSem2: Agua potable 2 semestre
   recPozoLluvias: Pozo aguas lluvias
@@ -500,6 +614,32 @@ users:
     building_admin: Admin edificio
     emergency_scheduler: Emergencias
 scheduling:
+  serviceReport: Reporte de servicio
+  entryHourLabel: Hora entrada
+  exitHourLabel: Hora salida
+  observationsLabel: Observaciones
+  checklistTitle: Checklist
+  group1Pumps: Grupo 1 (Bombas)
+  group2Label: Grupo 2
+  group3Label: Grupo 3
+  pumpLabel: "Bomba {index}"
+  itemLabel: Elemento
+  statusLabelShort: Estado
+  distributionNetworkLabel: Red de distribución
+  servicePhotosTitle: Fotos del servicio
+  servicePhotosRequirement: (minimo 1, ilimitadas)
+  reviewDetailsTitle: Detalles de la revision
+  addPump: Agregar bomba
+  goodOption: Bueno
+  regularOption: Regular
+  badOption: Malo
+  notApplicableOption: N/A
+  goodFemaleOption: Buena
+  badFemaleOption: Mala
+  hourPlaceholder: Hora
+  minutePlaceholder: Min
+  issuePhotosHint: Debes adjuntar minimo 2 fotos por novedad (puedes agregar mas).
+  closeViewer: Cerrar visor
   title: Agendamientos
   subtitle: Calendario y agenda operativa
   newTitle: Nuevo agendamiento
@@ -574,7 +714,6 @@ scheduling:
   issueCategory: Categoria
   issueDescription: Descripcion
   issuePhotos: Fotos (2 obligatorias)
-  issuePhotosHint: Selecciona exactamente 2 fotos.
   addPhoto: Agregar foto
   addIssue: Agregar novedad
   issueList: Novedades agregadas

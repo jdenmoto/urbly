@@ -30,6 +30,28 @@ export type ServiceOrderReport = {
   checklist?: ServiceOrderChecklist;
 };
 
+export type ServiceOrderReview = {
+  status?: 'pending_review' | 'changes_requested' | 'approved';
+  reviewerId?: string;
+  reviewedAt?: string;
+  feedback?: string;
+};
+
+export type ServiceOrderQuoteVersion = {
+  id: string;
+  version: number;
+  status: 'draft' | 'pending_internal_review' | 'changes_requested' | 'approved';
+  scope: string;
+  amount: number;
+  currency: string;
+  notes?: string;
+  createdAt: string;
+  createdBy?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  reviewFeedback?: string;
+};
+
 export type ServiceOrderCommunication = {
   customerMessage?: string;
   internalSummary?: string;
@@ -46,9 +68,12 @@ export type ServiceOrderTimelineEvent = {
   summary: string;
 };
 
+export type ServiceOrderDataSource = 'service_order' | 'appointment_fallback';
+
 export type ServiceOrder = {
   id: string;
   appointmentId?: string | null;
+  dataSource?: ServiceOrderDataSource;
   customerId?: string | null;
   buildingId: string;
   contractId?: string | null;
@@ -60,12 +85,16 @@ export type ServiceOrder = {
   scheduledStartAt: string;
   scheduledEndAt: string;
   assignedTechnicianId?: string | null;
+  recurrence?: string | null;
+  seriesId?: string | null;
   checklist?: ServiceOrderChecklist;
   issues?: ServiceOrderIssue[];
   attachments?: string[];
   completionPhotos?: string[];
   report?: ServiceOrderReport;
   communication?: ServiceOrderCommunication;
+  quoteVersions?: ServiceOrderQuoteVersion[];
+  review?: ServiceOrderReview;
   timeline?: ServiceOrderTimelineEvent[];
   cancelReason?: string | null;
   cancelNote?: string | null;

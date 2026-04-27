@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
@@ -11,6 +12,7 @@ import DataTable from '@/components/DataTable';
 import EmptyState from '@/components/EmptyState';
 import Modal from '@/components/Modal';
 import ConfirmModal from '@/components/ConfirmModal';
+import { GlassPanel, MetricCard, SectionHeader, StatusPill } from '@/components/premium';
 import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type { Building } from '@/core/models/building';
@@ -21,7 +23,7 @@ import { useI18n } from '@/lib/i18n';
 import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/app/Auth';
 import { loadGoogleMaps } from '@/lib/googleMaps';
-import BuildingsMap from '@/components/BuildingsMap';
+const BuildingsMap = lazy(() => import('@/components/BuildingsMap'));
 import { EditIcon, TrashIcon, EyeIcon } from '@/components/ActionIcons';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
@@ -518,6 +520,32 @@ export default function ManagementPage() {
   return (
     <div className="space-y-8">
       <PageHeader title={t('management.title')} subtitle={t('management.subtitle')} />
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label={t('management.tabs.administrations')} value={companies.length} hint={t('management.emptySubtitle')} />
+        <MetricCard label={t('management.tabs.contracts')} value={contracts.length} hint={t('contracts.emptySubtitle')} />
+        <MetricCard label={t('management.buildingsTitle')} value={buildings.filter((building) => Boolean(building.managementCompanyId)).length} hint={t('management.buildingsOptional')} />
+        <MetricCard label={t('common.actions')} value={canEdit ? 'Sí' : 'No'} hint={canEdit ? t('common.edit') : t('common.view')} />
+      </section>
+
+      <GlassPanel className="space-y-5">
+        <SectionHeader
+          eyebrow={t('management.title')}
+          title={t('management.subtitle')}
+          subtitle={activeTab === 'administrations' ? t('management.tabs.administrations') : t('management.tabs.contracts')}
+          aside={<StatusPill tone="info">{activeTab === 'administrations' ? t('management.tabs.administrations') : t('management.tabs.contracts')}</StatusPill>}
+        />
+
+        <div className="flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+          <span className="font-semibold text-slate-900">Flujo operativo:</span>
+          <span>1. crear administración</span>
+          <span>2. crear contrato</span>
+          <span>3. registrar edificio</span>
+          <Link className="font-semibold text-sky-700 underline" to="/buildings">
+            Ir a edificios
+          </Link>
+        </div>
+
       <div className="flex flex-wrap items-center gap-2">
         <Button
           variant={activeTab === 'administrations' ? 'primary' : 'secondary'}
@@ -533,7 +561,7 @@ export default function ManagementPage() {
         </Button>
       </div>
       {activeTab === 'administrations' && selectedCompany ? (
-        <div className="space-y-4">
+        <GlassPanel className="space-y-4 border border-slate-200 bg-slate-50/60 shadow-none">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-ink-900">{selectedCompany.name}</p>
@@ -546,10 +574,12 @@ export default function ManagementPage() {
               {t('common.close')}
             </button>
           </div>
-          <BuildingsMap
-            buildings={buildings.filter((building) => building.managementCompanyId === selectedCompany.id)}
-            ready={mapsReady}
-          />
+          <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading')}</div>}>
+            <BuildingsMap
+              buildings={buildings.filter((building) => building.managementCompanyId === selectedCompany.id)}
+              ready={mapsReady}
+            />
+          </Suspense>
           <DataTable
             columns={[
               { header: t('buildings.name'), accessorKey: 'name', enableSorting: true },
@@ -565,10 +595,10 @@ export default function ManagementPage() {
             }
             pageSize={5}
           />
-        </div>
+        </GlassPanel>
       ) : null}
       {activeTab === 'administrations' && canEdit ? (
-        <>
+        <GlassPanel className="space-y-3 border border-slate-200 bg-white/70 shadow-none">
           <div className="space-y-3">
             <div className="flex items-center justify-end">
               <Button onClick={startCreate}>{t('common.add')}</Button>
@@ -727,17 +757,19 @@ export default function ManagementPage() {
             onConfirm={confirmDelete}
             onClose={() => setDeleteTarget(null)}
           />
-        </>
+        </GlassPanel>
       ) : null}
       {activeTab === 'administrations' && !canEdit ? (
-        <DataTable
-          columns={columns}
-          data={companies}
-          emptyState={<EmptyState title={t('management.emptyTitle')} description={t('management.emptySubtitle')} />}
-        />
+        <GlassPanel className="border border-slate-200 bg-white/70 shadow-none">
+          <DataTable
+            columns={columns}
+            data={companies}
+            emptyState={<EmptyState title={t('management.emptyTitle')} description={t('management.emptySubtitle')} />}
+          />
+        </GlassPanel>
       ) : null}
       {activeTab === 'contracts' ? (
-        <div className="space-y-3">
+        <GlassPanel className="space-y-3 border border-slate-200 bg-white/70 shadow-none">
           {canEdit ? (
             <div className="flex items-center justify-end">
               <Button onClick={startCreateContract}>{t('common.add')}</Button>
@@ -882,8 +914,9 @@ export default function ManagementPage() {
             onConfirm={confirmDeleteContract}
             onClose={() => setDeleteContractTarget(null)}
           />
-        </div>
+        </GlassPanel>
       ) : null}
+      </GlassPanel>
     </div>
   );
 }

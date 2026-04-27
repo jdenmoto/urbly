@@ -1,0 +1,20 @@
+{
+  "id": "DOC-001",
+  "title": "Create project operating summary from docs",
+  "owner": "notion-agent",
+  "profile": "documentation",
+  "command": "python3 \"/home/syalar/.openclaw/agent-team/shared-dev-runtime/scripts/doc_summary.py\"",
+  "verification_type": "file_exists",
+  "verification_target": "/home/syalar/.openclaw/workspace/urbly/project/artifacts/doc-summary.md",
+  "retry_limit": 1,
+  "attempts": 1,
+  "status": "done",
+  "next_on_success": [
+    "PROD-001"
+  ],
+  "depends_on": [
+    "COORD-001"
+  ],
+  "priority": "high",
+  "updated_at": 1777216584.517317
+}

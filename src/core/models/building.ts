@@ -16,4 +16,10 @@ export type Building = {
   googlePlaceId: string;
   active?: boolean;
   createdAt?: string;
+  technicalContext?: {
+    equipmentSummary?: string;
+    mechanicalRoomNotes?: string;
+    electricalSetup?: string;
+    criticalObservations?: string;
+  };
 };

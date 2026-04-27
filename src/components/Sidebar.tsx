@@ -6,128 +6,131 @@ import { useI18n } from '@/lib/i18n';
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from './ActionIcons';
 import { useState } from 'react';
 
+const roleLabel: Record<string, string> = {
+  admin: 'Empresa',
+  editor: 'Empresa',
+  view: 'Empresa',
+  supervisor: 'Operación',
+  scheduler: 'Operación',
+  operator: 'Operación',
+  auditoria: 'Auditoría',
+  emergency_scheduler: 'Técnico',
+  building_admin: 'Cliente',
+  client: 'Cliente'
+};
+
 export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
   const { logout, role } = useAuth();
   const { t } = useI18n();
   const navGroups = useNavGroups(role);
   const [sectionOpen, setSectionOpen] = useState<Record<string, boolean>>({
-    calendar: false,
-    main: true,
-    settings: false
+    calendar: false
   });
 
   return (
     <aside
       className={clsx(
-        'flex h-full flex-col gap-6 border-r border-fog-200 bg-white/80 px-4 py-6 backdrop-blur',
-        collapsed ? 'w-20' : 'w-64'
+        'flex h-full flex-col gap-6 border-r border-slate-200/70 bg-slate-950 px-4 py-6 text-slate-100 shadow-[16px_0_40px_rgba(15,23,42,0.08)]',
+        collapsed ? 'w-20' : 'w-80'
       )}
     >
-        <div className="flex items-center justify-between px-2">
-          <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-900 text-white">U</div>
+      <div className="flex items-center justify-between px-2">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-800 bg-white text-sm font-semibold text-slate-950">
+            U
+          </div>
           {!collapsed ? (
             <div>
-            <p className="text-base font-semibold text-ink-900">{t('common.appName')}</p>
-            <p className="text-xs text-ink-500">{t('common.tagline')}</p>
+              <p className="text-base font-semibold tracking-tight text-white">{t('common.appName')}</p>
+              <p className="text-xs text-slate-400">{roleLabel[role] ?? t('common.tagline')}</p>
             </div>
-          ) : null}
-          </div>
-          {onToggle ? (
-            <button
-              className="rounded-lg border border-fog-200 p-1 text-ink-700 hover:border-ink-900"
-              onClick={onToggle}
-              aria-label={collapsed ? t('common.expand') : t('common.collapse')}
-              title={collapsed ? t('common.expand') : t('common.collapse')}
-            >
-              {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </button>
           ) : null}
         </div>
+        {onToggle ? (
+          <button
+            className="rounded-xl border border-slate-800 bg-slate-900 p-2 text-slate-200 transition hover:-translate-y-0.5"
+            onClick={onToggle}
+            aria-label={collapsed ? t('common.expand') : t('common.collapse')}
+            title={collapsed ? t('common.expand') : t('common.collapse')}
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
+        ) : null}
+      </div>
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t('shell.workspaceLabel')}</p>
+        <p className="mt-2 text-sm font-semibold text-white">{t('shell.executionModeValue')}</p>
+        <p className="mt-1 text-xs leading-5 text-slate-400">{t('shell.sidebarHint')}</p>
+      </div>
       <nav className="flex flex-1 flex-col gap-4">
         {navGroups.map((group, index) => {
-          const groupKey = index === 0 ? 'main' : 'settings';
-          const isGroupOpen = sectionOpen[groupKey] ?? true;
+          const groupKey = group.label || `group-${index}`;
+          const isGroupOpen = sectionOpen[groupKey] ?? index === 0;
           return (
-          <div key={group.label} className="space-y-2">
-            {!collapsed ? (
-              <button
-                type="button"
-                className="flex w-full items-center justify-between px-2 text-[11px] font-semibold uppercase tracking-wide text-ink-400"
-                onClick={() =>
-                  setSectionOpen((prev) => ({ ...prev, [groupKey]: !isGroupOpen }))
-                }
-              >
-                <span>{group.label}</span>
-                {isGroupOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              </button>
-            ) : null}
-            <div className="space-y-1">
-              {isGroupOpen
-                ? group.items.map((item) => {
-                const isCalendarItem = item.sectionId === 'calendar' && item.kind !== 'section';
-                if (isCalendarItem && sectionOpen.calendar === false) {
-                  return null;
-                }
-                return (
-                item.kind === 'section' ? (
-                  <button
-                    key={`${group.label}-${item.label}`}
-                    type="button"
-                    className={clsx(
-                      'flex w-full items-center justify-between px-3 pt-3 text-[11px] font-semibold uppercase tracking-wide text-ink-400',
-                      collapsed ? 'hidden' : 'flex'
-                    )}
-                    onClick={() =>
-                      item.sectionId
-                        ? setSectionOpen((prev) => ({ ...prev, [item.sectionId!]: !prev[item.sectionId!] }))
-                        : null
-                    }
-                  >
-                    <span>{item.label}</span>
-                    {item.sectionId ? (
-                      sectionOpen[item.sectionId] ? (
-                        <ChevronUp className="h-3 w-3" />
-                      ) : (
-                        <ChevronDown className="h-3 w-3" />
-                      )
-                    ) : null}
-                  </button>
-                ) : (
-                  item.to ? (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      className={({ isActive }) =>
-                      clsx(
-                        'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition',
-                        isActive ? 'bg-ink-900 text-white' : 'text-ink-700 hover:bg-fog-100'
-                      )
-                    }
-                  >
-                      <item.icon className="h-5 w-5" />
-                      {!collapsed ? item.label : null}
-                    </NavLink>
-                  ) : null
-                )
-                );
-              })
-                : null}
+            <div key={group.label} className="space-y-2">
+              {!collapsed ? (
+                <button
+                  type="button"
+                  className="w-full rounded-2xl border border-transparent px-3 py-2 text-left transition hover:bg-slate-900"
+                  onClick={() => setSectionOpen((prev) => ({ ...prev, [groupKey]: !isGroupOpen }))}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{group.label}</span>
+                    {isGroupOpen ? <ChevronUp className="h-3 w-3 text-slate-500" /> : <ChevronDown className="h-3 w-3 text-slate-500" />}
+                  </div>
+                  {group.description ? <p className="mt-1 text-xs leading-5 text-slate-400">{group.description}</p> : null}
+                </button>
+              ) : null}
+              <div className="space-y-1">
+                {isGroupOpen
+                  ? group.items.map((item) => {
+                      const isCalendarItem = item.sectionId === 'calendar' && item.kind !== 'section';
+                      if (isCalendarItem && sectionOpen.calendar === false) return null;
+                      return item.kind === 'section' ? (
+                        <button
+                          key={`${group.label}-${item.label}`}
+                          type="button"
+                          className={clsx(
+                            'flex w-full items-center justify-between px-3 pt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500',
+                            collapsed ? 'hidden' : 'flex'
+                          )}
+                          onClick={() => item.sectionId ? setSectionOpen((prev) => ({ ...prev, [item.sectionId!]: !prev[item.sectionId!] })) : null}
+                        >
+                          <span>{item.label}</span>
+                          {item.sectionId ? sectionOpen[item.sectionId] ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" /> : null}
+                        </button>
+                      ) : item.to ? (
+                        <NavLink
+                          key={item.to}
+                          to={item.to}
+                          className={({ isActive }) =>
+                            clsx(
+                              'flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium transition',
+                              isActive ? 'border border-slate-800 bg-white text-slate-950 shadow-[0_8px_24px_rgba(15,23,42,0.18)]' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                            )
+                          }
+                        >
+                          <item.icon className="h-5 w-5" />
+                          {!collapsed ? item.label : null}
+                        </NavLink>
+                      ) : null;
+                    })
+                  : null}
+              </div>
             </div>
-          </div>
-        );
+          );
         })}
       </nav>
       {!collapsed ? (
-        <div className="space-y-3">
+        <div className="space-y-3 border-t border-slate-800 pt-4">
           <button
-            className="w-full rounded-xl border border-fog-200 bg-white px-4 py-2 text-left text-xs font-semibold text-ink-700 hover:border-ink-900"
+            className="w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-left text-xs font-semibold text-slate-100 transition hover:-translate-y-0.5"
             onClick={() => void logout()}
           >
             {t('common.logout')}
           </button>
-          <div className="rounded-xl bg-fog-100 px-4 py-3 text-xs text-ink-600">
-            {t('common.planLabel')}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-xs text-slate-300">
+            Vista actual: {roleLabel[role] ?? 'Panel'}
           </div>
         </div>
       ) : null}
