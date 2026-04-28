@@ -1,68 +1,65 @@
 # CI/CD Workflows
 
-Este proyecto sigue flujo feature -> develop -> main:
+Flujo esperado: `feature/**` -> `develop` -> `main`.
 
-- `ci.yml`
-  - Corre en PR/push (`feature/**`, `develop`, `main`)
-  - Instala deps web/functions, genera `.env.local` desde secrets, hace lint incremental (`lint:ci` sobre archivos cambiados) y además lint completo en PRs y ramas protegidas, luego typecheck web/functions, build web y build functions.
+## Qué hace cada workflow
 
-- `preview.yml`
-  - Manual (`workflow_dispatch`)
-  - Instala dependencias web/functions, genera `.env.local`, hace typecheck web/functions, build web/functions y publica un preview channel bajo demanda.
-  - Sirve para validar una rama manualmente con el mismo baseline mínimo del pipeline antes de compartir una URL temporal.
+| Workflow | Cuándo corre | Qué valida | Qué despliega | Secrets que usa |
+| --- | --- | --- | --- | --- |
+| `ci.yml` | PR a `develop/main` y push a `feature/**`, `develop`, `main` | `lint:ci`, `lint` completo en PR/protegidas, `typecheck` web/functions, `build:minimum` | Nada | `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_PROJECT_ID`, `VITE_GOOGLE_MAPS_API_KEY`, `VITE_GOOGLE_MAPS_MAP_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `FIREBASE_PROJECT_ID`, `FIREBASE_BROWSER_KEY_ID`* |
+| `preview.yml` | Manual (`workflow_dispatch`) | `validate:release` = lint web + build web + build functions | Hosting preview channel | mismos secrets de build + `FIREBASE_SERVICE_ACCOUNT`, `FIREBASE_PROJECT_ID`, `GITHUB_TOKEN` |
+| `deploy-develop.yml` | `workflow_run` de `CI` verde sobre `develop` | `validate:release` sobre el `head_sha` validado por CI | Hosting channel `develop` | mismos secrets de build + `FIREBASE_SERVICE_ACCOUNT`, `FIREBASE_PROJECT_ID`, `FIREBASE_BROWSER_KEY_ID`* |
+| `deploy.yml` | `workflow_run` de `CI` verde sobre `main` | `validate:release` sobre el `head_sha` validado por CI | Hosting + Functions + Firestore rules/indexes | mismos secrets de build + `FIREBASE_SERVICE_ACCOUNT`, `FIREBASE_PROJECT_ID` |
+| `rollback.yml` | Manual (`workflow_dispatch`) | No recompila ni revalida | Solo Hosting (`firebase hosting:clone`) | `FIREBASE_SERVICE_ACCOUNT`, `FIREBASE_PROJECT_ID`, `FIREBASE_HOSTING_SITE`* |
 
-- `deploy-develop.yml`
-  - Corre **solo cuando `CI` termina exitoso** para la rama `develop` (`workflow_run`).
-  - Repite instalación + typecheck/build de web/functions sobre el commit validado por CI antes de desplegar.
-  - Despliega a canal `develop` (staging) en Firebase Hosting.
-  - Extrae la URL del canal y la agrega automáticamente a referrers permitidos de la API key web (gcloud).
+\* opcional o con fallback.
 
-- `deploy.yml`
-  - Corre **solo cuando `CI` termina exitoso** para la rama `main` (`workflow_run`).
-  - Repite instalación + lint/typecheck/build de web/functions sobre el commit validado por CI antes de desplegar.
-  - Despliega a producción (hosting + functions + firestore rules/indexes).
+## Condiciones antes de merge o deploy
 
-- `rollback.yml`
-  - Manual (`workflow_dispatch`)
-  - Permite rollback de Hosting usando `firebase hosting:clone`.
+### Antes de merge a `develop` o `main`
+- `ci.yml` debe quedar verde en el SHA a mergear.
+- Ese verde implica baseline mínimo real: lint web + typecheck web/functions + build web/functions.
+- Si faltan secrets de build, CI no es confiable aunque el cambio parezca solo frontend.
 
-## Pipeline mínimo confiable
+### Antes de usar `preview.yml`
+- Es un deploy manual para compartir una URL temporal.
+- Valida el mismo baseline de release (`validate:release`), pero **solo publica Hosting**.
+- No tomar un preview como prueba de deploy real de Functions o Firestore.
 
-1. `ci.yml` debe quedar verde en el SHA a desplegar.
-2. `deploy-develop.yml` y `deploy.yml` solo arrancan después de ese verde y vuelven a correr builds explícitos de web y functions.
-3. `preview.yml` mantiene el mismo baseline mínimo aunque el deploy sea manual.
-4. Ningún deploy debe depender de artefactos implícitos ni asumir que solo Hosting importa si el repo completo está roto.
+### Antes de staging (`deploy-develop.yml`)
+- Solo corre si `CI` terminó en `success` para `develop`.
+- Revalida el mismo `head_sha`; no despliega el estado más reciente de la rama si ese SHA cambió después.
+- Si falta `FIREBASE_BROWSER_KEY_ID`, staging despliega igual pero se omite el whitelist automático de la URL.
 
-## Secrets requeridos
+### Antes de producción (`deploy.yml`)
+- Solo corre si `CI` terminó en `success` para `main`.
+- Revalida el mismo `head_sha` antes de desplegar.
+- Producción sí publica `hosting`, `functions`, `firestore:rules` y `firestore:indexes`; el repo debe estar sano completo, no solo el frontend.
 
-### Deploy / Rollback
-- `FIREBASE_SERVICE_ACCOUNT` (JSON completo de service account)
-- `FIREBASE_PROJECT_ID` (ej: `urbly-2bae2`)
-- `FIREBASE_HOSTING_SITE` (opcional; si no existe usa `FIREBASE_PROJECT_ID`)
+### Antes de rollback (`rollback.yml`)
+- Confirmar que el incidente está en Hosting.
+- Este workflow **no revierte Functions ni Firestore**.
+- Si el problema vive en backend o reglas, hace falta otro procedimiento.
 
-### Build web (.env.local en CI)
+## Supuestos críticos
+
+- Los workflows generan `.env.local` en runtime; los secrets no se versionan.
+- `deploy-develop.yml` y `deploy.yml` usan `github.event.workflow_run.head_sha` para fijar exactamente el commit ya validado.
+- Preview y staging publican Hosting, pero validan Functions para no divergir del baseline de producción.
+- El nombre `rollback.yml` puede inducir a pensar en reversión total, pero hoy el alcance real es solo Hosting.
+
+## Secrets por grupo
+
+### Build de web / baseline de release
 - `VITE_FIREBASE_API_KEY`
 - `VITE_FIREBASE_PROJECT_ID`
 - `VITE_GOOGLE_MAPS_API_KEY`
 - `VITE_GOOGLE_MAPS_MAP_ID`
 - `VITE_FIREBASE_STORAGE_BUCKET`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_BROWSER_KEY_ID` *(opcional para whitelist de staging)*
 
-### Secrets opcionales / comportamiento adicional
-- `FIREBASE_BROWSER_KEY_ID` (opcional, útil para scripts de preview/referrer)
-  - si falta, el deploy a `develop` no falla, pero omite el whitelist automático de la URL staging
-
-## Checks mínimos esperados
-- lint incremental en CI para ramas activas
-- lint completo en PRs y ramas protegidas
-- typecheck web
-- typecheck functions
-- build web
-- build functions
-
-## Supuestos operativos
-
-- `deploy-develop.yml` y `deploy.yml` usan el `head_sha` del `workflow_run`, no el estado más reciente de la rama.
-- Los workflows generan `.env.local` en runtime; no se versionan secretos.
-- Preview y staging publican Hosting, pero igual validan functions para evitar divergencia con producción.
-
-> Nota: los workflows generan `.env.local` dinámicamente en tiempo de ejecución; no se versionan secretos en el repositorio.
+### Deploy y rollback en Firebase
+- `FIREBASE_SERVICE_ACCOUNT`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_HOSTING_SITE` *(solo rollback; si falta, usa `FIREBASE_PROJECT_ID` como fallback)*

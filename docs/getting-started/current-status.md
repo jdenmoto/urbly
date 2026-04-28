@@ -1,25 +1,26 @@
 # Estado actual del proyecto
 
 ## Qué está sólido
-- base operativa de edificios, administraciones, empleados y agenda
-- importación multi-entidad con pipeline compartido, validación y dry-run
-- desacople importante de agenda hacia flujo `service-order-first`
-- wizard de agenda parcialmente dividido y más mantenible
+- `service_orders` ya gobierna el flujo operativo visible
+- `services` concentra lista, detalle, cierre y salida de reporte del día a día
+- la navegación principal por rol quedó enfocada en operación real
+- empresa, técnico y cliente ya tienen walkthrough mínimo usable
+- CI/build mínimo quedó explícito para web y functions con `npm run build:minimum`
 
 ## Qué quedó recientemente cerrado
-- compatibilidad del importador actual con pipeline compartido
-- selectores canónicos de agenda
-- desacople de mutaciones de calendario del naming legacy
-- validación del cierre técnico alineada con `service_orders`
-- limpieza principal de i18n del flujo nuevo
-- mapa legacy ajustado al estado real
+- salida de `SchedulingPage` del flujo principal; `/scheduling` ahora solo redirige a `/services`
+- migración operativa de agenda y reportes base al modelo `service_orders`
+- limpieza fuerte de código muerto y naming legacy más engañoso
+- cierre técnico accesible desde `services` sin volver al módulo histórico
+- documentación operativa y de pipeline alineada a la ola ejecutada
 
 ## Qué sigue pendiente a alto nivel
-- extraer más responsabilidades de `SchedulingPage`
-- completar migración desde `appointments` a `service_orders`
-- consolidar invalidaciones, series y cierre técnico sobre modelo canónico
-- seguir simplificando navegación y módulos de Urbly v2
+- convertir en nativas de `services` las piezas de cierre que todavía usan puente con `scheduling`
+- unificar la representación final del reporte entre closeout, imprimible y PDF
+- hacer una pasada corta de limpieza residual sobre helpers/modelos legacy ya fuera del flujo
+- decidir si el portal cliente se queda mínimo o merece una separación más clara entre servicios e informes
 
 ## Validación operativa actual
-- el criterio de cierre real es `npm run build` verde
-- existe deuda histórica aislada en `functions`, pero el build principal del repo es la validación operativa actual
+- criterio mínimo real del repo: `npm run build:minimum`
+- la validación de esta ola exige web y functions en verde, no solo frontend
+- la deuda restante ya no bloquea la operación principal; está concentrada en cierre/reporte y cleanup residual

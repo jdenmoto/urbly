@@ -1,29 +1,23 @@
-import type { Appointment, AppointmentIssue } from '@/core/models/appointment';
 import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type {
   ServiceOrder,
   ServiceOrderDataSource,
-  ServiceOrderIssue,
   ServiceOrderPriority,
-  ServiceOrderStatus,
-  ServiceOrderTimelineEvent
+  ServiceOrderStatus
 } from '@/core/models/serviceOrder';
 import { createDoc, deleteDocById, filters, listDocs, updateDocById } from './firestore';
 
-export type AppointmentRelations = {
+export type ServiceOrderRelations = {
   building?: Building | null;
   contract?: Contract | null;
   management?: ManagementCompany | null;
 };
 
-export type ServiceOrderRelations = AppointmentRelations;
-
 export type ServiceOrderResolution = {
   items: ServiceOrder[];
   source: ServiceOrderDataSource;
-  fallbackReason?: string;
 };
 
 export type ServiceOrderMutationValues = {
@@ -39,7 +33,9 @@ export type ServiceOrderMutationValues = {
   seriesId?: string | null;
 };
 
-function mapStatus(status: Appointment['status']): ServiceOrderStatus {
+export type SchedulingServiceOrderStatus = 'programado' | 'confirmado' | 'completado' | 'cancelado';
+
+function mapSchedulingStatus(status: SchedulingServiceOrderStatus): ServiceOrderStatus {
   switch (status) {
     case 'programado':
       return 'scheduled';
@@ -54,8 +50,8 @@ function mapStatus(status: Appointment['status']): ServiceOrderStatus {
   }
 }
 
-export function mapAppointmentStatusToServiceOrderStatus(status: Appointment['status']): ServiceOrderStatus {
-  return mapStatus(status);
+export function mapSchedulingStatusToServiceOrderStatus(status: SchedulingServiceOrderStatus): ServiceOrderStatus {
+  return mapSchedulingStatus(status);
 }
 
 function mapPriority(type: string): ServiceOrderPriority {
@@ -64,113 +60,6 @@ function mapPriority(type: string): ServiceOrderPriority {
   if (normalized.includes('correct')) return 'high';
   if (normalized.includes('inspe')) return 'medium';
   return 'medium';
-}
-
-function mapIssues(issues?: AppointmentIssue[]): ServiceOrderIssue[] {
-  return (issues ?? []).map((issue) => ({
-    id: issue.id,
-    type: issue.type,
-    category: issue.category,
-    description: issue.description,
-    photos: issue.photos,
-    createdAt: issue.createdAt
-  }));
-}
-
-export function buildAppointmentTimeline(appointment: Appointment): ServiceOrderTimelineEvent[] {
-  const timeline: ServiceOrderTimelineEvent[] = [];
-
-  if (appointment.createdAt) {
-    timeline.push({
-      id: `${appointment.id}-created`,
-      type: 'created',
-      createdAt: appointment.createdAt,
-      actorRole: 'system',
-      summary: 'Servicio creado'
-    });
-  }
-
-  timeline.push({
-    id: `${appointment.id}-scheduled`,
-    type: 'scheduled',
-    createdAt: appointment.startAt,
-    actorRole: 'company',
-    summary: 'Servicio agendado'
-  });
-
-  if (appointment.employeeId) {
-    timeline.push({
-      id: `${appointment.id}-assigned`,
-      type: 'assigned',
-      createdAt: appointment.startAt,
-      actorRole: 'company',
-      actorId: appointment.employeeId,
-      summary: 'Tecnico asignado'
-    });
-  }
-
-  if (appointment.completedAt) {
-    timeline.push({
-      id: `${appointment.id}-completed`,
-      type: 'completed',
-      createdAt: appointment.completedAt,
-      actorRole: 'technician',
-      summary: 'Servicio completado'
-    });
-  }
-
-  if (appointment.status === 'cancelado') {
-    timeline.push({
-      id: `${appointment.id}-cancelled`,
-      type: 'cancelled',
-      createdAt: appointment.completedAt ?? appointment.endAt,
-      actorRole: 'company',
-      summary: appointment.cancelReason ? `Servicio cancelado: ${appointment.cancelReason}` : 'Servicio cancelado'
-    });
-  }
-
-  return timeline.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-}
-
-export function mapAppointmentToServiceOrder(
-  appointment: Appointment,
-  relations: AppointmentRelations = {}
-): ServiceOrder {
-  const building = relations.building ?? null;
-  const contract = relations.contract ?? null;
-  const management = relations.management ?? null;
-
-  return {
-    id: appointment.id,
-    appointmentId: appointment.id,
-    dataSource: 'appointment_fallback',
-    customerId: management?.id ?? building?.managementCompanyId ?? null,
-    buildingId: appointment.buildingId,
-    contractId: contract?.id ?? building?.contractId ?? null,
-    title: appointment.title,
-    description: appointment.description,
-    type: appointment.type,
-    priority: mapPriority(appointment.type),
-    status: mapStatus(appointment.status),
-    scheduledStartAt: appointment.startAt,
-    scheduledEndAt: appointment.endAt,
-    assignedTechnicianId: appointment.employeeId ?? null,
-    recurrence: appointment.recurrence ?? null,
-    seriesId: appointment.seriesId ?? null,
-    issues: mapIssues(appointment.issues),
-    attachments: appointment.completionPhotos ?? [],
-    completionPhotos: appointment.completionPhotos ?? [],
-    report: appointment.completionReport as ServiceOrder['report'],
-    communication: {
-      internalSummary: management ? `Cliente asociado: ${management.name}` : undefined
-    },
-    timeline: buildAppointmentTimeline(appointment),
-    cancelReason: appointment.cancelReason ?? null,
-    cancelNote: appointment.cancelNote ?? null,
-    completedAt: appointment.completedAt ?? null,
-    createdAt: appointment.createdAt,
-    updatedAt: appointment.completedAt ?? appointment.createdAt
-  };
 }
 
 export function enrichServiceOrder(serviceOrder: ServiceOrder, relations: ServiceOrderRelations = {}): ServiceOrder {
@@ -196,31 +85,6 @@ export function enrichServiceOrder(serviceOrder: ServiceOrder, relations: Servic
 
 export function indexById<T extends { id: string }>(items: T[]) {
   return new Map(items.map((item) => [item.id, item]));
-}
-
-export function buildServiceOrders(
-  appointments: Appointment[],
-  buildings: Building[],
-  contracts: Contract[],
-  managements: ManagementCompany[]
-) {
-  const buildingsById = indexById(buildings);
-  const contractsById = indexById(contracts);
-  const managementsById = indexById(managements);
-
-  return appointments.map((appointment) => {
-    const building = buildingsById.get(appointment.buildingId) ?? null;
-    const contract = building?.contractId ? contractsById.get(building.contractId) ?? null : null;
-    const management = building?.managementCompanyId
-      ? managementsById.get(building.managementCompanyId) ?? null
-      : null;
-
-    return mapAppointmentToServiceOrder(appointment, {
-      building,
-      contract,
-      management
-    });
-  });
 }
 
 export function hydrateServiceOrders(
@@ -256,38 +120,27 @@ export function hydrateServiceOrders(
 
 export function resolveServiceOrders(args: {
   serviceOrders: ServiceOrder[];
-  appointments: Appointment[];
-  buildFromAppointments: () => ServiceOrder[];
-  hydrateCanonical: () => ServiceOrder[];
+  buildings: Building[];
+  contracts: Contract[];
+  managements: ManagementCompany[];
 }): ServiceOrderResolution {
-  const { serviceOrders, appointments, buildFromAppointments, hydrateCanonical } = args;
-
-  if (serviceOrders.length > 0) {
-    return {
-      items: hydrateCanonical(),
-      source: 'service_order'
-    };
-  }
-
+  const { serviceOrders, buildings, contracts, managements } = args;
   return {
-    items: buildFromAppointments(),
-    source: 'appointment_fallback',
-    fallbackReason: appointments.length > 0 ? 'service_orders vacío, se proyecta desde appointments legacy' : 'sin datos canónicos ni legacy'
+    items: hydrateServiceOrders(serviceOrders, buildings, contracts, managements),
+    source: 'service_order'
   };
 }
 
 export async function loadResolvedServiceOrders() {
-  const [serviceOrders, appointments, buildings, contracts, managements] = await Promise.all([
+  const [serviceOrders, buildings, contracts, managements] = await Promise.all([
     listDocs<ServiceOrder>('service_orders').catch(() => []),
-    listDocs<Appointment>('appointments').catch(() => []),
     listDocs<Building>('buildings'),
     listDocs<Contract>('contracts'),
     listDocs<ManagementCompany>('management_companies')
   ]);
 
-  return resolveServiceOrdersFromSources({
+  return resolveServiceOrders({
     serviceOrders,
-    appointments,
     buildings,
     contracts,
     managements
@@ -299,9 +152,8 @@ export async function loadResolvedTenantServiceOrders(args: {
 }) {
   const { administrationId } = args;
 
-  const [serviceOrders, appointments, buildings, contracts, managements] = await Promise.all([
+  const [serviceOrders, buildings, contracts, managements] = await Promise.all([
     listDocs<ServiceOrder>('service_orders').catch(() => []),
-    listDocs<Appointment>('appointments').catch(() => []),
     administrationId
       ? listDocs<Building>('buildings', [filters().where('managementCompanyId', '==', administrationId)])
       : listDocs<Building>('buildings'),
@@ -314,36 +166,15 @@ export async function loadResolvedTenantServiceOrders(args: {
   ]);
 
   const buildingIds = new Set(buildings.map((item) => item.id));
-  const allowedAppointments = administrationId
-    ? appointments.filter((item) => buildingIds.has(item.buildingId))
-    : appointments;
   const allowedServiceOrders = administrationId
     ? serviceOrders.filter((item) => buildingIds.has(item.buildingId) || item.customerId === administrationId)
     : serviceOrders;
 
-  return resolveServiceOrdersFromSources({
+  return resolveServiceOrders({
     serviceOrders: allowedServiceOrders,
-    appointments: allowedAppointments,
     buildings,
     contracts,
     managements
-  });
-}
-
-export function resolveServiceOrdersFromSources(args: {
-  serviceOrders: ServiceOrder[];
-  appointments: Appointment[];
-  buildings: Building[];
-  contracts: Contract[];
-  managements: ManagementCompany[];
-}): ServiceOrderResolution {
-  const { serviceOrders, appointments, buildings, contracts, managements } = args;
-
-  return resolveServiceOrders({
-    serviceOrders,
-    appointments,
-    hydrateCanonical: () => hydrateServiceOrders(serviceOrders, buildings, contracts, managements),
-    buildFromAppointments: () => buildServiceOrders(appointments, buildings, contracts, managements)
   });
 }
 

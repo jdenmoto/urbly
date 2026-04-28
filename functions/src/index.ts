@@ -1,6 +1,6 @@
 export { importBuildings } from './imports';
 export { createUser, updateUser, setUserDisabled, deleteUser, getQaLogin } from './users';
-export { generateAppointmentsPdf } from './reports';
+export { generateSchedulingAgendaPdf } from './reports';
 
 export { generateServiceReportPdf } from './serviceReports';
 

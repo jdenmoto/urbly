@@ -4,7 +4,7 @@ export type SchedulingStatus = 'programado' | 'confirmado' | 'completado' | 'can
 
 export type SchedulingItem = {
   id: string;
-  source: 'appointment_fallback' | 'service_order';
+  source: 'service_order';
   sourceId: string;
   buildingId: string;
   title: string;
@@ -28,7 +28,7 @@ export type SchedulingItem = {
 export function mapServiceOrderToSchedulingItem(serviceOrder: ServiceOrder): SchedulingItem {
   return {
     id: serviceOrder.id,
-    source: serviceOrder.dataSource === 'appointment_fallback' ? 'appointment_fallback' : 'service_order',
+    source: 'service_order',
     sourceId: serviceOrder.id,
     buildingId: serviceOrder.buildingId,
     title: serviceOrder.title,

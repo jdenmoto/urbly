@@ -67,19 +67,8 @@ jobs:
           FIREBASE_BROWSER_KEY_ID=${FIREBASE_BROWSER_KEY_ID}
           EOF
 
-      - name: Typecheck web app
-        run: npm run typecheck
-
-      - name: Typecheck functions
-        run: npm run typecheck
-        working-directory: functions
-
-      - name: Build web app
-        run: npm run build
-
-      - name: Build functions
-        run: npm run build
-        working-directory: functions
+      - name: Run release validation baseline
+        run: npm run validate:release
 
       - name: Deploy to Firebase Hosting preview channel
         uses: FirebaseExtended/action-hosting-deploy@v0

@@ -43,10 +43,22 @@ export default function TechnicianHomePage() {
   const openOrders = assignedOrders.filter((item) => item.status !== 'completed' && item.status !== 'cancelled');
   const nextOrder = openOrders[0] ?? null;
   const todaysOrders = openOrders.slice(0, 5);
+  const technicianListState = { fromPath: '/technician' };
 
   return (
     <div className="space-y-8">
-      <PageHeader title={t('technician.homeTitle')} subtitle={t('technician.homeSubtitle')} />
+      <PageHeader
+        title={t('technician.homeTitle')}
+        subtitle={t('technician.homeSubtitle')}
+        actions={
+          <Link
+            className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            to="/services"
+          >
+            Ver mis servicios
+          </Link>
+        }
+      />
 
       <section className="grid gap-4 md:grid-cols-3">
         <StatCard label={t('technician.assignedServices')} value={assignedOrders.length} />
@@ -107,10 +119,27 @@ export default function TechnicianHomePage() {
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
-              <Link className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700" to={`/services/${nextOrder.id}`}>
+              <Link
+                className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
+                to={`/services/${nextOrder.id}`}
+                state={{
+                  fromServices: true,
+                  ...technicianListState,
+                  listContext: {
+                    buildingName: buildings.find((item) => item.id === nextOrder.buildingId)?.name ?? t('common.noData'),
+                    technicianName: employee?.fullName ?? t('common.noData'),
+                    dailyProgressCount: nextOrder.timeline.length,
+                    issueCount: nextOrder.issues.length
+                  }
+                }}
+              >
                 Abrir servicio
               </Link>
-              <Link className="inline-flex items-center rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100" to={`/services/${nextOrder.id}/closeout`}>
+              <Link
+                className="inline-flex items-center rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                to={`/services/${nextOrder.id}/closeout`}
+                state={technicianListState}
+              >
                 Cerrar o reportar
               </Link>
             </div>
@@ -143,10 +172,27 @@ export default function TechnicianHomePage() {
                     <p className="text-sm text-ink-500">{formatServiceDateTime(order.scheduledStartAt)}</p>
                   </div>
                   <div className="flex flex-wrap gap-3">
-                    <Link className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" to={`/services/${order.id}`}>
+                    <Link
+                      className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      to={`/services/${order.id}`}
+                      state={{
+                        fromServices: true,
+                        ...technicianListState,
+                        listContext: {
+                          buildingName: buildings.find((item) => item.id === order.buildingId)?.name ?? t('common.noData'),
+                          technicianName: employee?.fullName ?? t('common.noData'),
+                          dailyProgressCount: order.timeline.length,
+                          issueCount: order.issues.length
+                        }
+                      }}
+                    >
                       Detalle
                     </Link>
-                    <Link className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-100" to={`/services/${order.id}/closeout`}>
+                    <Link
+                      className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
+                      to={`/services/${order.id}/closeout`}
+                      state={technicianListState}
+                    >
                       Avance / cierre
                     </Link>
                   </div>

@@ -1,6 +1,6 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
-import { appointmentTypeOptions } from '@/core/appointments';
+import { serviceTypeOptions } from '@/core/serviceOrderOptions';
 import type { ServiceTypeRecord } from '@/features/settings/ServiceTypesSettingsPage';
 
 export async function listServiceTypes(): Promise<ServiceTypeRecord[]> {
@@ -15,7 +15,7 @@ export async function listServiceTypes(): Promise<ServiceTypeRecord[]> {
     // fallback below
   }
 
-  return appointmentTypeOptions.map((code) => ({
+  return serviceTypeOptions.map((code) => ({
     id: code,
     code,
     name: code,

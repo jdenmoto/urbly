@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { updateDocById } from '@/lib/api/firestore';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import EmptyState from '@/components/EmptyState';
 import Input from '@/components/Input';
 import PageHeader from '@/components/PageHeader';
@@ -12,6 +12,8 @@ import { useList } from '@/lib/api/queries';
 import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { buildDailyProgressEvent, getServiceDailyProgress } from './serviceProgress';
 import { useI18n } from '@/lib/i18n';
+import { useAuth } from '@/app/Auth';
+import type { AppUser } from '@/core/models/appUser';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
 import {
@@ -39,8 +41,11 @@ const statusTone: Record<string, string> = {
 
 export default function ServicesPage() {
   const { t } = useI18n();
+  const { role, user } = useAuth();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const { data: serviceOrders = [], isLoading } = useOperationalServiceOrders();
+  const { data: users = [] } = useList<AppUser>('users', 'users');
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const [filters, setFilters] = useState<ServiceOrderFilters>({ buildingId: '', from: '', to: '', status: '' });
@@ -60,18 +65,42 @@ export default function ServicesPage() {
     }));
   }, [searchParams]);
 
+  const currentUser = useMemo(() => users.find((item) => item.id === user?.uid) ?? null, [users, user?.uid]);
+  const currentEmployee = useMemo(() => {
+    const email = currentUser?.email?.toLowerCase();
+    if (!email) return null;
+    return employees.find((item) => item.email.toLowerCase() === email) ?? null;
+  }, [employees, currentUser?.email]);
+  const isTechnicianView = role === 'emergency_scheduler';
+
+  const scopedServiceOrders = useMemo(() => {
+    if (!isTechnicianView) return serviceOrders;
+    if (!currentEmployee) return [];
+    return serviceOrders.filter((item) => item.assignedTechnicianId === currentEmployee.id);
+  }, [currentEmployee, isTechnicianView, serviceOrders]);
+
   const selectedBuilding = useMemo(
     () => getSelectedServiceBuilding(buildings, filters.buildingId),
     [buildings, filters.buildingId]
   );
 
-  const summary = useMemo(() => buildServiceOrderSummary(serviceOrders), [serviceOrders]);
+  const summary = useMemo(() => buildServiceOrderSummary(scopedServiceOrders), [scopedServiceOrders]);
 
-  const filteredOrders = useMemo(() => filterServiceOrders(serviceOrders, filters), [filters, serviceOrders]);
+  const filteredOrders = useMemo(() => filterServiceOrders(scopedServiceOrders, filters), [filters, scopedServiceOrders]);
 
   const recentOrders = useMemo(() => getRecentServiceOrders(filteredOrders), [filteredOrders]);
+  const nextOpenOrder = useMemo(
+    () => recentOrders.find((item) => item.status !== 'completed' && item.status !== 'cancelled') ?? recentOrders[0] ?? null,
+    [recentOrders]
+  );
+  const currentSearch = searchParams.toString();
+  const headerTitle = isTechnicianView ? t('services.technicianTitle') : t('services.title');
+  const headerSubtitle = isTechnicianView ? t('services.technicianSubtitle') : t('services.subtitle');
+  const agendaTitle = isTechnicianView ? t('services.technicianAgendaTitle') : t('services.agendaTitle');
+  const agendaSubtitle = isTechnicianView ? t('services.technicianAgendaSubtitle') : t('services.agendaSubtitle');
 
   const statusLabel = (value: string) => getServiceOrderStatusLabel(t, value as Parameters<typeof getServiceOrderStatusLabel>[1]);
+  const currentRoute = `${location.pathname}${currentSearch ? `?${currentSearch}` : ''}`;
 
   const saveDailyProgress = async () => {
     if (!progressTarget || !progressSummary.trim()) return;
@@ -93,11 +122,11 @@ export default function ServicesPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title={t('services.title')} subtitle={t('services.subtitle')} />
+      <PageHeader title={headerTitle} subtitle={headerSubtitle} />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label={t('services.statusScheduled')} value={summary.scheduled} hint={t('services.visibleCountHint')} />
-        <MetricCard label={t('services.statusInProgress')} value={summary.inProgress} hint={t('services.agendaSubtitle')} />
+        <MetricCard label={t('services.statusInProgress')} value={summary.inProgress} hint={agendaSubtitle} />
         <MetricCard label={t('services.statusCompleted')} value={summary.completed} hint={t('services.viewDetail')} />
         <MetricCard label={t('services.urgentLabel')} value={summary.urgent} hint={t('services.viewCloseout')} />
       </section>
@@ -105,12 +134,51 @@ export default function ServicesPage() {
       <GlassPanel className="space-y-6">
         <SectionHeader
           eyebrow={t('services.v2Badge')}
-          title={t('services.agendaTitle')}
-          subtitle={selectedBuilding ? `Contexto actual: ${selectedBuilding.name}` : t('services.agendaSubtitle')}
+          title={agendaTitle}
+          subtitle={selectedBuilding ? `Contexto actual: ${selectedBuilding.name}` : agendaSubtitle}
           aside={<StatusPill tone="info">{`${recentOrders.length} ${t('services.visibleCountHint')}`}</StatusPill>}
         />
 
-        {selectedBuilding ? (
+        {isTechnicianView && !currentEmployee ? (
+          <EmptyState title={agendaTitle} description={t('technician.missingEmployee')} />
+        ) : isTechnicianView && nextOpenOrder ? (
+          <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">Siguiente acción</p>
+                <h3 className="mt-2 text-lg font-semibold text-emerald-950">{nextOpenOrder.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-emerald-900">
+                  Ve directo al detalle o entra al cierre técnico sin cargar módulos administrativos.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  className="inline-flex items-center rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                  to={{ pathname: `/services/${nextOpenOrder.id}`, search: currentSearch ? `?${currentSearch}` : '' }}
+                  state={{
+                    fromServices: true,
+                    fromPath: currentRoute,
+                    listContext: {
+                      buildingName: buildings.find((item) => item.id === nextOpenOrder.buildingId)?.name ?? t('common.noData'),
+                      technicianName: currentEmployee?.fullName ?? t('common.unassigned'),
+                      dailyProgressCount: getServiceDailyProgress(nextOpenOrder).length,
+                      issueCount: nextOpenOrder.issues.length
+                    }
+                  }}
+                >
+                  Abrir detalle
+                </Link>
+                <Link
+                  className="inline-flex items-center rounded-full border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                  to={`/services/${nextOpenOrder.id}/closeout`}
+                  state={{ fromPath: currentRoute }}
+                >
+                  Ir al cierre
+                </Link>
+              </div>
+            </div>
+          </div>
+        ) : selectedBuilding ? (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
             <div className="space-y-1">
               <p className="font-semibold">Filtro operativo activo</p>
@@ -154,8 +222,8 @@ export default function ServicesPage() {
 
         {isLoading ? (
           <p className="text-sm text-ink-600">{t('common.loading')}</p>
-        ) : recentOrders.length === 0 ? (
-          <EmptyState title={t('services.title')} description={t('services.empty')} />
+        ) : isTechnicianView && !currentEmployee ? null : recentOrders.length === 0 ? (
+          <EmptyState title={headerTitle} description={isTechnicianView ? t('technician.empty') : t('services.empty')} />
         ) : (
           <div className="space-y-4">
             {recentOrders.map((order) => {
@@ -210,9 +278,22 @@ export default function ServicesPage() {
                   <div className="mt-4 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
                     <Link
                       className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
-                      to={`/services/${order.id}`}
+                      to={{
+                        pathname: `/services/${order.id}`,
+                        search: currentSearch ? `?${currentSearch}` : ''
+                      }}
+                      state={{
+                        fromServices: true,
+                        fromPath: currentRoute,
+                        listContext: {
+                          buildingName: building?.name ?? t('common.noData'),
+                          technicianName: technician?.fullName ?? t('common.unassigned'),
+                          dailyProgressCount: getServiceDailyProgress(order).length,
+                          issueCount: order.issues.length
+                        }
+                      }}
                     >
-                      {t('services.viewDetail')}
+                      {isTechnicianView ? 'Abrir detalle' : t('services.viewDetail')}
                     </Link>
                     <button
                       className="inline-flex items-center rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
@@ -223,6 +304,7 @@ export default function ServicesPage() {
                     <Link
                       className="inline-flex items-center rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
                       to={`/services/${order.id}/closeout`}
+                      state={{ fromPath: currentRoute }}
                     >
                       {t('services.viewCloseout')}
                     </Link>

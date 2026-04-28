@@ -82,9 +82,5 @@ jobs:
         run: npm run typecheck
         working-directory: functions
 
-      - name: Build web app
-        run: npm run build
-
-      - name: Build functions
-        run: npm run build
-        working-directory: functions
+      - name: Validate minimum build (web + functions)
+        run: npm run build:minimum
