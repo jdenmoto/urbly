@@ -5,7 +5,7 @@ import type { ServiceOrder } from '@/core/models/serviceOrder';
 
 export type OperationalServiceOrder = Omit<
   ServiceOrder,
-  'appointmentId' | 'dataSource' | 'issues' | 'attachments' | 'completionPhotos' | 'quoteVersions' | 'timeline'
+  'dataSource' | 'issues' | 'attachments' | 'completionPhotos' | 'quoteVersions' | 'timeline'
 > & {
   issues: NonNullable<ServiceOrder['issues']>;
   attachments: NonNullable<ServiceOrder['attachments']>;
@@ -15,7 +15,7 @@ export type OperationalServiceOrder = Omit<
 };
 
 function toOperationalServiceOrder(serviceOrder: ServiceOrder): OperationalServiceOrder {
-  const { appointmentId: _appointmentId, dataSource: _dataSource, ...operational } = serviceOrder;
+  const { dataSource: _dataSource, ...operational } = serviceOrder;
   return {
     ...operational,
     issues: serviceOrder.issues ?? [],

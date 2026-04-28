@@ -2,14 +2,14 @@ export const recurrenceOptions = ['semanal', 'quincenal', 'mensual', 'bimensual'
 
 export type RecurrenceValue = (typeof recurrenceOptions)[number];
 
-export const appointmentTypeOptions = [
+export const serviceTypeOptions = [
   'mantenimiento',
   'lavado_tanque',
   'emergencia',
   'interventoria'
 ] as const;
 
-export type AppointmentTypeValue = (typeof appointmentTypeOptions)[number];
+export type ServiceTypeValue = (typeof serviceTypeOptions)[number];
 
 export const cancelReasonOptions = [
   'cliente',
@@ -21,10 +21,10 @@ export const cancelReasonOptions = [
 
 export type CancelReasonValue = (typeof cancelReasonOptions)[number];
 
-export const issueTypeOptions = ['operativo', 'seguridad', 'infraestructura', 'otro'] as const;
-export type IssueTypeValue = (typeof issueTypeOptions)[number];
+export const serviceIssueTypeOptions = ['operativo', 'seguridad', 'infraestructura', 'otro'] as const;
+export type ServiceIssueTypeValue = (typeof serviceIssueTypeOptions)[number];
 
-export const issueCategoryOptions: Record<IssueTypeValue, string[]> = {
+export const serviceIssueCategoryOptions: Record<ServiceIssueTypeValue, string[]> = {
   operativo: ['limpieza', 'mantenimiento', 'logistica'],
   seguridad: ['acceso', 'incidente', 'prevencion'],
   infraestructura: ['electricidad', 'plomeria', 'estructura'],

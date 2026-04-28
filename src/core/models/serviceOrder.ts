@@ -68,11 +68,10 @@ export type ServiceOrderTimelineEvent = {
   summary: string;
 };
 
-export type ServiceOrderDataSource = 'service_order' | 'appointment_fallback';
+export type ServiceOrderDataSource = 'service_order';
 
 export type ServiceOrder = {
   id: string;
-  appointmentId?: string | null;
   dataSource?: ServiceOrderDataSource;
   customerId?: string | null;
   buildingId: string;

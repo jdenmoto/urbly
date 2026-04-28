@@ -1,4 +1,5 @@
 import type { ServiceOrder } from '@/core/models/serviceOrder';
+import { buildServiceReportSnapshot } from './serviceReport';
 
 export type ReportQualityFinding = {
   severity: 'info' | 'warning' | 'critical';
@@ -14,12 +15,13 @@ export function analyzeReportQuality(serviceOrder: ServiceOrder): ReportQualityA
   const findings: ReportQualityFinding[] = [];
   let score = 100;
 
-  const observations = serviceOrder.report?.observations?.trim() ?? '';
-  const issues = serviceOrder.issues?.length ?? 0;
-  const attachments = serviceOrder.attachments?.length ?? 0;
-  const photos = serviceOrder.completionPhotos?.length ?? 0;
-  const checklist = Object.values(serviceOrder.report?.checklist ?? serviceOrder.checklist ?? {});
-  const badChecklist = checklist.filter((item) => item === 'malo').length;
+  const reportSnapshot = buildServiceReportSnapshot(serviceOrder);
+  const badChecklist = reportSnapshot.checklistValues.filter((item) => item === 'malo').length;
+
+  const observations = reportSnapshot.observations;
+  const issues = reportSnapshot.issueCount;
+  const attachments = reportSnapshot.attachmentCount;
+  const photos = reportSnapshot.photoCount;
 
   if (!observations) {
     score -= 30;

@@ -10,7 +10,6 @@ import { getDefaultRouteForRole } from './nav';
 const BuildingsPage = lazy(() => import('@/features/buildings/BuildingsPage'));
 const ManagementPage = lazy(() => import('@/features/management/ManagementPage'));
 const EmployeesPage = lazy(() => import('@/features/employees/EmployeesPage'));
-const SchedulingPage = lazy(() => import('@/features/scheduling/SchedulingPage'));
 const UsersPage = lazy(() => import('@/features/users/UsersPage'));
 const BuildingAdminPage = lazy(() => import('@/features/buildingAdmin/BuildingAdminPage'));
 const ServicesPage = lazy(() => import('@/features/services/ServicesPage'));

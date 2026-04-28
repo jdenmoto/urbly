@@ -293,7 +293,7 @@ export default function BuildingsPage() {
     [statusLabels, t, formatDateTime]
   );
 
-  const maintenanceAppointments = useMemo(() => {
+  const maintenanceServiceOrders = useMemo(() => {
     if (!detailTarget) return [];
     return serviceOrders
       .filter((serviceOrder) => serviceOrder.buildingId === detailTarget.id && serviceOrder.type === 'mantenimiento')
@@ -1009,7 +1009,7 @@ export default function BuildingsPage() {
                   <h3 className="text-sm font-semibold text-ink-900">{t('buildings.maintenanceTitle')}</h3>
                   <DataTable
                     columns={maintenanceColumns}
-                    data={maintenanceAppointments}
+                    data={maintenanceServiceOrders}
                     pageSize={5}
                     emptyState={
                       <EmptyState

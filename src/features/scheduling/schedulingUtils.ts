@@ -1,22 +1,3 @@
-import type { SchedulingItem } from './schedulingItem';
-
-export function filterAppointments(
-  appointments: SchedulingItem[],
-  filters: { buildingId: string; from: string; to: string }
-) {
-  const filterFromDate = filters.from ? new Date(`${filters.from}T00:00:00`) : null;
-  const filterToDate = filters.to ? new Date(`${filters.to}T23:59:59`) : null;
-
-  return appointments.filter((item) => {
-    if (filters.buildingId && item.buildingId !== filters.buildingId) return false;
-    const start = new Date(item.startAt);
-    const end = new Date(item.endAt);
-    if (filterFromDate && start < filterFromDate) return false;
-    if (filterToDate && end > filterToDate) return false;
-    return true;
-  });
-}
-
 export function buildRestrictedDates(
   calendarSettings?: { holidays?: Array<{ date: string }>; nonWorkingDays?: Array<{ date: string }> } | null
 ) {
@@ -71,12 +52,3 @@ export function formatDateTime(value?: string | null) {
   });
 }
 
-export function translateAppointmentStatus(status: string, t: (key: string) => string) {
-  const map: Record<string, string> = {
-    programado: t('scheduling.statusProgrammed'),
-    confirmado: t('scheduling.statusConfirmed'),
-    completado: t('scheduling.statusCompleted'),
-    cancelado: t('scheduling.statusCanceled')
-  };
-  return map[status] ?? status;
-}
