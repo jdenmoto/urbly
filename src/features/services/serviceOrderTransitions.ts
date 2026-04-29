@@ -115,8 +115,10 @@ export function resolveServiceOrderTransition(
   action: Exclude<ServiceOrderTransitionAction, 'create'>,
   context?: ServiceOrderTransitionContext,
 ): ServiceOrderStatus | null {
-  const [nextStatus] = getNextServiceOrderStatuses(currentStatus, action, context);
-  return nextStatus ?? null;
+  const nextStatuses = getNextServiceOrderStatuses(currentStatus, action, context);
+  if (nextStatuses.length !== 1) return null;
+
+  return nextStatuses[0] ?? null;
 }
 
 export function getAllowedServiceOrderActions(currentStatus: ServiceOrderStatus): Exclude<ServiceOrderTransitionAction, 'create'>[] {

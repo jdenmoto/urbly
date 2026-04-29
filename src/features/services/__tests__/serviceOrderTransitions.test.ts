@@ -40,6 +40,7 @@ describe('service order transition rules', () => {
     const outcomes: ServiceOrderIssueOutcome[] = ['pending_review', 'requires_reschedule'];
 
     expect(getNextServiceOrderStatuses('in_progress', 'report_issue')).toEqual(outcomes);
+    expect(resolveServiceOrderTransition('in_progress', 'report_issue')).toBeNull();
     expect(resolveServiceOrderTransition('in_progress', 'report_issue', { issueOutcome: 'pending_review' })).toBe('pending_review');
     expect(resolveServiceOrderTransition('paused', 'report_issue', { issueOutcome: 'requires_reschedule' })).toBe('requires_reschedule');
     expect(resolveServiceOrderTransition('scheduled', 'report_issue', { issueOutcome: 'pending_review' })).toBeNull();
@@ -47,6 +48,7 @@ describe('service order transition rules', () => {
 
   it('makes rescheduling return to scheduled or unassigned depending on assignment', () => {
     expect(getNextServiceOrderStatuses('requires_reschedule', 'reschedule')).toEqual(['unassigned', 'scheduled']);
+    expect(resolveServiceOrderTransition('requires_reschedule', 'reschedule')).toBeNull();
     expect(resolveServiceOrderTransition('requires_reschedule', 'reschedule', { assignedTechnicianId: null })).toBe('unassigned');
     expect(resolveServiceOrderTransition('pending_review', 'reschedule', { assignedTechnicianId: 'tech-1' })).toBe('scheduled');
     expect(isServiceOrderTransitionAllowed('completed', 'reschedule')).toBe(false);
