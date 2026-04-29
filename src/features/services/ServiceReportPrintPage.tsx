@@ -113,10 +113,33 @@ export default function ServiceReportPrintPage() {
       <section className="rounded-2xl border border-slate-200 p-6">
         <h2 className="text-lg font-semibold">Adjuntos y evidencias</h2>
         {(serviceOrder.attachments.length || serviceOrder.completionPhotos.length) ? (
-          <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-slate-700">
-            {serviceOrder.attachments.map((url, index) => <li key={`attachment-${index}`}>{url}</li>)}
-            {serviceOrder.completionPhotos.map((url, index) => <li key={`photo-${index}`}>{url}</li>)}
-          </ul>
+          <div className="mt-4 space-y-5">
+            {serviceOrder.completionPhotos.length ? (
+              <div>
+                <p className="text-sm font-semibold text-slate-800">Fotos de cierre</p>
+                <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {serviceOrder.completionPhotos.map((url, index) => (
+                    <a key={`photo-${index}`} href={url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl border border-slate-200">
+                      <img src={url} alt={`Foto cierre ${index + 1}`} className="h-24 w-full object-cover" loading="lazy" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {serviceOrder.attachments.length ? (
+              <div>
+                <p className="text-sm font-semibold text-slate-800">Adjuntos</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
+                  {serviceOrder.attachments.map((url, index) => (
+                    <li key={`attachment-${index}`}>
+                      <a href={url} target="_blank" rel="noreferrer" className="underline">Adjunto {index + 1}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
         ) : (
           <p className="mt-4 text-sm text-slate-500">Sin adjuntos registrados.</p>
         )}
