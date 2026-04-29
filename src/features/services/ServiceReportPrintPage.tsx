@@ -20,7 +20,7 @@ function getReportFlowHint(status: string) {
 }
 
 function formatDateTime(value?: string | null) {
-  if (!value) return 'N/A';
+  if (!value) return 'No disponible';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
   return date.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });

@@ -79,7 +79,7 @@ export function SchedulingPageContent(props: {
 
       <GlassPanel className="space-y-6">
         <SectionHeader
-          eyebrow="Scheduling v2"
+          eyebrow="Agendamiento v2"
           title="Filtros"
           subtitle="Filtra por técnico, edificio, estado, tipo, prioridad y rango de fechas."
           aside={<StatusPill tone="info">{`${data.filteredOrders.length} resultados`}</StatusPill>}

@@ -85,7 +85,7 @@ function checklistValueLabel(value: string) {
   if (value === 'ok') return 'OK';
   if (value === 'regular') return 'Regular';
   if (value === 'malo') return 'Malo';
-  if (value === 'na') return 'N/A';
+  if (value === 'na') return 'No aplica';
   return value;
 }
 
@@ -425,8 +425,8 @@ export default function ServiceCloseoutPage() {
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wide text-ink-500">Datos capturados del cierre</h4>
               <div className="mt-3 space-y-3 rounded-2xl bg-fog-50 p-4 text-xs leading-6 text-ink-700">
-                <p><span className="font-semibold">Entrada:</span> {serviceOrder.report?.entryHour ?? 'N/A'}</p>
-                <p><span className="font-semibold">Salida:</span> {serviceOrder.report?.exitHour ?? 'N/A'}</p>
+                <p><span className="font-semibold">Entrada:</span> {serviceOrder.report?.entryHour ?? 'No disponible'}</p>
+                <p><span className="font-semibold">Salida:</span> {serviceOrder.report?.exitHour ?? 'No disponible'}</p>
                 <p><span className="font-semibold">Observaciones:</span> {serviceOrder.report?.observations?.trim() || 'Sin observaciones.'}</p>
                 <div>
                   <p className="font-semibold">Checklist</p>
