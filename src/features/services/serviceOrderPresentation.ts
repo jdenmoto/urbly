@@ -9,7 +9,7 @@ const priorityLabelKey: Record<string, string> = {
   low: 'services.priorityLow'
 };
 
-const statusLabelKey: Record<string, string> = {
+const statusLabelKey: Record<ServiceOrder['status'], string> = {
   draft: 'services.statusDraft',
   unassigned: 'services.statusUnassigned',
   scheduled: 'services.statusScheduled',
