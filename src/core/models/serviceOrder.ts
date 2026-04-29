@@ -1,10 +1,17 @@
-export type ServiceOrderStatus =
-  | 'draft'
-  | 'scheduled'
-  | 'confirmed'
-  | 'in_progress'
-  | 'completed'
-  | 'cancelled';
+export const SERVICE_ORDER_STATUSES = [
+  'draft',
+  'unassigned',
+  'scheduled',
+  'confirmed',
+  'in_progress',
+  'paused',
+  'pending_review',
+  'requires_reschedule',
+  'completed',
+  'cancelled',
+] as const;
+
+export type ServiceOrderStatus = (typeof SERVICE_ORDER_STATUSES)[number];
 
 export type ServiceOrderPriority = 'low' | 'medium' | 'high' | 'urgent';
 
@@ -59,9 +66,26 @@ export type ServiceOrderCommunication = {
   generatedAt?: string;
 };
 
+export const SERVICE_ORDER_TIMELINE_EVENT_TYPES = [
+  'created',
+  'scheduled',
+  'assigned',
+  'reassigned',
+  'started',
+  'paused',
+  'resumed',
+  'issue_added',
+  'pending_review',
+  'requires_reschedule',
+  'rescheduled',
+  'completed',
+  'cancelled',
+  'note',
+] as const;
+
 export type ServiceOrderTimelineEvent = {
   id: string;
-  type: 'created' | 'scheduled' | 'assigned' | 'issue_added' | 'completed' | 'cancelled' | 'note';
+  type: (typeof SERVICE_ORDER_TIMELINE_EVENT_TYPES)[number];
   createdAt: string;
   actorRole: ServiceOrderActorRole;
   actorId?: string;
