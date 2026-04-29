@@ -50,7 +50,7 @@ export function SchedulingPageContent(props: {
     <div className="space-y-8">
       <PageHeader
         title="Agendamientos"
-        subtitle="Nueva superficie para programar y monitorear service orders sin volver al scheduling legado."
+        subtitle="Programa y monitorea servicios operativos desde un solo calendario."
         actions={
           <div className="flex items-center gap-2">
             <button
@@ -79,9 +79,9 @@ export function SchedulingPageContent(props: {
 
       <GlassPanel className="space-y-6">
         <SectionHeader
-          eyebrow="Scheduling v2"
+          eyebrow="Agendamiento"
           title="Filtros"
-          subtitle="Filtra por técnico, edificio, estado, tipo, prioridad y ventana de fechas antes de abrir flujos de edición completos."
+          subtitle="Filtra por técnico, edificio, estado, tipo, prioridad y rango de fechas."
           aside={<StatusPill tone="info">{`${data.filteredOrders.length} resultados`}</StatusPill>}
         />
 

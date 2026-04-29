@@ -56,7 +56,7 @@ export default function SchedulingFiltersBar({ filters, onChange, buildings, tec
         <option value="urgent">Urgente</option>
       </Select>
 
-      <Input label="Tipo" value={filters.type} onChange={(event) => setFilter('type', event.target.value)} placeholder="maintenance, inspection..." />
+      <Input label="Tipo" value={filters.type} onChange={(event) => setFilter('type', event.target.value)} placeholder="mantenimiento, inspección..." />
       <Input label="Desde" type="date" value={filters.from} onChange={(event) => setFilter('from', event.target.value)} />
       <Input label="Hasta" type="date" value={filters.to} onChange={(event) => setFilter('to', event.target.value)} />
       <button

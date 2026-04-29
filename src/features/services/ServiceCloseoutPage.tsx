@@ -85,12 +85,26 @@ function checklistValueLabel(value: string) {
   if (value === 'ok') return 'OK';
   if (value === 'regular') return 'Regular';
   if (value === 'malo') return 'Malo';
-  if (value === 'na') return 'N/A';
+  if (value === 'na') return 'No aplica';
   return value;
 }
 
 function checklistKeyLabel(key: string) {
   return key.replace(/[_-]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function reviewStatusLabel(value?: string) {
+  if (value === 'approved') return 'Aprobado';
+  if (value === 'changes_requested') return 'Solicita cambios';
+  return 'Pendiente de revisión';
+}
+
+function quoteStatusLabel(value: string) {
+  if (value === 'draft') return 'Borrador';
+  if (value === 'pending_internal_review') return 'Pendiente revisión interna';
+  if (value === 'changes_requested') return 'Con observaciones';
+  if (value === 'approved') return 'Aprobada';
+  return value;
 }
 
 export default function ServiceCloseoutPage() {
@@ -411,8 +425,8 @@ export default function ServiceCloseoutPage() {
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wide text-ink-500">Datos capturados del cierre</h4>
               <div className="mt-3 space-y-3 rounded-2xl bg-fog-50 p-4 text-xs leading-6 text-ink-700">
-                <p><span className="font-semibold">Entrada:</span> {serviceOrder.report?.entryHour ?? 'N/A'}</p>
-                <p><span className="font-semibold">Salida:</span> {serviceOrder.report?.exitHour ?? 'N/A'}</p>
+                <p><span className="font-semibold">Entrada:</span> {serviceOrder.report?.entryHour ?? 'No disponible'}</p>
+                <p><span className="font-semibold">Salida:</span> {serviceOrder.report?.exitHour ?? 'No disponible'}</p>
                 <p><span className="font-semibold">Observaciones:</span> {serviceOrder.report?.observations?.trim() || 'Sin observaciones.'}</p>
                 <div>
                   <p className="font-semibold">Checklist</p>
@@ -492,7 +506,7 @@ export default function ServiceCloseoutPage() {
           <div className="rounded-3xl border border-fog-200 bg-white p-5 space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-ink-900">Revisión del reporte</h3>
-              <p className="mt-1 text-sm text-ink-600">Estado actual: {serviceOrder.review?.status ?? 'pending_review'}</p>
+              <p className="mt-1 text-sm text-ink-600">Estado actual: {reviewStatusLabel(serviceOrder.review?.status)}</p>
               {serviceOrder.review?.reviewedAt ? <p className="text-xs text-ink-500">Última revisión: {serviceOrder.review.reviewedAt}</p> : null}
             </div>
             <Input label="Feedback de revisión" value={reviewFeedback} onChange={(event) => setReviewFeedback(event.target.value)} />
@@ -524,7 +538,7 @@ export default function ServiceCloseoutPage() {
                 <div key={quote.id} className="rounded-2xl border border-fog-200 p-4">
                   <div className="flex flex-wrap gap-2 text-xs text-ink-500">
                     <span>v{quote.version}</span>
-                    <span>{quote.status}</span>
+                    <span>{quoteStatusLabel(quote.status)}</span>
                     <span>{quote.amount} {quote.currency}</span>
                   </div>
                   <p className="mt-2 text-sm font-medium text-ink-900">{quote.scope}</p>
