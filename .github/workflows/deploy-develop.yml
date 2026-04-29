@@ -103,6 +103,7 @@ jobs:
           export FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
           npm run firestore:clear
           npm run seed:all
+          npm run seed:smoke
 
       - name: Whitelist staging URL in API key referrers
         if: ${{ steps.deploy_staging.outputs.preview_url != '' }}

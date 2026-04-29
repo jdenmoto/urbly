@@ -6,11 +6,11 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.resolve('.env') });
 dotenv.config({ path: path.resolve('.env.local'), override: true });
 
+const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || process.env.GOOGLE_APPLICATION_CREDENTIALS;
 const projectId = process.env.FIREBASE_PROJECT_ID;
-const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
 
-if (!projectId || !serviceAccountPath) {
-  console.error('Missing env vars: FIREBASE_PROJECT_ID and FIREBASE_SERVICE_ACCOUNT_PATH');
+if (!serviceAccountPath) {
+  console.error('Missing env vars: FIREBASE_SERVICE_ACCOUNT_PATH or GOOGLE_APPLICATION_CREDENTIALS');
   process.exit(1);
 }
 
@@ -23,7 +23,7 @@ if (!fs.existsSync(absolutePath)) {
 const serviceAccount = JSON.parse(fs.readFileSync(absolutePath, 'utf-8'));
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  projectId
+  projectId: projectId || serviceAccount.project_id
 });
 
 const db = admin.firestore();
@@ -31,16 +31,14 @@ const seedPath = path.resolve('seed/seed.json');
 const seed = JSON.parse(fs.readFileSync(seedPath, 'utf-8'));
 
 async function writeCollection(name, items) {
-  let created = 0;
+  let written = 0;
   for (const item of items) {
     const { id, ...data } = item;
     const docRef = db.collection(name).doc(id);
-    const snapshot = await docRef.get();
-    if (snapshot.exists) continue;
-    await docRef.set(data);
-    created += 1;
+    await docRef.set(data, { merge: true });
+    written += 1;
   }
-  console.log(`Seeded ${name}: ${created} created, ${items.length - created} skipped`);
+  console.log(`Seeded ${name}: ${written} written`);
 }
 
 const collections = ['management_companies', 'buildings', 'contracts', 'employees', 'appointments', 'feature_flags'];
@@ -55,6 +53,21 @@ for (const [docId, payload] of Object.entries(settings)) {
   if (!payload || typeof payload !== 'object') continue;
   await db.collection('settings').doc(docId).set(payload, { merge: true });
   console.log(`Seeded settings/${docId}`);
+}
+
+if (!settings.service_types) {
+  await db.collection('settings').doc('service_types').set(
+    {
+      types: [
+        { id: 'maintenance', code: 'maintenance', name: 'Mantenimiento', active: true, defaultDurationMinutes: 60, category: 'operacion' },
+        { id: 'inspection', code: 'inspection', name: 'Inspección', active: true, defaultDurationMinutes: 60, category: 'operacion' },
+        { id: 'washing', code: 'washing', name: 'Lavado', active: true, defaultDurationMinutes: 90, category: 'operacion' },
+        { id: 'emergency', code: 'emergency', name: 'Emergencia', active: true, defaultDurationMinutes: 60, category: 'operacion' },
+      ],
+    },
+    { merge: true },
+  );
+  console.log('Seeded settings/service_types (default payload)');
 }
 
 const appointmentTypes = ['mantenimiento', 'lavado_tanque', 'emergencia', 'interventoria'];
@@ -100,6 +113,41 @@ if (employeeIds.length && buildingIds.length) {
   });
 
   await writeCollection('appointments', appointments);
+
+  const serviceOrders = appointments.map((item, index) => {
+    const statuses = ['scheduled', 'confirmed', 'in_progress', 'unassigned'];
+    const status = statuses[index % statuses.length] ?? 'scheduled';
+    const assignedTechnicianId = status === 'unassigned' ? null : item.employeeId;
+    return {
+      id: `so-${String(index + 100).padStart(3, '0')}`,
+      dataSource: 'service_order',
+      buildingId: item.buildingId,
+      title: item.title,
+      description: item.description,
+      type: item.type,
+      priority: 'medium',
+      status,
+      scheduledStartAt: item.startAt,
+      scheduledEndAt: item.endAt,
+      assignedTechnicianId,
+      recurrence: null,
+      seriesId: null,
+      issues: [],
+      attachments: [],
+      completionPhotos: [],
+      timeline: [
+        {
+          id: `evt-${item.id}-created`,
+          type: 'created',
+          createdAt: new Date().toISOString(),
+          actorRole: 'company',
+          summary: 'Service order creada por seed',
+        },
+      ],
+    };
+  });
+
+  await writeCollection('service_orders', serviceOrders);
 }
 
 if (buildingIds.length) {

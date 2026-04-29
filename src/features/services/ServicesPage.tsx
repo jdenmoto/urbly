@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { updateDocById } from '@/lib/api/firestore';
-import { assignTechnician } from '@/lib/api/serviceOrders';
+import { assignTechnician, cancelServiceOrder, confirmServiceOrder } from '@/lib/api/serviceOrders';
 import { listServiceTypes } from '@/lib/serviceTypes';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';
@@ -70,6 +70,8 @@ export default function ServicesPage() {
   const [editStart, setEditStart] = useState('');
   const [editDurationMinutes, setEditDurationMinutes] = useState('60');
   const [serviceTypeOptions, setServiceTypeOptions] = useState<Array<{ code: string; name: string }>>([]);
+  const [cancelTarget, setCancelTarget] = useState<(typeof serviceOrders)[number] | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
 
   useEffect(() => {
     const buildingId = searchParams.get('buildingId') ?? '';
@@ -80,6 +82,15 @@ export default function ServicesPage() {
       status: status || prev.status
     }));
   }, [searchParams]);
+
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (!editId || !serviceOrders.length) return;
+    const target = serviceOrders.find((item) => item.id === editId);
+    if (!target) return;
+    openEdit(target);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, serviceOrders]);
 
   useEffect(() => {
     let mounted = true;
@@ -161,6 +172,24 @@ export default function ServicesPage() {
     });
     setAssignTarget(null);
     setAssignTechnicianId('');
+  };
+
+  const submitConfirm = async (order: (typeof serviceOrders)[number]) => {
+    await confirmServiceOrder({
+      serviceOrder: order,
+      actorId: user?.uid,
+    });
+  };
+
+  const submitCancel = async () => {
+    if (!cancelTarget || !cancelReason.trim()) return;
+    await cancelServiceOrder({
+      serviceOrder: cancelTarget,
+      reason: cancelReason.trim(),
+      actorId: user?.uid,
+    });
+    setCancelTarget(null);
+    setCancelReason('');
   };
 
   const openEdit = (order: (typeof serviceOrders)[number]) => {
@@ -395,6 +424,15 @@ export default function ServicesPage() {
                     ) : null}
                     {!isTechnicianView ? (
                       <button
+                        className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
+                        onClick={() => void submitConfirm(order)}
+                        disabled={order.status !== 'scheduled'}
+                      >
+                        Confirmar
+                      </button>
+                    ) : null}
+                    {!isTechnicianView ? (
+                      <button
                         className="inline-flex items-center rounded-full bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-700 transition hover:bg-violet-100"
                         onClick={() => {
                           setQuickCreatePrefill({
@@ -406,6 +444,18 @@ export default function ServicesPage() {
                         }}
                       >
                         Duplicar en creación rápida
+                      </button>
+                    ) : null}
+                    {!isTechnicianView ? (
+                      <button
+                        className="inline-flex items-center rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+                        onClick={() => {
+                          setCancelTarget(order);
+                          setCancelReason(order.cancelReason ?? '');
+                        }}
+                        disabled={order.status === 'completed' || order.status === 'cancelled'}
+                      >
+                        Cancelar
                       </button>
                     ) : null}
                     <button
@@ -463,6 +513,15 @@ export default function ServicesPage() {
           <Input type="datetime-local" value={editStart} onChange={(event) => setEditStart(event.target.value)} />
           <Input type="number" min={15} step={15} value={editDurationMinutes} onChange={(event) => setEditDurationMinutes(event.target.value)} />
           <Button onClick={() => void submitEdit()} disabled={!editType || !editStart}>Guardar cambios</Button>
+        </div>
+      </Modal>
+
+      <Modal open={Boolean(cancelTarget)} title="Cancelar servicio" onClose={() => setCancelTarget(null)}>
+        <div className="space-y-4">
+          <Input label="Motivo" value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} />
+          <Button onClick={() => void submitCancel()} disabled={!cancelReason.trim()}>
+            Confirmar cancelación
+          </Button>
         </div>
       </Modal>
       <Modal open={Boolean(progressTarget)} title="Registrar avance diario" onClose={() => setProgressTarget(null)}>

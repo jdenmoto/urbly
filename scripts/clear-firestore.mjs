@@ -6,11 +6,11 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.resolve('.env') });
 dotenv.config({ path: path.resolve('.env.local'), override: true });
 
+const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || process.env.GOOGLE_APPLICATION_CREDENTIALS;
 const projectId = process.env.FIREBASE_PROJECT_ID;
-const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
 
-if (!projectId || !serviceAccountPath) {
-  console.error('Missing env vars: FIREBASE_PROJECT_ID and FIREBASE_SERVICE_ACCOUNT_PATH');
+if (!serviceAccountPath) {
+  console.error('Missing env vars: FIREBASE_SERVICE_ACCOUNT_PATH or GOOGLE_APPLICATION_CREDENTIALS');
   process.exit(1);
 }
 
@@ -23,7 +23,7 @@ if (!fs.existsSync(absolutePath)) {
 const serviceAccount = JSON.parse(fs.readFileSync(absolutePath, 'utf-8'));
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  projectId
+  projectId: projectId || serviceAccount.project_id
 });
 
 const db = admin.firestore();

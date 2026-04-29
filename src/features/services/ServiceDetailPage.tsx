@@ -1,10 +1,16 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/Card';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
+import Modal from '@/components/Modal';
+import Button from '@/components/Button';
+import Select from '@/components/Select';
 import { useAuth } from '@/app/Auth';
 import { useList } from '@/lib/api/queries';
+import { assignTechnician } from '@/lib/api/serviceOrders';
+import { useToast } from '@/components/ToastProvider';
 import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
 import type { Building } from '@/core/models/building';
@@ -81,6 +87,8 @@ function getReportActionHint(status: string) {
 export default function ServiceDetailPage() {
   const { t } = useI18n();
   const { role } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const location = useLocation();
   const { serviceOrderId = '' } = useParams();
   const { data: serviceOrders = [] } = useOperationalServiceOrders();
@@ -117,10 +125,24 @@ export default function ServiceDetailPage() {
     serviceStatus: serviceOrder?.status
   };
   const isTechnicianView = role === 'emergency_scheduler';
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assignTechnicianId, setAssignTechnicianId] = useState('');
 
   if (!serviceOrder) {
     return <EmptyState title={t('services.detailTitle')} description={t('services.detailEmpty')} />;
   }
+
+  const submitAssignment = async () => {
+    if (!assignTechnicianId) return;
+    await assignTechnician({
+      serviceOrder,
+      technicianId: assignTechnicianId,
+      reason: 'Asignación operativa desde detalle',
+    });
+    await queryClient.invalidateQueries({ queryKey: ['serviceOrders'] });
+    toast('Asignación actualizada.', 'success');
+    setAssignOpen(false);
+  };
 
   return (
     <div className="space-y-8">
@@ -142,6 +164,17 @@ export default function ServiceDetailPage() {
             >
               {getCloseoutActionLabel(serviceOrder.status)}
             </Link>
+            {!isTechnicianView ? (
+              <button
+                className="inline-flex items-center rounded-full border border-sky-200 bg-white px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
+                onClick={() => {
+                  setAssignTechnicianId(serviceOrder.assignedTechnicianId ?? '');
+                  setAssignOpen(true);
+                }}
+              >
+                {serviceOrder.assignedTechnicianId ? 'Reasignar técnico' : 'Asignar técnico'}
+              </button>
+            ) : null}
             {!isTechnicianView ? (
               <Link
                 className="inline-flex items-center rounded-full border border-fog-200 px-4 py-2 text-sm font-semibold text-ink-700 transition hover:bg-fog-50"
@@ -404,6 +437,20 @@ export default function ServiceDetailPage() {
           </Card>
         </>
       ) : null}
+
+      <Modal open={assignOpen} title="Asignar técnico" onClose={() => setAssignOpen(false)}>
+        <div className="space-y-4">
+          <Select value={assignTechnicianId} onChange={(event) => setAssignTechnicianId(event.target.value)}>
+            <option value="">Selecciona técnico</option>
+            {employees.map((employee) => (
+              <option key={employee.id} value={employee.id}>
+                {employee.fullName}
+              </option>
+            ))}
+          </Select>
+          <Button onClick={() => void submitAssignment()} disabled={!assignTechnicianId}>Guardar asignación</Button>
+        </div>
+      </Modal>
     </div>
   );
 }
