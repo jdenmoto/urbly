@@ -175,7 +175,7 @@ export default function CreateServiceOrderDrawer({ open, onClose, buildings, tec
         </div>
 
         <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-          Estado resultante: <span className="font-semibold">{computedStatus === 'scheduled' ? 'scheduled' : 'unassigned'}</span>
+          Estado resultante: <span className="font-semibold">{computedStatus === 'scheduled' ? 'Programado' : 'Sin técnico'}</span>
           <p className="mt-1 text-xs text-sky-700">
             Con técnico asignado queda programado. Sin técnico queda visible para asignación desde la agenda.
           </p>
