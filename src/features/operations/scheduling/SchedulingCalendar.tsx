@@ -1,4 +1,6 @@
 import esLocale from '@fullcalendar/core/locales/es';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import multiMonthPlugin from '@fullcalendar/multimonth';
 import FullCalendar from '@fullcalendar/react';
 import interactionPlugin from '@fullcalendar/interaction';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -9,6 +11,7 @@ type Props = {
   events: SchedulingCalendarEvent[];
   selectedEventId?: string | null;
   onSelectEvent?: (eventId: string) => void;
+  onRangeSelect?: (selection: { start: string; end: string }) => void;
 };
 
 function getEventClassNames(event: SchedulingCalendarEvent) {
@@ -35,16 +38,35 @@ function getEventClassNames(event: SchedulingCalendarEvent) {
   return classes;
 }
 
-export default function SchedulingCalendar({ events, selectedEventId, onSelectEvent }: Props) {
+export default function SchedulingCalendar({ events, selectedEventId, onSelectEvent, onRangeSelect }: Props) {
   return (
     <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white p-3 shadow-sm">
       <FullCalendar
-        plugins={[timeGridPlugin, interactionPlugin]}
+        plugins={[timeGridPlugin, dayGridPlugin, multiMonthPlugin, interactionPlugin]}
         initialView="timeGridWeek"
-        headerToolbar={{ left: 'prev,next today', center: 'title', right: 'timeGridDay,timeGridWeek' }}
+        headerToolbar={{ left: 'prev,next today', center: 'title', right: 'timeGridDay,timeGridWeek,dayGridMonth,quarterGrid,multiMonthYear' }}
+        views={{
+          quarterGrid: {
+            type: 'dayGrid',
+            duration: { months: 3 },
+            buttonText: 'Trimestre',
+          },
+          multiMonthYear: {
+            type: 'multiMonth',
+            duration: { years: 1 },
+            buttonText: 'Año',
+          },
+        }}
         height="auto"
         allDaySlot={false}
+        selectable
         locale={esLocale}
+        buttonText={{
+          today: 'Hoy',
+          month: 'Mes',
+          week: 'Semana',
+          day: 'Día',
+        }}
         slotMinTime="06:00:00"
         slotMaxTime="20:00:00"
         events={events.map((event) => ({
@@ -65,6 +87,12 @@ export default function SchedulingCalendar({ events, selectedEventId, onSelectEv
         }))}
         eventClick={(info) => {
           onSelectEvent?.(info.event.id);
+        }}
+        select={(info) => {
+          onRangeSelect?.({
+            start: info.start.toISOString(),
+            end: info.end.toISOString(),
+          });
         }}
         eventContent={(info) => (
           <div className="px-1 py-0.5 text-xs">
