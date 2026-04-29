@@ -87,10 +87,10 @@ export default function SchedulingSidebarList({ groups, selectedEventId, onSelec
                     <div className="mt-3 flex items-center justify-between gap-3 border-t border-sky-100 pt-3 text-sm">
                       <span className="text-slate-600">Abrir edición completa del service order.</span>
                       <Link
-                        to={`/services/${item.id}`}
+                        to={`/services?edit=${item.id}&from=scheduling`}
                         className="font-semibold text-sky-700 transition hover:text-sky-800"
                       >
-                        Ver detalle
+                        Editar
                       </Link>
                     </div>
                   ) : null}
