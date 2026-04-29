@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { updateDocById } from '@/lib/api/firestore';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';
+import CreateServiceOrderDrawer from '@/features/operations/scheduling/CreateServiceOrderDrawer';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import EmptyState from '@/components/EmptyState';
 import Input from '@/components/Input';
@@ -50,6 +51,12 @@ export default function ServicesPage() {
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const [filters, setFilters] = useState<ServiceOrderFilters>({ buildingId: '', from: '', to: '', status: '' });
   const [progressTarget, setProgressTarget] = useState<(typeof serviceOrders)[number] | null>(null);
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [quickCreatePrefill, setQuickCreatePrefill] = useState<{
+    buildingId?: string;
+    type?: string;
+    assignedTechnicianId?: string;
+  } | null>(null);
   const [progressDate, setProgressDate] = useState(new Date().toISOString().slice(0, 10));
   const [progressSummary, setProgressSummary] = useState('');
   const [progressPercent, setProgressPercent] = useState('');
@@ -122,7 +129,21 @@ export default function ServicesPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title={headerTitle} subtitle={headerSubtitle} />
+      <PageHeader
+        title={headerTitle}
+        subtitle={headerSubtitle}
+        actions={!isTechnicianView ? (
+          <Button
+            type="button"
+            onClick={() => {
+              setQuickCreatePrefill(selectedBuilding ? { buildingId: selectedBuilding.id } : null);
+              setQuickCreateOpen(true);
+            }}
+          >
+            Crear servicio rápido
+          </Button>
+        ) : null}
+      />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label={t('services.statusScheduled')} value={summary.scheduled} hint={t('services.visibleCountHint')} />
@@ -295,6 +316,21 @@ export default function ServicesPage() {
                     >
                       {isTechnicianView ? 'Abrir detalle' : t('services.viewDetail')}
                     </Link>
+                    {!isTechnicianView ? (
+                      <button
+                        className="inline-flex items-center rounded-full bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-700 transition hover:bg-violet-100"
+                        onClick={() => {
+                          setQuickCreatePrefill({
+                            buildingId: order.buildingId,
+                            type: order.type,
+                            assignedTechnicianId: order.assignedTechnicianId ?? '',
+                          });
+                          setQuickCreateOpen(true);
+                        }}
+                      >
+                        Duplicar en creación rápida
+                      </button>
+                    ) : null}
                     <button
                       className="inline-flex items-center rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
                       onClick={() => setProgressTarget(order)}
@@ -315,6 +351,13 @@ export default function ServicesPage() {
           </div>
         )}
       </GlassPanel>
+      <CreateServiceOrderDrawer
+        open={quickCreateOpen}
+        onClose={() => setQuickCreateOpen(false)}
+        buildings={buildings.map((building) => ({ id: building.id, name: building.name }))}
+        technicians={employees.map((employee) => ({ id: employee.id, fullName: employee.fullName }))}
+        prefill={quickCreatePrefill ?? undefined}
+      />
       <Modal open={Boolean(progressTarget)} title="Registrar avance diario" onClose={() => setProgressTarget(null)}>
         <div className="space-y-4">
           <Input type="date" value={progressDate} onChange={(event) => setProgressDate(event.target.value)} />

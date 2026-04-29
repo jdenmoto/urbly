@@ -30,6 +30,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { useToast } from '@/components/ToastProvider';
 import { useAuth } from '@/app/Auth';
 import { EditIcon, TrashIcon, PowerIcon, EyeIcon } from '@/components/ActionIcons';
+import CreateServiceOrderDrawer from '@/features/operations/scheduling/CreateServiceOrderDrawer';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 
@@ -109,6 +110,8 @@ export default function BuildingsPage() {
   const [detailTarget, setDetailTarget] = useState<Building | null>(null);
   const [contractDetailOpen, setContractDetailOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [quickCreatePrefill, setQuickCreatePrefill] = useState<{ buildingId?: string } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -216,6 +219,17 @@ export default function BuildingsPage() {
           </button>
           {canEdit ? (
             <>
+              <button
+                className="inline-flex items-center rounded-md border border-transparent px-2 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-50"
+                onClick={() => {
+                  setQuickCreatePrefill({ buildingId: row.original.id });
+                  setQuickCreateOpen(true);
+                }}
+                title="Crear servicio rápido"
+                aria-label="Crear servicio rápido"
+              >
+                Servicio
+              </button>
               <button
                 className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-ink-700 hover:bg-fog-100"
                 onClick={() => startEdit(row.original)}
@@ -551,6 +565,16 @@ export default function BuildingsPage() {
               <Button variant="secondary" onClick={() => setImportOpen(true)}>
                 {t('buildings.bulkTitle')}
               </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setQuickCreatePrefill(null);
+                  setQuickCreateOpen(true);
+                }}
+              >
+                Crear servicio rápido
+              </Button>
               <Button onClick={startCreate}>{t('common.add')}</Button>
             </div>
           ) : null
@@ -568,6 +592,13 @@ export default function BuildingsPage() {
       <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading')}</div>}>
         <BuildingsMap buildings={buildings} ready={mapsReady} />
       </Suspense>
+      <CreateServiceOrderDrawer
+        open={quickCreateOpen}
+        onClose={() => setQuickCreateOpen(false)}
+        buildings={buildings.map((building) => ({ id: building.id, name: building.name }))}
+        technicians={[]}
+        prefill={quickCreatePrefill ?? undefined}
+      />
       {canEdit ? (
         <>
           <div className="space-y-4">
