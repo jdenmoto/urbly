@@ -83,29 +83,88 @@ export const SERVICE_ORDER_TIMELINE_EVENT_TYPES = [
   'note',
 ] as const;
 
-export type ServiceOrderTimelineEventMetadata = {
-  reason?: string;
-  note?: string;
-  pausedAt?: string;
-  resumedAt?: string;
-  previousScheduledStartAt?: string;
-  previousScheduledEndAt?: string;
-  nextScheduledStartAt?: string;
-  nextScheduledEndAt?: string;
-  previousTechnicianId?: string | null;
-  nextTechnicianId?: string | null;
-  cancellationReason?: string | null;
+export type ServiceOrderTimelineEventType = (typeof SERVICE_ORDER_TIMELINE_EVENT_TYPES)[number];
+
+export type ServiceOrderTimelineEventMetadataByType = {
+  created: undefined;
+  scheduled: undefined;
+  assigned: {
+    reason: string;
+    previousTechnicianId?: string | null;
+    nextTechnicianId?: string | null;
+    note?: string;
+  };
+  reassigned: {
+    reason: string;
+    previousTechnicianId?: string | null;
+    nextTechnicianId?: string | null;
+    note?: string;
+  };
+  started: undefined;
+  paused: {
+    reason: string;
+    pausedAt?: string;
+    note?: string;
+  };
+  resumed: {
+    resumedAt?: string;
+    note?: string;
+  };
+  issue_added: {
+    note?: string;
+  };
+  pending_review: {
+    note?: string;
+  };
+  requires_reschedule:
+    | {
+        reason: string;
+        note?: string;
+      }
+    | undefined;
+  rescheduled: {
+    reason: string;
+    note?: string;
+    previousScheduledStartAt?: string;
+    previousScheduledEndAt?: string;
+    nextScheduledStartAt?: string;
+    nextScheduledEndAt?: string;
+  };
+  completed: {
+    note?: string;
+  };
+  cancelled: {
+    reason: string;
+    note?: string;
+  };
+  note:
+    | {
+        note: string;
+      }
+    | undefined;
 };
 
-export type ServiceOrderTimelineEvent = {
+export type ServiceOrderTimelineEventMetadata =
+  ServiceOrderTimelineEventMetadataByType[ServiceOrderTimelineEventType];
+
+type ServiceOrderTimelineEventBase<TType extends ServiceOrderTimelineEventType> = {
   id: string;
-  type: (typeof SERVICE_ORDER_TIMELINE_EVENT_TYPES)[number];
+  type: TType;
   createdAt: string;
   actorRole: ServiceOrderActorRole;
   actorId?: string;
   summary: string;
-  metadata?: ServiceOrderTimelineEventMetadata;
-};
+} & (undefined extends ServiceOrderTimelineEventMetadataByType[TType]
+  ? {
+      metadata?: Exclude<ServiceOrderTimelineEventMetadataByType[TType], undefined>;
+    }
+  : {
+      metadata: ServiceOrderTimelineEventMetadataByType[TType];
+    });
+
+export type ServiceOrderTimelineEvent = {
+  [TType in ServiceOrderTimelineEventType]: ServiceOrderTimelineEventBase<TType>;
+}[ServiceOrderTimelineEventType];
 
 export type ServiceOrderPauseRecord = {
   pausedAt: string;

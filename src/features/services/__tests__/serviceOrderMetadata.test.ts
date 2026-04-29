@@ -105,7 +105,7 @@ describe('service order operational metadata model', () => {
       actorRole: 'company',
       summary: 'Servicio cancelado por acceso restringido',
       metadata: {
-        cancellationReason: 'Acceso restringido por administración',
+        reason: 'Acceso restringido por administración',
         note: 'Reagendar cuando el edificio habilite el ingreso',
       },
     };
@@ -126,6 +126,14 @@ describe('service order operational metadata model', () => {
 
     expect(serviceOrder.cancelReason).toBe('Acceso restringido por administración');
     expect(serviceOrder.cancelNote).toBe('Reagendar cuando el edificio habilite el ingreso');
-    expect(serviceOrder.timeline?.[0]?.metadata?.cancellationReason).toBe('Acceso restringido por administración');
+
+    const timelineEvent = serviceOrder.timeline?.[0];
+    expect(timelineEvent?.type).toBe('cancelled');
+
+    if (timelineEvent?.type !== 'cancelled') {
+      throw new Error('Expected cancelled timeline event');
+    }
+
+    expect(timelineEvent.metadata.reason).toBe('Acceso restringido por administración');
   });
 });
