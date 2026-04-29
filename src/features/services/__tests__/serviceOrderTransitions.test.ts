@@ -29,6 +29,12 @@ describe('service order transition rules', () => {
     expect(isServiceOrderTransitionAllowed('unassigned', 'start')).toBe(false);
   });
 
+  it('supports explicit confirmation before execution', () => {
+    expect(resolveServiceOrderTransition('scheduled', 'confirm')).toBe('confirmed');
+    expect(isServiceOrderTransitionAllowed('confirmed', 'confirm')).toBe(false);
+    expect(isServiceOrderTransitionAllowed('unassigned', 'confirm')).toBe(false);
+  });
+
   it('supports pause and resume only around active execution', () => {
     expect(resolveServiceOrderTransition('in_progress', 'pause')).toBe('paused');
     expect(resolveServiceOrderTransition('paused', 'resume')).toBe('in_progress');
@@ -62,7 +68,7 @@ describe('service order transition rules', () => {
   });
 
   it('exposes the reusable action menu for active states', () => {
-    expect(getAllowedServiceOrderActions('scheduled')).toEqual(['assign', 'start', 'reschedule', 'cancel']);
+    expect(getAllowedServiceOrderActions('scheduled')).toEqual(['assign', 'confirm', 'start', 'reschedule', 'cancel']);
     expect(getAllowedServiceOrderActions('paused')).toEqual(['resume', 'report_issue', 'cancel']);
   });
 });

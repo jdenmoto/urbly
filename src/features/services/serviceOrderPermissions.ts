@@ -4,6 +4,7 @@ export const SERVICE_ORDER_PERMISSION_ACTIONS = [
   'create',
   'schedule',
   'assign',
+  'confirm',
   'reschedule',
   'override_conflict',
   'start',
@@ -73,6 +74,10 @@ export function canScheduleServiceOrder(role: AppUserRole) {
 
 export function canAssignServiceOrder(role: AppUserRole) {
   return hasServiceOrderPermission(role, 'assign');
+}
+
+export function canConfirmServiceOrder(role: AppUserRole) {
+  return hasServiceOrderPermission(role, 'confirm');
 }
 
 export function canRescheduleServiceOrder(role: AppUserRole) {

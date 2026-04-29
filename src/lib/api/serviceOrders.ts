@@ -78,6 +78,13 @@ export type RescheduleServiceOrderInput = {
 export type MarkServiceInProgressInput = {
   serviceOrder: ServiceOrder;
   actorId?: string;
+  note?: string;
+};
+
+export type ConfirmServiceOrderInput = {
+  serviceOrder: ServiceOrder;
+  actorId?: string;
+  note?: string;
 };
 
 export type PauseServiceOrderInput = {
@@ -245,7 +252,7 @@ function resolveSchedulingStatus(assignedTechnicianId?: string | null) {
 
 function resolveRequiredTransition(
   currentStatus: ServiceOrderStatus,
-  action: 'assign' | 'start' | 'pause' | 'resume' | 'reschedule' | 'complete' | 'cancel',
+  action: 'assign' | 'confirm' | 'start' | 'pause' | 'resume' | 'reschedule' | 'complete' | 'cancel',
   context?: { assignedTechnicianId?: string | null; issueOutcome?: ServiceOrderIssueOutcome },
 ) {
   return resolveServiceOrderTransition(currentStatus, action, context) ?? (action === 'assign' ? 'scheduled' : null);
@@ -524,6 +531,37 @@ export async function markServiceInProgress(input: MarkServiceInProgressInput) {
   await updateDocById('service_orders', input.serviceOrder.id, {
     status: nextStatus,
     startedAt,
+    timeline,
+    ...buildUpdatedAt(),
+  });
+}
+
+export async function confirmServiceOrder(input: ConfirmServiceOrderInput) {
+  const nextStatus = resolveRequiredTransition(input.serviceOrder.status, 'confirm');
+  if (!nextStatus) throw new Error(`Cannot confirm service order from status ${input.serviceOrder.status}`);
+
+  const timeline = appendTimelineEvents(input.serviceOrder, [
+    buildTimelineEvent({
+      type: 'confirmed',
+      actorRole: 'company',
+      actorId: input.actorId,
+      summary: 'Servicio confirmado para ejecución',
+    }),
+    ...(input.note
+      ? [
+          buildTimelineEvent({
+            type: 'note',
+            actorRole: 'company',
+            actorId: input.actorId,
+            summary: 'Nota de confirmación registrada',
+            metadata: { note: input.note },
+          }),
+        ]
+      : []),
+  ]);
+
+  await updateDocById('service_orders', input.serviceOrder.id, {
+    status: nextStatus,
     timeline,
     ...buildUpdatedAt(),
   });

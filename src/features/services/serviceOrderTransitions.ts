@@ -3,6 +3,7 @@ import type { ServiceOrderStatus } from '@/core/models/serviceOrder';
 export const SERVICE_ORDER_TRANSITION_ACTIONS = [
   'create',
   'assign',
+  'confirm',
   'start',
   'pause',
   'resume',
@@ -33,6 +34,10 @@ const TRANSITION_RULES: Record<Exclude<ServiceOrderTransitionAction, 'create'>, 
   assign: {
     from: ['draft', 'unassigned', 'scheduled', 'confirmed', 'pending_review', 'requires_reschedule'],
     resolve: () => ['scheduled'],
+  },
+  confirm: {
+    from: ['scheduled'],
+    resolve: () => ['confirmed'],
   },
   start: {
     from: ['scheduled', 'confirmed'],

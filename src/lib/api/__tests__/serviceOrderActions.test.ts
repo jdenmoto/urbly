@@ -18,6 +18,7 @@ import type { ServiceOrder } from '@/core/models/serviceOrder';
 import {
   assignTechnician,
   completeServiceOrder,
+  confirmServiceOrder,
   createDraftServiceOrder,
   markServiceInProgress,
   pauseServiceOrder,
@@ -237,6 +238,28 @@ describe('service order semantic actions', () => {
         pauseReason: null,
         pauseHistory: [expect.objectContaining({ resumedAt: '2026-05-01T10:00:00.000Z' })],
         timeline: [expect.objectContaining({ type: 'resumed' })],
+      }),
+    );
+  });
+
+  it('confirms scheduled orders before execution', async () => {
+    const serviceOrder = buildServiceOrder({ status: 'scheduled', timeline: [] });
+
+    await confirmServiceOrder({
+      serviceOrder,
+      actorId: 'scheduler-1',
+      note: 'Cliente confirmó la ventana operativa',
+    });
+
+    expect(updateDocById).toHaveBeenCalledWith(
+      'service_orders',
+      'so-1',
+      expect.objectContaining({
+        status: 'confirmed',
+        timeline: [
+          expect.objectContaining({ type: 'confirmed', actorId: 'scheduler-1' }),
+          expect.objectContaining({ type: 'note' }),
+        ],
       }),
     );
   });

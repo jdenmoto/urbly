@@ -69,6 +69,7 @@ export type ServiceOrderCommunication = {
 export const SERVICE_ORDER_TIMELINE_EVENT_TYPES = [
   'created',
   'scheduled',
+  'confirmed',
   'assigned',
   'reassigned',
   'started',
@@ -88,6 +89,7 @@ export type ServiceOrderTimelineEventType = (typeof SERVICE_ORDER_TIMELINE_EVENT
 export type ServiceOrderTimelineEventMetadataByType = {
   created: undefined;
   scheduled: undefined;
+  confirmed: undefined;
   assigned: {
     reason: string;
     previousTechnicianId?: string | null;

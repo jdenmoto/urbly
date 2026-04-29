@@ -4,6 +4,7 @@ import {
   canAssignServiceOrder,
   canCancelServiceOrder,
   canCloseServiceOrder,
+  canConfirmServiceOrder,
   canCreateServiceOrder,
   canOverrideServiceOrderConflict,
   canPauseServiceOrder,
@@ -29,6 +30,7 @@ describe('service order permissions', () => {
       expect(canCreateServiceOrder(role)).toBe(true);
       expect(canScheduleServiceOrder(role)).toBe(true);
       expect(canAssignServiceOrder(role)).toBe(true);
+      expect(canConfirmServiceOrder(role)).toBe(true);
       expect(canRescheduleServiceOrder(role)).toBe(true);
       expect(canOverrideServiceOrderConflict(role)).toBe(true);
       expect(canStartServiceOrder(role)).toBe(true);
@@ -52,6 +54,7 @@ describe('service order permissions', () => {
     expect(canCreateServiceOrder(technicianRole)).toBe(false);
     expect(canScheduleServiceOrder(technicianRole)).toBe(false);
     expect(canAssignServiceOrder(technicianRole)).toBe(false);
+    expect(canConfirmServiceOrder(technicianRole)).toBe(false);
     expect(canRescheduleServiceOrder(technicianRole)).toBe(false);
     expect(canOverrideServiceOrderConflict(technicianRole)).toBe(false);
     expect(canStartServiceOrder(technicianRole)).toBe(true);
@@ -68,6 +71,7 @@ describe('service order permissions', () => {
       expect(canCreateServiceOrder(role)).toBe(true);
       expect(canScheduleServiceOrder(role)).toBe(false);
       expect(canAssignServiceOrder(role)).toBe(false);
+      expect(canConfirmServiceOrder(role)).toBe(false);
       expect(canRescheduleServiceOrder(role)).toBe(false);
       expect(canOverrideServiceOrderConflict(role)).toBe(false);
       expect(canStartServiceOrder(role)).toBe(false);
