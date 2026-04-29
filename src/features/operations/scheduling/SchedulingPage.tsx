@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
 import { GlassPanel, MetricCard, SectionHeader, StatusPill } from '@/components/premium';
+import CreateServiceOrderDrawer from './CreateServiceOrderDrawer';
 import SchedulingCalendar from './SchedulingCalendar';
 import SchedulingFiltersBar from './SchedulingFiltersBar';
 import SchedulingSidebarList from './SchedulingSidebarList';
@@ -34,6 +35,7 @@ export function SchedulingPageContent(props: {
 }) {
   const { filters, onFiltersChange, data, isLoading, buildings = [], technicians = [] } = props;
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 
   const selectedEvent = useMemo(
     () => data.calendarEvents.find((event) => event.id === selectedEventId) ?? null,
@@ -50,12 +52,21 @@ export function SchedulingPageContent(props: {
         title="Agenda operativa"
         subtitle="Nueva superficie para programar y monitorear service orders sin volver al scheduling legado."
         actions={
-          <Link
-            className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
-            to="/services"
-          >
-            Crear o abrir servicio
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
+              onClick={() => setIsCreateDrawerOpen(true)}
+            >
+              Crear servicio rápido
+            </button>
+            <Link
+              className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              to="/services"
+            >
+              Ir a services
+            </Link>
+          </div>
         }
       />
 
@@ -122,6 +133,13 @@ export function SchedulingPageContent(props: {
           />
         </GlassPanel>
       </div>
+
+      <CreateServiceOrderDrawer
+        open={isCreateDrawerOpen}
+        onClose={() => setIsCreateDrawerOpen(false)}
+        buildings={buildings}
+        technicians={technicians}
+      />
     </div>
   );
 }
