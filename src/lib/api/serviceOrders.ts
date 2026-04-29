@@ -735,6 +735,7 @@ export async function cancelServiceOrder(
   if (!nextStatus) throw new Error(`Cannot cancel service order from status ${serviceOrder.status}`);
 
   const cancelledAt = nowIso();
+  const normalizedNote = note?.trim() || null;
   const timeline = appendTimelineEvents(serviceOrder, [
     buildTimelineEvent({
       type: 'cancelled',
@@ -743,7 +744,7 @@ export async function cancelServiceOrder(
       summary: 'Servicio cancelado operativamente',
       metadata: {
         reason,
-        note,
+        ...(normalizedNote ? { note: normalizedNote } : {}),
       },
       createdAt: cancelledAt,
     }),
@@ -752,7 +753,7 @@ export async function cancelServiceOrder(
   await updateDocById('service_orders', serviceOrder.id, {
     status: nextStatus,
     cancelReason: reason,
-    cancelNote: note?.trim() || null,
+    cancelNote: normalizedNote,
     timeline,
     ...buildUpdatedAt(),
   });
