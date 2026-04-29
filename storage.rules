@@ -17,12 +17,39 @@ service firebase.storage {
       return isSignedIn() && role() == 'editor';
     }
 
+    function isSupervisor() {
+      return isSignedIn() && role() == 'supervisor';
+    }
+
+    function isScheduler() {
+      return isSignedIn() && role() == 'scheduler';
+    }
+
+    function isOperator() {
+      return isSignedIn() && role() == 'operator';
+    }
+
+    function isAuditoria() {
+      return isSignedIn() && role() == 'auditoria';
+    }
+
+    function isViewRole() {
+      return isSignedIn() && role() == 'view';
+    }
+
     function isEmergencyScheduler() {
       return isSignedIn() && role() == 'emergency_scheduler';
     }
 
     function isStaff() {
-      return isAdmin() || isEditor() || isEmergencyScheduler();
+      return isAdmin()
+        || isEditor()
+        || isSupervisor()
+        || isScheduler()
+        || isOperator()
+        || isAuditoria()
+        || isViewRole()
+        || isEmergencyScheduler();
     }
 
     function isImage() {
