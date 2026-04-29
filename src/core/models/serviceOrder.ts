@@ -83,6 +83,20 @@ export const SERVICE_ORDER_TIMELINE_EVENT_TYPES = [
   'note',
 ] as const;
 
+export type ServiceOrderTimelineEventMetadata = {
+  reason?: string;
+  note?: string;
+  pausedAt?: string;
+  resumedAt?: string;
+  previousScheduledStartAt?: string;
+  previousScheduledEndAt?: string;
+  nextScheduledStartAt?: string;
+  nextScheduledEndAt?: string;
+  previousTechnicianId?: string | null;
+  nextTechnicianId?: string | null;
+  cancellationReason?: string | null;
+};
+
 export type ServiceOrderTimelineEvent = {
   id: string;
   type: (typeof SERVICE_ORDER_TIMELINE_EVENT_TYPES)[number];
@@ -90,6 +104,38 @@ export type ServiceOrderTimelineEvent = {
   actorRole: ServiceOrderActorRole;
   actorId?: string;
   summary: string;
+  metadata?: ServiceOrderTimelineEventMetadata;
+};
+
+export type ServiceOrderPauseRecord = {
+  pausedAt: string;
+  reason: string;
+  actorRole?: ServiceOrderActorRole;
+  actorId?: string;
+  resumedAt?: string;
+  note?: string;
+};
+
+export type ServiceOrderAssignmentRecord = {
+  changedAt: string;
+  previousTechnicianId?: string | null;
+  nextTechnicianId?: string | null;
+  reason: string;
+  actorRole?: ServiceOrderActorRole;
+  actorId?: string;
+  note?: string;
+};
+
+export type ServiceOrderRescheduleRecord = {
+  changedAt: string;
+  previousStartAt?: string;
+  previousEndAt?: string;
+  nextStartAt?: string;
+  nextEndAt?: string;
+  reason: string;
+  actorRole?: ServiceOrderActorRole;
+  actorId?: string;
+  note?: string;
 };
 
 export type ServiceOrderDataSource = 'service_order';
@@ -107,6 +153,11 @@ export type ServiceOrder = {
   status: ServiceOrderStatus;
   scheduledStartAt: string;
   scheduledEndAt: string;
+  startedAt?: string | null;
+  pausedAt?: string | null;
+  pauseReason?: string | null;
+  reassignmentReason?: string | null;
+  rescheduleReason?: string | null;
   assignedTechnicianId?: string | null;
   recurrence?: string | null;
   seriesId?: string | null;
@@ -119,6 +170,9 @@ export type ServiceOrder = {
   quoteVersions?: ServiceOrderQuoteVersion[];
   review?: ServiceOrderReview;
   timeline?: ServiceOrderTimelineEvent[];
+  pauseHistory?: ServiceOrderPauseRecord[];
+  assignmentHistory?: ServiceOrderAssignmentRecord[];
+  rescheduleHistory?: ServiceOrderRescheduleRecord[];
   cancelReason?: string | null;
   cancelNote?: string | null;
   completedAt?: string | null;
