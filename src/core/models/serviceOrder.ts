@@ -1,10 +1,17 @@
-export type ServiceOrderStatus =
-  | 'draft'
-  | 'scheduled'
-  | 'confirmed'
-  | 'in_progress'
-  | 'completed'
-  | 'cancelled';
+export const SERVICE_ORDER_STATUSES = [
+  'draft',
+  'unassigned',
+  'scheduled',
+  'confirmed',
+  'in_progress',
+  'paused',
+  'pending_review',
+  'requires_reschedule',
+  'completed',
+  'cancelled',
+] as const;
+
+export type ServiceOrderStatus = (typeof SERVICE_ORDER_STATUSES)[number];
 
 export type ServiceOrderPriority = 'low' | 'medium' | 'high' | 'urgent';
 
@@ -59,13 +66,137 @@ export type ServiceOrderCommunication = {
   generatedAt?: string;
 };
 
-export type ServiceOrderTimelineEvent = {
+export const SERVICE_ORDER_TIMELINE_EVENT_TYPES = [
+  'created',
+  'scheduled',
+  'confirmed',
+  'assigned',
+  'reassigned',
+  'started',
+  'paused',
+  'resumed',
+  'issue_added',
+  'pending_review',
+  'requires_reschedule',
+  'rescheduled',
+  'completed',
+  'cancelled',
+  'note',
+] as const;
+
+export type ServiceOrderTimelineEventType = (typeof SERVICE_ORDER_TIMELINE_EVENT_TYPES)[number];
+
+export type ServiceOrderTimelineEventMetadataByType = {
+  created: undefined;
+  scheduled: undefined;
+  confirmed: undefined;
+  assigned: {
+    reason: string;
+    previousTechnicianId?: string | null;
+    nextTechnicianId?: string | null;
+    note?: string;
+  };
+  reassigned: {
+    reason: string;
+    previousTechnicianId?: string | null;
+    nextTechnicianId?: string | null;
+    note?: string;
+  };
+  started: undefined;
+  paused: {
+    reason: string;
+    pausedAt?: string;
+    note?: string;
+  };
+  resumed: {
+    resumedAt?: string;
+    note?: string;
+  };
+  issue_added: {
+    note?: string;
+  };
+  pending_review: {
+    note?: string;
+  };
+  requires_reschedule:
+    | {
+        reason: string;
+        note?: string;
+      }
+    | undefined;
+  rescheduled: {
+    reason: string;
+    note?: string;
+    previousScheduledStartAt?: string;
+    previousScheduledEndAt?: string;
+    nextScheduledStartAt?: string;
+    nextScheduledEndAt?: string;
+  };
+  completed: {
+    note?: string;
+  };
+  cancelled: {
+    reason: string;
+    note?: string;
+  };
+  note:
+    | {
+        note: string;
+      }
+    | undefined;
+};
+
+export type ServiceOrderTimelineEventMetadata =
+  ServiceOrderTimelineEventMetadataByType[ServiceOrderTimelineEventType];
+
+type ServiceOrderTimelineEventBase<TType extends ServiceOrderTimelineEventType> = {
   id: string;
-  type: 'created' | 'scheduled' | 'assigned' | 'issue_added' | 'completed' | 'cancelled' | 'note';
+  type: TType;
   createdAt: string;
   actorRole: ServiceOrderActorRole;
   actorId?: string;
   summary: string;
+} & (undefined extends ServiceOrderTimelineEventMetadataByType[TType]
+  ? {
+      metadata?: Exclude<ServiceOrderTimelineEventMetadataByType[TType], undefined>;
+    }
+  : {
+      metadata: ServiceOrderTimelineEventMetadataByType[TType];
+    });
+
+export type ServiceOrderTimelineEvent = {
+  [TType in ServiceOrderTimelineEventType]: ServiceOrderTimelineEventBase<TType>;
+}[ServiceOrderTimelineEventType];
+
+export type ServiceOrderPauseRecord = {
+  pausedAt: string;
+  reason: string;
+  actorRole?: ServiceOrderActorRole;
+  actorId?: string;
+  resumedAt?: string;
+  note?: string;
+};
+
+export type ServiceOrderAssignmentRecord = {
+  changedAt: string;
+  previousTechnicianId?: string | null;
+  nextTechnicianId?: string | null;
+  reason: string;
+  actorRole?: ServiceOrderActorRole;
+  actorId?: string;
+  note?: string;
+};
+
+export type ServiceOrderRescheduleRecord = {
+  changedAt: string;
+  previousStartAt?: string;
+  previousEndAt?: string;
+  nextStartAt?: string;
+  nextEndAt?: string;
+  reason: string;
+  actorRole?: ServiceOrderActorRole;
+  actorId?: string;
+  note?: string;
 };
 
 export type ServiceOrderDataSource = 'service_order';
@@ -83,9 +214,17 @@ export type ServiceOrder = {
   status: ServiceOrderStatus;
   scheduledStartAt: string;
   scheduledEndAt: string;
+  startedAt?: string | null;
+  pausedAt?: string | null;
+  pauseReason?: string | null;
+  reassignmentReason?: string | null;
+  rescheduleReason?: string | null;
   assignedTechnicianId?: string | null;
   recurrence?: string | null;
   seriesId?: string | null;
+  seriesAnchorStartAt?: string | null;
+  seriesOccurrenceIndex?: number | null;
+  seriesScope?: 'this' | 'future' | null;
   checklist?: ServiceOrderChecklist;
   issues?: ServiceOrderIssue[];
   attachments?: string[];
@@ -95,6 +234,9 @@ export type ServiceOrder = {
   quoteVersions?: ServiceOrderQuoteVersion[];
   review?: ServiceOrderReview;
   timeline?: ServiceOrderTimelineEvent[];
+  pauseHistory?: ServiceOrderPauseRecord[];
+  assignmentHistory?: ServiceOrderAssignmentRecord[];
+  rescheduleHistory?: ServiceOrderRescheduleRecord[];
   cancelReason?: string | null;
   cancelNote?: string | null;
   completedAt?: string | null;

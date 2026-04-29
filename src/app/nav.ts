@@ -28,6 +28,7 @@ const routeAccess: Record<string, AppUserRole[]> = {
   '/': ['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'],
   '/technician': ['emergency_scheduler'],
   '/services': ['admin', 'editor', 'view', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria'],
+  '/scheduling': ['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'],
   '/buildings': ['admin', 'editor', 'view'],
   '/management': ['admin', 'editor', 'view'],
   '/customers': ['admin', 'editor', 'view'],
@@ -117,9 +118,10 @@ export function useNavGroups(role: AppUserRole = 'view') {
         description: t('nav.operationsSectionDescription'),
         items: [
           { to: '/', label: t('nav.dashboard'), shortLabel: t('nav.shortDashboard'), icon: LayoutDashboard, enabled: flags.dashboard, allow: routeAccess['/'], mobile: true, mobileOrder: 1 },
-          { to: '/services', label: t('nav.services'), shortLabel: t('nav.shortServices'), icon: Briefcase, enabled: flags.services, allow: routeAccess['/services'], mobile: true, mobileOrder: 2 },
-          { to: '/buildings', label: t('nav.buildings'), shortLabel: t('nav.shortBuildings'), icon: Building2, enabled: flags.buildings, allow: routeAccess['/buildings'], mobile: true, mobileOrder: 3 },
-          { to: '/reports', label: t('nav.reports'), shortLabel: t('nav.shortReports'), icon: FileText, enabled: flags.reports, allow: routeAccess['/reports'], mobile: true, mobileOrder: 4 }
+          { to: '/scheduling', label: t('nav.scheduling', { defaultValue: 'Agenda' }), shortLabel: t('nav.shortScheduling', { defaultValue: 'Agenda' }), icon: Briefcase, enabled: flags.scheduling, allow: routeAccess['/scheduling'], mobile: true, mobileOrder: 2 },
+          { to: '/services', label: t('nav.services'), shortLabel: t('nav.shortServices'), icon: Briefcase, enabled: flags.services, allow: routeAccess['/services'], mobile: true, mobileOrder: 3 },
+          { to: '/buildings', label: t('nav.buildings'), shortLabel: t('nav.shortBuildings'), icon: Building2, enabled: flags.buildings, allow: routeAccess['/buildings'], mobile: true, mobileOrder: 4 },
+          { to: '/reports', label: t('nav.reports'), shortLabel: t('nav.shortReports'), icon: FileText, enabled: flags.reports, allow: routeAccess['/reports'], mobile: true, mobileOrder: 5 }
         ]
       },
       {

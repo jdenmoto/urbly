@@ -220,9 +220,13 @@ services:
   statusScheduled: Programado
   statusConfirmed: Confirmado
   statusInProgress: En progreso
+  statusPaused: Pausado
+  statusPendingReview: Pendiente de revisión
+  statusRequiresReschedule: Requiere reprogramación
   statusCompleted: Completado
   statusCancelled: Cancelado
   statusDraft: Borrador
+  statusUnassigned: Sin asignar
   urgentLabel: Urgentes
   priorityUrgent: Urgente
   priorityHigh: Alta
