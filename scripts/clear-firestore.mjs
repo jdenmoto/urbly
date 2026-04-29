@@ -14,7 +14,7 @@ function resolveServiceAccount() {
   if (inlineJson) {
     try {
       return JSON.parse(inlineJson);
-    } catch (_error) {
+    } catch {
       console.error('Invalid FIREBASE_SERVICE_ACCOUNT JSON');
       process.exit(1);
     }
