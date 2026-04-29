@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
 import { GlassPanel, MetricCard, SectionHeader, StatusPill } from '@/components/premium';
+import SchedulingCalendar from './SchedulingCalendar';
 import SchedulingFiltersBar from './SchedulingFiltersBar';
+import SchedulingSidebarList from './SchedulingSidebarList';
 import {
+  getDefaultSelectedSchedulingEventId,
   useSchedulingPageData,
   type SchedulingPageData,
   type SchedulingPageFilters,
@@ -30,6 +33,16 @@ export function SchedulingPageContent(props: {
   technicians?: Array<{ id: string; fullName: string }>;
 }) {
   const { filters, onFiltersChange, data, isLoading, buildings = [], technicians = [] } = props;
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+
+  const selectedEvent = useMemo(
+    () => data.calendarEvents.find((event) => event.id === selectedEventId) ?? null,
+    [data.calendarEvents, selectedEventId],
+  );
+
+  useEffect(() => {
+    setSelectedEventId((current) => getDefaultSelectedSchedulingEventId(data.calendarEvents, current));
+  }, [data.calendarEvents]);
 
   return (
     <div className="space-y-8">
@@ -73,28 +86,24 @@ export function SchedulingPageContent(props: {
         <GlassPanel className="space-y-4">
           <SectionHeader
             title="Calendario operativo"
-            subtitle="En la siguiente tarea este bloque se conecta al calendario real. Por ahora ya consume la data layer nueva y muestra el estado de carga correcto."
+            subtitle="Semana operativa conectada a service orders, con selección sincronizada contra el resumen lateral."
+            aside={
+              selectedEvent ? (
+                <StatusPill tone={selectedEvent.hasConflict ? 'warning' : 'success'}>
+                  {selectedEvent.hasConflict ? 'Conflicto detectado' : 'Seleccionado'}
+                </StatusPill>
+              ) : undefined
+            }
           />
 
           {isLoading ? (
             <p className="text-sm text-slate-600">Cargando agenda...</p>
           ) : data.calendarEvents.length ? (
-            <div className="space-y-3">
-              {data.calendarEvents.slice(0, 6).map((event) => (
-                <article key={event.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-slate-900">{event.title}</p>
-                      <p className="text-sm text-slate-600">{event.buildingName} · {event.technicianName}</p>
-                    </div>
-                    <StatusPill tone={event.hasConflict ? 'warning' : 'success'}>
-                      {event.hasConflict ? 'Conflicto detectado' : 'Sin conflicto'}
-                    </StatusPill>
-                  </div>
-                  <p className="mt-2 text-sm text-slate-600">{event.start} → {event.end}</p>
-                </article>
-              ))}
-            </div>
+            <SchedulingCalendar
+              events={data.calendarEvents}
+              selectedEventId={selectedEventId}
+              onSelectEvent={setSelectedEventId}
+            />
           ) : (
             <EmptyState title="Calendario operativo" description="No hay eventos visibles con los filtros actuales." />
           )}
@@ -103,28 +112,14 @@ export function SchedulingPageContent(props: {
         <GlassPanel className="space-y-4">
           <SectionHeader
             title="Resumen lateral"
-            subtitle="Shell lateral para la vista principal día/semana."
+            subtitle="Agrupa la agenda por día, conserva contexto del técnico y permite abrir el detalle completo."
           />
 
-          {data.sidebarGroups.length ? (
-            <div className="space-y-4">
-              {data.sidebarGroups.map((group) => (
-                <section key={group.date} className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{group.date}</p>
-                  <div className="space-y-2">
-                    {group.items.map((item) => (
-                      <article key={item.id} className="rounded-2xl border border-slate-200 bg-white p-3">
-                        <p className="font-medium text-slate-900">{item.title}</p>
-                        <p className="text-sm text-slate-600">{item.technicianName}</p>
-                      </article>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          ) : (
-            <EmptyState title="Resumen lateral" description="Aún no hay grupos visibles para esta agenda." />
-          )}
+          <SchedulingSidebarList
+            groups={data.sidebarGroups}
+            selectedEventId={selectedEventId}
+            onSelectEvent={setSelectedEventId}
+          />
         </GlassPanel>
       </div>
     </div>

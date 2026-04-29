@@ -36,6 +36,32 @@ export type SchedulingSidebarGroup = {
   items: SchedulingCalendarEvent[];
 };
 
+export function buildSchedulingSidebarGroups(calendarEvents: SchedulingCalendarEvent[]) {
+  return calendarEvents.reduce<SchedulingSidebarGroup[]>((groups, event) => {
+    const date = event.start.slice(0, 10);
+    const lastGroup = groups[groups.length - 1];
+    if (!lastGroup || lastGroup.date !== date) {
+      groups.push({ date, items: [event] });
+      return groups;
+    }
+
+    lastGroup.items.push(event);
+    return groups;
+  }, []);
+}
+
+export function getDefaultSelectedSchedulingEventId(
+  calendarEvents: SchedulingCalendarEvent[],
+  currentSelectedEventId?: string | null,
+) {
+  if (!calendarEvents.length) return null;
+  if (currentSelectedEventId && calendarEvents.some((event) => event.id === currentSelectedEventId)) {
+    return currentSelectedEventId;
+  }
+
+  return calendarEvents[0]?.id ?? null;
+}
+
 export type SchedulingPageData = {
   filteredOrders: OperationalServiceOrder[];
   calendarEvents: SchedulingCalendarEvent[];
@@ -106,17 +132,7 @@ export function buildSchedulingPageData(input: {
     };
   });
 
-  const sidebarGroups = calendarEvents.reduce<SchedulingSidebarGroup[]>((groups, event) => {
-    const date = event.start.slice(0, 10);
-    const lastGroup = groups[groups.length - 1];
-    if (!lastGroup || lastGroup.date !== date) {
-      groups.push({ date, items: [event] });
-      return groups;
-    }
-
-    lastGroup.items.push(event);
-    return groups;
-  }, []);
+  const sidebarGroups = buildSchedulingSidebarGroups(calendarEvents);
 
   return {
     filteredOrders,
