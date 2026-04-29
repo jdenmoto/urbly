@@ -81,6 +81,18 @@ function getReportFlowDescription(status: string) {
   return 'Usa este cierre para registrar el trabajo y convertirlo después en un reporte técnico coherente con evidencia y novedades.';
 }
 
+function checklistValueLabel(value: string) {
+  if (value === 'ok') return 'OK';
+  if (value === 'regular') return 'Regular';
+  if (value === 'malo') return 'Malo';
+  if (value === 'na') return 'N/A';
+  return value;
+}
+
+function checklistKeyLabel(key: string) {
+  return key.replace(/[_-]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export default function ServiceCloseoutPage() {
   const { t } = useI18n();
   const { user, hasPermission, role } = useAuth();
@@ -398,9 +410,26 @@ export default function ServiceCloseoutPage() {
             </pre>
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wide text-ink-500">Datos capturados del cierre</h4>
-              <pre className="mt-3 whitespace-pre-wrap rounded-2xl bg-fog-50 p-4 text-xs leading-6 text-ink-600">
-                {JSON.stringify(serviceOrder.report ?? {}, null, 2)}
-              </pre>
+              <div className="mt-3 space-y-3 rounded-2xl bg-fog-50 p-4 text-xs leading-6 text-ink-700">
+                <p><span className="font-semibold">Entrada:</span> {serviceOrder.report?.entryHour ?? 'N/A'}</p>
+                <p><span className="font-semibold">Salida:</span> {serviceOrder.report?.exitHour ?? 'N/A'}</p>
+                <p><span className="font-semibold">Observaciones:</span> {serviceOrder.report?.observations?.trim() || 'Sin observaciones.'}</p>
+                <div>
+                  <p className="font-semibold">Checklist</p>
+                  {(serviceOrder.report?.checklist && Object.keys(serviceOrder.report.checklist).length) ? (
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      {Object.entries(serviceOrder.report.checklist).map(([key, value]) => (
+                        <div key={key} className="rounded-xl border border-fog-200 bg-white px-3 py-2 text-xs">
+                          <p className="font-medium text-ink-800">{checklistKeyLabel(key)}</p>
+                          <p className="text-ink-600">{checklistValueLabel(String(value))}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-ink-600">Sin checklist registrado.</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -440,9 +469,20 @@ export default function ServiceCloseoutPage() {
 
           <div className="rounded-3xl border border-fog-200 bg-white p-5">
             <h3 className="text-sm font-semibold text-ink-900">{t('services.communicationTitle')}</h3>
-            <pre className="mt-3 whitespace-pre-wrap rounded-2xl bg-fog-50 p-4 text-xs leading-6 text-ink-600">
-              {JSON.stringify(serviceOrder.communication ?? {}, null, 2)}
-            </pre>
+            <div className="mt-3 space-y-3 rounded-2xl bg-fog-50 p-4 text-sm leading-6 text-ink-700">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-ink-500">Mensaje cliente</p>
+                <p>{serviceOrder.communication?.customerMessage?.trim() || 'Sin mensaje.'}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-ink-500">Resumen interno</p>
+                <p>{serviceOrder.communication?.internalSummary?.trim() || 'Sin resumen interno.'}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-ink-500">Siguiente paso</p>
+                <p>{serviceOrder.communication?.followUpSuggestion?.trim() || 'Sin recomendación.'}</p>
+              </div>
+            </div>
           </div>
         </div>
       </Card>
@@ -514,10 +554,11 @@ export default function ServiceCloseoutPage() {
               {attachmentUploading ? 'Subiendo...' : 'Subir adjuntos'}
             </Button>
             {(serviceOrder.attachments ?? []).length ? (
-              <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {(serviceOrder.attachments ?? []).map((url, index) => (
-                  <a key={`${url}-${index}`} href={url} target="_blank" rel="noreferrer" className="block text-sm text-sky-700 underline">
-                    Adjunto {index + 1}
+                  <a key={`${url}-${index}`} href={url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl border border-fog-200 bg-fog-50">
+                    <img src={url} alt={`Adjunto ${index + 1}`} className="h-24 w-full object-cover" loading="lazy" />
+                    <span className="block px-2 py-1 text-xs text-sky-700">Adjunto {index + 1}</span>
                   </a>
                 ))}
               </div>
