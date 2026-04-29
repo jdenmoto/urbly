@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { updateDocById } from '@/lib/api/firestore';
+import { assignTechnician } from '@/lib/api/serviceOrders';
+import { listServiceTypes } from '@/lib/serviceTypes';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';
 import CreateServiceOrderDrawer from '@/features/operations/scheduling/CreateServiceOrderDrawer';
@@ -61,6 +63,13 @@ export default function ServicesPage() {
   const [progressSummary, setProgressSummary] = useState('');
   const [progressPercent, setProgressPercent] = useState('');
   const [progressHours, setProgressHours] = useState('');
+  const [assignTarget, setAssignTarget] = useState<(typeof serviceOrders)[number] | null>(null);
+  const [assignTechnicianId, setAssignTechnicianId] = useState('');
+  const [editTarget, setEditTarget] = useState<(typeof serviceOrders)[number] | null>(null);
+  const [editType, setEditType] = useState('');
+  const [editStart, setEditStart] = useState('');
+  const [editDurationMinutes, setEditDurationMinutes] = useState('60');
+  const [serviceTypeOptions, setServiceTypeOptions] = useState<Array<{ code: string; name: string }>>([]);
 
   useEffect(() => {
     const buildingId = searchParams.get('buildingId') ?? '';
@@ -72,6 +81,19 @@ export default function ServicesPage() {
     }));
   }, [searchParams]);
 
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      const types = await listServiceTypes();
+      if (!mounted) return;
+      setServiceTypeOptions(types.map((item) => ({ code: item.code, name: item.name })));
+    };
+    void load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const currentUser = useMemo(() => users.find((item) => item.id === user?.uid) ?? null, [users, user?.uid]);
   const currentEmployee = useMemo(() => {
     const email = currentUser?.email?.toLowerCase();
@@ -82,9 +104,10 @@ export default function ServicesPage() {
 
   const scopedServiceOrders = useMemo(() => {
     if (!isTechnicianView) return serviceOrders;
-    if (!currentEmployee) return [];
-    return serviceOrders.filter((item) => item.assignedTechnicianId === currentEmployee.id);
-  }, [currentEmployee, isTechnicianView, serviceOrders]);
+    const allowedIds = new Set([currentEmployee?.id, user?.uid, currentUser?.id].filter(Boolean));
+    if (!allowedIds.size) return [];
+    return serviceOrders.filter((item) => item.assignedTechnicianId && allowedIds.has(item.assignedTechnicianId));
+  }, [currentEmployee, currentUser?.id, isTechnicianView, serviceOrders, user?.uid]);
 
   const selectedBuilding = useMemo(
     () => getSelectedServiceBuilding(buildings, filters.buildingId),
@@ -105,6 +128,7 @@ export default function ServicesPage() {
   const headerSubtitle = isTechnicianView ? t('services.technicianSubtitle') : t('services.subtitle');
   const agendaTitle = isTechnicianView ? t('services.technicianAgendaTitle') : t('services.agendaTitle');
   const agendaSubtitle = isTechnicianView ? t('services.technicianAgendaSubtitle') : t('services.agendaSubtitle');
+  const normalizedAgendaTitle = agendaTitle === headerTitle ? 'Agenda operativa' : agendaTitle;
 
   const statusLabel = (value: string) => getServiceOrderStatusLabel(t, value as Parameters<typeof getServiceOrderStatusLabel>[1]);
   const currentRoute = `${location.pathname}${currentSearch ? `?${currentSearch}` : ''}`;
@@ -125,6 +149,40 @@ export default function ServicesPage() {
     setProgressSummary('');
     setProgressPercent('');
     setProgressHours('');
+  };
+
+  const submitAssignment = async () => {
+    if (!assignTarget || !assignTechnicianId) return;
+    await assignTechnician({
+      serviceOrder: assignTarget,
+      technicianId: assignTechnicianId,
+      reason: 'Asignación operativa desde services',
+      actorId: user?.uid,
+    });
+    setAssignTarget(null);
+    setAssignTechnicianId('');
+  };
+
+  const openEdit = (order: (typeof serviceOrders)[number]) => {
+    setEditTarget(order);
+    setEditType(order.type);
+    setEditStart(new Date(order.scheduledStartAt).toISOString().slice(0, 16));
+    const duration = Math.max(15, Math.round((new Date(order.scheduledEndAt).getTime() - new Date(order.scheduledStartAt).getTime()) / 60000));
+    setEditDurationMinutes(String(duration));
+  };
+
+  const submitEdit = async () => {
+    if (!editTarget || !editType || !editStart) return;
+    const startIso = new Date(editStart).toISOString();
+    const endIso = new Date(new Date(startIso).getTime() + Number(editDurationMinutes || 60) * 60000).toISOString();
+    await updateDocById('service_orders', editTarget.id, {
+      type: editType,
+      title: editType,
+      scheduledStartAt: startIso,
+      scheduledEndAt: endIso,
+      updatedAt: new Date().toISOString(),
+    });
+    setEditTarget(null);
   };
 
   return (
@@ -155,7 +213,7 @@ export default function ServicesPage() {
       <GlassPanel className="space-y-6">
         <SectionHeader
           eyebrow={t('services.v2Badge')}
-          title={agendaTitle}
+          title={normalizedAgendaTitle}
           subtitle={selectedBuilding ? `Contexto actual: ${selectedBuilding.name}` : agendaSubtitle}
           aside={<StatusPill tone="info">{`${recentOrders.length} ${t('services.visibleCountHint')}`}</StatusPill>}
         />
@@ -318,6 +376,25 @@ export default function ServicesPage() {
                     </Link>
                     {!isTechnicianView ? (
                       <button
+                        className="inline-flex items-center rounded-full border border-fog-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition hover:bg-fog-50"
+                        onClick={() => openEdit(order)}
+                      >
+                        Editar completo
+                      </button>
+                    ) : null}
+                    {!isTechnicianView ? (
+                      <button
+                        className="inline-flex items-center rounded-full border border-sky-200 bg-white px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
+                        onClick={() => {
+                          setAssignTarget(order);
+                          setAssignTechnicianId(order.assignedTechnicianId ?? '');
+                        }}
+                      >
+                        {order.assignedTechnicianId ? 'Reasignar técnico' : 'Asignar técnico'}
+                      </button>
+                    ) : null}
+                    {!isTechnicianView ? (
+                      <button
                         className="inline-flex items-center rounded-full bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-700 transition hover:bg-violet-100"
                         onClick={() => {
                           setQuickCreatePrefill({
@@ -358,6 +435,36 @@ export default function ServicesPage() {
         technicians={employees.map((employee) => ({ id: employee.id, fullName: employee.fullName }))}
         prefill={quickCreatePrefill ?? undefined}
       />
+
+      <Modal open={Boolean(assignTarget)} title="Asignar técnico" onClose={() => setAssignTarget(null)}>
+        <div className="space-y-4">
+          <Select value={assignTechnicianId} onChange={(event) => setAssignTechnicianId(event.target.value)}>
+            <option value="">Selecciona técnico</option>
+            {employees.map((employee) => (
+              <option key={employee.id} value={employee.id}>
+                {employee.fullName}
+              </option>
+            ))}
+          </Select>
+          <Button onClick={() => void submitAssignment()} disabled={!assignTechnicianId}>
+            Guardar asignación
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal open={Boolean(editTarget)} title="Editar servicio" onClose={() => setEditTarget(null)}>
+        <div className="space-y-4">
+          <Select value={editType} onChange={(event) => setEditType(event.target.value)}>
+            <option value="">Selecciona tipo</option>
+            {serviceTypeOptions.map((type) => (
+              <option key={type.code} value={type.code}>{type.name}</option>
+            ))}
+          </Select>
+          <Input type="datetime-local" value={editStart} onChange={(event) => setEditStart(event.target.value)} />
+          <Input type="number" min={15} step={15} value={editDurationMinutes} onChange={(event) => setEditDurationMinutes(event.target.value)} />
+          <Button onClick={() => void submitEdit()} disabled={!editType || !editStart}>Guardar cambios</Button>
+        </div>
+      </Modal>
       <Modal open={Boolean(progressTarget)} title="Registrar avance diario" onClose={() => setProgressTarget(null)}>
         <div className="space-y-4">
           <Input type="date" value={progressDate} onChange={(event) => setProgressDate(event.target.value)} />

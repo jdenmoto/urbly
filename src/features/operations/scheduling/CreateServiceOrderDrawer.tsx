@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -11,6 +11,7 @@ import Select from '@/components/Select';
 import { useToast } from '@/components/ToastProvider';
 import { createDoc } from '@/lib/api/firestore';
 import { buildServiceOrderPayload } from '@/lib/api/serviceOrders';
+import { listServiceTypes } from '@/lib/serviceTypes';
 import {
   buildFastCreateServiceOrderDraft,
   fastCreateServiceOrderSchema,
@@ -38,6 +39,7 @@ function buildTimelineEvent(type: 'created' | 'scheduled', summary: string) {
 export default function CreateServiceOrderDrawer({ open, onClose, buildings, technicians, prefill }: Props) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [serviceTypeOptions, setServiceTypeOptions] = useState<Array<{ code: string; name: string }>>([]);
   const {
     register,
     handleSubmit,
@@ -67,6 +69,19 @@ export default function CreateServiceOrderDrawer({ open, onClose, buildings, tec
       ...prefill,
     });
   }, [open, prefill, reset]);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadServiceTypes = async () => {
+      const items = await listServiceTypes();
+      if (!mounted) return;
+      setServiceTypeOptions(items.map((item) => ({ code: item.code, name: item.name })));
+    };
+    void loadServiceTypes();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const assignedTechnicianId = watch('assignedTechnicianId');
   const computedStatus = assignedTechnicianId ? 'scheduled' : 'unassigned';
@@ -128,7 +143,14 @@ export default function CreateServiceOrderDrawer({ open, onClose, buildings, tec
             ))}
           </Select>
 
-          <Input label="Tipo de servicio" required placeholder="maintenance, inspection..." error={errors.type?.message} {...register('type')} />
+          <Select label="Tipo de servicio" required error={errors.type?.message} {...register('type')}>
+            <option value="">Selecciona un tipo</option>
+            {serviceTypeOptions.map((type) => (
+              <option key={type.code} value={type.code}>
+                {type.name}
+              </option>
+            ))}
+          </Select>
 
           <Input label="Fecha y hora inicial" type="datetime-local" required error={errors.scheduledStartAt?.message} {...register('scheduledStartAt')} />
 
@@ -160,7 +182,7 @@ export default function CreateServiceOrderDrawer({ open, onClose, buildings, tec
         </div>
 
         <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 md:flex-row md:items-center md:justify-between">
-          <Link to="/services" className="text-sm font-semibold text-sky-700 transition hover:text-sky-800">
+          <Link to="/scheduling" className="text-sm font-semibold text-sky-700 transition hover:text-sky-800">
             Ir a edición completa
           </Link>
           <div className="flex items-center gap-2">

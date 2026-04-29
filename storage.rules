@@ -46,6 +46,21 @@ service firebase.storage {
       allow write: if isStaff() && isImage() && underSizeLimit();
     }
 
+    match /service-orders/{serviceOrderId}/attachments/{fileName} {
+      allow read: if isStaff();
+      allow write: if isStaff() && isImage() && underSizeLimit();
+    }
+
+    match /service-orders/{serviceOrderId}/completion-photos/{fileName} {
+      allow read: if isStaff();
+      allow write: if isStaff() && isImage() && underSizeLimit();
+    }
+
+    match /service-orders/{serviceOrderId}/issues/{issueId}/{fileName} {
+      allow read: if isStaff();
+      allow write: if isStaff() && isImage() && underSizeLimit();
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }
