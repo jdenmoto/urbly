@@ -158,7 +158,7 @@ clientPortal:
   priorityPill: "Prioridad {value}"
 services:
   title: Servicios
-  subtitle: Nuevo núcleo operativo basado en órdenes de servicio.
+  subtitle: Flujo operativo basado en órdenes de servicio.
   technicianTitle: Mis servicios
   technicianSubtitle: Vista de trabajo del técnico enfocada solo en órdenes asignadas.
   comingSoon: Esta area alojara agenda, detalle y cierre del nuevo flujo de servicios.
@@ -201,9 +201,9 @@ services:
   aiCustomerMessageTitle: Mensaje sugerido al cliente
   aiFollowUpTitle: Siguiente paso sugerido
   aiReportTitle: Informe técnico sugerido
-  v2Badge: Nucleo operativo v2
+  v2Badge: Flujo operativo
   agendaTitle: Agenda operativa
-  agendaSubtitle: Vista enfocada en lectura rápida, prioridad y acceso directo a detalle y cierre mientras terminamos la migración completa desde el flujo legado.
+  agendaSubtitle: Vista enfocada en lectura rápida, prioridad y acceso directo a detalle y cierre.
   technicianAgendaTitle: Cola técnica
   technicianAgendaSubtitle: Tus órdenes activas primero, con acceso directo a detalle y cierre.
   visibleCountHint: servicios visibles con los filtros actuales

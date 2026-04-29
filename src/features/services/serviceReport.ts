@@ -80,7 +80,7 @@ export function buildTechnicalReport(serviceOrder: ServiceOrderReportLike, t: Tr
     `Inicio programado: ${formatServiceDateTime(serviceOrder.scheduledStartAt)}`,
     `Fin programado: ${formatServiceDateTime(serviceOrder.scheduledEndAt)}`,
     `Novedades registradas: ${issues.length}`,
-    `Eventos de timeline: ${timelineCount}`,
+    `Eventos de la línea de tiempo: ${timelineCount}`,
     `Evidencias fotográficas: ${photos}`,
     issues.length
       ? `Detalle de novedades: ${issues.map((issue) => `${getIssueTypeLabel(t, issue.type)}/${getIssueCategoryLabel(t, issue.category)}`).join(', ')}`
