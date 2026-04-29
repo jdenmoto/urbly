@@ -16,9 +16,11 @@ import { useI18n } from '@/lib/i18n';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
 import type { ManagementCompany } from '@/core/models/managementCompany';
+import type { AppUser } from '@/core/models/appUser';
 import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from './serviceOrderAi';
 import { buildServiceSuggestions } from './serviceSuggestions';
 import { getServiceDailyProgress } from './serviceProgress';
+import { resolveTechnicianScope, scopeServiceOrdersForTechnician } from './technicianScope';
 import {
   formatServiceDateTime,
   getIssueCategoryLabel,
@@ -86,20 +88,34 @@ function getReportActionHint(status: string) {
 
 export default function ServiceDetailPage() {
   const { t } = useI18n();
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const location = useLocation();
   const { serviceOrderId = '' } = useParams();
   const { data: serviceOrders = [] } = useOperationalServiceOrders();
   const locationState = (location.state as ServiceDetailLocationState | null) ?? null;
+  const { data: users = [] } = useList<AppUser>('users', 'users');
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
 
+  const isTechnicianView = role === 'emergency_scheduler';
+  const technicianScope = useMemo(
+    () => resolveTechnicianScope({ users, employees, authUserId: user?.uid }),
+    [employees, user?.uid, users],
+  );
+  const scopedServiceOrders = useMemo(() => {
+    if (!isTechnicianView) return serviceOrders;
+    return scopeServiceOrdersForTechnician({
+      serviceOrders,
+      allowedIds: technicianScope.allowedIds,
+    });
+  }, [isTechnicianView, serviceOrders, technicianScope.allowedIds]);
+
   const serviceOrder = useMemo(
-    () => serviceOrders.find((item) => item.id === serviceOrderId) ?? null,
-    [serviceOrderId, serviceOrders]
+    () => scopedServiceOrders.find((item) => item.id === serviceOrderId) ?? null,
+    [scopedServiceOrders, serviceOrderId]
   );
 
   const building = buildings.find((item) => item.id === serviceOrder?.buildingId);
@@ -124,7 +140,6 @@ export default function ServiceDetailPage() {
     fromPath: currentPath,
     serviceStatus: serviceOrder?.status
   };
-  const isTechnicianView = role === 'emergency_scheduler';
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignTechnicianId, setAssignTechnicianId] = useState('');
 

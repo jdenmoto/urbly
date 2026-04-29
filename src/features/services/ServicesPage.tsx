@@ -32,6 +32,7 @@ import {
   getServiceOrderTypeLabel,
   serviceOrderPriorityTone
 } from './serviceOrderPresentation';
+import { resolveTechnicianScope, scopeServiceOrdersForTechnician } from './technicianScope';
 
 const statusTone: Record<string, string> = {
   draft: 'bg-fog-100 text-ink-700',
@@ -105,20 +106,20 @@ export default function ServicesPage() {
     };
   }, []);
 
-  const currentUser = useMemo(() => users.find((item) => item.id === user?.uid) ?? null, [users, user?.uid]);
-  const currentEmployee = useMemo(() => {
-    const email = currentUser?.email?.toLowerCase();
-    if (!email) return null;
-    return employees.find((item) => item.email.toLowerCase() === email) ?? null;
-  }, [employees, currentUser?.email]);
+  const technicianScope = useMemo(
+    () => resolveTechnicianScope({ users, employees, authUserId: user?.uid }),
+    [employees, user?.uid, users],
+  );
+  const { currentEmployee } = technicianScope;
   const isTechnicianView = role === 'emergency_scheduler';
 
   const scopedServiceOrders = useMemo(() => {
     if (!isTechnicianView) return serviceOrders;
-    const allowedIds = new Set([currentEmployee?.id, user?.uid, currentUser?.id].filter(Boolean));
-    if (!allowedIds.size) return [];
-    return serviceOrders.filter((item) => item.assignedTechnicianId && allowedIds.has(item.assignedTechnicianId));
-  }, [currentEmployee, currentUser?.id, isTechnicianView, serviceOrders, user?.uid]);
+    return scopeServiceOrdersForTechnician({
+      serviceOrders,
+      allowedIds: technicianScope.allowedIds,
+    });
+  }, [isTechnicianView, serviceOrders, technicianScope.allowedIds]);
 
   const selectedBuilding = useMemo(
     () => getSelectedServiceBuilding(buildings, filters.buildingId),
