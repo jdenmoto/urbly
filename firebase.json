@@ -23,7 +23,7 @@
     "firestore": { "port": 8080 },
     "storage": { "port": 9199 },
     "functions": { "port": 5001 },
-    "hosting": { "port": 5000 },
+    "hosting": { "port": 6001 },
     "ui": { "enabled": false }
   }
 }

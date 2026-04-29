@@ -40,7 +40,9 @@ export default function AppLayout() {
             </AnimatePresence>
           </main>
         </div>
-        {showContextPanel ? <ShellContextPanel /> : null}
+        {
+        //showContextPanel ? <ShellContextPanel /> : null
+        }
       </div>
       <BottomNav show={isMobile} />
     </div>
