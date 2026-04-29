@@ -220,6 +220,9 @@ export type ServiceOrder = {
   assignedTechnicianId?: string | null;
   recurrence?: string | null;
   seriesId?: string | null;
+  seriesAnchorStartAt?: string | null;
+  seriesOccurrenceIndex?: number | null;
+  seriesScope?: 'this' | 'future' | null;
   checklist?: ServiceOrderChecklist;
   issues?: ServiceOrderIssue[];
   attachments?: string[];
