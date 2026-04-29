@@ -52,6 +52,7 @@ common:
 nav:
   dashboard: Dashboard
   services: Servicios
+  myServices: Mis servicios
   customers: Clientes
   assets: Activos
   reports: Reportes
@@ -76,6 +77,7 @@ nav:
   mobilePrimary: Navegacion principal movil
   shortDashboard: Inicio
   shortServices: Servicios
+  shortMyServices: Mi ruta
   shortManagement: Cuentas
   shortReports: Reportes
   shortAi: IA
@@ -144,19 +146,21 @@ portal:
 clientPortal:
   summaryTitle: Resumen del cliente
   summarySubtitle: Vista inicial del portal cliente para seguimiento operativo.
-  comingSoon: Aqui vivira la nueva vista de resumen para clientes con estado general, proximos mantenimientos e informes.
+  comingSoon: Aquí vivirá la nueva vista de resumen para clientes con estado general, próximos mantenimientos e informes.
   activeServices: Servicios activos
   completedServices: Servicios completados
   buildingsCount: Edificios
   upcomingTitle: Proximos servicios
-  upcomingSubtitle: Primer corte del resumen cliente basado en service orders.
-  empty: No hay proximos servicios programados.
-  clientViewBadge: Vision cliente
+  upcomingSubtitle: Primer corte del resumen cliente basado en órdenes de servicio.
+  empty: No hay próximos servicios programados.
+  clientViewBadge: Visión cliente
   visibleWindowHint: servicios visibles en la siguiente ventana
   priorityPill: "Prioridad {value}"
 services:
   title: Servicios
-  subtitle: Nuevo nucleo operativo basado en service orders.
+  subtitle: Flujo operativo basado en órdenes de servicio.
+  technicianTitle: Mis servicios
+  technicianSubtitle: Vista de trabajo del técnico enfocada solo en órdenes asignadas.
   comingSoon: Esta area alojara agenda, detalle y cierre del nuevo flujo de servicios.
   empty: No hay servicios para los filtros seleccionados.
   viewDetail: Ver detalle
@@ -165,7 +169,7 @@ services:
   detailSubtitle: Primer corte de la vista dedicada para contexto e historial.
   detailEmpty: No se encontro el servicio solicitado.
   contextTitle: Contexto del servicio
-  contextSubtitle: Informacion base para operar el service order sin entrar al scheduling legacy.
+  contextSubtitle: Información base para operar la orden de servicio sin entrar al agendamiento legado.
   buildingLabel: Edificio
   customerLabel: Cliente
   technicianLabel: Tecnico
@@ -174,10 +178,10 @@ services:
   typeLabel: Tipo
   startLabel: Inicio
   endLabel: Fin
-  descriptionLabel: Descripcion
-  timelineTitle: Timeline operativo
-  timelineSubtitle: Eventos derivados del appointment actual mientras se migra el dominio.
-  timelineEmpty: Este servicio todavia no tiene eventos registrados.
+  descriptionLabel: Descripción
+  timelineTitle: Línea de tiempo operativa
+  timelineSubtitle: Eventos derivados del agendamiento actual mientras se migra el dominio.
+  timelineEmpty: Este servicio todavía no tiene eventos registrados.
   closeoutTitle: Cierre tecnico
   closeoutSubtitle: Vista de cierre enfocada en reporte, evidencias y comunicación final.
   closeoutEmpty: No se encontró el servicio solicitado.
@@ -186,7 +190,7 @@ services:
   evidenceTitle: Evidencia actual
   evidenceCount: "Fotos registradas: {count}"
   issuesCount: "Novedades registradas: {count}"
-  timelineCount: "Eventos del timeline: {count}"
+  timelineCount: "Eventos de la línea de tiempo: {count}"
   communicationTitle: Comunicacion generada
   issueSummaryTitle: Resumen de novedades
   issueSummarySubtitle: Primer corte de incidencias derivadas del servicio actual.
@@ -196,10 +200,12 @@ services:
   aiSummaryTitle: Resumen del caso
   aiCustomerMessageTitle: Mensaje sugerido al cliente
   aiFollowUpTitle: Siguiente paso sugerido
-  aiReportTitle: Informe tecnico sugerido
-  v2Badge: Nucleo operativo v2
+  aiReportTitle: Informe técnico sugerido
+  v2Badge: Flujo operativo
   agendaTitle: Agenda operativa
-  agendaSubtitle: Vista enfocada en lectura rápida, prioridad y acceso directo a detalle y cierre mientras terminamos la migracion completa desde legacy.
+  agendaSubtitle: Vista enfocada en lectura rápida, prioridad y acceso directo a detalle y cierre.
+  technicianAgendaTitle: Cola técnica
+  technicianAgendaSubtitle: Tus órdenes activas primero, con acceso directo a detalle y cierre.
   visibleCountHint: servicios visibles con los filtros actuales
   issuesLabel: Novedades
   priorityPill: "Prioridad {value}"
@@ -207,16 +213,20 @@ services:
   aiBadge: IA operativa aplicada
   closeoutBadge: Cierre operativo
   closeoutStatusHint: estado actual para cierre y reporte
-  timelineLabel: Timeline
+  timelineLabel: Línea de tiempo
   aiCloseoutBadge: IA para cierre
   aiCloseoutTitle: Acciones listas para enviar o ajustar
   aiCloseoutSubtitle: Este bloque resume el servicio, propone el reporte y deja listo el siguiente paso para enviar o ajustar.
   statusScheduled: Programado
   statusConfirmed: Confirmado
   statusInProgress: En progreso
+  statusPaused: Pausado
+  statusPendingReview: Pendiente de revisión
+  statusRequiresReschedule: Requiere reprogramación
   statusCompleted: Completado
   statusCancelled: Cancelado
   statusDraft: Borrador
+  statusUnassigned: Sin asignar
   urgentLabel: Urgentes
   priorityUrgent: Urgente
   priorityHigh: Alta
@@ -302,7 +312,7 @@ technician:
   pendingServices: Pendientes
   issuesDetected: Novedades
   nextServiceTitle: Siguiente servicio
-  nextServiceSubtitle: Primer corte del home tecnico usando service orders.
+  nextServiceSubtitle: Primer corte del inicio técnico usando órdenes de servicio.
   missingEmployee: No se encontro un tecnico asociado a este usuario.
   empty: No tienes servicios pendientes por ahora.
   statusLabel: Estado

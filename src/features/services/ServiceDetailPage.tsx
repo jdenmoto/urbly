@@ -1,17 +1,26 @@
-import { useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import Card from '@/components/Card';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
+import Modal from '@/components/Modal';
+import Button from '@/components/Button';
+import Select from '@/components/Select';
+import { useAuth } from '@/app/Auth';
 import { useList } from '@/lib/api/queries';
+import { assignTechnician } from '@/lib/api/serviceOrders';
+import { useToast } from '@/components/ToastProvider';
 import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
 import type { ManagementCompany } from '@/core/models/managementCompany';
+import type { AppUser } from '@/core/models/appUser';
 import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from './serviceOrderAi';
 import { buildServiceSuggestions } from './serviceSuggestions';
 import { getServiceDailyProgress } from './serviceProgress';
+import { resolveTechnicianScope, scopeServiceOrdersForTechnician } from './technicianScope';
 import {
   formatServiceDateTime,
   getIssueCategoryLabel,
@@ -31,17 +40,82 @@ const statusTone: Record<string, string> = {
   cancelled: 'bg-rose-50 text-rose-700'
 };
 
+type ServiceDetailLocationState = {
+  fromServices?: boolean;
+  fromPath?: string;
+  listContext?: {
+    buildingName?: string;
+    technicianName?: string;
+    dailyProgressCount?: number;
+    issueCount?: number;
+  };
+};
+
+function getBackToListLabel(fromPath?: string) {
+  if (fromPath?.startsWith('/technician')) return 'Volver al panel técnico';
+  return 'Volver a servicios';
+}
+
+function getRecommendedNextStep(status: string) {
+  if (status === 'completed') return 'Siguiente paso recomendado: revisar cierre, reporte y evidencia final.';
+  if (status === 'in_progress') return 'Siguiente paso recomendado: validar contexto y continuar hacia el cierre técnico.';
+  return 'Siguiente paso recomendado: confirmar contexto operativo antes de ejecutar el servicio.';
+}
+
+function getCloseoutActionLabel(status: string) {
+  if (status === 'completed') return 'Revisar cierre técnico';
+  if (status === 'in_progress') return 'Continuar cierre técnico';
+  return 'Ejecutar cierre técnico';
+}
+
+function getCloseoutActionHint(status: string) {
+  if (status === 'completed') return 'El servicio ya quedó marcado como completado. Aquí puedes revisar el cierre, la evidencia y el reporte.';
+  if (status === 'in_progress') return 'Este servicio ya está en marcha. El siguiente paso operativo es completar el cierre técnico con evidencia y observaciones.';
+  return 'Usa el cierre técnico para registrar horas, checklist, fotos finales y novedades del servicio.';
+}
+
+function getReportActionLabel(status: string) {
+  if (status === 'completed') return 'Abrir reporte técnico';
+  if (status === 'in_progress') return 'Preparar reporte técnico';
+  return 'Ver formato de reporte';
+}
+
+function getReportActionHint(status: string) {
+  if (status === 'completed') return 'El cierre ya está listo. Desde aquí puedes revisar la versión imprimible y la evidencia final sin salir del flujo de services.';
+  if (status === 'in_progress') return 'El reporte final vive dentro del mismo flujo. Completa el cierre y luego revisa la versión imprimible con evidencia consolidada.';
+  return 'El reporte imprimible será la salida final de este servicio una vez registres el cierre técnico y la evidencia.';
+}
+
 export default function ServiceDetailPage() {
   const { t } = useI18n();
+  const { role, user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const location = useLocation();
   const { serviceOrderId = '' } = useParams();
   const { data: serviceOrders = [] } = useOperationalServiceOrders();
+  const locationState = (location.state as ServiceDetailLocationState | null) ?? null;
+  const { data: users = [] } = useList<AppUser>('users', 'users');
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: managements = [] } = useList<ManagementCompany>('managements', 'management_companies');
 
+  const isTechnicianView = role === 'emergency_scheduler';
+  const technicianScope = useMemo(
+    () => resolveTechnicianScope({ users, employees, authUserId: user?.uid }),
+    [employees, user?.uid, users],
+  );
+  const scopedServiceOrders = useMemo(() => {
+    if (!isTechnicianView) return serviceOrders;
+    return scopeServiceOrdersForTechnician({
+      serviceOrders,
+      allowedIds: technicianScope.allowedIds,
+    });
+  }, [isTechnicianView, serviceOrders, technicianScope.allowedIds]);
+
   const serviceOrder = useMemo(
-    () => serviceOrders.find((item) => item.id === serviceOrderId) ?? null,
-    [serviceOrderId, serviceOrders]
+    () => scopedServiceOrders.find((item) => item.id === serviceOrderId) ?? null,
+    [scopedServiceOrders, serviceOrderId]
   );
 
   const building = buildings.find((item) => item.id === serviceOrder?.buildingId);
@@ -52,14 +126,157 @@ export default function ServiceDetailPage() {
   const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder) : '';
   const aiSuggestions = serviceOrder ? buildServiceSuggestions(serviceOrder, t) : [];
+  const backToServicesTarget = locationState?.fromPath ?? `/services${location.search}`;
+  const listContext = locationState?.listContext;
+  const currentPath = `${location.pathname}${location.search}`;
+  const closeoutState = {
+    fromDetail: true,
+    fromPath: currentPath,
+    serviceStatus: serviceOrder?.status,
+    closeoutActionLabel: serviceOrder ? getCloseoutActionLabel(serviceOrder.status) : 'Ir a cierre técnico'
+  };
+  const reportState = {
+    fromDetail: true,
+    fromPath: currentPath,
+    serviceStatus: serviceOrder?.status
+  };
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assignTechnicianId, setAssignTechnicianId] = useState('');
 
   if (!serviceOrder) {
     return <EmptyState title={t('services.detailTitle')} description={t('services.detailEmpty')} />;
   }
 
+  const submitAssignment = async () => {
+    if (!assignTechnicianId) return;
+    await assignTechnician({
+      serviceOrder,
+      technicianId: assignTechnicianId,
+      reason: 'Asignación operativa desde detalle',
+    });
+    await queryClient.invalidateQueries({ queryKey: ['serviceOrders'] });
+    toast('Asignación actualizada.', 'success');
+    setAssignOpen(false);
+  };
+
   return (
     <div className="space-y-8">
-      <PageHeader title={serviceOrder.title} subtitle={t('services.detailSubtitle')} />
+      <PageHeader
+        title={serviceOrder.title}
+        subtitle={t('services.detailSubtitle')}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Link
+              className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              to={backToServicesTarget}
+            >
+              {getBackToListLabel(locationState?.fromPath)}
+            </Link>
+            <Link
+              className="inline-flex items-center rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+              to={`/services/${serviceOrder.id}/closeout`}
+              state={closeoutState}
+            >
+              {getCloseoutActionLabel(serviceOrder.status)}
+            </Link>
+            {!isTechnicianView ? (
+              <button
+                className="inline-flex items-center rounded-full border border-sky-200 bg-white px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
+                onClick={() => {
+                  setAssignTechnicianId(serviceOrder.assignedTechnicianId ?? '');
+                  setAssignOpen(true);
+                }}
+              >
+                {serviceOrder.assignedTechnicianId ? 'Reasignar técnico' : 'Asignar técnico'}
+              </button>
+            ) : null}
+            {!isTechnicianView ? (
+              <Link
+                className="inline-flex items-center rounded-full border border-fog-200 px-4 py-2 text-sm font-semibold text-ink-700 transition hover:bg-fog-50"
+                to={`/services/${serviceOrder.id}/print`}
+                state={reportState}
+              >
+                {getReportActionLabel(serviceOrder.status)}
+              </Link>
+            ) : null}
+          </div>
+        }
+      />
+
+      {locationState?.fromServices ? (
+        <Card className="space-y-4 border border-sky-200 bg-sky-50 p-6">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">Contexto de llegada</p>
+              <h2 className="mt-2 text-lg font-semibold text-sky-950">Llegaste desde el listado operativo de servicios</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-sky-900">{getRecommendedNextStep(serviceOrder.status)}</p>
+            </div>
+            <Link
+              className="inline-flex items-center rounded-full border border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-sky-800 transition hover:bg-sky-100"
+              to={backToServicesTarget}
+            >
+              Volver al mismo filtro
+            </Link>
+          </div>
+
+          <div className="grid gap-3 text-sm text-sky-950 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3">
+              <p className="text-xs uppercase tracking-wide text-sky-700">Edificio</p>
+              <p className="mt-1 font-semibold">{listContext?.buildingName ?? building?.name ?? t('common.noData')}</p>
+            </div>
+            <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3">
+              <p className="text-xs uppercase tracking-wide text-sky-700">Técnico</p>
+              <p className="mt-1 font-semibold">{listContext?.technicianName ?? technician?.fullName ?? t('common.unassigned')}</p>
+            </div>
+            <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3">
+              <p className="text-xs uppercase tracking-wide text-sky-700">Avances diarios</p>
+              <p className="mt-1 font-semibold">{listContext?.dailyProgressCount ?? dailyProgress.length}</p>
+            </div>
+            <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3">
+              <p className="text-xs uppercase tracking-wide text-sky-700">Novedades reportadas</p>
+              <p className="mt-1 font-semibold">{listContext?.issueCount ?? serviceOrder.issues.length}</p>
+            </div>
+          </div>
+        </Card>
+      ) : null}
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <Card className="space-y-4 border border-emerald-200 bg-emerald-50 p-6">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">Acción principal</p>
+              <h2 className="mt-2 text-lg font-semibold text-emerald-950">{getCloseoutActionLabel(serviceOrder.status)}</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-emerald-900">{getCloseoutActionHint(serviceOrder.status)}</p>
+            </div>
+            <Link
+              className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+              to={`/services/${serviceOrder.id}/closeout`}
+              state={closeoutState}
+            >
+              {getCloseoutActionLabel(serviceOrder.status)}
+            </Link>
+          </div>
+        </Card>
+
+        {!isTechnicianView ? (
+          <Card className="space-y-4 border border-slate-200 bg-white p-6">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Reporte y salida final</p>
+              <h2 className="mt-2 text-lg font-semibold text-ink-900">{getReportActionLabel(serviceOrder.status)}</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-600">{getReportActionHint(serviceOrder.status)}</p>
+            </div>
+            <Link
+              className="inline-flex items-center justify-center rounded-full border border-fog-200 px-5 py-3 text-sm font-semibold text-ink-700 transition hover:bg-fog-50"
+              to={`/services/${serviceOrder.id}/print`}
+              state={reportState}
+            >
+              {getReportActionLabel(serviceOrder.status)}
+            </Link>
+          </div>
+          </Card>
+        ) : null}
+      </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.45fr,1fr]">
         <Card className="space-y-6 p-6">
@@ -84,7 +301,7 @@ export default function ServiceDetailPage() {
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 text-sm text-ink-700">
+          <div className="grid gap-3 text-sm text-ink-700 md:grid-cols-2 xl:grid-cols-3">
             <div className="rounded-2xl bg-fog-50 p-4">
               <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.buildingLabel')}</p>
               <p className="mt-1 font-semibold text-ink-900">{building?.name ?? t('common.noData')}</p>
@@ -107,7 +324,7 @@ export default function ServiceDetailPage() {
             </div>
             <div className="rounded-2xl bg-fog-50 p-4">
               <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
-              <p className="mt-1 font-semibold text-ink-900">{serviceOrder.issues?.length ?? 0}</p>
+              <p className="mt-1 font-semibold text-ink-900">{serviceOrder.issues.length}</p>
             </div>
           </div>
 
@@ -125,7 +342,7 @@ export default function ServiceDetailPage() {
               <h2 className="text-lg font-semibold text-ink-900">{t('services.timelineTitle')}</h2>
               <p className="text-sm text-ink-600">{t('services.timelineSubtitle')}</p>
             </div>
-            {serviceOrder.timeline?.length ? (
+            {serviceOrder.timeline.length ? (
               <div className="space-y-3">
                 {serviceOrder.timeline.map((event) => (
                   <div key={event.id} className="rounded-2xl border border-fog-200 bg-fog-50 p-4">
@@ -144,7 +361,7 @@ export default function ServiceDetailPage() {
               <h2 className="text-lg font-semibold text-ink-900">{t('services.issueSummaryTitle')}</h2>
               <p className="text-sm text-ink-600">{t('services.issueSummarySubtitle')}</p>
             </div>
-            {serviceOrder.issues?.length ? (
+            {serviceOrder.issues.length ? (
               <div className="space-y-3">
                 {serviceOrder.issues.map((issue) => (
                   <div key={issue.id} className="rounded-2xl border border-fog-200 bg-fog-50 p-4">
@@ -160,7 +377,6 @@ export default function ServiceDetailPage() {
           </Card>
         </div>
       </div>
-
 
       <Card className="space-y-4 p-6">
         <div>
@@ -185,54 +401,71 @@ export default function ServiceDetailPage() {
         )}
       </Card>
 
+      {!isTechnicianView ? (
+        <>
+          <Card className="space-y-6 p-6">
+            <div>
+              <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">IA trace</div>
+              <h2 className="mt-3 text-xl font-semibold text-ink-900">Suggestions y trazabilidad</h2>
+              <p className="text-sm leading-6 text-ink-600">Salida sugerida por IA con contexto y metadata de generación.</p>
+            </div>
 
-      <Card className="space-y-6 p-6">
-        <div>
-          <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">IA trace</div>
-          <h2 className="mt-3 text-xl font-semibold text-ink-900">Suggestions y trazabilidad</h2>
-          <p className="text-sm leading-6 text-ink-600">Salida sugerida por IA con contexto y metadata de generación.</p>
-        </div>
+            <div className="grid gap-4 text-sm text-ink-700 xl:grid-cols-3">
+              {aiSuggestions.map((item) => (
+                <div key={item.id} className="rounded-3xl border border-fog-200 bg-white p-5">
+                  <p className="font-semibold text-ink-900">{item.type}</p>
+                  <p className="mt-3 whitespace-pre-wrap leading-6">{item.content}</p>
+                  <div className="mt-4 rounded-2xl bg-fog-50 p-3 text-xs text-ink-500">
+                    <p>Módulo: {item.trace.module}</p>
+                    <p>Rol: {item.trace.roleScope ?? 'n/a'}</p>
+                    <p>Generado: {item.trace.generatedAt}</p>
+                    <p>Input: {item.trace.inputSummary}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
 
-        <div className="grid gap-4 xl:grid-cols-3 text-sm text-ink-700">
-          {aiSuggestions.map((item) => (
-            <div key={item.id} className="rounded-3xl border border-fog-200 bg-white p-5">
-              <p className="font-semibold text-ink-900">{item.type}</p>
-              <p className="mt-3 whitespace-pre-wrap leading-6">{item.content}</p>
-              <div className="mt-4 rounded-2xl bg-fog-50 p-3 text-xs text-ink-500">
-                <p>Módulo: {item.trace.module}</p>
-                <p>Rol: {item.trace.roleScope ?? 'n/a'}</p>
-                <p>Generado: {item.trace.generatedAt}</p>
-                <p>Input: {item.trace.inputSummary}</p>
+          <Card className="space-y-6 p-6">
+            <div>
+              <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
+                {t('services.aiBadge')}
+              </div>
+              <h2 className="mt-3 text-xl font-semibold text-ink-900">{t('services.aiActionsTitle')}</h2>
+              <p className="text-sm leading-6 text-ink-600">{t('services.aiActionsSubtitle')}</p>
+            </div>
+
+            <div className="grid gap-4 text-sm text-ink-700 xl:grid-cols-3">
+              <div className="rounded-3xl border border-fog-200 bg-white p-5">
+                <p className="font-semibold text-ink-900">{t('services.aiSummaryTitle')}</p>
+                <p className="mt-3 whitespace-pre-wrap leading-6">{aiSummary}</p>
+              </div>
+              <div className="rounded-3xl border border-fog-200 bg-white p-5">
+                <p className="font-semibold text-ink-900">{t('services.aiCustomerMessageTitle')}</p>
+                <p className="mt-3 whitespace-pre-wrap leading-6">{aiCustomerMessage}</p>
+              </div>
+              <div className="rounded-3xl border border-fog-200 bg-white p-5">
+                <p className="font-semibold text-ink-900">{t('services.aiFollowUpTitle')}</p>
+                <p className="mt-3 whitespace-pre-wrap leading-6">{aiFollowUp}</p>
               </div>
             </div>
-          ))}
-        </div>
-      </Card>
+          </Card>
+        </>
+      ) : null}
 
-      <Card className="space-y-6 p-6">
-        <div>
-          <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
-            {t('services.aiBadge')}
-          </div>
-          <h2 className="mt-3 text-xl font-semibold text-ink-900">{t('services.aiActionsTitle')}</h2>
-          <p className="text-sm leading-6 text-ink-600">{t('services.aiActionsSubtitle')}</p>
+      <Modal open={assignOpen} title="Asignar técnico" onClose={() => setAssignOpen(false)}>
+        <div className="space-y-4">
+          <Select value={assignTechnicianId} onChange={(event) => setAssignTechnicianId(event.target.value)}>
+            <option value="">Selecciona técnico</option>
+            {employees.map((employee) => (
+              <option key={employee.id} value={employee.id}>
+                {employee.fullName}
+              </option>
+            ))}
+          </Select>
+          <Button onClick={() => void submitAssignment()} disabled={!assignTechnicianId}>Guardar asignación</Button>
         </div>
-
-        <div className="grid gap-4 xl:grid-cols-3 text-sm text-ink-700">
-          <div className="rounded-3xl border border-fog-200 bg-white p-5">
-            <p className="font-semibold text-ink-900">{t('services.aiSummaryTitle')}</p>
-            <p className="mt-3 whitespace-pre-wrap leading-6">{aiSummary}</p>
-          </div>
-          <div className="rounded-3xl border border-fog-200 bg-white p-5">
-            <p className="font-semibold text-ink-900">{t('services.aiCustomerMessageTitle')}</p>
-            <p className="mt-3 whitespace-pre-wrap leading-6">{aiCustomerMessage}</p>
-          </div>
-          <div className="rounded-3xl border border-fog-200 bg-white p-5">
-            <p className="font-semibold text-ink-900">{t('services.aiFollowUpTitle')}</p>
-            <p className="mt-3 whitespace-pre-wrap leading-6">{aiFollowUp}</p>
-          </div>
-        </div>
-      </Card>
+      </Modal>
     </div>
   );
 }

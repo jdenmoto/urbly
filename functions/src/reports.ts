@@ -37,7 +37,7 @@ const formatCOP = (value?: number) => {
   return `$${Math.round(value ?? 0).toLocaleString('es-CO')}`;
 };
 
-export const generateAppointmentsPdf = onCall(async (request) => {
+export const generateSchedulingAgendaPdf = onCall(async (request) => {
   requireAuth(request.auth);
   const role = request.auth?.token?.role as string | undefined;
   if (!role || !['admin', 'editor', 'view', 'building_admin'].includes(role)) {
@@ -117,46 +117,46 @@ export const generateAppointmentsPdf = onCall(async (request) => {
     }
   }
 
-  const appointmentsSnap = await db
-    .collection('appointments')
+  const scheduledServicesSnap = await db
+    .collection('service_orders')
     .where('buildingId', '==', buildingId)
-    .where('startAt', '>=', rangeStart)
-    .where('startAt', '<', rangeEnd)
-    .orderBy('startAt', 'asc')
+    .where('scheduledStartAt', '>=', rangeStart)
+    .where('scheduledStartAt', '<', rangeEnd)
+    .orderBy('scheduledStartAt', 'asc')
     .get();
 
-  const appointments = appointmentsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Array<{
+  const scheduledServices = scheduledServicesSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Array<{
     id: string;
     title?: string;
-    startAt?: string;
-    endAt?: string;
+    scheduledStartAt?: string;
+    scheduledEndAt?: string;
     status?: string;
     type?: string;
   }>;
-  logger.info('PDF appointments export', { count: appointments.length, buildingId });
+  logger.info('PDF scheduling agenda export', { count: scheduledServices.length, buildingId });
 
   const reportYear = new Date(rangeStart).getFullYear();
   const maintenanceSnap = await db
-    .collection('appointments')
+    .collection('service_orders')
     .where('buildingId', '==', buildingId)
-    .orderBy('startAt', 'asc')
+    .orderBy('scheduledStartAt', 'asc')
     .get();
-  const maintenanceAppointments = maintenanceSnap.docs
+  const maintenanceServices = maintenanceSnap.docs
     .map((doc) => ({ id: doc.id, ...doc.data() })) as Array<{
       id: string;
-      startAt?: string;
+      scheduledStartAt?: string;
       type?: string;
     }>;
-  const maintenanceForYear = maintenanceAppointments.filter((item) => {
+  const maintenanceForYear = maintenanceServices.filter((item) => {
     if ((item.type ?? '').toString().toLowerCase() !== 'mantenimiento') return false;
-    const date = toDate(item.startAt);
+    const date = toDate(item.scheduledStartAt);
     return date ? date.getFullYear() === reportYear : false;
   });
-  logger.info('PDF maintenance dates export', {
+  logger.info('PDF maintenance scheduling export', {
     count: maintenanceForYear.length,
     buildingId,
     reportYear,
-    samples: maintenanceForYear.slice(0, 3).map((item) => ({ startAt: item.startAt, type: item.type }))
+    samples: maintenanceForYear.slice(0, 3).map((item) => ({ scheduledStartAt: item.scheduledStartAt, type: item.type }))
   });
 
   const templatePath = path.resolve(process.cwd(), 'assets', 'template_sin_datos.pdf');
@@ -222,7 +222,7 @@ export const generateAppointmentsPdf = onCall(async (request) => {
 
   const maintenanceDatesByMonth = new Map<number, Date>();
   maintenanceForYear.forEach((item) => {
-    const date = toDate(item.startAt);
+    const date = toDate(item.scheduledStartAt);
     if (!date) return;
     const month = date.getMonth();
     if (!maintenanceDatesByMonth.has(month)) {

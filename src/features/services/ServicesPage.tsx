@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { updateDocById } from '@/lib/api/firestore';
+import { assignTechnician, cancelServiceOrder, confirmServiceOrder } from '@/lib/api/serviceOrders';
+import { listServiceTypes } from '@/lib/serviceTypes';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';
-import { Link, useSearchParams } from 'react-router-dom';
+import CreateServiceOrderDrawer from '@/features/operations/scheduling/CreateServiceOrderDrawer';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import EmptyState from '@/components/EmptyState';
 import Input from '@/components/Input';
 import PageHeader from '@/components/PageHeader';
@@ -12,14 +15,24 @@ import { useList } from '@/lib/api/queries';
 import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { buildDailyProgressEvent, getServiceDailyProgress } from './serviceProgress';
 import { useI18n } from '@/lib/i18n';
+import { useAuth } from '@/app/Auth';
+import type { AppUser } from '@/core/models/appUser';
 import type { Building } from '@/core/models/building';
 import type { Employee } from '@/core/models/employee';
+import {
+  buildServiceOrderSummary,
+  filterServiceOrders,
+  getRecentServiceOrders,
+  getSelectedServiceBuilding,
+  type ServiceOrderFilters
+} from './serviceOrderSelectors';
 import {
   getServiceOrderPriorityPill,
   getServiceOrderStatusLabel,
   getServiceOrderTypeLabel,
   serviceOrderPriorityTone
 } from './serviceOrderPresentation';
+import { resolveTechnicianScope, scopeServiceOrdersForTechnician } from './technicianScope';
 
 const statusTone: Record<string, string> = {
   draft: 'bg-fog-100 text-ink-700',
@@ -32,16 +45,34 @@ const statusTone: Record<string, string> = {
 
 export default function ServicesPage() {
   const { t } = useI18n();
+  const { role, user } = useAuth();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const { data: serviceOrders = [], isLoading } = useOperationalServiceOrders();
+  const { data: users = [] } = useList<AppUser>('users', 'users');
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
-  const [filters, setFilters] = useState({ buildingId: '', from: '', to: '', status: '' });
+  const [filters, setFilters] = useState<ServiceOrderFilters>({ buildingId: '', from: '', to: '', status: '' });
   const [progressTarget, setProgressTarget] = useState<(typeof serviceOrders)[number] | null>(null);
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [quickCreatePrefill, setQuickCreatePrefill] = useState<{
+    buildingId?: string;
+    type?: string;
+    assignedTechnicianId?: string;
+  } | null>(null);
   const [progressDate, setProgressDate] = useState(new Date().toISOString().slice(0, 10));
   const [progressSummary, setProgressSummary] = useState('');
   const [progressPercent, setProgressPercent] = useState('');
   const [progressHours, setProgressHours] = useState('');
+  const [assignTarget, setAssignTarget] = useState<(typeof serviceOrders)[number] | null>(null);
+  const [assignTechnicianId, setAssignTechnicianId] = useState('');
+  const [editTarget, setEditTarget] = useState<(typeof serviceOrders)[number] | null>(null);
+  const [editType, setEditType] = useState('');
+  const [editStart, setEditStart] = useState('');
+  const [editDurationMinutes, setEditDurationMinutes] = useState('60');
+  const [serviceTypeOptions, setServiceTypeOptions] = useState<Array<{ code: string; name: string }>>([]);
+  const [cancelTarget, setCancelTarget] = useState<(typeof serviceOrders)[number] | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
 
   useEffect(() => {
     const buildingId = searchParams.get('buildingId') ?? '';
@@ -53,43 +84,70 @@ export default function ServicesPage() {
     }));
   }, [searchParams]);
 
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (!editId || !serviceOrders.length) return;
+    const target = serviceOrders.find((item) => item.id === editId);
+    if (!target) return;
+    openEdit(target);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, serviceOrders]);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      const types = await listServiceTypes();
+      if (!mounted) return;
+      setServiceTypeOptions(types.map((item) => ({ code: item.code, name: item.name })));
+    };
+    void load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const technicianScope = useMemo(
+    () => resolveTechnicianScope({ users, employees, authUserId: user?.uid }),
+    [employees, user?.uid, users],
+  );
+  const { currentEmployee } = technicianScope;
+  const isTechnicianView = role === 'emergency_scheduler';
+
+  const scopedServiceOrders = useMemo(() => {
+    if (!isTechnicianView) return serviceOrders;
+    return scopeServiceOrdersForTechnician({
+      serviceOrders,
+      allowedIds: technicianScope.allowedIds,
+    });
+  }, [isTechnicianView, serviceOrders, technicianScope.allowedIds]);
+
   const selectedBuilding = useMemo(
-    () => buildings.find((building) => building.id === filters.buildingId) ?? null,
+    () => getSelectedServiceBuilding(buildings, filters.buildingId),
     [buildings, filters.buildingId]
   );
 
-  const summary = useMemo(() => {
-    const scheduled = serviceOrders.filter((item) => item.status === 'scheduled' || item.status === 'confirmed').length;
-    const inProgress = serviceOrders.filter((item) => item.status === 'in_progress').length;
-    const completed = serviceOrders.filter((item) => item.status === 'completed').length;
-    const urgent = serviceOrders.filter((item) => item.priority === 'urgent').length;
+  const summary = useMemo(() => buildServiceOrderSummary(scopedServiceOrders), [scopedServiceOrders]);
 
-    return { scheduled, inProgress, completed, urgent };
-  }, [serviceOrders]);
+  const filteredOrders = useMemo(() => filterServiceOrders(scopedServiceOrders, filters), [filters, scopedServiceOrders]);
 
-  const filteredOrders = useMemo(() => {
-    return serviceOrders.filter((order) => {
-      if (filters.buildingId && order.buildingId !== filters.buildingId) return false;
-      if (filters.status && order.status !== filters.status) return false;
-      if (filters.from && new Date(order.scheduledStartAt) < new Date(`${filters.from}T00:00:00`)) return false;
-      if (filters.to && new Date(order.scheduledEndAt) > new Date(`${filters.to}T23:59:59`)) return false;
-      return true;
-    });
-  }, [filters, serviceOrders]);
-
-  const recentOrders = useMemo(
-    () =>
-      [...filteredOrders]
-        .sort((a, b) => new Date(a.scheduledStartAt).getTime() - new Date(b.scheduledStartAt).getTime())
-        .slice(0, 12),
-    [filteredOrders]
+  const recentOrders = useMemo(() => getRecentServiceOrders(filteredOrders), [filteredOrders]);
+  const nextOpenOrder = useMemo(
+    () => recentOrders.find((item) => item.status !== 'completed' && item.status !== 'cancelled') ?? recentOrders[0] ?? null,
+    [recentOrders]
   );
+  const currentSearch = searchParams.toString();
+  const headerTitle = isTechnicianView ? t('services.technicianTitle') : t('services.title');
+  const headerSubtitle = isTechnicianView ? t('services.technicianSubtitle') : t('services.subtitle');
+  const agendaTitle = isTechnicianView ? t('services.technicianAgendaTitle') : t('services.agendaTitle');
+  const agendaSubtitle = isTechnicianView ? t('services.technicianAgendaSubtitle') : t('services.agendaSubtitle');
+  const normalizedAgendaTitle = agendaTitle === headerTitle ? 'Agenda operativa' : agendaTitle;
 
   const statusLabel = (value: string) => getServiceOrderStatusLabel(t, value as Parameters<typeof getServiceOrderStatusLabel>[1]);
+  const currentRoute = `${location.pathname}${currentSearch ? `?${currentSearch}` : ''}`;
 
   const saveDailyProgress = async () => {
     if (!progressTarget || !progressSummary.trim()) return;
-    const nextTimeline = [...(progressTarget.timeline ?? []), buildDailyProgressEvent({
+    const nextTimeline = [...progressTarget.timeline, buildDailyProgressEvent({
       date: progressDate,
       summary: progressSummary,
       percentComplete: progressPercent ? Number(progressPercent) : null,
@@ -105,13 +163,79 @@ export default function ServicesPage() {
     setProgressHours('');
   };
 
+  const submitAssignment = async () => {
+    if (!assignTarget || !assignTechnicianId) return;
+    await assignTechnician({
+      serviceOrder: assignTarget,
+      technicianId: assignTechnicianId,
+      reason: 'Asignación operativa desde services',
+      actorId: user?.uid,
+    });
+    setAssignTarget(null);
+    setAssignTechnicianId('');
+  };
+
+  const submitConfirm = async (order: (typeof serviceOrders)[number]) => {
+    await confirmServiceOrder({
+      serviceOrder: order,
+      actorId: user?.uid,
+    });
+  };
+
+  const submitCancel = async () => {
+    if (!cancelTarget || !cancelReason.trim()) return;
+    await cancelServiceOrder({
+      serviceOrder: cancelTarget,
+      reason: cancelReason.trim(),
+      actorId: user?.uid,
+    });
+    setCancelTarget(null);
+    setCancelReason('');
+  };
+
+  const openEdit = (order: (typeof serviceOrders)[number]) => {
+    setEditTarget(order);
+    setEditType(order.type);
+    setEditStart(new Date(order.scheduledStartAt).toISOString().slice(0, 16));
+    const duration = Math.max(15, Math.round((new Date(order.scheduledEndAt).getTime() - new Date(order.scheduledStartAt).getTime()) / 60000));
+    setEditDurationMinutes(String(duration));
+  };
+
+  const submitEdit = async () => {
+    if (!editTarget || !editType || !editStart) return;
+    const startIso = new Date(editStart).toISOString();
+    const endIso = new Date(new Date(startIso).getTime() + Number(editDurationMinutes || 60) * 60000).toISOString();
+    await updateDocById('service_orders', editTarget.id, {
+      type: editType,
+      title: editType,
+      scheduledStartAt: startIso,
+      scheduledEndAt: endIso,
+      updatedAt: new Date().toISOString(),
+    });
+    setEditTarget(null);
+  };
+
   return (
     <div className="space-y-8">
-      <PageHeader title={t('services.title')} subtitle={t('services.subtitle')} />
+      <PageHeader
+        title={headerTitle}
+        subtitle={headerSubtitle}
+        actions={!isTechnicianView ? (
+          <Button
+            type="button"
+            onClick={() => {
+              setQuickCreatePrefill(selectedBuilding ? { buildingId: selectedBuilding.id } : null);
+              setQuickCreateOpen(true);
+            }}
+          >
+            Crear servicio rápido
+          </Button>
+        ) : null}
+      />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label={t('services.statusScheduled')} value={summary.scheduled} hint={t('services.visibleCountHint')} />
-        <MetricCard label={t('services.statusInProgress')} value={summary.inProgress} hint={t('services.agendaSubtitle')} />
+        <MetricCard label={t('services.statusInProgress')} value={summary.inProgress} hint={agendaSubtitle} />
         <MetricCard label={t('services.statusCompleted')} value={summary.completed} hint={t('services.viewDetail')} />
         <MetricCard label={t('services.urgentLabel')} value={summary.urgent} hint={t('services.viewCloseout')} />
       </section>
@@ -119,12 +243,51 @@ export default function ServicesPage() {
       <GlassPanel className="space-y-6">
         <SectionHeader
           eyebrow={t('services.v2Badge')}
-          title={t('services.agendaTitle')}
-          subtitle={selectedBuilding ? `Contexto actual: ${selectedBuilding.name}` : t('services.agendaSubtitle')}
+          title={normalizedAgendaTitle}
+          subtitle={selectedBuilding ? `Contexto actual: ${selectedBuilding.name}` : agendaSubtitle}
           aside={<StatusPill tone="info">{`${recentOrders.length} ${t('services.visibleCountHint')}`}</StatusPill>}
         />
 
-        {selectedBuilding ? (
+        {isTechnicianView && !currentEmployee ? (
+          <EmptyState title={agendaTitle} description={t('technician.missingEmployee')} />
+        ) : isTechnicianView && nextOpenOrder ? (
+          <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">Siguiente acción</p>
+                <h3 className="mt-2 text-lg font-semibold text-emerald-950">{nextOpenOrder.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-emerald-900">
+                  Ve directo al detalle o entra al cierre técnico sin cargar módulos administrativos.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  className="inline-flex items-center rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                  to={{ pathname: `/services/${nextOpenOrder.id}`, search: currentSearch ? `?${currentSearch}` : '' }}
+                  state={{
+                    fromServices: true,
+                    fromPath: currentRoute,
+                    listContext: {
+                      buildingName: buildings.find((item) => item.id === nextOpenOrder.buildingId)?.name ?? t('common.noData'),
+                      technicianName: currentEmployee?.fullName ?? t('common.unassigned'),
+                      dailyProgressCount: getServiceDailyProgress(nextOpenOrder).length,
+                      issueCount: nextOpenOrder.issues.length
+                    }
+                  }}
+                >
+                  Abrir detalle
+                </Link>
+                <Link
+                  className="inline-flex items-center rounded-full border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                  to={`/services/${nextOpenOrder.id}/closeout`}
+                  state={{ fromPath: currentRoute }}
+                >
+                  Ir al cierre
+                </Link>
+              </div>
+            </div>
+          </div>
+        ) : selectedBuilding ? (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
             <div className="space-y-1">
               <p className="font-semibold">Filtro operativo activo</p>
@@ -168,8 +331,8 @@ export default function ServicesPage() {
 
         {isLoading ? (
           <p className="text-sm text-ink-600">{t('common.loading')}</p>
-        ) : recentOrders.length === 0 ? (
-          <EmptyState title={t('services.title')} description={t('services.empty')} />
+        ) : isTechnicianView && !currentEmployee ? null : recentOrders.length === 0 ? (
+          <EmptyState title={headerTitle} description={isTechnicianView ? t('technician.empty') : t('services.empty')} />
         ) : (
           <div className="space-y-4">
             {recentOrders.map((order) => {
@@ -215,7 +378,7 @@ export default function ServicesPage() {
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
                         <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
-                        <p className="mt-1 font-semibold text-ink-900">{order.issues?.length ?? 0}</p>
+                        <p className="mt-1 font-semibold text-ink-900">{order.issues.length}</p>
                         <p className="mt-1 text-xs text-ink-500">{getServiceDailyProgress(order).length} avances diarios</p>
                       </div>
                     </div>
@@ -224,10 +387,78 @@ export default function ServicesPage() {
                   <div className="mt-4 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
                     <Link
                       className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
-                      to={`/services/${order.id}`}
+                      to={{
+                        pathname: `/services/${order.id}`,
+                        search: currentSearch ? `?${currentSearch}` : ''
+                      }}
+                      state={{
+                        fromServices: true,
+                        fromPath: currentRoute,
+                        listContext: {
+                          buildingName: building?.name ?? t('common.noData'),
+                          technicianName: technician?.fullName ?? t('common.unassigned'),
+                          dailyProgressCount: getServiceDailyProgress(order).length,
+                          issueCount: order.issues.length
+                        }
+                      }}
                     >
-                      {t('services.viewDetail')}
+                      {isTechnicianView ? 'Abrir detalle' : t('services.viewDetail')}
                     </Link>
+                    {!isTechnicianView ? (
+                      <button
+                        className="inline-flex items-center rounded-full border border-fog-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition hover:bg-fog-50"
+                        onClick={() => openEdit(order)}
+                      >
+                        Editar servicio
+                      </button>
+                    ) : null}
+                    {!isTechnicianView ? (
+                      <button
+                        className="inline-flex items-center rounded-full border border-sky-200 bg-white px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
+                        onClick={() => {
+                          setAssignTarget(order);
+                          setAssignTechnicianId(order.assignedTechnicianId ?? '');
+                        }}
+                      >
+                        {order.assignedTechnicianId ? 'Reasignar técnico' : 'Asignar técnico'}
+                      </button>
+                    ) : null}
+                    {!isTechnicianView ? (
+                      <button
+                        className="inline-flex items-center rounded-full border border-indigo-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
+                        onClick={() => void submitConfirm(order)}
+                        disabled={order.status !== 'scheduled'}
+                      >
+                        Confirmar
+                      </button>
+                    ) : null}
+                    {!isTechnicianView ? (
+                      <button
+                        className="inline-flex items-center rounded-full bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-700 transition hover:bg-violet-100"
+                        onClick={() => {
+                          setQuickCreatePrefill({
+                            buildingId: order.buildingId,
+                            type: order.type,
+                            assignedTechnicianId: order.assignedTechnicianId ?? '',
+                          });
+                          setQuickCreateOpen(true);
+                        }}
+                      >
+                        Duplicar en creación rápida
+                      </button>
+                    ) : null}
+                    {!isTechnicianView ? (
+                      <button
+                        className="inline-flex items-center rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+                        onClick={() => {
+                          setCancelTarget(order);
+                          setCancelReason(order.cancelReason ?? '');
+                        }}
+                        disabled={order.status === 'completed' || order.status === 'cancelled'}
+                      >
+                        Cancelar
+                      </button>
+                    ) : null}
                     <button
                       className="inline-flex items-center rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
                       onClick={() => setProgressTarget(order)}
@@ -237,6 +468,7 @@ export default function ServicesPage() {
                     <Link
                       className="inline-flex items-center rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
                       to={`/services/${order.id}/closeout`}
+                      state={{ fromPath: currentRoute }}
                     >
                       {t('services.viewCloseout')}
                     </Link>
@@ -247,6 +479,52 @@ export default function ServicesPage() {
           </div>
         )}
       </GlassPanel>
+      <CreateServiceOrderDrawer
+        open={quickCreateOpen}
+        onClose={() => setQuickCreateOpen(false)}
+        buildings={buildings.map((building) => ({ id: building.id, name: building.name }))}
+        technicians={employees.map((employee) => ({ id: employee.id, fullName: employee.fullName }))}
+        prefill={quickCreatePrefill ?? undefined}
+      />
+
+      <Modal open={Boolean(assignTarget)} title="Asignar técnico" onClose={() => setAssignTarget(null)}>
+        <div className="space-y-4">
+          <Select value={assignTechnicianId} onChange={(event) => setAssignTechnicianId(event.target.value)}>
+            <option value="">Selecciona técnico</option>
+            {employees.map((employee) => (
+              <option key={employee.id} value={employee.id}>
+                {employee.fullName}
+              </option>
+            ))}
+          </Select>
+          <Button onClick={() => void submitAssignment()} disabled={!assignTechnicianId}>
+            Guardar asignación
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal open={Boolean(editTarget)} title="Editar servicio" onClose={() => setEditTarget(null)}>
+        <div className="space-y-4">
+          <Select value={editType} onChange={(event) => setEditType(event.target.value)}>
+            <option value="">Selecciona tipo</option>
+            {serviceTypeOptions.map((type) => (
+              <option key={type.code} value={type.code}>{type.name}</option>
+            ))}
+          </Select>
+          <Input type="datetime-local" value={editStart} onChange={(event) => setEditStart(event.target.value)} />
+          <Input type="number" min={15} step={15} value={editDurationMinutes} onChange={(event) => setEditDurationMinutes(event.target.value)} />
+          <Button onClick={() => void submitEdit()} disabled={!editType || !editStart}>Guardar cambios</Button>
+        </div>
+      </Modal>
+
+      <Modal open={Boolean(cancelTarget)} title="Cancelar servicio" onClose={() => setCancelTarget(null)}>
+        <div className="space-y-4">
+          <Input label="Motivo" value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} />
+          <Button onClick={() => void submitCancel()} disabled={!cancelReason.trim()}>
+            Confirmar cancelación
+          </Button>
+        </div>
+      </Modal>
       <Modal open={Boolean(progressTarget)} title="Registrar avance diario" onClose={() => setProgressTarget(null)}>
         <div className="space-y-4">
           <Input type="date" value={progressDate} onChange={(event) => setProgressDate(event.target.value)} />

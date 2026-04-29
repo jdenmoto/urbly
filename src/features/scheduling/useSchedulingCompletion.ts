@@ -138,8 +138,8 @@ export default function useSchedulingCompletion({
       .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
       .join(' ');
 
-  const startComplete = (appointment: SchedulingItem) => {
-    setCompleteTarget(appointment);
+  const startComplete = (schedulingItem: SchedulingItem) => {
+    setCompleteTarget(schedulingItem);
     setHasIssues('');
     setIssues([]);
     setIssueDraft({ id: '', type: '', category: '', description: '', photos: [] });

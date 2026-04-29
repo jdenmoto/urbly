@@ -1,104 +1,82 @@
 # Deuda de implementación actual
 
-Actualizado con auditoría real del código: `project/artifacts/2026-04-27-legacy-flow-audit.md`
+Actualizado: 2026-04-28 después de S5-T2/S5-T3.
 
 ## Resumen ejecutivo
-La capa canónica `service_orders` ya existe y compila, pero todavía no gobierna todo el producto.
+La ola actual quedó cerrada en su objetivo principal:
+- `service_orders` domina el flujo operativo visible
+- `services` es el centro diario del producto
+- `SchedulingPage` salió del flujo principal y `/scheduling` quedó como redirect técnico a `/services`
+- web y functions ya tienen validación mínima explícita (`npm run build:minimum`)
 
-La frontera canónica actual está en:
-- `src/lib/api/serviceOrders.ts#resolveServiceOrders`
-- `src/lib/api/queries.ts#useServiceOrders`
-- `src/lib/api/queries.ts#useTenantServiceOrders`
+La deuda fuerte ya no es la migración base. Lo pendiente ahora es **terminar de sacar residuos del namespace `scheduling` y unificar la narrativa final de cierre/reporte**.
 
-El problema ya no es ausencia de arquitectura; es **convivencia incompleta** entre capa canónica y consumidores legacy.
+## Qué quedó realmente cerrado
 
----
+### 1. La frontera canónica ya no está siendo bypassada en los frentes principales
+- `src/features/buildings/BuildingsPage.tsx` consume `useTenantServiceOrders(...)`.
+- `src/lib/api/serviceOrders.ts` y `src/lib/api/queries.ts` siguen siendo la entrada operativa real para `service_orders`.
+
+**Impacto:** el bypass importante detectado en edificios ya no aplica.
+
+### 2. El shape operativo legacy dejó de gobernar la navegación diaria
+- `src/features/scheduling/schedulingItem.ts` ya solo expone `source: 'service_order'`.
+- `src/app/App.tsx` ya no monta `SchedulingPage`; `/scheduling` solo redirige a `/services`.
+- la mayor parte del árbol histórico de scheduling fue eliminada del repo activo.
+
+**Impacto:** el producto dejó de depender de `appointments` como modelo visible de operación.
+
+### 3. Los reportes backend base ya leen `service_orders`
+- `functions/src/reports.ts` genera la agenda PDF desde `service_orders`.
+- `functions/src/serviceReports.ts` y `functions/src/clientPortal.ts` también operan sobre `service_orders`.
+
+**Impacto:** la deuda de backend anclado a `appointments` ya no describe el estado real.
 
 ## Deuda alta
 
-### 1. `BuildingsPage` bypassa la capa canónica
-- `src/features/buildings/BuildingsPage.tsx` sigue leyendo `appointments` directamente.
-- Reconstruye `ServiceOrder[]` en la UI usando `buildServiceOrders(...)`.
-- Esto duplica la transición en una pantalla que debería consumir el contrato canónico.
+### 1. El cierre técnico todavía reutiliza infraestructura nombrada como `scheduling`
+- `src/features/services/serviceCloseoutBridge.ts` sigue adaptando `ServiceCloseoutPage` a `useSchedulingCompletion`, `CompleteServiceModal` y helpers de `src/features/scheduling/*`.
+- el dominio ya es correcto, pero la UX operativa final todavía depende de un puente transicional.
 
-**Impacto:** mantiene deuda legacy fuera de adapters.
+**Impacto:** el flujo ya vive en `services`, pero su última milla sigue cargando naming y piezas heredadas.
 
-### 2. Scheduling todavía arrastra shape legacy al centro del flujo
-- `src/features/scheduling/schedulingItem.ts` conserva `source: 'appointment' | 'service_order'`.
-- Sigue usando `Appointment['issues']` y `mapAppointmentToSchedulingItem(...)`.
+### 2. Reporte imprimible, reporte textual y PDF todavía no cuentan exactamente la misma historia
+- `src/features/services/serviceReport.ts` construye la narrativa textual base.
+- `src/features/services/ServiceReportPrintPage.tsx` usa esa narrativa para la vista imprimible.
+- `functions/src/serviceReports.ts` todavía serializa `serviceOrder.report` casi crudo en PDF.
 
-**Impacto:** la UI operativa todavía depende del contrato viejo.
-
-### 3. Series y edición siguen haciendo cleanup legacy
-- `src/features/scheduling/schedulingSeries.ts` aún borra `appointments` cuando reaparece una entidad legacy.
-- Conserva traducciones y payloads nombrados desde `appointment`.
-
-**Impacto:** la zona de series/regeneración sigue siendo la parte más riesgosa de la migración.
-
-### 4. Reportes backend siguen anclados a `appointments`
-- `functions/src/reports.ts` genera PDF desde la colección `appointments`.
-- `serviceReports.ts` y `clientPortal.ts` ya operan con `service_orders`, así que hoy hay convivencia híbrida.
-
-**Impacto:** reportes históricos todavía fijan el modelo viejo como fuente primaria.
-
----
+**Impacto:** el servicio se puede cerrar y exportar, pero la salida final aún no está totalmente unificada.
 
 ## Deuda media
 
-### 5. `SchedulingPage` sigue siendo un módulo de demasiadas responsabilidades
-Responsabilidades activas detectadas:
-- fetch de datos y settings
-- filtros y vista calendario/lista
-- tabla operativa
-- detalle del servicio
-- mapa de dependencias legacy
-- wizard crear/editar
-- cancelación
-- borrado
-- cierre técnico completo
-- generación de PDF
-- visor de fotos
-- checklist extenso
+### 3. Quedan residuos legacy pequeños, ya fuera del flujo principal
+- `src/core/models/appointment.ts` sigue existiendo aunque ya no tiene imports activos.
+- persisten labels y helpers con prefijo `scheduling` que hoy viven solo como compatibilidad interna del cierre.
 
-**Impacto:** dificulta extraer el flujo operativo sin riesgo.
+**Impacto:** no bloquea operación, pero sigue ensuciando el modelo mental del repo.
 
-### 6. `src/lib/api/queries.ts` todavía mezcla fetch canónico y fetch legacy
-- Hace trabajo válido de compatibilidad.
-- Pero sigue exponiendo demasiado conocimiento de la transición.
+### 4. El portal cliente ya es usable, pero sigue comprimido en una implementación mínima
+- `/portal/services` y `/portal/reports` delegan en `src/features/buildingAdmin/BuildingAdminPage.tsx`.
+- alcanza para el walkthrough actual, pero todavía no separa con claridad experiencia de servicios vs experiencia de reportes.
 
-**Impacto:** la capa canónica existe, pero no está lo bastante blindada.
+**Impacto:** el frente cliente quedó funcional, no todavía refinado.
 
----
+## Deuda baja / aceptable por ahora
 
-## Deuda baja / temporalmente aceptable
+### 5. Alias y compatibilidades técnicas deliberadas
+- `/scheduling` permanece como redirect a `/services`.
+- algunas piezas transicionales sobreviven para no reabrir scope al final de la ola.
 
-### 7. `src/lib/api/serviceOrders.ts`
-- Hoy es el adapter correcto para la migración.
-- Su deuda no es existir, sino seguir siendo la única barrera mientras consumers externos la bypassan.
+**Impacto:** aceptable mientras no vuelvan a crecer features sobre esa capa.
 
-### 8. `src/features/services/useOperationalServiceOrders.ts`
-- Ya consume la capa canónica correctamente.
-- Sirve como patrón objetivo para mover otros módulos.
+## Qué ya no corresponde seguir tratando como deuda principal
+1. migración base de `BuildingsPage` a la capa canónica
+2. `SchedulingPage` como centro del negocio
+3. reportes backend base leyendo `appointments`
+4. convivencia operativa diaria entre `appointments` y `service_orders`
 
----
-
-## Qué entra en el corte actual
-1. eliminar bypass de `BuildingsPage`
-2. blindar la frontera canónica en queries/service orders
-3. delimitar primer corte pequeño de extracción en `SchedulingPage`
-4. preparar estrategia explícita antes de tocar series/reportes
-
-## Qué NO entra todavía
-1. rediseño visual grande
-2. IA nueva
-3. refactor profundo de reportes PDF sin definir compatibilidad temporal
-4. reescritura completa de scheduling en un solo paso
-
----
-
-## Recomendación inmediata
-Orden recomendado:
-1. mover `BuildingsPage` al contrato canónico
-2. reducir superficie legacy en scheduling item/queries
-3. extraer primer bloque barato de `SchedulingPage`
-4. diseñar aparte la migración de series + reportes
+## Siguiente frente recomendado
+1. volver nativo de `services` el cierre técnico hoy puenteado por `scheduling`
+2. unificar una sola representación del reporte entre closeout, imprimible y PDF
+3. hacer una pasada corta de limpieza de naming residual (`scheduling` / `appointment`) ya sin presión funcional
+4. decidir si el portal cliente merece separación real de `services` y `reports` o si se mantiene minimalista por otra ola

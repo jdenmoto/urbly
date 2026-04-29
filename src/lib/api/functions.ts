@@ -56,12 +56,12 @@ export async function getQaLogin(role: string) {
   return response.data as { email: string; password: string; role: string };
 }
 
-export async function generateAppointmentsPdf(params: {
+export async function generateSchedulingAgendaPdf(params: {
   buildingId: string;
   rangeStart: string;
   rangeEnd: string;
 }) {
-  const callable = httpsCallable(functions, 'generateAppointmentsPdf');
+  const callable = httpsCallable(functions, 'generateSchedulingAgendaPdf');
   const response = await callable(params);
   return response.data as { filename: string; contentBase64: string };
 }

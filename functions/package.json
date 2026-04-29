@@ -4,7 +4,7 @@
   "main": "lib/index.js",
   "scripts": {
     "typecheck": "tsc --pretty false --noEmit",
-    "build": "tsc",
+    "build": "npm run typecheck && tsc --pretty false",
     "lint": "echo 'no lint configured'"
   },
   "engines": {

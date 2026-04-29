@@ -11,6 +11,10 @@ Para instalar, correr el proyecto y entender su estado actual.
 ## 2. Implementación
 Para entender deuda actual, plan vigente y evolución esperada.
 - `docs/implementation/README.md`
+- `docs/implementation/final-pr-summary-2026-04-28.md`
+- `docs/implementation/current-implementation-plan.md`
+- `docs/implementation/current-executable-sprints.md`
+- `docs/implementation/current-atomic-subagent-tasks.md`
 - `docs/implementation/current-implementation-debt.md`
 - `docs/implementation/urbly-v2/README.md`
 
@@ -26,5 +30,6 @@ Para contexto y decisiones previas, no como fuente primaria del estado actual.
 ## Ruta recomendada para una persona nueva
 1. `docs/getting-started/setup.md`
 2. `docs/getting-started/current-status.md`
-3. `docs/implementation/current-implementation-debt.md`
-4. `docs/implementation/urbly-v2/implementation-plan.md`
+3. `docs/implementation/final-pr-summary-2026-04-28.md`
+4. `docs/implementation/current-implementation-debt.md`
+5. `docs/implementation/current-implementation-plan.md`

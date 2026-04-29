@@ -57,19 +57,8 @@ jobs:
           FIREBASE_BROWSER_KEY_ID=${FIREBASE_BROWSER_KEY_ID}
           EOF
 
-      - name: Typecheck web app
-        run: npm run typecheck
-
-      - name: Typecheck functions
-        run: npm run typecheck
-        working-directory: functions
-
-      - name: Build web app
-        run: npm run build
-
-      - name: Build functions
-        run: npm run build
-        working-directory: functions
+      - name: Run release validation baseline
+        run: npm run validate:release
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -93,6 +82,28 @@ jobs:
 
           PREVIEW_URL=$(grep -Eo 'https://[a-z0-9-]+--[a-z0-9-]+\.web\.app' deploy-output.log | tail -n 1 || true)
           echo "preview_url=$PREVIEW_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy backend (functions + rules + indexes)
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > "$HOME/firebase-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/firebase-sa.json"
+          npm run deploy:backend -- --project "$FIREBASE_PROJECT_ID"
+
+      - name: Reset and seed develop data
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          SEED_DEMO_PASSWORD: ${{ secrets.SEED_DEMO_PASSWORD }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > "$HOME/firebase-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/firebase-sa.json"
+          export FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID"
+          npm run firestore:clear
+          npm run seed:all
+          npm run seed:smoke
 
       - name: Whitelist staging URL in API key referrers
         if: ${{ steps.deploy_staging.outputs.preview_url != '' }}

@@ -4,20 +4,20 @@ Urbly is a SaaS platform for modern building management. This repository contain
 
 ## Table of Contents
 - Docs index: `docs/README.md`
-- Project overview: `docs/project-overview.md`
-- Firebase setup: `docs/firebase-setup.md`
-- Environment variables: `docs/env.md`
-- Google Maps setup: `docs/google-maps.md`
-- Functions and deploy: `docs/functions.md`
-- Seed and cleanup: `docs/seed.md`
-- Bulk import: `docs/import.md`
-- Trello cards: `docs/trello.md`
-- Security notes: `docs/security-notes.md`
-- Risks: `docs/risks.md`
-- Urbly v2 docs: `docs/urbly-v2/README.md`
-- Urbly v2 design doc: `docs/urbly-v2/design.md`
-- Urbly v2 implementation plan: `docs/urbly-v2/implementation-plan.md`
-- Urbly v2 execution plan: `docs/urbly-v2/execution-plan.md`
+- Project overview: `docs/getting-started/project-overview.md`
+- Firebase setup: `docs/getting-started/firebase-setup.md`
+- Environment variables: `docs/getting-started/env.md`
+- Google Maps setup: `docs/getting-started/google-maps.md`
+- Functions and deploy: `docs/getting-started/functions.md`
+- Seed and cleanup: `docs/getting-started/seed.md`
+- Bulk import: `docs/reference/import.md`
+- Trello cards: `docs/reference/trello.md`
+- Security notes: `docs/reference/security-notes.md`
+- Risks: `docs/reference/risks.md`
+- Urbly v2 docs: `docs/implementation/urbly-v2/README.md`
+- Resumen final de revisión: `docs/implementation/final-pr-summary-2026-04-28.md`
+- Urbly v2 design doc: `docs/implementation/urbly-v2/design.md`
+- Plan de implementación vigente: `docs/implementation/current-implementation-plan.md`
 
 ## Quick Start
 ```

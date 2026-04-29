@@ -2,6 +2,12 @@ import type { ServiceOrder } from '@/core/models/serviceOrder';
 
 export type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
+function humanizeFallback(value: string) {
+  return value
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 const priorityLabelKey: Record<string, string> = {
   urgent: 'services.priorityUrgent',
   high: 'services.priorityHigh',
@@ -9,11 +15,15 @@ const priorityLabelKey: Record<string, string> = {
   low: 'services.priorityLow'
 };
 
-const statusLabelKey: Record<string, string> = {
+const statusLabelKey: Record<ServiceOrder['status'], string> = {
   draft: 'services.statusDraft',
+  unassigned: 'services.statusUnassigned',
   scheduled: 'services.statusScheduled',
   confirmed: 'services.statusConfirmed',
   in_progress: 'services.statusInProgress',
+  paused: 'services.statusPaused',
+  pending_review: 'services.statusPendingReview',
+  requires_reschedule: 'services.statusRequiresReschedule',
   completed: 'services.statusCompleted',
   cancelled: 'services.statusCancelled'
 };
@@ -31,15 +41,15 @@ export function getServiceOrderPriorityPill(t: TranslateFn, priority: ServiceOrd
 }
 
 export function getServiceOrderTypeLabel(t: TranslateFn, type: string) {
-  return t(`scheduling.types.${type}`, { defaultValue: type });
+  return t(`scheduling.types.${type}`, { defaultValue: humanizeFallback(type) });
 }
 
 export function getIssueTypeLabel(t: TranslateFn, value: string) {
-  return t(`scheduling.issueTypes.${value}`, { defaultValue: value });
+  return t(`scheduling.issueTypes.${value}`, { defaultValue: humanizeFallback(value) });
 }
 
 export function getIssueCategoryLabel(t: TranslateFn, value: string) {
-  return t(`scheduling.issueCategories.${value}`, { defaultValue: value });
+  return t(`scheduling.issueCategories.${value}`, { defaultValue: humanizeFallback(value) });
 }
 
 export const serviceOrderPriorityTone: Record<ServiceOrder['priority'], string> = {

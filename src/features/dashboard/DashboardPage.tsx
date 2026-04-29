@@ -8,12 +8,13 @@ import type { AppUser } from '@/core/models/appUser';
 import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { Employee } from '@/core/models/employee';
-import { useList, useServiceOrders } from '@/lib/api/queries';
+import { useList } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
+import { useOperationalServiceOrders } from '@/features/services/useOperationalServiceOrders';
 
 export default function DashboardPage() {
   const { t } = useI18n();
-  const { data: serviceOrders = [] } = useServiceOrders();
+  const { data: serviceOrders = [] } = useOperationalServiceOrders();
   const { data: buildings = [] } = useList<Building>('buildings', 'buildings');
   const { data: employees = [] } = useList<Employee>('employees', 'employees');
   const { data: contracts = [] } = useList<Contract>('contracts', 'contracts');
@@ -22,6 +23,8 @@ export default function DashboardPage() {
   const data = useMemo(() => {
     const now = new Date();
     const active = serviceOrders.filter((item) => item.status === 'scheduled' || item.status === 'confirmed' || item.status === 'in_progress');
+    const agenda = active.filter((item) => item.status === 'scheduled' || item.status === 'confirmed');
+    const completed = serviceOrders.filter((item) => item.status === 'completed');
     const urgent = active.filter((item) => item.priority === 'urgent');
     const blocked = active.filter((item) => !item.assignedTechnicianId);
     const overdue = active.filter((item) => new Date(item.scheduledStartAt) < now);
@@ -67,7 +70,7 @@ export default function DashboardPage() {
 
     const recentActivity = serviceOrders
       .flatMap((order) =>
-        (order.timeline ?? []).map((event) => ({
+        order.timeline.map((event) => ({
           id: event.id,
           title: event.summary,
           createdAt: event.createdAt,
@@ -79,6 +82,8 @@ export default function DashboardPage() {
 
     return {
       active,
+      agenda,
+      completed,
       urgent,
       blocked,
       overdue,
@@ -117,17 +122,41 @@ export default function DashboardPage() {
           aside={<StatusPill tone="info">{t('missionControl.liveLabel')}</StatusPill>}
         />
         <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5" to="/services">
-            {t('missionControl.quickSchedule')}
+          <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left transition hover:-translate-y-0.5" to="/services">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Servicios activos</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">Abrir casos en curso y entrar rápido a detalle o cierre.</p>
+              </div>
+              <StatusPill tone="info">{data.active.length}</StatusPill>
+            </div>
           </Link>
-          <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5" to="/employees">
-            {t('missionControl.quickAssign')}
+          <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left transition hover:-translate-y-0.5" to="/services?status=scheduled">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Agenda operativa</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">Revisar servicios programados y confirmados para la jornada.</p>
+              </div>
+              <StatusPill tone="warning">{data.agenda.length}</StatusPill>
+            </div>
           </Link>
-          <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5" to="/reports">
-            {t('missionControl.quickQuote')}
+          <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left transition hover:-translate-y-0.5" to="/buildings">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Edificios</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">Entrar al contexto técnico y contractual del portafolio.</p>
+              </div>
+              <StatusPill>{data.buildingsCount}</StatusPill>
+            </div>
           </Link>
-          <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5" to="/management">
-            {t('missionControl.quickContract')}
+          <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left transition hover:-translate-y-0.5" to="/reports">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Reportes</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">Seguir cierres completados y entregables visibles al cliente.</p>
+              </div>
+              <StatusPill tone="success">{data.completed.length}</StatusPill>
+            </div>
           </Link>
         </div>
       </GlassPanel>
@@ -172,7 +201,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
                         <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.issuesLabel')}</p>
-                        <p className="mt-1 font-semibold text-slate-900">{order.issues?.length ?? 0}</p>
+                        <p className="mt-1 font-semibold text-slate-900">{order.issues.length}</p>
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
                         <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{t('missionControl.typeLabel')}</p>

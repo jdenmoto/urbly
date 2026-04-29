@@ -28,6 +28,8 @@ const routeAccess: Record<string, AppUserRole[]> = {
   '/': ['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'],
   '/technician': ['emergency_scheduler'],
   '/services': ['admin', 'editor', 'view', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria'],
+  '/scheduling': ['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'],
+  '/buildings': ['admin', 'editor', 'view'],
   '/management': ['admin', 'editor', 'view'],
   '/customers': ['admin', 'editor', 'view'],
   '/assets': ['admin', 'editor', 'view'],
@@ -78,19 +80,6 @@ export function useNavGroups(role: AppUserRole = 'view') {
           { to: '/portal/services', label: t('nav.portalServices'), shortLabel: t('nav.shortServices'), icon: Briefcase, enabled: flags.scheduling, allow: routeAccess['/portal/services'], mobile: true, mobileOrder: 2 },
           { to: '/portal/reports', label: t('nav.portalReports'), shortLabel: t('nav.shortReports'), icon: FileText, enabled: flags.reports, allow: routeAccess['/portal/reports'], mobile: true, mobileOrder: 3 }
         ]
-      },
-      {
-        label: t('nav.settingsSection'),
-        description: t('nav.settingsSectionDescription'),
-        items: [
-          {
-            to: '/settings/automation',
-            label: t('nav.settingsAutomation'),
-            icon: Settings,
-            allow: routeAccess['/settings/automation'],
-            enabled: flags.settings
-          }
-        ]
       }
     ];
 
@@ -109,7 +98,7 @@ export function useNavGroups(role: AppUserRole = 'view') {
         description: t('nav.operationsSectionDescription'),
         items: [
           { to: '/technician', label: t('nav.dashboard'), shortLabel: t('nav.shortDashboard'), icon: LayoutDashboard, enabled: flags.technicianHome, allow: routeAccess['/technician'], mobile: true, mobileOrder: 1 },
-          { to: '/services', label: t('nav.services'), shortLabel: t('nav.shortServices'), icon: Briefcase, enabled: flags.services, allow: routeAccess['/services'], mobile: true, mobileOrder: 2 }
+          { to: '/services', label: t('nav.myServices'), shortLabel: t('nav.shortMyServices'), icon: Briefcase, enabled: flags.services, allow: routeAccess['/services'], mobile: true, mobileOrder: 2 }
         ]
       }
     ];
@@ -129,19 +118,19 @@ export function useNavGroups(role: AppUserRole = 'view') {
         description: t('nav.operationsSectionDescription'),
         items: [
           { to: '/', label: t('nav.dashboard'), shortLabel: t('nav.shortDashboard'), icon: LayoutDashboard, enabled: flags.dashboard, allow: routeAccess['/'], mobile: true, mobileOrder: 1 },
-          { to: '/services', label: t('nav.services'), shortLabel: t('nav.shortServices'), icon: Briefcase, enabled: flags.services, allow: routeAccess['/services'], mobile: true, mobileOrder: 2 },
-          { to: '/ai', label: t('nav.aiWorkspace'), shortLabel: t('nav.shortAi'), icon: Sparkles, enabled: flags.aiWorkspace, allow: routeAccess['/ai'], mobile: true, mobileOrder: 5 }
+          { to: '/scheduling', label: t('nav.scheduling', { defaultValue: 'Agenda' }), shortLabel: t('nav.shortScheduling', { defaultValue: 'Agenda' }), icon: Briefcase, enabled: flags.scheduling, allow: routeAccess['/scheduling'], mobile: true, mobileOrder: 2 },
+          { to: '/services', label: t('nav.services'), shortLabel: t('nav.shortServices'), icon: Briefcase, enabled: flags.services, allow: routeAccess['/services'], mobile: true, mobileOrder: 3 },
+          { to: '/buildings', label: t('nav.buildings'), shortLabel: t('nav.shortBuildings'), icon: Building2, enabled: flags.buildings, allow: routeAccess['/buildings'], mobile: true, mobileOrder: 4 },
+          { to: '/reports', label: t('nav.reports'), shortLabel: t('nav.shortReports'), icon: FileText, enabled: flags.reports, allow: routeAccess['/reports'], mobile: true, mobileOrder: 5 }
         ]
       },
       {
         label: t('nav.portfolioSection'),
         description: t('nav.portfolioSectionDescription'),
         items: [
-          { to: '/management', label: t('nav.management'), shortLabel: t('nav.shortManagement'), icon: Landmark, enabled: flags.management, allow: routeAccess['/management'], mobile: true, mobileOrder: 3 },
-          { to: '/customers', label: t('nav.customers'), shortLabel: t('nav.shortCustomers'), icon: Landmark, enabled: flags.customers, allow: routeAccess['/customers'], mobile: false },
-          { to: '/assets', label: t('nav.assets'), shortLabel: t('nav.shortAssets'), icon: Building2, enabled: flags.assets, allow: routeAccess['/assets'], mobile: false },
-          { to: '/reports', label: t('nav.reports'), shortLabel: t('nav.shortReports'), icon: FileText, enabled: flags.reports, allow: routeAccess['/reports'], mobile: true, mobileOrder: 4 },
-          { to: '/notifications', label: t('nav.notifications'), shortLabel: t('nav.shortNotifications'), icon: FileText, enabled: true, allow: routeAccess['/notifications'], mobile: false }
+          { to: '/management', label: t('nav.management'), shortLabel: t('nav.shortManagement'), icon: Landmark, enabled: flags.management, allow: routeAccess['/management'], mobile: true, mobileOrder: 5 },
+          { to: '/notifications', label: t('nav.notifications'), shortLabel: t('nav.shortNotifications'), icon: FileText, enabled: true, allow: routeAccess['/notifications'], mobile: false },
+          { to: '/ai', label: t('nav.aiWorkspace'), shortLabel: t('nav.shortAi'), icon: Sparkles, enabled: flags.aiWorkspace, allow: routeAccess['/ai'], mobile: false }
         ]
       },
       {

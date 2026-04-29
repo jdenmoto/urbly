@@ -6,8 +6,13 @@
   "scripts": {
     "dev": "vite",
     "dev:local": "npm --prefix functions run build && firebase emulators:start --only auth,functions,firestore,storage,hosting & vite --mode emulator",
+    "test": "vitest",
+    "test:run": "vitest run",
     "typecheck": "tsc -b --pretty false",
     "build": "npm run typecheck && vite build",
+    "build:functions": "npm --prefix functions run build",
+    "build:minimum": "npm run build && npm run build:functions",
+    "validate:release": "npm run lint && npm run build:minimum",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx",
     "lint:ci": "node scripts/lint-changed.mjs",
@@ -15,7 +20,7 @@
     "format:check": "prettier --check .",
     "deploy": "npm run deploy:backend && npm run deploy:frontend",
     "deploy:functions": "firebase deploy --only functions",
-    "deploy:backend": "npm --prefix functions run build && firebase deploy --only functions,firestore:rules,firestore:indexes",
+    "deploy:backend": "npm --prefix functions run build && firebase deploy --only functions,firestore:rules,firestore:indexes,storage",
     "deploy:frontend": "npm run build && firebase deploy --only hosting",
     "functions:logs": "firebase functions:log",
     "firestore:seed": "node scripts/seed-firestore.mjs",
@@ -24,6 +29,7 @@
     "sync:users": "node scripts/sync-users.mjs",
     "seed:users": "node scripts/seed-demo-users.mjs",
     "seed:all": "npm run firestore:seed && npm run seed:users",
+    "seed:smoke": "node scripts/seed-smoke-check.mjs",
     "firestore:re-init": "npm run firestore:clear && npm run firestore:seed",
     "deploy:preview": "PATH=$PATH:/snap/bin node scripts/deploy-preview.mjs",
     "deploy:preview:branch": "PATH=$PATH:/snap/bin node scripts/deploy-preview.mjs",
@@ -67,11 +73,13 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.12",
     "globals": "^15.15.0",
+    "jsdom": "^29.1.0",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
     "tailwindcss": "^3.4.13",
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.8.1",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^4.1.5"
   }
 }
