@@ -20,7 +20,7 @@
     "format:check": "prettier --check .",
     "deploy": "npm run deploy:backend && npm run deploy:frontend",
     "deploy:functions": "firebase deploy --only functions",
-    "deploy:backend": "npm --prefix functions run build && firebase deploy --only functions,firestore:rules,firestore:indexes",
+    "deploy:backend": "npm --prefix functions run build && firebase deploy --only functions,firestore:rules,firestore:indexes,storage",
     "deploy:frontend": "npm run build && firebase deploy --only hosting",
     "functions:logs": "firebase functions:log",
     "firestore:seed": "node scripts/seed-firestore.mjs",
