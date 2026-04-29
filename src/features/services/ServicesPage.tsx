@@ -409,7 +409,7 @@ export default function ServicesPage() {
                         className="inline-flex items-center rounded-full border border-fog-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition hover:bg-fog-50"
                         onClick={() => openEdit(order)}
                       >
-                        Editar completo
+                        Editar servicio
                       </button>
                     ) : null}
                     {!isTechnicianView ? (

@@ -93,6 +93,20 @@ function checklistKeyLabel(key: string) {
   return key.replace(/[_-]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+function reviewStatusLabel(value?: string) {
+  if (value === 'approved') return 'Aprobado';
+  if (value === 'changes_requested') return 'Solicita cambios';
+  return 'Pendiente de revisión';
+}
+
+function quoteStatusLabel(value: string) {
+  if (value === 'draft') return 'Borrador';
+  if (value === 'pending_internal_review') return 'Pendiente revisión interna';
+  if (value === 'changes_requested') return 'Con observaciones';
+  if (value === 'approved') return 'Aprobada';
+  return value;
+}
+
 export default function ServiceCloseoutPage() {
   const { t } = useI18n();
   const { user, hasPermission, role } = useAuth();
@@ -492,7 +506,7 @@ export default function ServiceCloseoutPage() {
           <div className="rounded-3xl border border-fog-200 bg-white p-5 space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-ink-900">Revisión del reporte</h3>
-              <p className="mt-1 text-sm text-ink-600">Estado actual: {serviceOrder.review?.status ?? 'pending_review'}</p>
+              <p className="mt-1 text-sm text-ink-600">Estado actual: {reviewStatusLabel(serviceOrder.review?.status)}</p>
               {serviceOrder.review?.reviewedAt ? <p className="text-xs text-ink-500">Última revisión: {serviceOrder.review.reviewedAt}</p> : null}
             </div>
             <Input label="Feedback de revisión" value={reviewFeedback} onChange={(event) => setReviewFeedback(event.target.value)} />
@@ -524,7 +538,7 @@ export default function ServiceCloseoutPage() {
                 <div key={quote.id} className="rounded-2xl border border-fog-200 p-4">
                   <div className="flex flex-wrap gap-2 text-xs text-ink-500">
                     <span>v{quote.version}</span>
-                    <span>{quote.status}</span>
+                    <span>{quoteStatusLabel(quote.status)}</span>
                     <span>{quote.amount} {quote.currency}</span>
                   </div>
                   <p className="mt-2 text-sm font-medium text-ink-900">{quote.scope}</p>
