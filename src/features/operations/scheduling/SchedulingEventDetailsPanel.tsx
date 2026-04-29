@@ -21,6 +21,20 @@ function statusLabel(status: SchedulingCalendarEvent['status']) {
   }
 }
 
+function priorityLabel(priority: SchedulingCalendarEvent['priority']) {
+  if (priority === 'low') return 'Baja';
+  if (priority === 'medium') return 'Media';
+  if (priority === 'high') return 'Alta';
+  if (priority === 'urgent') return 'Urgente';
+  return priority;
+}
+
+function humanize(value: string) {
+  return value
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export default function SchedulingEventDetailsPanel({ event }: Props) {
   if (!event) {
     return (
@@ -44,7 +58,7 @@ export default function SchedulingEventDetailsPanel({ event }: Props) {
         </div>
         <div>
           <p className="text-xs text-slate-500">Prioridad</p>
-          <p className="font-medium">{event.priority}</p>
+          <p className="font-medium">{priorityLabel(event.priority)}</p>
         </div>
         <div>
           <p className="text-xs text-slate-500">Técnico</p>
@@ -52,9 +66,15 @@ export default function SchedulingEventDetailsPanel({ event }: Props) {
         </div>
         <div>
           <p className="text-xs text-slate-500">Tipo</p>
-          <p className="font-medium">{event.type}</p>
+          <p className="font-medium">{humanize(event.type)}</p>
         </div>
       </div>
+
+      {event.hasConflict ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          Conflicto detectado en agenda para este horario.
+        </div>
+      ) : null}
 
       <div className="text-sm">
         <p className="text-xs text-slate-500">Edificio</p>

@@ -19,6 +19,13 @@ function getReportFlowHint(status: string) {
   return 'Úsalo como referencia del entregable que quedará disponible al cerrar el servicio.';
 }
 
+function formatDateTime(value?: string | null) {
+  if (!value) return 'N/A';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
+}
+
 type ServiceReportPrintLocationState = {
   fromPath?: string;
   fromDetail?: boolean;
@@ -72,7 +79,7 @@ export default function ServiceReportPrintPage() {
           <div>
             <h2 className="text-lg font-semibold">{serviceOrder.title}</h2>
             <p className="mt-1 text-sm text-slate-600">Estado: {getServiceOrderStatusLabel(t, serviceOrder.status)}</p>
-            <p className="text-sm text-slate-600">Ventana: {serviceOrder.scheduledStartAt} → {serviceOrder.scheduledEndAt}</p>
+            <p className="text-sm text-slate-600">Ventana: {formatDateTime(serviceOrder.scheduledStartAt)} → {formatDateTime(serviceOrder.scheduledEndAt)}</p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
             <p className="font-semibold text-slate-900">Flujo services</p>
