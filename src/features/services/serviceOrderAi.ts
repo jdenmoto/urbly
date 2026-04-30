@@ -5,16 +5,16 @@ export type ServiceOrderLike = ServiceOrderReportLike;
 
 const defaultTranslate: TranslateFn = (key, params) => {
   const dictionaries: Record<string, string> = {
-    'services.statusDraft': 'Borrador',
-    'services.statusScheduled': 'Programado',
-    'services.statusConfirmed': 'Confirmado',
-    'services.statusInProgress': 'En progreso',
-    'services.statusCompleted': 'Completado',
-    'services.statusCancelled': 'Cancelado',
-    'services.priorityUrgent': 'urgente',
-    'services.priorityHigh': 'alta',
-    'services.priorityMedium': 'media',
-    'services.priorityLow': 'baja'
+    'services.status.draft': 'Borrador',
+    'services.status.scheduled': 'Programado',
+    'services.status.confirmed': 'Confirmado',
+    'services.status.in.progress': 'En progreso',
+    'services.status.completed': 'Completado',
+    'services.status.cancelled': 'Cancelado',
+    'services.priority.urgent': 'urgente',
+    'services.priority.high': 'alta',
+    'services.priority.medium': 'media',
+    'services.priority.low': 'baja'
   };
 
   return dictionaries[key] ?? String(params?.defaultValue ?? key);

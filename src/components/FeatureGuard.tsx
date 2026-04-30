@@ -15,8 +15,8 @@ export default function FeatureGuard({ feature, children }: FeatureGuardProps) {
   if (!flags[feature]) {
     return (
       <Card>
-        <p className="text-sm font-semibold text-ink-900">{t('common.featureDisabledTitle')}</p>
-        <p className="mt-1 text-sm text-ink-600">{t('common.featureDisabledSubtitle')}</p>
+        <p className="text-sm font-semibold text-ink-900">{t('common.feature.disabled.title')}</p>
+        <p className="mt-1 text-sm text-ink-600">{t('common.feature.disabled.subtitle')}</p>
       </Card>
     );
   }

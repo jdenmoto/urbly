@@ -6,6 +6,7 @@ import HomeRouterPage from '@/features/dashboard/HomeRouterPage';
 import LoginPage from '@/features/auth/LoginPage';
 import FeatureGuard from '@/components/FeatureGuard';
 import { getDefaultRouteForRole } from './nav';
+import { useI18n } from '@/lib/i18n';
 
 const BuildingsPage = lazy(() => import('@/features/buildings/BuildingsPage'));
 const ManagementPage = lazy(() => import('@/features/management/ManagementPage'));
@@ -36,7 +37,8 @@ const TenantAutomationSettingsPage = lazy(() => import('@/features/settings/Tena
 const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage'));
 
 function RouteLoader() {
-  return <div className="p-8 text-sm text-ink-600">Cargando modulo...</div>;
+  const { t } = useI18n();
+  return <div className="p-8 text-sm text-ink-600">{t('common.loading.module')}</div>;
 }
 
 export default function App() {

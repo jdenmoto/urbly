@@ -81,7 +81,7 @@ export default function BuildingsMap({ buildings, ready }: { buildings: Building
             <div style="font-family: system-ui; padding: 6px; max-width: 240px;">
               <strong>${building.name}</strong><br />
               <span>${building.addressText}</span><br />
-              <span>${t('buildings.porterPhone')}: ${building.porterPhone}</span>
+              <span>${t('buildings.porter.phone')}: ${building.porterPhone}</span>
             </div>
           `;
           infoRef.current.setContent(content);
@@ -117,7 +117,7 @@ export default function BuildingsMap({ buildings, ready }: { buildings: Building
       ) : null}
       <div className={wrapperClasses} onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-fog-200 px-4 py-3 text-sm font-semibold text-ink-800">
-          <span>{t('buildings.mapTitle')}</span>
+          <span>{t('buildings.map.title')}</span>
           <button
             className="text-xs font-semibold text-ink-600 underline"
             onClick={() => setExpanded((prev) => !prev)}
@@ -126,7 +126,7 @@ export default function BuildingsMap({ buildings, ready }: { buildings: Building
           </button>
         </div>
         <div ref={mapRef} className={expanded ? 'flex-1' : 'h-[320px] w-full'} />
-        {!ready ? <div className="px-4 py-3 text-xs text-ink-500">{t('common.loading')}</div> : null}
+        {!ready ? <div className="px-4 py-3 text-xs text-ink-500">{t('common.loading.default')}</div> : null}
       </div>
     </>
   );

@@ -127,14 +127,14 @@ export default function ManagementPage() {
   const schema = z.object({
     name: z.string().min(2, t('common.required')),
     contactPhone: z.string().min(7, t('common.required')),
-    email: z.string().email(t('auth.errorEmail')),
-    billingEmail: z.string().email(t('auth.errorEmail')),
+    email: z.string().email(t('auth.error.email')),
+    billingEmail: z.string().email(t('auth.error.email')),
     legalRepresentative: z.string().min(2, t('common.required')),
     group: z.string().min(2, t('common.required')),
     type: z.enum(['EDIFICIO', 'CONJUNTO_RESIDENCIAL', 'UNIDAD']),
     delegateName: z.string().min(2, t('common.required')),
     delegatePhone: z.string().min(7, t('common.required')),
-    nit: z.string().regex(/^\d{6,12}-\d$/, t('management.nitFormat')),
+    nit: z.string().regex(/^\d{6,12}-\d$/, t('management.nit.format')),
     address: z.string().min(3, t('common.required'))
   });
   type FormValues = z.infer<typeof schema>;
@@ -163,7 +163,7 @@ export default function ManagementPage() {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['endAt'],
-          message: t('errors.invalidDateRange')
+          message: t('errors.invalid.date.range')
         });
       }
     });
@@ -199,19 +199,19 @@ export default function ManagementPage() {
   const columns = useMemo<ColumnDef<ManagementCompany>[]>(() => {
     const base: ColumnDef<ManagementCompany>[] = [
       { header: t('management.name'), accessorKey: 'name', enableSorting: true },
-      { header: t('management.contactPhone'), accessorKey: 'contactPhone', enableSorting: false },
+      { header: t('management.contact.phone'), accessorKey: 'contactPhone', enableSorting: false },
       { header: t('management.email'), accessorKey: 'email', enableSorting: false },
-      { header: t('management.nit'), accessorKey: 'nit', enableSorting: false },
+      { header: t('management.nit.default'), accessorKey: 'nit', enableSorting: false },
       { header: t('management.address'), accessorKey: 'address', enableSorting: true },
       {
-        header: t('management.viewBuildings'),
+        header: t('management.view.buildings'),
         enableSorting: false,
         cell: ({ row }) => (
           <button
             className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-ink-700 hover:bg-fog-100"
             onClick={() => setSelectedCompany(row.original)}
-            title={t('management.viewBuildings')}
-            aria-label={t('management.viewBuildings')}
+            title={t('management.view.buildings')}
+            aria-label={t('management.view.buildings')}
           >
             <EyeIcon className="h-4 w-4" aria-hidden />
           </button>
@@ -255,16 +255,16 @@ export default function ManagementPage() {
         header: t('contracts.administration'),
         enableSorting: true,
         accessorFn: (row) =>
-          companies.find((company) => company.id === row.administrationId)?.name ?? t('common.noData')
+          companies.find((company) => company.id === row.administrationId)?.name ?? t('common.no.data')
       },
-      { header: t('contracts.startAt'), accessorKey: 'startAt', enableSorting: true },
-      { header: t('contracts.endAt'), accessorKey: 'endAt', enableSorting: true },
+      { header: t('contracts.start.at'), accessorKey: 'startAt', enableSorting: true },
+      { header: t('contracts.end.at'), accessorKey: 'endAt', enableSorting: true },
       {
-        header: t('contracts.status'),
+        header: t('contracts.status.default'),
         accessorKey: 'status',
         enableSorting: true,
         cell: ({ row }) =>
-          row.original.status === 'activo' ? t('contracts.statusActive') : t('contracts.statusInactive')
+          row.original.status === 'activo' ? t('contracts.status.active') : t('contracts.status.inactive')
       }
     ];
     if (!canEdit) return base;
@@ -300,7 +300,7 @@ export default function ManagementPage() {
   const onSubmit = async (values: FormValues) => {
     clearErrors('nit');
     if (selectedBuildingIds.length === 0) {
-      setBuildingsError(t('management.buildingsRequired'));
+      setBuildingsError(t('management.buildings.required'));
       return;
     }
     setBuildingsError(null);
@@ -310,17 +310,17 @@ export default function ManagementPage() {
       ]);
       const hasConflict = existing.some((item) => (editingId ? item.id !== editingId : true));
       if (hasConflict) {
-        setError('nit', { message: t('management.nitUnique') });
+        setError('nit', { message: t('management.nit.unique') });
         return;
       }
       if (editingId) {
         await updateDocById('management_companies', editingId, values);
         await syncBuildings(editingId);
-        toast(t('management.toastUpdated'), 'success');
+        toast(t('management.toast.updated'), 'success');
       } else {
         const created = await createDoc('management_companies', values);
         await syncBuildings(created.id);
-        toast(t('management.toastCreated'), 'success');
+        toast(t('management.toast.created'), 'success');
       }
       await queryClient.invalidateQueries({ queryKey: ['managements'] });
       await queryClient.invalidateQueries({ queryKey: ['buildings'] });
@@ -331,7 +331,7 @@ export default function ManagementPage() {
       setBuildingsError(null);
       setModalOpen(false);
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     }
   };
 
@@ -401,9 +401,9 @@ export default function ManagementPage() {
     try {
       await deleteDocById('management_companies', deleteTarget.id);
       await queryClient.invalidateQueries({ queryKey: ['managements'] });
-      toast(t('management.toastDeleted'), 'success');
+      toast(t('management.toast.deleted'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     } finally {
       setDeleteTarget(null);
     }
@@ -415,16 +415,16 @@ export default function ManagementPage() {
     );
     const labType = (labSettings?.types ?? []).find((item) => item.id === values.labAnalysisTypeId);
     if (!maintenanceType) {
-      toast(t('contracts.maintenanceTypeRequired'), 'error');
+      toast(t('contracts.maintenance.type.required'), 'error');
       return;
     }
     if (!labType) {
-      toast(t('contracts.labTypeRequired'), 'error');
+      toast(t('contracts.lab.type.required'), 'error');
       return;
     }
     const labAnalysisPrice = Number(values.labAnalysisPrice);
     if (Number.isNaN(labAnalysisPrice)) {
-      toast(t('contracts.labPriceInvalid'), 'error');
+      toast(t('contracts.lab.price.invalid'), 'error');
       return;
     }
     const payload = {
@@ -445,10 +445,10 @@ export default function ManagementPage() {
     try {
       if (editingContract) {
         await updateDocById('contracts', editingContract.id, payload);
-        toast(t('contracts.toastUpdated'), 'success');
+        toast(t('contracts.toast.updated'), 'success');
       } else {
         await createDoc('contracts', payload);
-        toast(t('contracts.toastCreated'), 'success');
+        toast(t('contracts.toast.created'), 'success');
       }
       await queryClient.invalidateQueries({ queryKey: ['contracts'] });
       resetContract({
@@ -464,7 +464,7 @@ export default function ManagementPage() {
       setEditingContract(null);
       setContractModalOpen(false);
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     }
   };
 
@@ -502,16 +502,16 @@ export default function ManagementPage() {
     if (!deleteContractTarget) return;
     const inUse = buildings.some((building) => building.contractId === deleteContractTarget.id);
     if (inUse) {
-      toast(t('contracts.deleteBlocked'), 'error');
+      toast(t('contracts.delete.blocked'), 'error');
       setDeleteContractTarget(null);
       return;
     }
     try {
       await deleteDocById('contracts', deleteContractTarget.id);
       await queryClient.invalidateQueries({ queryKey: ['contracts'] });
-      toast(t('contracts.toastDeleted'), 'success');
+      toast(t('contracts.toast.deleted'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     } finally {
       setDeleteContractTarget(null);
     }
@@ -522,9 +522,9 @@ export default function ManagementPage() {
       <PageHeader title={t('management.title')} subtitle={t('management.subtitle')} />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label={t('management.tabs.administrations')} value={companies.length} hint={t('management.emptySubtitle')} />
-        <MetricCard label={t('management.tabs.contracts')} value={contracts.length} hint={t('contracts.emptySubtitle')} />
-        <MetricCard label={t('management.buildingsTitle')} value={buildings.filter((building) => Boolean(building.managementCompanyId)).length} hint={t('management.buildingsOptional')} />
+        <MetricCard label={t('management.tabs.administrations')} value={companies.length} hint={t('management.empty.subtitle')} />
+        <MetricCard label={t('management.tabs.contracts')} value={contracts.length} hint={t('contracts.empty.subtitle')} />
+        <MetricCard label={t('management.buildings.title')} value={buildings.filter((building) => Boolean(building.managementCompanyId)).length} hint={t('management.buildings.optional')} />
         <MetricCard label={t('common.actions')} value={canEdit ? 'Sí' : 'No'} hint={canEdit ? t('common.edit') : t('common.view')} />
       </section>
 
@@ -565,7 +565,7 @@ export default function ManagementPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-ink-900">{selectedCompany.name}</p>
-              <p className="text-xs text-ink-500">{t('management.buildingsTitle')}</p>
+              <p className="text-xs text-ink-500">{t('management.buildings.title')}</p>
             </div>
             <button
               className="text-xs font-semibold text-ink-600 underline"
@@ -574,7 +574,7 @@ export default function ManagementPage() {
               {t('common.close')}
             </button>
           </div>
-          <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading')}</div>}>
+          <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading.default')}</div>}>
             <BuildingsMap
               buildings={buildings.filter((building) => building.managementCompanyId === selectedCompany.id)}
               ready={mapsReady}
@@ -583,14 +583,14 @@ export default function ManagementPage() {
           <DataTable
             columns={[
               { header: t('buildings.name'), accessorKey: 'name', enableSorting: true },
-              { header: t('buildings.address'), accessorKey: 'addressText', enableSorting: true },
-              { header: t('buildings.porterPhone'), accessorKey: 'porterPhone', enableSorting: false }
+              { header: t('buildings.address.default'), accessorKey: 'addressText', enableSorting: true },
+              { header: t('buildings.porter.phone'), accessorKey: 'porterPhone', enableSorting: false }
             ]}
             data={buildings.filter((building) => building.managementCompanyId === selectedCompany.id)}
             emptyState={
               <EmptyState
-                title={t('management.buildingsEmptyTitle')}
-                description={t('management.buildingsEmptySubtitle')}
+                title={t('management.buildings.empty.title')}
+                description={t('management.buildings.empty.subtitle')}
               />
             }
             pageSize={5}
@@ -606,12 +606,12 @@ export default function ManagementPage() {
             <DataTable
               columns={columns}
               data={companies}
-              emptyState={<EmptyState title={t('management.emptyTitle')} description={t('management.emptySubtitle')} />}
+              emptyState={<EmptyState title={t('management.empty.title')} description={t('management.empty.subtitle')} />}
             />
           </div>
           <Modal
             open={modalOpen}
-            title={editingId ? t('management.editTitle') : t('management.newTitle')}
+            title={editingId ? t('management.edit.title') : t('management.new.title')}
             onClose={() => {
               setModalOpen(false);
               setEditingId(null);
@@ -620,46 +620,46 @@ export default function ManagementPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
               <Input label={t('management.name')} error={errors.name?.message} required {...register('name')} />
               <Input
-                label={t('management.contactPhone')}
+                label={t('management.contact.phone')}
                 error={errors.contactPhone?.message}
                 required
                 {...register('contactPhone')}
               />
               <Input label={t('management.email')} type="email" error={errors.email?.message} required {...register('email')} />
               <Input
-                label={t('management.billingEmail')}
+                label={t('management.billing.email')}
                 type="email"
                 error={errors.billingEmail?.message}
                 required
                 {...register('billingEmail')}
               />
               <Input
-                label={t('management.legalRepresentative')}
+                label={t('management.legal.representative')}
                 error={errors.legalRepresentative?.message}
                 required
                 {...register('legalRepresentative')}
               />
               <Input label={t('management.group')} error={errors.group?.message} required {...register('group')} />
               <Select label={t('management.type')} error={errors.type?.message} required {...register('type')}>
-                <option value="EDIFICIO">{t('management.types.EDIFICIO')}</option>
-                <option value="CONJUNTO_RESIDENCIAL">{t('management.types.CONJUNTO_RESIDENCIAL')}</option>
-                <option value="UNIDAD">{t('management.types.UNIDAD')}</option>
+                <option value="EDIFICIO">{t('management.types.edificio')}</option>
+                <option value="CONJUNTO_RESIDENCIAL">{t('management.types.conjunto_residencial')}</option>
+                <option value="UNIDAD">{t('management.types.unidad')}</option>
               </Select>
               <Input
-                label={t('management.delegateName')}
+                label={t('management.delegate.name')}
                 error={errors.delegateName?.message}
                 required
                 {...register('delegateName')}
               />
               <Input
-                label={t('management.delegatePhone')}
+                label={t('management.delegate.phone')}
                 error={errors.delegatePhone?.message}
                 required
                 {...register('delegatePhone')}
               />
               <Input
-                label={t('management.nit')}
-                placeholder={t('management.nitPlaceholder')}
+                label={t('management.nit.default')}
+                placeholder={t('management.nit.placeholder')}
                 pattern="^\\d{6,12}-\\d$"
                 error={errors.nit?.message}
                 required
@@ -667,14 +667,14 @@ export default function ManagementPage() {
               />
               <Input label={t('management.address')} error={errors.address?.message} required {...register('address')} />
               <div className="space-y-2">
-                <p className="text-sm font-medium text-ink-800">{t('management.buildingsSelect')}</p>
+                <p className="text-sm font-medium text-ink-800">{t('management.buildings.select')}</p>
                 <Input
-                  label={t('management.searchBuildings')}
+                  label={t('management.search.buildings')}
                   value={buildingSearch}
                   onChange={(event) => setBuildingSearch(event.target.value)}
                 />
                 <div className="flex items-center justify-between text-xs text-ink-600">
-                  <span>{t('management.availableBuildings')}</span>
+                  <span>{t('management.available.buildings')}</span>
                   <button
                     type="button"
                     className="font-semibold text-ink-700 hover:text-ink-900"
@@ -686,7 +686,7 @@ export default function ManagementPage() {
                       setSelectedBuildingIds(next);
                     }}
                   >
-                    {t('management.selectAll')}
+                    {t('management.select.all')}
                   </button>
                 </div>
                 <div className="max-h-40 overflow-y-auto rounded-lg border border-fog-200 bg-white p-2 text-sm text-ink-700">
@@ -711,11 +711,11 @@ export default function ManagementPage() {
                     .filter((building) =>
                       building.name.toLowerCase().includes(buildingSearch.toLowerCase())
                     ).length ? (
-                    <p className="text-xs text-ink-500">{t('management.buildingsEmpty')}</p>
+                    <p className="text-xs text-ink-500">{t('management.buildings.empty.default')}</p>
                   ) : null}
                 </div>
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-ink-600">{t('management.selectedBuildings')}</p>
+                  <p className="text-xs font-semibold text-ink-600">{t('management.selected.buildings')}</p>
                   <DataTable
                     columns={[
                       { header: t('buildings.name'), accessorKey: 'name', enableSorting: true },
@@ -738,12 +738,12 @@ export default function ManagementPage() {
                       }
                     ]}
                     data={buildings.filter((building) => selectedBuildingIds.includes(building.id))}
-                    emptyState={<EmptyState title={t('management.selectedEmptyTitle')} description={t('management.selectedEmptySubtitle')} />}
+                    emptyState={<EmptyState title={t('management.selected.empty.title')} description={t('management.selected.empty.subtitle')} />}
                     pageSize={5}
                   />
                 </div>
                 {buildingsError ? <p className="text-xs text-red-500">{buildingsError}</p> : null}
-                <p className="text-xs text-ink-500">{t('management.buildingsOptional')}</p>
+                <p className="text-xs text-ink-500">{t('management.buildings.optional')}</p>
               </div>
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? t('management.saving') : editingId ? t('management.update') : t('management.create')}
@@ -752,8 +752,8 @@ export default function ManagementPage() {
           </Modal>
           <ConfirmModal
             open={Boolean(deleteTarget)}
-            title={t('management.deleteTitle')}
-            description={t('management.deleteConfirm')}
+            title={t('management.delete.title')}
+            description={t('management.delete.confirm')}
             onConfirm={confirmDelete}
             onClose={() => setDeleteTarget(null)}
           />
@@ -764,7 +764,7 @@ export default function ManagementPage() {
           <DataTable
             columns={columns}
             data={companies}
-            emptyState={<EmptyState title={t('management.emptyTitle')} description={t('management.emptySubtitle')} />}
+            emptyState={<EmptyState title={t('management.empty.title')} description={t('management.empty.subtitle')} />}
           />
         </GlassPanel>
       ) : null}
@@ -778,11 +778,11 @@ export default function ManagementPage() {
           <DataTable
             columns={contractColumns}
             data={contracts}
-            emptyState={<EmptyState title={t('contracts.emptyTitle')} description={t('contracts.emptySubtitle')} />}
+            emptyState={<EmptyState title={t('contracts.empty.title')} description={t('contracts.empty.subtitle')} />}
           />
           <Modal
             open={contractModalOpen}
-            title={editingContract ? t('contracts.editTitle') : t('contracts.newTitle')}
+            title={editingContract ? t('contracts.edit.title') : t('contracts.new.title')}
             onClose={() => {
               setContractModalOpen(false);
               setEditingContract(null);
@@ -809,7 +809,7 @@ export default function ManagementPage() {
                 ))}
               </Select>
               <Select
-                label={t('contracts.maintenanceType')}
+                label={t('contracts.maintenance.type.default')}
                 error={contractErrors.maintenanceTypeId?.message}
                 required
                 {...contractRegister('maintenanceTypeId')}
@@ -823,45 +823,45 @@ export default function ManagementPage() {
               </Select>
               {selectedMaintenanceType ? (
                 <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-xs text-ink-700">
-                  <p className="text-xs font-semibold text-ink-800">{t('contracts.pricesTitle')}</p>
+                  <p className="text-xs font-semibold text-ink-800">{t('contracts.prices.title')}</p>
                   <div className="mt-2 grid gap-2 md:grid-cols-2">
                     <div>
-                      <p className="font-semibold">{t('contracts.priceWaterTankSem1')}</p>
+                      <p className="font-semibold">{t('contracts.price.water.tank.sem1')}</p>
                       <p>{selectedMaintenanceType.prices.valor_lavado_tanque_agua_potable_sem1}</p>
                     </div>
                     <div>
-                      <p className="font-semibold">{t('contracts.priceWaterTankSem2')}</p>
+                      <p className="font-semibold">{t('contracts.price.water.tank.sem2')}</p>
                       <p>{selectedMaintenanceType.prices.valor_lavado_tanque_agua_potable_sem2}</p>
                     </div>
                     <div>
-                      <p className="font-semibold">{t('contracts.pricePozosLluvias')}</p>
+                      <p className="font-semibold">{t('contracts.price.pozos.lluvias')}</p>
                       <p>{selectedMaintenanceType.prices.valor_lavado_pozos_eyectores_aguas_lluvias}</p>
                     </div>
                     <div>
-                      <p className="font-semibold">{t('contracts.pricePozosNegras')}</p>
+                      <p className="font-semibold">{t('contracts.price.pozos.negras')}</p>
                       <p>{selectedMaintenanceType.prices.valor_lavado_pozos_eyectores_aguas_negras}</p>
                     </div>
                     <div>
-                      <p className="font-semibold">{t('contracts.priceHidraulicas')}</p>
+                      <p className="font-semibold">{t('contracts.price.hidraulicas')}</p>
                       <p>{selectedMaintenanceType.prices.valor_pruebas_hidraulicas_red_contra_incendios}</p>
                     </div>
                     <div>
-                      <p className="font-semibold">{t('contracts.priceDrenaje')}</p>
+                      <p className="font-semibold">{t('contracts.price.drenaje')}</p>
                       <p>{selectedMaintenanceType.prices.valor_limpieza_sistema_drenaje_sotanos}</p>
                     </div>
                     <div>
-                      <p className="font-semibold">{t('contracts.priceTankRCI')}</p>
+                      <p className="font-semibold">{t('contracts.price.tank.rci')}</p>
                       <p>{selectedMaintenanceType.prices.valor_lavado_tanque_red_contra_incendios}</p>
                     </div>
                     <div>
-                      <p className="font-semibold">{t('contracts.priceMaintenance')}</p>
+                      <p className="font-semibold">{t('contracts.price.maintenance')}</p>
                       <p>{selectedMaintenanceType.prices.valor_contrato_mantenimiento}</p>
                     </div>
                   </div>
                 </div>
               ) : null}
               <Select
-                label={t('contracts.labAnalysisType')}
+                label={t('contracts.lab.analysis.type')}
                 error={contractErrors.labAnalysisTypeId?.message}
                 required
                 {...contractRegister('labAnalysisTypeId')}
@@ -874,29 +874,29 @@ export default function ManagementPage() {
                 ))}
               </Select>
               <Input
-                label={t('contracts.labAnalysisPrice')}
+                label={t('contracts.lab.analysis.price')}
                 error={contractErrors.labAnalysisPrice?.message}
                 required
                 type="number"
                 {...contractRegister('labAnalysisPrice')}
               />
               <Input
-                label={t('contracts.startAt')}
+                label={t('contracts.start.at')}
                 type="date"
                 error={contractErrors.startAt?.message}
                 required
                 {...contractRegister('startAt')}
               />
               <Input
-                label={t('contracts.endAt')}
+                label={t('contracts.end.at')}
                 type="date"
                 error={contractErrors.endAt?.message}
                 required
                 {...contractRegister('endAt')}
               />
-              <Select label={t('contracts.status')} error={contractErrors.status?.message} {...contractRegister('status')}>
-                <option value="activo">{t('contracts.statusActive')}</option>
-                <option value="inactivo">{t('contracts.statusInactive')}</option>
+              <Select label={t('contracts.status.default')} error={contractErrors.status?.message} {...contractRegister('status')}>
+                <option value="activo">{t('contracts.status.active')}</option>
+                <option value="inactivo">{t('contracts.status.inactive')}</option>
               </Select>
               <Button type="submit" className="w-full" disabled={contractSubmitting}>
                 {contractSubmitting
@@ -909,8 +909,8 @@ export default function ManagementPage() {
           </Modal>
           <ConfirmModal
             open={Boolean(deleteContractTarget)}
-            title={t('contracts.deleteTitle')}
-            description={t('contracts.deleteConfirm')}
+            title={t('contracts.delete.title')}
+            description={t('contracts.delete.confirm')}
             onConfirm={confirmDeleteContract}
             onClose={() => setDeleteContractTarget(null)}
           />

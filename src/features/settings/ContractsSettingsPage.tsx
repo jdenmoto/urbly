@@ -102,7 +102,7 @@ export default function ContractsSettingsPage() {
           setMaintenanceTypes(payload.types ?? []);
         }
       } catch {
-        toast(t('common.actionError'), 'error');
+        toast(t('common.action.error'), 'error');
       } finally {
         setLoading(false);
       }
@@ -130,9 +130,9 @@ export default function ContractsSettingsPage() {
     try {
       await setDoc(doc(db, 'settings', 'maintenance_contract_types'), { types: next }, { merge: true });
       setMaintenanceTypes(next);
-      toast(t('settings.toastSaved'), 'success');
+      toast(t('settings.toast.saved'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     } finally {
       setSaving(false);
     }
@@ -154,7 +154,7 @@ export default function ContractsSettingsPage() {
   const removeMaintenanceType = async (id: string) => {
     const next = maintenanceTypes.filter((item) => item.id !== id);
     await persistMaintenanceTypes(next);
-    toast(t('settings.contractTypeDeleted'), 'success');
+    toast(t('settings.contract.type.deleted'), 'success');
   };
 
   const startEditMaintenance = (item: MaintenanceType) => {
@@ -175,14 +175,14 @@ export default function ContractsSettingsPage() {
 
   const priceFields = useMemo(
     () => [
-      { key: 'valor_lavado_tanque_agua_potable_sem1', label: t('settings.priceWaterTankSem1') },
-      { key: 'valor_lavado_tanque_agua_potable_sem2', label: t('settings.priceWaterTankSem2') },
-      { key: 'valor_lavado_pozos_eyectores_aguas_lluvias', label: t('settings.pricePozosLluvias') },
-      { key: 'valor_lavado_pozos_eyectores_aguas_negras', label: t('settings.pricePozosNegras') },
-      { key: 'valor_pruebas_hidraulicas_red_contra_incendios', label: t('settings.priceHidraulicas') },
-      { key: 'valor_limpieza_sistema_drenaje_sotanos', label: t('settings.priceDrenaje') },
-      { key: 'valor_lavado_tanque_red_contra_incendios', label: t('settings.priceTankRCI') },
-      { key: 'valor_contrato_mantenimiento', label: t('settings.priceMaintenance') }
+      { key: 'valor_lavado_tanque_agua_potable_sem1', label: t('settings.price.water.tank.sem1') },
+      { key: 'valor_lavado_tanque_agua_potable_sem2', label: t('settings.price.water.tank.sem2') },
+      { key: 'valor_lavado_pozos_eyectores_aguas_lluvias', label: t('settings.price.pozos.lluvias') },
+      { key: 'valor_lavado_pozos_eyectores_aguas_negras', label: t('settings.price.pozos.negras') },
+      { key: 'valor_pruebas_hidraulicas_red_contra_incendios', label: t('settings.price.hidraulicas') },
+      { key: 'valor_limpieza_sistema_drenaje_sotanos', label: t('settings.price.drenaje') },
+      { key: 'valor_lavado_tanque_red_contra_incendios', label: t('settings.price.tank.rci') },
+      { key: 'valor_contrato_mantenimiento', label: t('settings.price.maintenance') }
     ],
     [t]
   );
@@ -190,19 +190,19 @@ export default function ContractsSettingsPage() {
   if (loading) {
     return (
       <Card>
-        <p className="text-sm text-ink-600">{t('common.loading')}</p>
+        <p className="text-sm text-ink-600">{t('common.loading.default')}</p>
       </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('settings.contractsTitle')} subtitle={t('settings.contractsSubtitle')} />
+      <PageHeader title={t('settings.contracts.title')} subtitle={t('settings.contracts.subtitle')} />
       <Card className="space-y-6">
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-ink-900">{t('settings.maintenanceTypesTitle')}</h3>
+          <h3 className="text-sm font-semibold text-ink-900">{t('settings.maintenance.types.title')}</h3>
           <Input
-            label={t('settings.contractTypeName')}
+            label={t('settings.contract.type.name')}
             value={contractTypeName}
             onChange={(event) => setContractTypeName(event.target.value)}
             required
@@ -227,12 +227,12 @@ export default function ContractsSettingsPage() {
                     }
                   >
                     {applies[field.key as keyof MaintenancePrices]
-                      ? t('settings.appliesYes')
-                      : t('settings.appliesNo')}
+                      ? t('settings.applies.yes')
+                      : t('settings.applies.no')}
                   </button>
                 </div>
                 <Input
-                  label={t('settings.priceValueLabel')}
+                  label={t('settings.price.value.label')}
                   value={formatCOP(prices[field.key as keyof MaintenancePrices] ?? 0)}
                   inputMode="numeric"
                   onChange={(event) =>
@@ -246,10 +246,10 @@ export default function ContractsSettingsPage() {
             ))}
           </div>
           <div className="rounded-xl border border-fog-200 p-4">
-            <p className="text-sm font-semibold text-ink-900">{t('settings.recommendedDatesTitle')}</p>
+            <p className="text-sm font-semibold text-ink-900">{t('settings.recommended.dates.title')}</p>
             <div className="mt-3 grid gap-3 md:grid-cols-3">
               <Input
-                label={t('settings.recWaterPotableSem1')}
+                label={t('settings.rec.water.potable.sem1')}
                 type="date"
                 value={recommendedDates.fecha_rec_agua_potable_1}
                 onChange={(event) =>
@@ -257,7 +257,7 @@ export default function ContractsSettingsPage() {
                 }
               />
               <Input
-                label={t('settings.recWaterPotableSem2')}
+                label={t('settings.rec.water.potable.sem2')}
                 type="date"
                 value={recommendedDates.fecha_rec_agua_potable_2}
                 onChange={(event) =>
@@ -265,7 +265,7 @@ export default function ContractsSettingsPage() {
                 }
               />
               <Input
-                label={t('settings.recPozoLluvias')}
+                label={t('settings.rec.pozo.lluvias')}
                 type="date"
                 value={recommendedDates.fecha_rec_pozo_aguas_lluvias}
                 onChange={(event) =>
@@ -273,7 +273,7 @@ export default function ContractsSettingsPage() {
                 }
               />
               <Input
-                label={t('settings.recPozoNegras')}
+                label={t('settings.rec.pozo.negras')}
                 type="date"
                 value={recommendedDates.fecha_rec_pozo_aguas_negras}
                 onChange={(event) =>
@@ -281,7 +281,7 @@ export default function ContractsSettingsPage() {
                 }
               />
               <Input
-                label={t('settings.recTankRci')}
+                label={t('settings.rec.tank.rci')}
                 type="date"
                 value={recommendedDates.fecha_rec_tanque_rci}
                 onChange={(event) =>
@@ -289,7 +289,7 @@ export default function ContractsSettingsPage() {
                 }
               />
               <Input
-                label={t('settings.recPruebasRci')}
+                label={t('settings.rec.pruebas.rci')}
                 type="date"
                 value={recommendedDates.fecha_rec_pruebas_rci}
                 onChange={(event) =>
@@ -308,16 +308,16 @@ export default function ContractsSettingsPage() {
               {saving
                 ? t('settings.saving')
                 : editingMaintenanceId
-                  ? t('settings.updateContractType')
-                  : t('settings.addContractType')}
+                  ? t('settings.update.contract.type')
+                  : t('settings.add.contract.type')}
             </Button>
           </div>
           <div className="overflow-hidden rounded-xl border border-fog-200">
             <table className="w-full text-left text-sm">
               <thead className="bg-fog-100 text-xs uppercase text-ink-500">
                 <tr>
-                  <th className="px-3 py-2">{t('settings.contractTypeName')}</th>
-                  <th className="px-3 py-2">{t('settings.pricesSection')}</th>
+                  <th className="px-3 py-2">{t('settings.contract.type.name')}</th>
+                  <th className="px-3 py-2">{t('settings.prices.section')}</th>
                   <th className="px-3 py-2">{t('common.actions')}</th>
                 </tr>
               </thead>

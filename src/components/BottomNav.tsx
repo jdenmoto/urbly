@@ -19,7 +19,7 @@ export default function BottomNav({ show = true }: BottomNavProps) {
   return (
     <nav
       className="fixed inset-x-3 bottom-3 z-40 rounded-[24px] border border-white/60 bg-white/90 px-2 py-2 shadow-[0_12px_40px_rgba(15,23,42,0.14)] backdrop-blur-xl"
-      aria-label={t('nav.mobilePrimary')}
+      aria-label={t('nav.mobile.primary')}
     >
       <div className="grid grid-cols-5 items-center gap-1">
         {navItems

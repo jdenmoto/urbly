@@ -136,10 +136,10 @@ export default function ServicesPage() {
     [recentOrders]
   );
   const currentSearch = searchParams.toString();
-  const headerTitle = isTechnicianView ? t('services.technicianTitle') : t('services.title');
-  const headerSubtitle = isTechnicianView ? t('services.technicianSubtitle') : t('services.subtitle');
-  const agendaTitle = isTechnicianView ? t('services.technicianAgendaTitle') : t('services.agendaTitle');
-  const agendaSubtitle = isTechnicianView ? t('services.technicianAgendaSubtitle') : t('services.agendaSubtitle');
+  const headerTitle = isTechnicianView ? t('services.technician.title') : t('services.title');
+  const headerSubtitle = isTechnicianView ? t('services.technician.subtitle') : t('services.subtitle');
+  const agendaTitle = isTechnicianView ? t('services.technician.agenda.title') : t('services.agenda.title');
+  const agendaSubtitle = isTechnicianView ? t('services.technician.agenda.subtitle') : t('services.agenda.subtitle');
   const normalizedAgendaTitle = agendaTitle === headerTitle ? 'Agenda operativa' : agendaTitle;
 
   const statusLabel = (value: string) => getServiceOrderStatusLabel(t, value as Parameters<typeof getServiceOrderStatusLabel>[1]);
@@ -234,22 +234,22 @@ export default function ServicesPage() {
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label={t('services.statusScheduled')} value={summary.scheduled} hint={t('services.visibleCountHint')} />
-        <MetricCard label={t('services.statusInProgress')} value={summary.inProgress} hint={agendaSubtitle} />
-        <MetricCard label={t('services.statusCompleted')} value={summary.completed} hint={t('services.viewDetail')} />
-        <MetricCard label={t('services.urgentLabel')} value={summary.urgent} hint={t('services.viewCloseout')} />
+        <MetricCard label={t('services.status.scheduled')} value={summary.scheduled} hint={t('services.visible.count.hint')} />
+        <MetricCard label={t('services.status.in.progress')} value={summary.inProgress} hint={agendaSubtitle} />
+        <MetricCard label={t('services.status.completed')} value={summary.completed} hint={t('services.view.detail')} />
+        <MetricCard label={t('services.urgent.label')} value={summary.urgent} hint={t('services.view.closeout')} />
       </section>
 
       <GlassPanel className="space-y-6">
         <SectionHeader
-          eyebrow={t('services.v2Badge')}
+          eyebrow={t('services.v2.badge')}
           title={normalizedAgendaTitle}
           subtitle={selectedBuilding ? `Contexto actual: ${selectedBuilding.name}` : agendaSubtitle}
-          aside={<StatusPill tone="info">{`${recentOrders.length} ${t('services.visibleCountHint')}`}</StatusPill>}
+          aside={<StatusPill tone="info">{`${recentOrders.length} ${t('services.visible.count.hint')}`}</StatusPill>}
         />
 
         {isTechnicianView && !currentEmployee ? (
-          <EmptyState title={agendaTitle} description={t('technician.missingEmployee')} />
+          <EmptyState title={agendaTitle} description={t('technician.missing.employee')} />
         ) : isTechnicianView && nextOpenOrder ? (
           <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -268,7 +268,7 @@ export default function ServicesPage() {
                     fromServices: true,
                     fromPath: currentRoute,
                     listContext: {
-                      buildingName: buildings.find((item) => item.id === nextOpenOrder.buildingId)?.name ?? t('common.noData'),
+                      buildingName: buildings.find((item) => item.id === nextOpenOrder.buildingId)?.name ?? t('common.no.data'),
                       technicianName: currentEmployee?.fullName ?? t('common.unassigned'),
                       dailyProgressCount: getServiceDailyProgress(nextOpenOrder).length,
                       issueCount: nextOpenOrder.issues.length
@@ -319,20 +319,20 @@ export default function ServicesPage() {
           </Select>
           <Select value={filters.status} onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}>
             <option value="">{t('common.all')}</option>
-            <option value="scheduled">{t('services.statusScheduled')}</option>
-            <option value="confirmed">{t('services.statusConfirmed')}</option>
-            <option value="in_progress">{t('services.statusInProgress')}</option>
-            <option value="completed">{t('services.statusCompleted')}</option>
-            <option value="cancelled">{t('services.statusCancelled')}</option>
+            <option value="scheduled">{t('services.status.scheduled')}</option>
+            <option value="confirmed">{t('services.status.confirmed')}</option>
+            <option value="in_progress">{t('services.status.in.progress')}</option>
+            <option value="completed">{t('services.status.completed')}</option>
+            <option value="cancelled">{t('services.status.cancelled')}</option>
           </Select>
           <Input type="date" value={filters.from} onChange={(event) => setFilters((prev) => ({ ...prev, from: event.target.value }))} />
           <Input type="date" value={filters.to} onChange={(event) => setFilters((prev) => ({ ...prev, to: event.target.value }))} />
         </div>
 
         {isLoading ? (
-          <p className="text-sm text-ink-600">{t('common.loading')}</p>
+          <p className="text-sm text-ink-600">{t('common.loading.default')}</p>
         ) : isTechnicianView && !currentEmployee ? null : recentOrders.length === 0 ? (
-          <EmptyState title={headerTitle} description={isTechnicianView ? t('technician.empty') : t('services.empty')} />
+          <EmptyState title={headerTitle} description={isTechnicianView ? t('technician.empty') : t('services.empty.default')} />
         ) : (
           <div className="space-y-4">
             {recentOrders.map((order) => {
@@ -357,7 +357,7 @@ export default function ServicesPage() {
                       </div>
                       <div className="space-y-1">
                         <h3 className="text-lg font-semibold text-ink-900">{order.title}</h3>
-                        <p className="text-sm text-ink-600">{building?.name ?? t('common.noData')}</p>
+                        <p className="text-sm text-ink-600">{building?.name ?? t('common.no.data')}</p>
                         <p className="text-sm text-ink-500">
                           {new Date(order.scheduledStartAt).toLocaleString('es-CO', {
                             dateStyle: 'medium',
@@ -369,15 +369,15 @@ export default function ServicesPage() {
 
                     <div className="grid gap-3 text-sm text-ink-600 sm:grid-cols-3 xl:min-w-[360px]">
                       <div className="rounded-2xl bg-slate-50 p-3">
-                        <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.technicianLabel')}</p>
+                        <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.technician.label')}</p>
                         <p className="mt-1 font-semibold text-ink-900">{technician?.fullName ?? t('common.unassigned')}</p>
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
-                        <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.typeLabel')}</p>
+                        <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.type.label')}</p>
                         <p className="mt-1 font-semibold text-ink-900">{getServiceOrderTypeLabel(t, order.type)}</p>
                       </div>
                       <div className="rounded-2xl bg-slate-50 p-3">
-                        <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
+                        <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issues.label')}</p>
                         <p className="mt-1 font-semibold text-ink-900">{order.issues.length}</p>
                         <p className="mt-1 text-xs text-ink-500">{getServiceDailyProgress(order).length} avances diarios</p>
                       </div>
@@ -395,14 +395,14 @@ export default function ServicesPage() {
                         fromServices: true,
                         fromPath: currentRoute,
                         listContext: {
-                          buildingName: building?.name ?? t('common.noData'),
+                          buildingName: building?.name ?? t('common.no.data'),
                           technicianName: technician?.fullName ?? t('common.unassigned'),
                           dailyProgressCount: getServiceDailyProgress(order).length,
                           issueCount: order.issues.length
                         }
                       }}
                     >
-                      {isTechnicianView ? 'Abrir detalle' : t('services.viewDetail')}
+                      {isTechnicianView ? 'Abrir detalle' : t('services.view.detail')}
                     </Link>
                     {!isTechnicianView ? (
                       <button
@@ -470,7 +470,7 @@ export default function ServicesPage() {
                       to={`/services/${order.id}/closeout`}
                       state={{ fromPath: currentRoute }}
                     >
-                      {t('services.viewCloseout')}
+                      {t('services.view.closeout')}
                     </Link>
                   </div>
                 </article>

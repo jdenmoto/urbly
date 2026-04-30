@@ -36,7 +36,7 @@ export default function EmployeesPage() {
   const schema = z.object({
     fullName: z.string().min(2, t('common.required')),
     phone: z.string().min(7, t('common.required')),
-    email: z.string().email(t('auth.errorEmail')),
+    email: z.string().email(t('auth.error.email')),
     role: z.string().min(2, t('common.required')),
     active: z.string().min(1, t('common.required')),
     buildingId: z.string().optional()
@@ -58,7 +58,7 @@ export default function EmployeesPage() {
 
   const columns = useMemo<ColumnDef<Employee>[]>(() => {
     const base: ColumnDef<Employee>[] = [
-      { header: t('employees.fullName'), accessorKey: 'fullName', enableSorting: true },
+      { header: t('employees.full.name'), accessorKey: 'fullName', enableSorting: true },
       { header: t('employees.role'), accessorKey: 'role', enableSorting: false },
       { header: t('employees.phone'), accessorKey: 'phone', enableSorting: false },
       { header: t('employees.active'), accessorKey: 'active', enableSorting: true }
@@ -105,9 +105,9 @@ export default function EmployeesPage() {
       });
       await queryClient.invalidateQueries({ queryKey: ['employees'] });
       reset();
-      toast(t('employees.toastCreated'), 'success');
+      toast(t('employees.toast.created'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     }
   };
 
@@ -150,9 +150,9 @@ export default function EmployeesPage() {
       await queryClient.invalidateQueries({ queryKey: ['employees'] });
       setEditOpen(false);
       setEditingEmployee(null);
-      toast(t('employees.toastUpdated'), 'success');
+      toast(t('employees.toast.updated'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     }
   };
 
@@ -161,9 +161,9 @@ export default function EmployeesPage() {
     try {
       await deleteDocById('employees', deleteTarget.id);
       await queryClient.invalidateQueries({ queryKey: ['employees'] });
-      toast(t('employees.toastDeleted'), 'success');
+      toast(t('employees.toast.deleted'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     } finally {
       setDeleteTarget(null);
     }
@@ -181,11 +181,11 @@ export default function EmployeesPage() {
           <DataTable
             columns={columns}
             data={employees}
-            emptyState={<EmptyState title={t('employees.emptyTitle')} description={t('employees.emptySubtitle')} />}
+            emptyState={<EmptyState title={t('employees.empty.title')} description={t('employees.empty.subtitle')} />}
           />
-          <Modal open={createOpen} title={t('employees.newTitle')} onClose={() => setCreateOpen(false)}>
+          <Modal open={createOpen} title={t('employees.new.title')} onClose={() => setCreateOpen(false)}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-              <Input label={t('employees.fullName')} error={errors.fullName?.message} required {...register('fullName')} />
+              <Input label={t('employees.full.name')} error={errors.fullName?.message} required {...register('fullName')} />
               <Input label={t('employees.phone')} error={errors.phone?.message} required {...register('phone')} />
               <Input label={t('employees.email')} type="email" error={errors.email?.message} required {...register('email')} />
               <Select label={t('employees.role')} error={errors.role?.message} required {...register('role')}>
@@ -196,7 +196,7 @@ export default function EmployeesPage() {
               </Select>
               <Select label={t('employees.active')} error={errors.active?.message} required {...register('active')}>
                 <option value="true">{t('common.yes')}</option>
-                <option value="false">{t('common.no')}</option>
+                <option value="false">{t('common.no.default')}</option>
               </Select>
               <Select label={`${t('employees.building')} (${t('common.optional')})`} {...register('buildingId')}>
                 <option value="">{t('common.unassigned')}</option>
@@ -211,9 +211,9 @@ export default function EmployeesPage() {
               </Button>
             </form>
           </Modal>
-          <Modal open={editOpen} title={t('employees.editTitle')} onClose={() => setEditOpen(false)}>
+          <Modal open={editOpen} title={t('employees.edit.title')} onClose={() => setEditOpen(false)}>
             <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4" noValidate>
-              <Input label={t('employees.fullName')} error={editErrors.fullName?.message} required {...editRegister('fullName')} />
+              <Input label={t('employees.full.name')} error={editErrors.fullName?.message} required {...editRegister('fullName')} />
               <Input label={t('employees.phone')} error={editErrors.phone?.message} required {...editRegister('phone')} />
               <Input label={t('employees.email')} type="email" error={editErrors.email?.message} required {...editRegister('email')} />
               <Select label={t('employees.role')} error={editErrors.role?.message} required {...editRegister('role')}>
@@ -224,7 +224,7 @@ export default function EmployeesPage() {
               </Select>
               <Select label={t('employees.active')} error={editErrors.active?.message} required {...editRegister('active')}>
                 <option value="true">{t('common.yes')}</option>
-                <option value="false">{t('common.no')}</option>
+                <option value="false">{t('common.no.default')}</option>
               </Select>
               <Select label={`${t('employees.building')} (${t('common.optional')})`} {...editRegister('buildingId')}>
                 <option value="">{t('common.unassigned')}</option>
@@ -241,8 +241,8 @@ export default function EmployeesPage() {
           </Modal>
           <ConfirmModal
             open={Boolean(deleteTarget)}
-            title={t('employees.deleteTitle')}
-            description={t('employees.deleteConfirm')}
+            title={t('employees.delete.title')}
+            description={t('employees.delete.confirm')}
             onConfirm={confirmDelete}
             onClose={() => setDeleteTarget(null)}
           />
@@ -251,7 +251,7 @@ export default function EmployeesPage() {
         <DataTable
           columns={columns}
           data={employees}
-          emptyState={<EmptyState title={t('employees.emptyTitle')} description={t('employees.emptySubtitle')} />}
+          emptyState={<EmptyState title={t('employees.empty.title')} description={t('employees.empty.subtitle')} />}
         />
       )}
     </div>

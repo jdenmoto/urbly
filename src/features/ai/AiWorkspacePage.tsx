@@ -28,10 +28,10 @@ export default function AiWorkspacePage() {
         priority: item.priority,
         suggestion:
           item.priority === 'urgent'
-            ? t('ai.suggestionUrgent')
+            ? t('ai.suggestion.urgent')
             : item.issues.length
-              ? t('ai.suggestionIssues')
-              : t('ai.suggestionDefault'),
+              ? t('ai.suggestion.issues')
+              : t('ai.suggestion.default'),
         summary: buildServiceSummary(item, t),
         customerMessage: buildCustomerMessage(item, t),
         followUp: buildFollowUp(item)
@@ -46,16 +46,16 @@ export default function AiWorkspacePage() {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-2">
             <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
-              {t('ai.workspaceBadge')}
+              {t('ai.workspace.badge')}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-ink-900">{t('ai.workspaceTitle')}</h2>
-              <p className="max-w-2xl text-sm leading-6 text-ink-600">{t('ai.workspaceSubtitle')}</p>
+              <h2 className="text-xl font-semibold text-ink-900">{t('ai.workspace.title')}</h2>
+              <p className="max-w-2xl text-sm leading-6 text-ink-600">{t('ai.workspace.subtitle')}</p>
             </div>
           </div>
           <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
             <p className="font-semibold text-ink-900">{suggestions.length}</p>
-            <p>{t('ai.visibleSuggestionsHint')}</p>
+            <p>{t('ai.visible.suggestions.hint')}</p>
           </div>
         </div>
 
@@ -66,7 +66,7 @@ export default function AiWorkspacePage() {
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div>
                     <div className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[item.priority]}`}>
-                      {getServiceOrderPriorityPill(t, item.priority, 'ai.priorityPill')}
+                      {getServiceOrderPriorityPill(t, item.priority, 'ai.priority.pill')}
                     </div>
                     <p className="mt-3 text-lg font-semibold text-ink-900">{item.title}</p>
                     <p className="mt-1 text-sm text-ink-600">{item.suggestion}</p>
@@ -74,15 +74,15 @@ export default function AiWorkspacePage() {
                 </div>
                 <div className="mt-4 grid gap-3 xl:grid-cols-3 text-sm text-ink-700">
                   <div className="rounded-2xl bg-fog-50 p-4">
-                    <p className="font-semibold text-ink-900">{t('ai.caseSummaryTitle')}</p>
+                    <p className="font-semibold text-ink-900">{t('ai.case.summary.title')}</p>
                     <p className="mt-2 whitespace-pre-wrap leading-6">{item.summary}</p>
                   </div>
                   <div className="rounded-2xl bg-fog-50 p-4">
-                    <p className="font-semibold text-ink-900">{t('ai.customerMessageTitle')}</p>
+                    <p className="font-semibold text-ink-900">{t('ai.customer.message.title')}</p>
                     <p className="mt-2 whitespace-pre-wrap leading-6">{item.customerMessage}</p>
                   </div>
                   <div className="rounded-2xl bg-fog-50 p-4">
-                    <p className="font-semibold text-ink-900">{t('ai.followUpTitle')}</p>
+                    <p className="font-semibold text-ink-900">{t('ai.follow.up.title')}</p>
                     <p className="mt-2 whitespace-pre-wrap leading-6">{item.followUp}</p>
                   </div>
                 </div>
@@ -90,7 +90,7 @@ export default function AiWorkspacePage() {
             ))}
           </div>
         ) : (
-          <EmptyState title={t('ai.workspaceTitle')} description={t('ai.empty')} />
+          <EmptyState title={t('ai.workspace.title')} description={t('ai.empty')} />
         )}
       </Card>
     </div>

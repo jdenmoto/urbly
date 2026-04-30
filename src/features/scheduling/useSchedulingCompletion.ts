@@ -154,11 +154,11 @@ export default function useSchedulingCompletion({
   const addIssue = () => {
     setIssueError(null);
     if (!issueDraft.type || !issueDraft.category) {
-      setIssueError(t('scheduling.issueRequired'));
+      setIssueError(t('scheduling.issue.required'));
       return;
     }
     if (!hasMinTwoPhotos(issueDraft.photos)) {
-      setIssueError('Debes agregar mínimo 2 fotos en la novedad.');
+      setIssueError(t('scheduling.issue.photos.required'));
       return;
     }
     const id = issueDraft.id || (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
@@ -199,7 +199,7 @@ export default function useSchedulingCompletion({
       });
       await updateDocById('service_orders', completeTarget.id, payload);
       await invalidateScheduling();
-      toast(t('scheduling.toastCompleted'), 'success');
+      toast(t('scheduling.toast.completed'), 'success');
       if (selected?.id === completeTarget.id) {
         setSelected((prev) => {
           if (!prev || prev.id !== completeTarget.id) return prev;
@@ -221,7 +221,7 @@ export default function useSchedulingCompletion({
           : '';
       const detail = error instanceof Error ? error.message : '';
       const message = [firebaseMessage, detail].filter(Boolean).join(': ');
-      toast(message || t('common.actionError'), 'error');
+      toast(message || t('common.action.error'), 'error');
     } finally {
       setCompleteSubmitting(false);
     }

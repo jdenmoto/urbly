@@ -1,6 +1,6 @@
 import type { SchedulingItem } from './schedulingItem';
 
-export type SchedulingIssueLabelPrefix = 'scheduling.issueTypes' | 'scheduling.issueCategories';
+export type SchedulingIssueLabelPrefix = 'scheduling.issue.types' | 'scheduling.issueCategories';
 
 export function checklistValueLabel(value?: string) {
   return value === 'ok' ? 'Bueno' : value === 'regular' ? 'Regular' : value === 'malo' ? 'Malo' : 'N/A';
@@ -18,9 +18,9 @@ export function resolveSchedulingIssueLabel(
 
 export function buildSchedulingStatusLabels(t: (key: string) => string): Record<SchedulingItem['status'], string> {
   return {
-    programado: t('scheduling.statusProgrammed'),
-    confirmado: t('scheduling.statusConfirmed'),
-    completado: t('scheduling.statusCompleted'),
-    cancelado: t('scheduling.statusCanceled')
+    programado: t('scheduling.status.programmed'),
+    confirmado: t('scheduling.status.confirmed'),
+    completado: t('scheduling.status.completed'),
+    cancelado: t('scheduling.status.canceled')
   };
 }

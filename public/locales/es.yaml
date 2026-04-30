@@ -1,12 +1,16 @@
 common:
-  appName: Urbly
-  panelTitle: Panel Urbly
-  panelSubtitle: Gestion inteligente de edificios
+  app:
+    name: Urbly
+  panel:
+    title: Panel Urbly
+    subtitle: Gestion inteligente de edificios
   tagline: Smart building ops
   menu: Menu
   new: Nuevo
   add: Agregar
   invite: Invitar
+  name: Nombre
+  type: Tipo
   logout: Salir
   close: Cerrar
   cancel: Cancelar
@@ -15,520 +19,893 @@ common:
   delete: Eliminar
   save: Guardar
   update: Actualizar
-  loading: Cargando...
-  loadingSession: Cargando sesion...
-  actionSuccess: Accion completada
-  actionError: Ocurrio un error
+  loading:
+    default: Cargando...
+    session: Cargando sesion...
+    module: Cargando modulo...
+  action:
+    success: Accion completada
+    error: Ocurrio un error
   "yes": Si
-  "no": No
+  "no":
+    default: "No"
+    data: Sin datos
+    results: Sin resultados
   view: Ver
   all: Todos
   optional: Opcional
   select: Selecciona
   filters: Filtros
-  showFilters: Mostrar filtros
-  hideFilters: Ocultar filtros
+  show:
+    filters: Mostrar filtros
+  hide:
+    filters: Ocultar filtros
   today: Hoy
-  planLabel: Plan MVP - Admin
-  addressSearch: Buscar direccion
-  mapsUnavailable: Google Maps no disponible. Revisa la API key y habilita Places (nuevo).
-  mapsGeocodeError: No se pudo validar la direccion. Intenta otra.
-  addressMinChars: Escribe al menos 3 caracteres para buscar.
-  downloadErrors: Descargar errores
-  noData: Sin datos
-  noResults: Sin resultados
+  plan:
+    label: Plan MVP - Admin
+  address:
+    search: Buscar direccion
+    min:
+      chars: Escribe al menos 3 caracteres para buscar.
+  maps:
+    unavailable: Google Maps no disponible. Revisa la API key y habilita Places (nuevo).
+    geocode:
+      error: No se pudo validar la direccion. Intenta otra.
+  download:
+    errors: Descargar errores
   required: Requerido
   actions: Acciones
-  notAvailable: No disponible
+  items: elementos
+  not:
+    available: No disponible
+    authorized: No tienes permisos para acceder a esta seccion.
   prev: Anterior
   next: Siguiente
   unassigned: Sin asignar
   unnamed: Sin nombre
   expand: Ampliar
   collapse: Reducir
-  featureDisabledTitle: Funcionalidad deshabilitada
-  featureDisabledSubtitle: Esta seccion no esta disponible en este momento.
-  notAuthorized: No tienes permisos para acceder a esta seccion.
+  feature:
+    disabled:
+      title: Funcionalidad deshabilitada
+      subtitle: Esta seccion no esta disponible en este momento.
+roles:
+  company: Empresa
+  supervisor: Supervisor
+  operations: Operacion
+  audit: Auditoria
+  technician: Tecnico
+  client: Cliente
 nav:
   dashboard: Dashboard
   services: Servicios
-  myServices: Mis servicios
+  my:
+    services: Mis servicios
   customers: Clientes
   assets: Activos
   reports: Reportes
-  aiWorkspace: IA
+  ai:
+    workspace: IA
   buildings: Edificios
   management: Administraciones
   employees: Empleados
   scheduling: Agendamientos
   users: Usuarios
-  portal: Portal
-  clientSummary: Resumen
-  portalServices: Servicios
-  portalReports: Reportes
-  settings: Configuraciones
-  settingsGroups: Grupos
-  settingsIssues: Novedades
-  settingsContracts: Tipos de Contratos
-  settingsLabs: Analisis laboratorio
-  settingsCalendarSection: Calendario
-  settingsCalendarHolidays: Festivos
-  settingsCalendarNonWorking: No laborables
-  mobilePrimary: Navegacion principal movil
-  shortDashboard: Inicio
-  shortServices: Servicios
-  shortMyServices: Mi ruta
-  shortManagement: Cuentas
-  shortReports: Reportes
-  shortAi: IA
-  shortCustomers: Clientes
-  shortAssets: Activos
-  shortTeam: Equipo
-  shortBuildings: Edificios
-  operationsSection: Operación diaria
-  operationsSectionDescription: Servicios, seguimiento y acciones prioritarias del día.
-  portfolioSection: Portafolio y cuentas
-  portfolioSectionDescription: Clientes, administraciones, activos y visión comercial del portafolio.
-  teamSection: Equipo y capacidad
-  teamSectionDescription: Gestión del equipo operativo y visibilidad de carga de trabajo.
-  mainSection: Operacion
-  mainSectionDescription: Accesos principales para la operación diaria.
-  adminSection: Administracion
-  settingsSection: Configuraciones
-  settingsSectionDescription: Parámetros maestros, usuarios y reglas operativas del sistema.
-  portalSection: Portal
-  portalSectionDescription: Resumen operativo para clientes y administradores del edificio.
+  notifications: Notificaciones
+  portal:
+    default: Portal
+    services: Servicios
+    reports: Reportes
+    section:
+      default: Portal
+      description: Resumen operativo para clientes y administradores del edificio.
+  client:
+    summary: Resumen
+  settings:
+    default: Configuraciones
+    groups: Grupos
+    issues: Novedades
+    contracts: Tipos de Contratos
+    labs: Analisis laboratorio
+    calendar:
+      section: Calendario
+      holidays: Festivos
+      non:
+        working: No laborables
+    service:
+      types: Tipos de Seervicios
+    automation: Automatizacion (IA)
+    section:
+      default: Configuraciones
+      description: Parámetros maestros, usuarios y reglas operativas del sistema.
+  mobile:
+    primary: Navegacion principal movil
+  short:
+    dashboard: Inicio
+    services: Servicios
+    my:
+      services: Mi ruta
+    management: Cuentas
+    reports: Reportes
+    ai: IA
+    customers: Clientes
+    assets: Activos
+    team: Equipo
+    buildings: Edificios
+    scheduling: Agenda
+    notifications: Alertas
+  operations:
+    section:
+      default: Operación diaria
+      description: Servicios, seguimiento y acciones prioritarias del día.
+  portfolio:
+    section:
+      default: Portafolio y cuentas
+      description: Clientes, administraciones, activos y visión comercial del portafolio.
+  team:
+    section:
+      default: Equipo y capacidad
+      description: Gestión del equipo operativo y visibilidad de carga de trabajo.
+  main:
+    section:
+      default: Operacion
+      description: Accesos principales para la operación diaria.
+  admin:
+    section: Administracion
 shell:
-  workspaceLabel: Workspace activo
-  workspaceBadge: CRM operativo
-  usageLabel: Uso recomendado
-  usagePointOne: Prioriza servicios y seguimientos desde la navegación principal.
-  usagePointTwo: Usa el contexto lateral para mantener foco por dominio operativo.
-  usagePointThree: Deja configuraciones y administración como tareas secundarias, no como flujo principal.
-  executionModeLabel: Modo operativo
-  executionModeValue: Operación centralizada
-  focusLabel: Foco del workspace
-  focusTitle: Menos navegación, más ejecución
-  focusDescription: El shell prioriza seguimiento, servicio y control operativo antes que administración secundaria.
-  globalSearchPlaceholder: Búsqueda global
-  quickActionLabel: Acción rápida
-  sidebarHint: Accede rápido a la operación principal y deja configuraciones en segundo plano.
+  workspace:
+    label: Workspace activo
+    badge: CRM operativo
+  usage:
+    label: Uso recomendado
+    point:
+      one: Prioriza servicios y seguimientos desde la navegación principal.
+      two: Usa el contexto lateral para mantener foco por dominio operativo.
+      three: Deja configuraciones y administración como tareas secundarias, no como flujo principal.
+  execution:
+    mode:
+      label: Modo operativo
+      value: Operación centralizada
+  focus:
+    label: Foco del workspace
+    title: Menos navegación, más ejecución
+    description: El shell prioriza seguimiento, servicio y control operativo antes que administración secundaria.
+  global:
+    search:
+      placeholder: Búsqueda global
+  quick:
+    action:
+      label: Acción rápida
+  sidebar:
+    hint: Accede rápido a la operación principal y deja configuraciones en segundo plano.
+  current:
+    view: Vista actual
 auth:
   title: Bienvenido a Urbly
   subtitle: Ingresa con tu cuenta de administrador.
   email: Email
-  billingEmail: Email facturacion
-  legalRepresentative: Representante legal
+  billing:
+    email: Email facturacion
+  legal:
+    representative: Representante legal
   group: Grupo
   type: Tipo
-  delegateName: Administrador delegado
-  delegatePhone: Celular administrador delegado
+  delegate:
+    name: Administrador delegado
+    phone: Celular administrador delegado
   password: Password
-  signIn: Entrar
-  signingIn: Entrando...
-  error: No fue posible iniciar sesion.
-  errorEmail: Email invalido
-  errorPassword: Minimo 6 caracteres
-  resetPassword: Olvidaste tu contrasena?
-  resetEmail: Email para reiniciar
-  sendReset: Enviar enlace
-  sendingReset: Enviando...
-  resetSent: Enlace enviado. Revisa tu correo.
-  resetError: No fue posible enviar el enlace.
+  sign:
+    in: Entrar
+  signing:
+    in: Entrando...
+  error:
+    default: No fue posible iniciar sesion.
+    email: Email invalido
+    password: Minimo 6 caracteres
+  reset:
+    password: Olvidaste tu contrasena?
+    email: Email para reiniciar
+    sent: Enlace enviado. Revisa tu correo.
+    error: No fue posible enviar el enlace.
+  qa:
+    error: No fue posible iniciar la sesion QA local.
+  send:
+    reset: Enviar enlace
+  sending:
+    reset: Enviando...
 portal:
   title: Portal de administracion
   subtitle: Acceso restringido para administradores de edificio
-  missingAccess: No se encontro una administracion asociada a tu usuario.
-  buildingsEmpty: Sin edificios asociados
-  buildingsEmptyHint: No hay edificios con contrato activo.
-  appointmentsEmpty: Sin agendamientos
-  appointmentsEmptyHint: No hay agendamientos para tus edificios.
-clientPortal:
-  summaryTitle: Resumen del cliente
-  summarySubtitle: Vista inicial del portal cliente para seguimiento operativo.
-  comingSoon: Aquí vivirá la nueva vista de resumen para clientes con estado general, próximos mantenimientos e informes.
-  activeServices: Servicios activos
-  completedServices: Servicios completados
-  buildingsCount: Edificios
-  upcomingTitle: Proximos servicios
-  upcomingSubtitle: Primer corte del resumen cliente basado en órdenes de servicio.
-  empty: No hay próximos servicios programados.
-  clientViewBadge: Visión cliente
-  visibleWindowHint: servicios visibles en la siguiente ventana
-  priorityPill: "Prioridad {value}"
+  missing:
+    access: No se encontro una administracion asociada a tu usuario.
+  buildings:
+    empty:
+      default: Sin edificios asociados
+      hint: No hay edificios con contrato activo.
+  appointments:
+    empty:
+      default: Sin agendamientos
+      hint: No hay agendamientos para tus edificios.
+client:
+  portal:
+    summary:
+      title: Resumen del cliente
+      subtitle: Vista inicial del portal cliente para seguimiento operativo.
+    coming:
+      soon: Aquí vivirá la nueva vista de resumen para clientes con estado general, próximos mantenimientos e informes.
+    active:
+      services: Servicios activos
+    completed:
+      services: Servicios completados
+    buildings:
+      count: Edificios
+    upcoming:
+      title: Proximos servicios
+      subtitle: Primer corte del resumen cliente basado en órdenes de servicio.
+    empty: No hay próximos servicios programados.
+    client:
+      view:
+        badge: Visión cliente
+    visible:
+      window:
+        hint: servicios visibles en la siguiente ventana
+    priority:
+      pill: Prioridad {value}
 services:
   title: Servicios
   subtitle: Flujo operativo basado en órdenes de servicio.
-  technicianTitle: Mis servicios
-  technicianSubtitle: Vista de trabajo del técnico enfocada solo en órdenes asignadas.
-  comingSoon: Esta area alojara agenda, detalle y cierre del nuevo flujo de servicios.
-  empty: No hay servicios para los filtros seleccionados.
-  viewDetail: Ver detalle
-  viewCloseout: Ver cierre
-  detailTitle: Detalle del servicio
-  detailSubtitle: Primer corte de la vista dedicada para contexto e historial.
-  detailEmpty: No se encontro el servicio solicitado.
-  contextTitle: Contexto del servicio
-  contextSubtitle: Información base para operar la orden de servicio sin entrar al agendamiento legado.
-  buildingLabel: Edificio
-  customerLabel: Cliente
-  technicianLabel: Tecnico
-  statusLabel: Estado
-  priorityLabel: Prioridad
-  typeLabel: Tipo
-  startLabel: Inicio
-  endLabel: Fin
-  descriptionLabel: Descripción
-  timelineTitle: Línea de tiempo operativa
-  timelineSubtitle: Eventos derivados del agendamiento actual mientras se migra el dominio.
-  timelineEmpty: Este servicio todavía no tiene eventos registrados.
-  closeoutTitle: Cierre tecnico
-  closeoutSubtitle: Vista de cierre enfocada en reporte, evidencias y comunicación final.
-  closeoutEmpty: No se encontró el servicio solicitado.
-  closeoutHint: Aquí consolidamos reporte, evidencias, novedades y comunicación final del servicio.
-  reportTitle: Reporte actual
-  evidenceTitle: Evidencia actual
-  evidenceCount: "Fotos registradas: {count}"
-  issuesCount: "Novedades registradas: {count}"
-  timelineCount: "Eventos de la línea de tiempo: {count}"
-  communicationTitle: Comunicacion generada
-  issueSummaryTitle: Resumen de novedades
-  issueSummarySubtitle: Primer corte de incidencias derivadas del servicio actual.
-  issueSummaryEmpty: No hay novedades registradas para este servicio.
-  aiActionsTitle: IA operativa aplicada
-  aiActionsSubtitle: Sugerencias listas para usar desde el contexto real del servicio.
-  aiSummaryTitle: Resumen del caso
-  aiCustomerMessageTitle: Mensaje sugerido al cliente
-  aiFollowUpTitle: Siguiente paso sugerido
-  aiReportTitle: Informe técnico sugerido
-  v2Badge: Flujo operativo
-  agendaTitle: Agenda operativa
-  agendaSubtitle: Vista enfocada en lectura rápida, prioridad y acceso directo a detalle y cierre.
-  technicianAgendaTitle: Cola técnica
-  technicianAgendaSubtitle: Tus órdenes activas primero, con acceso directo a detalle y cierre.
-  visibleCountHint: servicios visibles con los filtros actuales
-  issuesLabel: Novedades
-  priorityPill: "Prioridad {value}"
-  activeTypeHint: tipo de servicio activo
-  aiBadge: IA operativa aplicada
-  closeoutBadge: Cierre operativo
-  closeoutStatusHint: estado actual para cierre y reporte
-  timelineLabel: Línea de tiempo
-  aiCloseoutBadge: IA para cierre
-  aiCloseoutTitle: Acciones listas para enviar o ajustar
-  aiCloseoutSubtitle: Este bloque resume el servicio, propone el reporte y deja listo el siguiente paso para enviar o ajustar.
-  statusScheduled: Programado
-  statusConfirmed: Confirmado
-  statusInProgress: En progreso
-  statusPaused: Pausado
-  statusPendingReview: Pendiente de revisión
-  statusRequiresReschedule: Requiere reprogramación
-  statusCompleted: Completado
-  statusCancelled: Cancelado
-  statusDraft: Borrador
-  statusUnassigned: Sin asignar
-  urgentLabel: Urgentes
-  priorityUrgent: Urgente
-  priorityHigh: Alta
-  priorityMedium: Media
-  priorityLow: Baja
+  technician:
+    title: Mis servicios
+    subtitle: Vista de trabajo del técnico enfocada solo en órdenes asignadas.
+    label: Tecnico
+    agenda:
+      title: Cola técnica
+      subtitle: Tus órdenes activas primero, con acceso directo a detalle y cierre.
+  coming:
+    soon: Esta area alojara agenda, detalle y cierre del nuevo flujo de servicios.
+  empty:
+    default: No hay servicios para los filtros seleccionados.
+    title: Sin servicios
+    description: No hay servicios para los filtros seleccionados.
+  view:
+    detail: Ver detalle
+    closeout: Ver cierre
+  detail:
+    title: Detalle del servicio
+    subtitle: Primer corte de la vista dedicada para contexto e historial.
+    empty: No se encontro el servicio solicitado.
+  context:
+    title: Contexto del servicio
+    subtitle: Información base para operar la orden de servicio sin entrar al agendamiento legado.
+  building:
+    label: Edificio
+  customer:
+    label: Cliente
+  status:
+    label: Estado
+    scheduled: Programado
+    confirmed: Confirmado
+    in:
+      progress: En progreso
+    paused: Pausado
+    pending:
+      review: Pendiente de revisión
+    requires:
+      reschedule: Requiere reprogramación
+    completed: Completado
+    cancelled: Cancelado
+    draft: Borrador
+    unassigned: Sin asignar
+  priority:
+    label: Prioridad
+    pill: Prioridad {value}
+    urgent: Urgente
+    high: Alta
+    medium: Media
+    low: Baja
+  type:
+    label: Tipo
+  start:
+    label: Inicio
+  end:
+    label: Fin
+  description:
+    label: Descripción
+  timeline:
+    title: Línea de tiempo operativa
+    subtitle: Eventos derivados del agendamiento actual mientras se migra el dominio.
+    empty: Este servicio todavía no tiene eventos registrados.
+    count: "Eventos de la línea de tiempo: {count}"
+    label: Línea de tiempo
+  closeout:
+    title: Cierre tecnico
+    subtitle: Vista de cierre enfocada en reporte, evidencias y comunicación final.
+    empty: No se encontró el servicio solicitado.
+    hint: Aquí consolidamos reporte, evidencias, novedades y comunicación final del servicio.
+    badge: Cierre operativo
+    status:
+      hint: estado actual para cierre y reporte
+  report:
+    title: Reporte actual
+  evidence:
+    title: Evidencia actual
+    count: "Fotos registradas: {count}"
+  issues:
+    count: "Novedades registradas: {count}"
+    label: Novedades
+  communication:
+    title: Comunicacion generada
+  issue:
+    summary:
+      title: Resumen de novedades
+      subtitle: Primer corte de incidencias derivadas del servicio actual.
+      empty: No hay novedades registradas para este servicio.
+  ai:
+    actions:
+      title: IA operativa aplicada
+      subtitle: Sugerencias listas para usar desde el contexto real del servicio.
+    summary:
+      title: Resumen del caso
+    customer:
+      message:
+        title: Mensaje sugerido al cliente
+    follow:
+      up:
+        title: Siguiente paso sugerido
+    report:
+      title: Informe técnico sugerido
+    badge: IA operativa aplicada
+    closeout:
+      badge: IA para cierre
+      title: Acciones listas para enviar o ajustar
+      subtitle: Este bloque resume el servicio, propone el reporte y deja listo el siguiente paso para enviar o ajustar.
+  v2:
+    badge: Flujo operativo
+  agenda:
+    title: Agenda operativa
+    subtitle: Vista enfocada en lectura rápida, prioridad y acceso directo a detalle y cierre.
+  visible:
+    count:
+      hint: servicios visibles con los filtros actuales
+  active:
+    type:
+      hint: tipo de servicio activo
+  urgent:
+    label: Urgentes
 customers:
   title: Clientes
   subtitle: Relacion comercial y operativa en una sola vista.
-  comingSoon: Esta seccion centralizara cuentas, contactos y contexto de servicio.
+  coming:
+    soon: Esta seccion centralizara cuentas, contactos y contexto de servicio.
 assets:
   title: Activos
   subtitle: Edificios, contratos e historial operativo.
-  comingSoon: Aqui se consolidaran edificios y activos con contexto tecnico y contractual.
+  coming:
+    soon: Aqui se consolidaran edificios y activos con contexto tecnico y contractual.
 reports:
   title: Reportes
   subtitle: Informes, evidencias y trazabilidad operativa.
-  comingSoon: Esta seccion reunira reportes tecnicos, historiales y entregables al cliente.
-missionControl:
-  title: Mission Control
-  subtitle: Centro de control premium para monitorear la operación diaria, asignar, agendar y coordinar el sistema completo.
-  eyebrow: Centro operativo premium
-  heroTitle: Operación del día bajo control
-  heroSubtitle: Supervisa servicios, asignaciones, cotizaciones, contratos y carga operativa desde una sola vista diseñada para respuesta rápida.
-  liveLabel: En vivo
-  quickSchedule: Nuevo agendamiento
-  quickAssign: Asignar técnico
-  quickQuote: Crear cotización
-  quickContract: Implementar contrato
-  activeServices: Servicios activos
-  activeServicesHint: servicios en curso o listos para ejecución inmediata
-  urgentAlerts: Alertas urgentes
-  urgentAlertsHint: servicios con prioridad crítica que requieren seguimiento ahora
-  unassigned: Sin asignación
-  unassignedHint: servicios sin técnico asignado o sin responsable claro
-  overdue: Fuera de ventana
-  overdueHint: servicios que ya entraron en riesgo operativo por tiempo
-  operationsTitle: Agenda y asignaciones
-  operationsSubtitle: Vista principal para coordinar servicios, responsables y próximos movimientos.
-  priorityPill: "Prioridad {value}"
-  assigneeLabel: Responsable
-  issuesLabel: Novedades
-  typeLabel: Tipo
-  teamLoadTitle: Carga del equipo
-  teamLoadSubtitle: Balance rápido del equipo técnico para decidir asignaciones.
-  assignedCount: "{count} asignados"
-  alertsTitle: Alertas operativas
-  alertsSubtitle: Bloqueos, urgencias y vencimientos que necesitan intervención.
-  alertUrgent: Urgente
-  alertUnassigned: Sin asignar
-  alertOverdue: Vencido
-  actionViewService: Ver servicio
-  actionAssignService: Revisar asignacion
-  actionCloseService: Ir al cierre
-  commercialTitle: Pipeline comercial y contractual
-  commercialSubtitle: Controles rápidos para lo que todavía necesita conversión o implementación.
-  quotesPending: Cotizaciones pendientes
-  contractsPending: Contratos por implementar
-  usersLabel: Usuarios activos
-  buildingsLabel: Edificios monitoreados
-  activityTitle: Actividad reciente
-  activitySubtitle: Últimos movimientos relevantes generados por la operación.
+  coming:
+    soon: Esta seccion reunira reportes tecnicos, historiales y entregables al cliente.
+  audit:
+    title: Auditoria
+    subtitle: Auditoria visible y exportable del sistema.
+    empty: Todavia no hay eventos auditables registrados.
+    system: sistema
+    export:
+      csv: Exportar CSV
+    columns:
+      date: Fecha
+      entity: Entidad
+      action: Accion
+      summary: Resumen
+      actor: Actor
+notifications:
+  title: Centro de notificaciones
+  subtitle: Alertas internas persistentes del sistema.
+  columns:
+    date: Fecha
+    title: Titulo
+    message: Mensaje
+    status: Estado
+    action: Accion
+  status:
+    read: Leida
+    pending: Pendiente
+  mark:
+    read: Marcar leida
+  empty:
+    title: Notificaciones
+    description: No hay alertas registradas.
+    none: Sin notificaciones.
+mission:
+  control:
+    title: Mission Control
+    subtitle: Centro de control premium para monitorear la operación diaria, asignar, agendar y coordinar el sistema completo.
+    eyebrow: Centro operativo premium
+    hero:
+      title: Operación del día bajo control
+      subtitle: >-
+        Supervisa servicios, asignaciones, cotizaciones, contratos y carga operativa desde una sola vista diseñada para
+        respuesta rápida.
+    live:
+      label: En vivo
+    quick:
+      schedule: Nuevo agendamiento
+      assign: Asignar técnico
+      quote: Crear cotización
+      contract: Implementar contrato
+    active:
+      services:
+        default: Servicios activos
+        hint: servicios en curso o listos para ejecución inmediata
+    urgent:
+      alerts:
+        default: Alertas urgentes
+        hint: servicios con prioridad crítica que requieren seguimiento ahora
+    unassigned:
+      default: Sin asignación
+      hint: servicios sin técnico asignado o sin responsable claro
+    overdue:
+      default: Fuera de ventana
+      hint: servicios que ya entraron en riesgo operativo por tiempo
+    operations:
+      title: Agenda y asignaciones
+      subtitle: Vista principal para coordinar servicios, responsables y próximos movimientos.
+    priority:
+      pill: Prioridad {value}
+    assignee:
+      label: Responsable
+    issues:
+      label: Novedades
+    type:
+      label: Tipo
+    team:
+      load:
+        title: Carga del equipo
+        subtitle: Balance rápido del equipo técnico para decidir asignaciones.
+    assigned:
+      count: "{count} asignados"
+    alerts:
+      title: Alertas operativas
+      subtitle: Bloqueos, urgencias y vencimientos que necesitan intervención.
+    alert:
+      urgent: Urgente
+      unassigned: Sin asignar
+      overdue: Vencido
+    action:
+      view:
+        service: Ver servicio
+      assign:
+        service: Revisar asignacion
+      close:
+        service: Ir al cierre
+    commercial:
+      title: Pipeline comercial y contractual
+      subtitle: Controles rápidos para lo que todavía necesita conversión o implementación.
+    quotes:
+      pending: Cotizaciones pendientes
+    contracts:
+      pending: Contratos por implementar
+    users:
+      label: Usuarios activos
+    buildings:
+      label: Edificios monitoreados
+    activity:
+      title: Actividad reciente
+      subtitle: Últimos movimientos relevantes generados por la operación.
 ai:
   title: IA operativa
   subtitle: Asistente transversal para informes, mensajes y seguimiento.
-  comingSoon: Aqui se integraran acciones de IA con foco en ahorro operativo real.
-  workspaceTitle: Sugerencias operativas
-  workspaceSubtitle: Acciones sugeridas para destrabar seguimiento, comunicación y cierre operativo.
-  suggestionUrgent: Prioriza este servicio, prepara mensaje al cliente y define seguimiento inmediato.
-  suggestionIssues: Resume las novedades, deja listo el informe y valida si hace falta seguimiento técnico.
-  suggestionDefault: Revisa el contexto del caso y deja claro el siguiente paso operativo.
-  caseSummaryTitle: Resumen del caso
-  customerMessageTitle: Mensaje sugerido al cliente
-  followUpTitle: Siguiente paso sugerido
+  coming:
+    soon: Aqui se integraran acciones de IA con foco en ahorro operativo real.
+  workspace:
+    title: Sugerencias operativas
+    subtitle: Acciones sugeridas para destrabar seguimiento, comunicación y cierre operativo.
+    badge: Espacio de trabajo IA
+  suggestion:
+    urgent: Prioriza este servicio, prepara mensaje al cliente y define seguimiento inmediato.
+    issues: Resume las novedades, deja listo el informe y valida si hace falta seguimiento técnico.
+    default: Revisa el contexto del caso y deja claro el siguiente paso operativo.
+  case:
+    summary:
+      title: Resumen del caso
+  customer:
+    message:
+      title: Mensaje sugerido al cliente
+  follow:
+    up:
+      title: Siguiente paso sugerido
   empty: No hay servicios activos para sugerencias ahora mismo.
-  workspaceBadge: Workspace IA
-  visibleSuggestionsHint: sugerencias visibles en este corte operativo
-  priorityPill: "Prioridad {value}"
+  visible:
+    suggestions:
+      hint: sugerencias visibles en este corte operativo
+  priority:
+    pill: Prioridad {value}
 technician:
-  homeTitle: Hoy
-  homeSubtitle: Espacio de trabajo movil para el tecnico.
-  comingSoon: Esta vista reunira los servicios del dia, contexto, checklist y cierre rapido desde movil.
-  assignedServices: Servicios asignados
-  pendingServices: Pendientes
-  issuesDetected: Novedades
-  nextServiceTitle: Siguiente servicio
-  nextServiceSubtitle: Primer corte del inicio técnico usando órdenes de servicio.
-  missingEmployee: No se encontro un tecnico asociado a este usuario.
+  home:
+    title: Hoy
+    subtitle: Espacio de trabajo movil para el tecnico.
+  coming:
+    soon: Esta vista reunira los servicios del dia, contexto, checklist y cierre rapido desde movil.
+  assigned:
+    services: Servicios asignados
+  pending:
+    services: Pendientes
+  issues:
+    detected: Novedades
+    label: Novedades
+  next:
+    service:
+      title: Siguiente servicio
+      subtitle: Primer corte del inicio técnico usando órdenes de servicio.
+  missing:
+    employee: No se encontro un tecnico asociado a este usuario.
   empty: No tienes servicios pendientes por ahora.
-  statusLabel: Estado
-  priorityLabel: Prioridad
-  issuesLabel: Novedades
-  mobileBadge: Vista movil
-  visibleServicesHint: servicios visibles para el tecnico actual
-  priorityPill: "Prioridad {value}"
+  status:
+    label: Estado
+  priority:
+    label: Prioridad
+    pill: Prioridad {value}
+  mobile:
+    badge: Vista movil
+  visible:
+    services:
+      hint: servicios visibles para el tecnico actual
 settings:
   title: Configuraciones
   subtitle: Administra tipos de novedad y categorias
-  groupsTitle: Grupos de edificios
-  groupsSubtitle: Configura los grupos y colores del portafolio
-  issuesTitle: Novedades
-  issuesSubtitle: Crea novedades con categorias
-  contractsTitle: Contratos
-  contractsSubtitle: Configura tipos de contrato y analisis de laboratorio
-  labsTitle: Analisis laboratorio
-  labsSubtitle: Configura los tipos de analisis de laboratorio
-  calendarTitle: Calendario
-  calendarSubtitle: Configura dias festivos y no laborables
-  holidaysTitle: Dias festivos
-  nonWorkingTitle: Dias no laborables
-  calendarDate: Fecha
-  calendarName: Nombre
-  calendarAddHoliday: Agregar festivo
-  calendarAddNonWorking: Agregar no laborable
-  calendarUpdate: Actualizar dia
-  calendarDateDuplicate: La fecha ya existe en el calendario.
-  calendarImportColombia: Importar festivos de Colombia
-  calendarYear: Ano
-  calendarYearInvalid: Ano invalido
-  calendarImportError: No se pudieron importar los festivos.
-  calendarImported: Festivos importados
-  calendarHolidayDefault: Festivo
-  buildingGroups: Grupos de edificios
-  groupName: Nombre del grupo
-  groupColor: Color
-  addGroup: Agregar grupo
-  updateGroup: Actualizar grupo
-  newGroup: Nuevo grupo
-  groupsTableTitle: Grupos registrados
-  saveGroups: Guardar grupos
-  groupsSaved: Grupos guardados
-  groupExists: El nombre del grupo ya existe
-  groupColorExists: El color del grupo ya existe
-  issueTypes: Tipos de novedad
-  issueCategories: Categorias
-  issueName: Nombre de la novedad
-  newCategory: Nueva categoria
-  addIssue: Agregar novedad
-  updateIssue: Actualizar novedad
-  issueDeleted: Novedad eliminada
-  issueUpdated: Novedad actualizada
-  issuesTableTitle: Novedades registradas
-  categoryPillHint: Las categorias se editan directamente en las pildoras.
-  addCategory: Agregar categoria
-  categoryHint: Selecciona un tipo para administrar sus categorias.
-  maintenanceTypesTitle: Tipos de contrato mantenimiento
-  labTypesTitle: Tipos de analisis laboratorio
-  contractTypeName: Nombre del tipo de contrato
-  labTypeName: Nombre del tipo de analisis
-  labTypeDescription: Descripcion
-  labTypeKind: Tipo
-  addContractType: Agregar tipo de contrato
-  updateContractType: Actualizar tipo de contrato
-  contractTypeDeleted: Tipo de contrato eliminado
-  contractTypeUpdated: Tipo de contrato actualizado
-  addLabType: Agregar tipo de analisis
-  updateLabType: Actualizar tipo de analisis
-  labTypeDeleted: Tipo de analisis eliminado
-  labTypeCreated: Tipo de analisis creado
-  labTypeUpdated: Tipo de analisis actualizado
-  labTypeDuplicate: Ya existe un tipo de analisis con ese nombre y tipo.
-  labTypeStatus: Estado
-  labTypeActive: Activo
-  labTypeDisabled: Deshabilitado
-  labTypeEnable: Habilitar
-  labTypeDisable: Deshabilitar
-  labTypeDeleteBlocked: No puedes eliminar un tipo de analisis asociado a contratos.
-  pricesSection: Precios por tipo de contrato
-  priceWaterTankSem1: Lavado tanque agua potable (sem 1)
-  priceWaterTankSem2: Lavado tanque agua potable (sem 2)
-  pricePozosLluvias: Lavado pozos eyectores aguas lluvias
-  pricePozosNegras: Lavado pozos eyectores aguas negras
-  priceHidraulicas: Pruebas hidraulicas red contra incendios
-  priceDrenaje: Limpieza sistema drenaje sotanos
-  priceTankRCI: Lavado tanque red contra incendios
-  priceMaintenance: Valor contrato mantenimiento
-  appliesYes: Aplica
-  appliesNo: No aplica
-  recommendedDatesTitle: Fechas recomendadas
-  priceValueLabel: Valor
-  recWaterPotableSem1: Agua potable 1 semestre
-  recWaterPotableSem2: Agua potable 2 semestre
-  recPozoLluvias: Pozo aguas lluvias
-  recPozoNegras: Pozo aguas negras
-  recTankRci: Tanque RCI
-  recPruebasRci: Pruebas RCI
-  save: Guardar cambios
+  groups:
+    title: Grupos de edificios
+    subtitle: Configura los grupos y colores del portafolio
+    table:
+      title: Grupos registrados
+    saved: Grupos guardados
+  issues:
+    title: Novedades
+    subtitle: Crea novedades con categorias
+    table:
+      title: Novedades registradas
+  contracts:
+    title: Contratos
+    subtitle: Configura tipos de contrato y analisis de laboratorio
+  labs:
+    title: Analisis laboratorio
+    subtitle: Configura los tipos de analisis de laboratorio
+  service:
+    types:
+      title: Tipos de servicio
+      subtitle: Catalogo administrable de tipos de servicio.
+      code: Codigo
+      name: Nombre
+      category: Categoria
+      default:
+        duration: Duracion por defecto (min)
+      description: Descripcion
+      add: Agregar tipo
+      update: Actualizar tipo
+      new: Nuevo tipo
+      status: Estado
+      active: Activo
+      inactive: Inactivo
+  automation:
+    title: Plantillas e IA
+    subtitle: Configuracion base multi-tenant para mensajes, reportes y politicas de IA.
+    templates: Plantillas
+    policies: Politicas IA
+    template:
+      saved: Plantilla guardada
+    policy:
+      saved: Politica IA guardada
+    subject: Asunto
+    content: Contenido
+    save:
+      template: Guardar plantilla
+      policy: Guardar politica IA
+    module: Modulo
+    role: Rol
+    tone: Tono
+    base:
+      instructions: Instrucciones base
+    customer:
+      message:
+        prompt: Prompt mensaje cliente
+    technical:
+      report:
+        prompt: Prompt reporte tecnico
+    follow:
+      up:
+        prompt: Prompt seguimiento
+  calendar:
+    title: Calendario
+    subtitle: Configura dias festivos y no laborables
+    date:
+      default: Fecha
+      duplicate: La fecha ya existe en el calendario.
+    name: Nombre
+    add:
+      holiday: Agregar festivo
+      non:
+        working: Agregar no laborable
+    update: Actualizar dia
+    import:
+      colombia: Importar festivos de Colombia
+      error: No se pudieron importar los festivos.
+    year:
+      default: Ano
+      invalid: Ano invalido
+    imported: Festivos importados
+    holiday:
+      default: Festivo
+  holidays:
+    title: Dias festivos
+  non:
+    working:
+      title: Dias no laborables
+  building:
+    groups: Grupos de edificios
+  group:
+    name: Nombre del grupo
+    color:
+      default: Color
+      exists: El color del grupo ya existe
+    exists: El nombre del grupo ya existe
+  add:
+    group: Agregar grupo
+    issue: Agregar novedad
+    category: Agregar categoria
+    contract:
+      type: Agregar tipo de contrato
+    lab:
+      type: Agregar tipo de analisis
+  update:
+    group: Actualizar grupo
+    issue: Actualizar novedad
+    contract:
+      type: Actualizar tipo de contrato
+    lab:
+      type: Actualizar tipo de analisis
+  new:
+    group: Nuevo grupo
+    category: Nueva categoria
+  save:
+    groups: Guardar grupos
+    default: Guardar cambios
+  issue:
+    types: Tipos de novedad
+    categories: Categorias
+    name: Nombre de la novedad
+    deleted: Novedad eliminada
+    updated: Novedad actualizada
+  category:
+    pill:
+      hint: Las categorias se editan directamente en las pildoras.
+    hint: Selecciona un tipo para administrar sus categorias.
+  maintenance:
+    types:
+      title: Tipos de contrato mantenimiento
+  lab:
+    types:
+      title: Tipos de analisis laboratorio
+    type:
+      name: Nombre del tipo de analisis
+      description: Descripcion
+      kind: Tipo
+      deleted: Tipo de analisis eliminado
+      created: Tipo de analisis creado
+      updated: Tipo de analisis actualizado
+      duplicate: Ya existe un tipo de analisis con ese nombre y tipo.
+      status: Estado
+      active: Activo
+      disabled: Deshabilitado
+      enable: Habilitar
+      disable: Deshabilitar
+      delete:
+        blocked: No puedes eliminar un tipo de analisis asociado a contratos.
+  contract:
+    type:
+      name: Nombre del tipo de contrato
+      deleted: Tipo de contrato eliminado
+      updated: Tipo de contrato actualizado
+  prices:
+    section: Precios por tipo de contrato
+  price:
+    water:
+      tank:
+        sem1: Lavado tanque agua potable (sem 1)
+        sem2: Lavado tanque agua potable (sem 2)
+    pozos:
+      lluvias: Lavado pozos eyectores aguas lluvias
+      negras: Lavado pozos eyectores aguas negras
+    hidraulicas: Pruebas hidraulicas red contra incendios
+    drenaje: Limpieza sistema drenaje sotanos
+    tank:
+      rci: Lavado tanque red contra incendios
+    maintenance: Valor contrato mantenimiento
+    value:
+      label: Valor
+  applies:
+    "yes": Aplica
+    "no": No aplica
+  recommended:
+    dates:
+      title: Fechas recomendadas
+  rec:
+    water:
+      potable:
+        sem1: Agua potable 1 semestre
+        sem2: Agua potable 2 semestre
+    pozo:
+      lluvias: Pozo aguas lluvias
+      negras: Pozo aguas negras
+    tank:
+      rci: Tanque RCI
+    pruebas:
+      rci: Pruebas RCI
   saving: Guardando...
-  toastSaved: Configuracion guardada
+  toast:
+    saved: Configuracion guardada
 management:
   title: Administraciones
   subtitle: Empresas administradoras registradas
   tabs:
     administrations: Administraciones
     contracts: Contratos
-  newTitle: Nueva administracion
+  new:
+    title: Nueva administracion
   name: Nombre
-  contactPhone: Telefono
+  contact:
+    phone: Telefono
   email: Email
-  billingEmail: Email facturacion
-  legalRepresentative: Representante legal
+  billing:
+    email: Email facturacion
+  legal:
+    representative: Representante legal
   group: Grupo
   type: Tipo
-  delegateName: Administrador delegado
-  delegatePhone: Celular administrador delegado
-  nit: NIT
+  delegate:
+    name: Administrador delegado
+    phone: Celular administrador delegado
+  nit:
+    default: NIT
+    format: "Formato NIT invalido (ej: 900123456-7)"
+    placeholder: 900123456-7
+    unique: El NIT ya existe
   address: Direccion
-  viewBuildings: Ver edificios
-  buildingsTitle: Edificios asociados
-  buildingsEmptyTitle: Sin edificios asociados
-  buildingsEmptySubtitle: Esta administracion aun no tiene edificios.
-  buildingsSelect: Edificios (opcional)
-  buildingsOptional: Selecciona uno o mas edificios.
-  buildingsRequired: Selecciona al menos un edificio.
-  buildingsEmpty: No hay edificios disponibles.
-  searchBuildings: Buscar edificios
-  availableBuildings: Disponibles
-  selectAll: Seleccionar todos
-  selectedBuildings: Seleccionados
-  selectedEmptyTitle: Sin edificios seleccionados
-  selectedEmptySubtitle: Selecciona uno o mas edificios para asociar.
+  view:
+    buildings: Ver edificios
+  buildings:
+    title: Edificios asociados
+    empty:
+      title: Sin edificios asociados
+      subtitle: Esta administracion aun no tiene edificios.
+      default: No hay edificios disponibles.
+    select: Edificios (opcional)
+    optional: Selecciona uno o mas edificios.
+    required: Selecciona al menos un edificio.
+  search:
+    buildings: Buscar edificios
+  available:
+    buildings: Disponibles
+  select:
+    all: Seleccionar todos
+  selected:
+    buildings: Seleccionados
+    empty:
+      title: Sin edificios seleccionados
+      subtitle: Selecciona uno o mas edificios para asociar.
   create: Crear administracion
   update: Actualizar administracion
   saving: Guardando...
-  emptyTitle: Sin administraciones
-  emptySubtitle: Registra tu primera empresa.
-  nitFormat: "Formato NIT invalido (ej: 900123456-7)"
-  nitPlaceholder: 900123456-7
-  nitUnique: El NIT ya existe
-  editTitle: Editar administracion
-  deleteTitle: Eliminar administracion
-  deleteConfirm: Estas seguro de eliminar esta administracion?
-  toastCreated: Administracion creada
-  toastUpdated: Administracion actualizada
-  toastDeleted: Administracion eliminada
+  empty:
+    title: Sin administraciones
+    subtitle: Registra tu primera empresa.
+  edit:
+    title: Editar administracion
+  delete:
+    title: Eliminar administracion
+    confirm: Estas seguro de eliminar esta administracion?
+  toast:
+    created: Administracion creada
+    updated: Administracion actualizada
+    deleted: Administracion eliminada
   types:
-    EDIFICIO: Edificio
-    CONJUNTO_RESIDENCIAL: Conjunto residencial
-    UNIDAD: Unidad
+    edificio: Edificio
+    conjunto_residencial: Conjunto residencial
+    unidad: Unidad
 contracts:
   title: Contratos
   subtitle: Gestion de contratos por administracion
-  detailTitle: Detalle de contrato
+  detail:
+    title: Detalle de contrato
   name: Nombre
   administration: Administracion
-  maintenanceType: Tipo contrato mantenimiento
-  labAnalysisType: Tipo analisis laboratorio
-  labAnalysisPrice: Valor analisis laboratorio
-  pricesTitle: Lista de precios del contrato
-  priceWaterTankSem1: Lavado tanque agua potable (sem 1)
-  priceWaterTankSem2: Lavado tanque agua potable (sem 2)
-  pricePozosLluvias: Lavado pozos eyectores aguas lluvias
-  pricePozosNegras: Lavado pozos eyectores aguas negras
-  priceHidraulicas: Pruebas hidraulicas red contra incendios
-  priceDrenaje: Limpieza sistema drenaje sotanos
-  priceTankRCI: Lavado tanque red contra incendios
-  priceMaintenance: Valor contrato mantenimiento
-  startAt: Inicio
-  endAt: Fin
-  status: Estado
-  statusActive: Activo
-  statusInactive: Inactivo
-  newTitle: Nuevo contrato
-  editTitle: Editar contrato
+  maintenance:
+    type:
+      default: Tipo contrato mantenimiento
+      required: Selecciona un tipo de contrato mantenimiento.
+  lab:
+    analysis:
+      type: Tipo analisis laboratorio
+      price: Valor analisis laboratorio
+    type:
+      required: Selecciona un tipo de analisis de laboratorio.
+    price:
+      invalid: Valor de analisis invalido.
+  prices:
+    title: Lista de precios del contrato
+  price:
+    water:
+      tank:
+        sem1: Lavado tanque agua potable (sem 1)
+        sem2: Lavado tanque agua potable (sem 2)
+    pozos:
+      lluvias: Lavado pozos eyectores aguas lluvias
+      negras: Lavado pozos eyectores aguas negras
+    hidraulicas: Pruebas hidraulicas red contra incendios
+    drenaje: Limpieza sistema drenaje sotanos
+    tank:
+      rci: Lavado tanque red contra incendios
+    maintenance: Valor contrato mantenimiento
+  start:
+    at: Inicio
+  end:
+    at: Fin
+  status:
+    default: Estado
+    active: Activo
+    inactive: Inactivo
+  new:
+    title: Nuevo contrato
+  edit:
+    title: Editar contrato
   create: Crear contrato
   update: Actualizar contrato
   saving: Guardando...
-  emptyTitle: Sin contratos
-  emptySubtitle: Crea el primer contrato.
-  deleteTitle: Eliminar contrato
-  deleteConfirm: Estas seguro de eliminar este contrato?
-  deleteBlocked: No puedes eliminar un contrato asignado a edificios.
-  toastCreated: Contrato creado
-  toastUpdated: Contrato actualizado
-  toastDeleted: Contrato eliminado
-  maintenanceTypeRequired: Selecciona un tipo de contrato mantenimiento.
-  labTypeRequired: Selecciona un tipo de analisis de laboratorio.
-  labPriceInvalid: Valor de analisis invalido.
+  empty:
+    title: Sin contratos
+    subtitle: Crea el primer contrato.
+  delete:
+    title: Eliminar contrato
+    confirm: Estas seguro de eliminar este contrato?
+    blocked: No puedes eliminar un contrato asignado a edificios.
+  toast:
+    created: Contrato creado
+    updated: Contrato actualizado
+    deleted: Contrato eliminado
 buildings:
   title: Edificios
   subtitle: Gestiona tu portafolio de edificios
-  newTitle: Nuevo edificio
+  new:
+    title: Nuevo edificio
   name: Nombre
   group: Grupo
   type: Tipo
-  delegateName: Administrador delegado
-  delegatePhone: Celular administrador delegado
+  delegate:
+    name: Administrador delegado
+    phone: Celular administrador delegado
   nit: NIT
   email: Email
-  billingEmail: Email facturacion
-  porterPhone: Telefono porteria
-  managementCompany: Administracion
-  address: Direccion (Google Maps)
-  managementRequired: Selecciona una administracion
-  addressRequired: Selecciona una direccion valida
-  contract: Contrato
-  noContract: Sin contrato
-  contractRequired: Selecciona un contrato
-  contractMismatch: El contrato no pertenece a la administracion seleccionada
+  billing:
+    email: Email facturacion
+  porter:
+    phone: Telefono porteria
+  management:
+    company: Administracion
+    required: Selecciona una administracion
+  address:
+    default: Direccion (Google Maps)
+    required: Selecciona una direccion valida
+  contract:
+    default: Contrato
+    required: Selecciona un contrato
+    mismatch: El contrato no pertenece a la administracion seleccionada
+  "no":
+    contract: Sin contrato
   types:
-    EDIFICIO: Edificio
-    CONJUNTO_RESIDENCIAL: Conjunto residencial
-    UNIDAD: Unidad
+    edificio: Edificio
+    conjunto_residencial: Conjunto residencial
+    unidad: Unidad
   status: Estado
   active: Activo
   disabled: Deshabilitado
@@ -537,37 +914,93 @@ buildings:
   create: Crear edificio
   update: Actualizar edificio
   saving: Guardando...
-  emptyTitle: Sin edificios
-  emptySubtitle: Crea el primer edificio para empezar.
-  bulkTitle: Importacion masiva
-  bulkHint: CSV o XLSX con columnas building_name, address, porter_phone, management_name.
+  empty:
+    title: Sin edificios
+    subtitle: Crea el primer edificio para empezar.
+  bulk:
+    title: Importacion masiva
+    hint: CSV o XLSX con columnas building_name, address, porter_phone, management_name.
+  import:
+    select:
+      file: Seleccionar archivo
+    run: Importar archivo
+    validated:
+      entity: Entidad validada
+    valid:
+      rows: Filas validas
+    invalid:
+      rows: Filas invalidas
+    remote:
+      validation: Validacion remota
+    dry:
+      run:
+        label: Simulacion
+    final:
+      label: Importacion final
+    entity:
+      label: Entidad
+    evaluated:
+      rows: Filas evaluadas
+    "no":
+      remote:
+        summary: Sin resumen remoto
+    detected:
+      entity: Entidad detectada
+  technical:
+    context:
+      title: Contexto tecnico
+      subtitle: Informacion tecnica del edificio
+    equipment:
+      label: Equipos
+    mechanical:
+      room:
+        label: Cuarto de maquinas
+    electrical:
+      label: Electrico
+    observations:
+      label: Observaciones
   uploading: Subiendo...
   created: Creado
   failed: Fallidos
-  errorsFileName: errores-importacion.csv
-  errorFileHeader: fila,mensaje
-  mapTitle: Mapa de edificios
-  errorTableTitle: Filas con error
-  errorRow: Fila
-  errorMessage: Error
-  editTitle: Editar edificio
-  deleteTitle: Eliminar edificio
-  deleteConfirm: Estas seguro de eliminar este edificio?
-  toastCreated: Edificio creado
-  toastUpdated: Edificio actualizado
-  toastDeleted: Edificio eliminado
-  toastEnabled: Edificio habilitado
-  toastDisabled: Edificio deshabilitado
-  detailTitle: Detalle de edificio
-  maintenanceTitle: Mantenimientos programados
-  maintenanceEmptyTitle: Sin mantenimientos
-  maintenanceEmptySubtitle: No hay mantenimientos programados para este edificio.
-  viewContract: Ver contrato
+  errors:
+    file:
+      name: errores-importacion.csv
+  error:
+    file:
+      header: fila,mensaje
+    table:
+      title: Filas con error
+    row: Fila
+    message: Error
+  map:
+    title: Mapa de edificios
+  edit:
+    title: Editar edificio
+  delete:
+    title: Eliminar edificio
+    confirm: Estas seguro de eliminar este edificio?
+  toast:
+    created: Edificio creado
+    updated: Edificio actualizado
+    deleted: Edificio eliminado
+    enabled: Edificio habilitado
+    disabled: Edificio deshabilitado
+  detail:
+    title: Detalle de edificio
+  maintenance:
+    title: Mantenimientos programados
+    empty:
+      title: Sin mantenimientos
+      subtitle: No hay mantenimientos programados para este edificio.
+  view:
+    contract: Ver contrato
 employees:
   title: Empleados
   subtitle: Equipo operativo
-  newTitle: Nuevo empleado
-  fullName: Nombre completo
+  new:
+    title: Nuevo empleado
+  full:
+    name: Nombre completo
   phone: Telefono
   email: Email
   role: Rol
@@ -576,14 +1009,18 @@ employees:
   create: Crear empleado
   update: Actualizar empleado
   saving: Guardando...
-  emptyTitle: Sin empleados
-  emptySubtitle: Agrega el equipo operativo.
-  editTitle: Editar empleado
-  deleteTitle: Eliminar empleado
-  deleteConfirm: Estas seguro de eliminar este empleado?
-  toastCreated: Empleado creado
-  toastUpdated: Empleado actualizado
-  toastDeleted: Empleado eliminado
+  empty:
+    title: Sin empleados
+    subtitle: Agrega el equipo operativo.
+  edit:
+    title: Editar empleado
+  delete:
+    title: Eliminar empleado
+    confirm: Estas seguro de eliminar este empleado?
+  toast:
+    created: Empleado creado
+    updated: Empleado actualizado
+    deleted: Empleado eliminado
   roles:
     admin: Administrador
     tech: Tecnico
@@ -600,22 +1037,29 @@ users:
   disabled: Deshabilitado
   enable: Habilitar
   disable: Deshabilitar
-  emptyTitle: Sin usuarios
-  emptySubtitle: Agrega el primer usuario para empezar.
-  createTitle: Crear usuario
-  editTitle: Editar usuario
-  deleteTitle: Eliminar usuario
-  deleteConfirm: Estas seguro de eliminar este usuario?
-  create: Crear usuario
+  empty:
+    title: Sin usuarios
+    subtitle: Agrega el primer usuario para empezar.
+  create:
+    title: Crear usuario
+    default: Crear usuario
+  edit:
+    title: Editar usuario
+  delete:
+    title: Eliminar usuario
+    confirm: Estas seguro de eliminar este usuario?
   creating: Creando...
   update: Actualizar usuario
   saving: Guardando...
-  generatedPasswordTitle: Contrasena generada
-  toastCreated: Usuario creado
-  toastUpdated: Usuario actualizado
-  toastDeleted: Usuario eliminado
-  toastEnabled: Usuario habilitado
-  toastDisabled: Usuario deshabilitado
+  generated:
+    password:
+      title: Contrasena generada
+  toast:
+    created: Usuario creado
+    updated: Usuario actualizado
+    deleted: Usuario eliminado
+    enabled: Usuario habilitado
+    disabled: Usuario deshabilitado
   unauthorized: No tienes permisos para administrar usuarios.
   roles:
     view: Ver
@@ -624,114 +1068,295 @@ users:
     building_admin: Admin edificio
     emergency_scheduler: Emergencias
 scheduling:
-  serviceReport: Reporte de servicio
-  entryHourLabel: Hora entrada
-  exitHourLabel: Hora salida
-  observationsLabel: Observaciones
-  checklistTitle: Checklist
-  group1Pumps: Grupo 1 (Bombas)
-  group2Label: Grupo 2
-  group3Label: Grupo 3
-  pumpLabel: "Bomba {index}"
-  itemLabel: Elemento
-  statusLabelShort: Estado
-  distributionNetworkLabel: Red de distribución
-  servicePhotosTitle: Fotos del servicio
-  servicePhotosRequirement: (minimo 1, ilimitadas)
-  reviewDetailsTitle: Detalles de la revision
-  addPump: Agregar bomba
-  goodOption: Bueno
-  regularOption: Regular
-  badOption: Malo
-  notApplicableOption: N/A
-  goodFemaleOption: Buena
-  badFemaleOption: Mala
-  hourPlaceholder: Hora
-  minutePlaceholder: Min
-  issuePhotosHint: Debes adjuntar minimo 2 fotos por novedad (puedes agregar mas).
-  closeViewer: Cerrar visor
-  title: Agendamientos
+  service:
+    report: Reporte de servicio
+    photos:
+      title: Fotos del servicio
+      requirement: (minimo 1, ilimitadas)
+  entry:
+    hour:
+      label: Hora entrada
+  exit:
+    hour:
+      label: Hora salida
+  observations:
+    label: Observaciones
+  checklist:
+    title: Checklist
+  group1:
+    pumps: Grupo 1 (Bombas)
+  group2:
+    label: Grupo 2
+  group3:
+    label: Grupo 3
+  pump:
+    label: Bomba {index}
+  item:
+    label: Elemento
+  status:
+    label:
+      short: Estado
+      default: Estado
+    default: Estado
+    programmed: Programado
+    confirmed: Confirmado
+    completed: Completado
+    canceled: Cancelado
+  distribution:
+    network:
+      label: Red de distribución
+  review:
+    details:
+      title: Detalles de la revision
+  add:
+    pump: Agregar bomba
+    photo: Agregar foto
+    issue: Agregar novedad
+  good:
+    option: Bueno
+    female:
+      option: Buena
+  regular:
+    option: Regular
+  bad:
+    option: Malo
+    female:
+      option: Mala
+  not:
+    applicable:
+      option: N/A
+  hour:
+    placeholder: Hora
+  minute:
+    placeholder: Min
+  issue:
+    photos:
+      hint: Debes adjuntar minimo 2 fotos por novedad (puedes agregar mas).
+      default: Fotos (2 obligatorias)
+      required: Debes agregar 2 fotos.
+    question: Hubo novedades?
+    type: Tipo de novedad
+    category: Categoria
+    description: Descripcion
+    list: Novedades agregadas
+    required: Tipo y categoria son obligatorios.
+    decision:
+      required: Indica si hubo novedades.
+    at:
+      least:
+        one: Agrega al menos una novedad.
+    types:
+      operativo: Operativo
+      seguridad: Seguridad
+      infraestructura: Infraestructura
+      otro: Otro
+    categories:
+      limpieza: Limpieza
+      mantenimiento: Mantenimiento
+      logistica: Logistica
+      acceso: Acceso
+      incidente: Incidente
+      prevencion: Prevencion
+      electricidad: Electricidad
+      plomeria: Plomeria
+      estructura: Estructura
+      general: General
+  close:
+    viewer: Cerrar visor
+  title:
+    default: Agendamientos
+    label: Titulo
   subtitle: Calendario y agenda operativa
-  newTitle: Nuevo agendamiento
-  building: Edificio
-  searchBuilding: Buscar edificio
-  titleLabel: Titulo
-  description: Descripcion
-  startAt: Inicio
-  endAt: Fin
-  status: Estado
+  eyebrow: Agendamiento
+  quick:
+    create: Crear servicio rapido
+    description: Flujo rapido para agenda diaria. Si el caso requiere mas contexto, recurrencia o notas operativas, escalalo a la edicion completa.
+    service:
+      type: Tipo de servicio
+    select:
+      building: Selecciona un edificio
+      type: Selecciona un tipo
+    start:
+      at: Fecha y hora inicial
+    duration: Duracion estimada (min)
+    resulting:
+      status: "Estado resultante:"
+    status:
+      hint: Con tecnico asignado queda programado. Sin tecnico queda visible para asignacion desde la agenda.
+    full:
+      edit: Ir a edicion completa
+    creating: Creando...
+    submit: Crear servicio
+    toast:
+      scheduled: Servicio creado y programado.
+      unassigned: Servicio creado sin tecnico. Quedo listo para asignacion.
+      error: No fue posible crear el servicio.
+    timeline:
+      created: Servicio creado desde creacion rapida
+      scheduled: Servicio programado con tecnico desde creacion rapida
+      unassigned: Servicio creado sin tecnico desde creacion rapida
+  go:
+    to:
+      services: Ir a servicios
+  loading:
+    agenda: Cargando agenda...
+  metrics:
+    visible:
+      services: Servicios visibles
+      hint: Alcance actual de la agenda.
+    scheduled:
+      default: Programados
+      hint: Con franja activa y asignacion operativa.
+    unassigned:
+      default: Sin tecnico
+      hint: Listos para asignacion.
+    conflicts:
+      default: Conflictos
+      hint: Detectados sobre la agenda filtrada.
+  filters:
+    title: Filtros
+    subtitle: Filtra por tecnico, edificio, estado, tipo, prioridad y rango de fechas.
+    results: "{count} resultados"
+    technician: Tecnico
+    building: Edificio
+    status: Estado
+    priority: Prioridad
+    type:
+      default: Tipo
+      placeholder: mantenimiento, inspeccion...
+    clear: Limpiar filtros
+  operational:
+    calendar:
+      title: Calendario operativo
+      subtitle: Vistas dia/semana/mes/trimestre/ano. Tambien puedes seleccionar una franja para crear agendamiento.
+      empty: No hay eventos visibles con los filtros actuales.
+  details:
+    select: Selecciona un agendamiento para ver su detalle y acciones rapidas.
+    service: Servicio
+    conflict: Conflicto detectado en agenda para este horario.
+    schedule: Horario
+  sidebar:
+    title: Resumen lateral
+    empty: Aun no hay grupos visibles para esta agenda.
+    edit:
+      hint: Abrir edicion completa del servicio.
+  validation:
+    building:
+      required: El edificio es obligatorio.
+    type:
+      required: El tipo de servicio es obligatorio.
+    start:
+      required: La fecha y hora inicial son obligatorias.
+    duration:
+      min: La duracion minima es de 15 minutos.
+  new:
+    title: Nuevo agendamiento
+  building:
+    default: Edificio
+    label: Edificio
+    required: Selecciona un edificio
+  search:
+    building: Buscar edificio
+  description:
+    default: Descripcion
+    label: Descripcion
+  start:
+    at: Inicio
+  end:
+    at: Fin
   type: Tipo
   employee: Empleado
-  recurrence: Recurrencia
-  noRecurrence: No se repite
+  recurrence:
+    default: Recurrencia
+    label: Recurrencia
+    options:
+      semanal: Semanal
+      quincenal: Quincenal
+      mensual: Mensual
+      bimensual: Bimensual
+      semestral: Semestral
+  "no":
+    recurrence: No se repite
   create: Crear agendamiento
   update: Actualizar agendamiento
   saving: Guardando...
   calendar: Calendario
-  viewLabel: Vista
-  viewCalendar: Calendario
-  viewList: Lista
-  toastCreated: Agendamiento creado
-  toastUpdated: Agendamiento actualizado
-  toastCanceled: Agendamiento cancelado
-  toastDeleted: Agendamiento eliminado
-  toastCompleted: Agendamiento completado
-  exactDate: Fecha exacta
+  view:
+    label: Vista
+    calendar: Calendario
+    list: Lista
+  toast:
+    created: Agendamiento creado
+    updated: Agendamiento actualizado
+    canceled: Agendamiento cancelado
+    deleted: Agendamiento eliminado
+    completed: Agendamiento completado
+  exact:
+    date: Fecha exacta
   from: Desde
   to: Hasta
-  emptyTitle: Sin agendamientos
-  emptySubtitle: Crea el primer evento.
+  empty:
+    title: Sin agendamientos
+    subtitle: Crea el primer evento.
   scheduled: Agendados
   completed: Completados
-  detailTitle: Detalle de agendamiento
-  buildingLabel: Edificio
-  statusLabel: Estado
-  recurrenceLabel: Recurrencia
-  descriptionLabel: Descripcion
-  filtersTitle: Filtros
-  buildingRequired: Selecciona un edificio
-  pdfGenerate: Generar PDF
-  pdfGenerating: Generando PDF...
-  pdfReady: PDF generado
-  pdfError: No se pudo generar el PDF
-  dateBlocked: No se puede agendar en dias festivos o no laborables.
-  emergencyOnly: Solo puedes agendar servicios de emergencia.
-  emergencyPermission: No tienes permisos para agendar emergencias en esos dias.
-  contractRequired: El edificio debe tener un contrato con fechas para programar recurrencias.
-  contractOutOfRange: La fecha seleccionada esta fuera del rango del contrato.
-  seriesConfirmTitle: Regenerar serie
-  seriesConfirmDescription: Esta accion eliminara la serie actual y generara una nueva. Deseas continuar?
-  businessHoursStart: El inicio debe estar entre 8:00 AM y 6:00 PM.
-  businessHoursEnd: La finalizacion debe estar entre 8:00 AM y 6:00 PM.
-  businessHoursToast: Solo puedes programar servicios entre 8:00 AM y 6:00 PM.
-  statusProgrammed: Programado
-  statusConfirmed: Confirmado
-  statusCompleted: Completado
-  statusCanceled: Cancelado
-  cancel: Cancelar
-  complete: Completar
-  completeTitle: Completar servicio
+  detail:
+    title: Detalle de agendamiento
+  pdf:
+    generate: Generar PDF
+    generating: Generando PDF...
+    ready: PDF generado
+    error: No se pudo generar el PDF
+  date:
+    blocked: No se puede agendar en dias festivos o no laborables.
+  emergency:
+    only: Solo puedes agendar servicios de emergencia.
+    permission: No tienes permisos para agendar emergencias en esos dias.
+  contract:
+    required: El edificio debe tener un contrato con fechas para programar recurrencias.
+    out:
+      of:
+        range: La fecha seleccionada esta fuera del rango del contrato.
+  series:
+    confirm:
+      title: Regenerar serie
+      description: Esta accion eliminara la serie actual y generara una nueva. Deseas continuar?
+  business:
+    hours:
+      start: El inicio debe estar entre 8:00 AM y 6:00 PM.
+      end: La finalizacion debe estar entre 8:00 AM y 6:00 PM.
+      toast: Solo puedes programar servicios entre 8:00 AM y 6:00 PM.
+  cancel:
+    default: Cancelar
+    title: Cancelar agendamiento
+    reason: Razon de cancelacion
+    note: Nota de cancelacion
+    reasons:
+      cliente: Cliente
+      personal: Personal
+      clima: Clima
+      reprogramado: Reprogramado
+      otro: Otro
+  complete:
+    default: Completar
+    title: Completar servicio
+  completion:
+    photo:
+      required: Agrega al menos una foto del servicio.
+    required:
+      fields: Completa los campos obligatorios del reporte.
+    exit:
+      after:
+        entry: La hora de salida debe ser posterior a la hora de entrada.
   completing: Completando...
-  cancelTitle: Cancelar agendamiento
-  cancelReason: Razon de cancelacion
-  cancelNote: Nota de cancelacion
   cancelling: Cancelando...
-  confirmCancel: Confirmar cancelacion
-  deleteTitle: Eliminar agendamiento
-  deleteConfirm: Estas seguro de eliminar este agendamiento?
-  issueQuestion: Hubo novedades?
-  issueType: Tipo de novedad
-  issueCategory: Categoria
-  issueDescription: Descripcion
-  issuePhotos: Fotos (2 obligatorias)
-  addPhoto: Agregar foto
-  addIssue: Agregar novedad
-  issueList: Novedades agregadas
-  issueRequired: Tipo y categoria son obligatorios.
-  issuePhotosRequired: Debes agregar 2 fotos.
-  issueDecisionRequired: Indica si hubo novedades.
-  issueAtLeastOne: Agrega al menos una novedad.
-  issuesTitle: Novedades
+  confirm:
+    cancel: Confirmar cancelacion
+  delete:
+    title: Eliminar agendamiento
+    confirm: Estas seguro de eliminar este agendamiento?
+  issues:
+    title: Novedades
   views:
     day: Dia
     week: Semana
@@ -739,78 +1364,71 @@ scheduling:
     quarter: Trimestre
     semester: Semestre
     year: Año
-  allDay: Todo el dia
-  recurrenceOptions:
-    semanal: Semanal
-    quincenal: Quincenal
-    mensual: Mensual
-    bimensual: Bimensual
-    semestral: Semestral
+  all:
+    day: Todo el dia
   types:
     mantenimiento: Mantenimiento
     lavado_tanque: Lavado de tanque
     emergencia: Emergencia
     interventoria: Interventoria
-  issueTypes:
-    operativo: Operativo
-    seguridad: Seguridad
-    infraestructura: Infraestructura
-    otro: Otro
-  issueCategories:
-    limpieza: Limpieza
-    mantenimiento: Mantenimiento
-    logistica: Logistica
-    acceso: Acceso
-    incidente: Incidente
-    prevencion: Prevencion
-    electricidad: Electricidad
-    plomeria: Plomeria
-    estructura: Estructura
-    general: General
-  cancelReasons:
-    cliente: Cliente
-    personal: Personal
-    clima: Clima
-    reprogramado: Reprogramado
-    otro: Otro
 dashboard:
   title: Dashboard
   subtitle: Pulso operativo del portafolio
   from: Desde
   to: Hasta
-  trendTitle: Actividad diaria
-  trendHint: Total vs completados (ultimos 10 dias)
-  completionTitle: Cumplimiento
-  completedRate: Tasa de cumplimiento
-  completed: Completados
-  pending: Pendientes
-  pendingTitle: Pendientes
-  pendingLabel: Pendiente
-  pendingEmpty: No hay pendientes vencidos.
-  pendingCount: "{count} pendientes"
-  pendingCompleted: Pendiente completado
-  pendingCanceled: Pendiente cancelado
-  pendingCancelRequired: Selecciona una razon o escribe una nota.
+  trend:
+    title: Actividad diaria
+    hint: Total vs completados (ultimos 10 dias)
+  completion:
+    title: Cumplimiento
+  completed:
+    rate: Tasa de cumplimiento
+    default: Completados
+  pending:
+    default: Pendientes
+    title: Pendientes
+    label: Pendiente
+    empty: No hay pendientes vencidos.
+    count: "{count} pendientes"
+    completed: Pendiente completado
+    canceled: Pendiente cancelado
+    cancel:
+      required: Selecciona una razon o escribe una nota.
   buildings: Edificios
   managements: Administraciones
   employees: Empleados activos
-  appointmentsToday: Agendamientos hoy
-  byDay: Agendamientos por dia
-  byType: Agendamientos por tipo
-  weeklyCompliance: Cumplimiento semanal
-  topEmployees: Top empleados con mas servicios
-  topCanceledBuildings: Edificios con mas cancelaciones
-  avgDuration: Duracion promedio por tipo (min)
-  nextDays: Proximos 7 dias
-  nextEmpty: No hay agendamientos proximos.
-  dailyEmpty: Sin datos de agendamientos.
-  topBuildings: Top edificios con mas actividad
-  topEmpty: Aun no hay actividad registrada.
-  chartTitle: Agendamientos completados vs agendados
-  upcomingHint: Calendario
-  activeHint: En servicio
-  registeredHint: Registradas
-  activeBuildingsHint: Activos
+  appointments:
+    today: Agendamientos hoy
+  by:
+    day: Agendamientos por dia
+    type: Agendamientos por tipo
+  weekly:
+    compliance: Cumplimiento semanal
+  top:
+    employees: Top empleados con mas servicios
+    canceled:
+      buildings: Edificios con mas cancelaciones
+    buildings: Top edificios con mas actividad
+    empty: Aun no hay actividad registrada.
+  avg:
+    duration: Duracion promedio por tipo (min)
+  next:
+    days: Proximos 7 dias
+    empty: No hay agendamientos proximos.
+  daily:
+    empty: Sin datos de agendamientos.
+  chart:
+    title: Agendamientos completados vs agendados
+  upcoming:
+    hint: Calendario
+  active:
+    hint: En servicio
+    buildings:
+      hint: Activos
+  registered:
+    hint: Registradas
   activities: actividades
 errors:
-  invalidDateRange: La fecha de fin debe ser mayor que la fecha de inicio
+  invalid:
+    date:
+      range: La fecha de fin debe ser mayor que la fecha de inicio

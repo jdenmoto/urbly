@@ -48,7 +48,7 @@ export default function UsersPage() {
 
   const schema = z
     .object({
-      email: z.string().email(t('auth.errorEmail')),
+      email: z.string().email(t('auth.error.email')),
       role: z.enum(roleOptions, {
         errorMap: () => ({ message: t('common.required') })
       }),
@@ -175,10 +175,10 @@ export default function UsersPage() {
       const result = await createAppUser(values.email, values.role, values.administrationId || null);
       setGeneratedPassword(result.password);
       await queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast(t('users.toastCreated'), 'success');
+      toast(t('users.toast.created'), 'success');
       reset({ email: '', role: 'view', administrationId: '' });
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     }
   };
 
@@ -201,11 +201,11 @@ export default function UsersPage() {
         administrationId: values.administrationId || null
       });
       await queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast(t('users.toastUpdated'), 'success');
+      toast(t('users.toast.updated'), 'success');
       setEditOpen(false);
       setEditingUser(null);
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     }
   };
 
@@ -213,9 +213,9 @@ export default function UsersPage() {
     try {
       await setAppUserDisabled(user.id, user.active);
       await queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast(user.active ? t('users.toastDisabled') : t('users.toastEnabled'), 'success');
+      toast(user.active ? t('users.toast.disabled') : t('users.toast.enabled'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     }
   };
 
@@ -224,9 +224,9 @@ export default function UsersPage() {
     try {
       await deleteAppUser(deleteTarget.id);
       await queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast(t('users.toastDeleted'), 'success');
+      toast(t('users.toast.deleted'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     } finally {
       setDeleteTarget(null);
     }
@@ -242,12 +242,12 @@ export default function UsersPage() {
       <DataTable
         columns={columns}
         data={users}
-        emptyState={<EmptyState title={t('users.emptyTitle')} description={t('users.emptySubtitle')} />}
+        emptyState={<EmptyState title={t('users.empty.title')} description={t('users.empty.subtitle')} />}
       />
 
       <Modal
         open={createOpen}
-        title={t('users.createTitle')}
+        title={t('users.create.title')}
         onClose={() => {
           setCreateOpen(false);
           setGeneratedPassword(null);
@@ -279,19 +279,19 @@ export default function UsersPage() {
           ) : null}
           {generatedPassword ? (
             <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
-              <p className="font-semibold text-ink-900">{t('users.generatedPasswordTitle')}</p>
+              <p className="font-semibold text-ink-900">{t('users.generated.password.title')}</p>
               <p className="break-all font-mono text-xs">{generatedPassword}</p>
             </div>
           ) : null}
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? t('users.creating') : t('users.create')}
+            {isSubmitting ? t('users.creating') : t('users.create.default')}
           </Button>
         </form>
       </Modal>
 
       <Modal
         open={editOpen}
-        title={t('users.editTitle')}
+        title={t('users.edit.title')}
         onClose={() => {
           setEditOpen(false);
           setEditingUser(null);
@@ -329,8 +329,8 @@ export default function UsersPage() {
 
       <ConfirmModal
         open={Boolean(deleteTarget)}
-        title={t('users.deleteTitle')}
-        description={t('users.deleteConfirm')}
+        title={t('users.delete.title')}
+        description={t('users.delete.confirm')}
         onConfirm={confirmDelete}
         onClose={() => setDeleteTarget(null)}
       />

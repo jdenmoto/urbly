@@ -5,6 +5,7 @@ import FullCalendar from '@fullcalendar/react';
 import interactionPlugin from '@fullcalendar/interaction';
 import timeGridPlugin from '@fullcalendar/timegrid';
 
+import { useI18n } from '@/lib/i18n';
 import type { SchedulingCalendarEvent } from './useSchedulingPageData';
 
 type Props = {
@@ -39,6 +40,8 @@ function getEventClassNames(event: SchedulingCalendarEvent) {
 }
 
 export default function SchedulingCalendar({ events, selectedEventId, onSelectEvent, onRangeSelect }: Props) {
+  const { t } = useI18n();
+
   return (
     <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white p-3 shadow-sm">
       <FullCalendar
@@ -49,12 +52,12 @@ export default function SchedulingCalendar({ events, selectedEventId, onSelectEv
           quarterGrid: {
             type: 'dayGrid',
             duration: { months: 3 },
-            buttonText: 'Trimestre',
+            buttonText: t('scheduling.views.quarter'),
           },
           multiMonthYear: {
             type: 'multiMonth',
             duration: { years: 1 },
-            buttonText: 'Año',
+            buttonText: t('scheduling.views.year'),
           },
         }}
         height="auto"
@@ -62,10 +65,10 @@ export default function SchedulingCalendar({ events, selectedEventId, onSelectEv
         selectable
         locale={esLocale}
         buttonText={{
-          today: 'Hoy',
-          month: 'Mes',
-          week: 'Semana',
-          day: 'Día',
+          today: t('common.today'),
+          month: t('scheduling.views.month'),
+          week: t('scheduling.views.week'),
+          day: t('scheduling.views.day'),
         }}
         slotMinTime="06:00:00"
         slotMaxTime="20:00:00"
@@ -97,7 +100,7 @@ export default function SchedulingCalendar({ events, selectedEventId, onSelectEv
         eventContent={(info) => (
           <div className="px-1 py-0.5 text-xs">
             <p className="truncate font-semibold">{info.event.title}</p>
-            <p className="truncate opacity-80">{String(info.event.extendedProps.technicianName ?? 'Sin técnico')}</p>
+            <p className="truncate opacity-80">{String(info.event.extendedProps.technicianName ?? t('services.status.unassigned'))}</p>
           </div>
         )}
       />

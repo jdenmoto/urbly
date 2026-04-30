@@ -22,8 +22,8 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [resetOpen, setResetOpen] = useState(false);
   const schema = z.object({
-    email: z.string().email(t('auth.errorEmail')),
-    password: z.string().min(6, t('auth.errorPassword'))
+    email: z.string().email(t('auth.error.email')),
+    password: z.string().min(6, t('auth.error.password'))
   });
   type FormValues = z.infer<typeof schema>;
   const {
@@ -33,7 +33,7 @@ export default function LoginPage() {
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const resetSchema = z.object({
-    email: z.string().email(t('auth.errorEmail'))
+    email: z.string().email(t('auth.error.email'))
   });
   type ResetValues = z.infer<typeof resetSchema>;
   const {
@@ -48,18 +48,18 @@ export default function LoginPage() {
     try {
       await login(values.email, values.password);
     } catch {
-      setError(t('auth.error'));
+      setError(t('auth.error.default'));
     }
   };
 
   const onReset = async (values: ResetValues) => {
     try {
       await sendPasswordResetEmail(auth, values.email);
-      toast(t('auth.resetSent'), 'success');
+      toast(t('auth.reset.sent'), 'success');
       resetForm();
       setResetOpen(false);
     } catch {
-      toast(t('auth.resetError'), 'error');
+      toast(t('auth.reset.error'), 'error');
     }
   };
 
@@ -86,7 +86,7 @@ export default function LoginPage() {
         await login(credentials.email, credentials.password);
       } catch {
         if (!cancelled) {
-          setError('No fue posible iniciar la sesión QA local.');
+          setError(t('auth.qa.error'));
         }
       }
     })();
@@ -94,7 +94,7 @@ export default function LoginPage() {
     return () => {
       cancelled = true;
     };
-  }, [qaEnabled, qaRole, login]);
+  }, [qaEnabled, qaRole, login, t]);
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
@@ -115,7 +115,7 @@ export default function LoginPage() {
             />
             {error ? <p className="text-sm text-red-500">{error}</p> : null}
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
+              {isSubmitting ? t('auth.signing.in') : t('auth.sign.in')}
             </Button>
           </form>
           <button
@@ -123,19 +123,19 @@ export default function LoginPage() {
             type="button"
             onClick={() => setResetOpen((prev) => !prev)}
           >
-            {t('auth.resetPassword')}
+            {t('auth.reset.password')}
           </button>
           {resetOpen ? (
             <form onSubmit={handleResetSubmit(onReset)} className="space-y-3" noValidate>
               <Input
-                label={t('auth.resetEmail')}
+                label={t('auth.reset.email')}
                 type="email"
                 error={resetErrors.email?.message}
                 required
                 {...resetRegister('email')}
               />
               <Button type="submit" className="w-full" disabled={resetSubmitting}>
-                {resetSubmitting ? t('auth.sendingReset') : t('auth.sendReset')}
+                {resetSubmitting ? t('auth.sending.reset') : t('auth.send.reset')}
               </Button>
             </form>
           ) : null}

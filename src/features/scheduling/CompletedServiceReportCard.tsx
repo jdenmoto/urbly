@@ -33,27 +33,27 @@ export default function CompletedServiceReportCard({
 
   return (
     <div className="space-y-3 rounded-lg border border-fog-200 bg-fog-50 p-3">
-      <p className="font-semibold text-ink-900">{t('scheduling.serviceReport')}</p>
-      <p><span className="font-semibold text-ink-900">{t('scheduling.entryHourLabel')}:</span> {String(selected.completionReport?.entryHour || t('common.noData'))}</p>
-      <p><span className="font-semibold text-ink-900">{t('scheduling.exitHourLabel')}:</span> {String(selected.completionReport?.exitHour || t('common.noData'))}</p>
-      <p><span className="font-semibold text-ink-900">{t('scheduling.observationsLabel')}:</span> {String(selected.completionReport?.observations || t('common.noData'))}</p>
+      <p className="font-semibold text-ink-900">{t('scheduling.service.report')}</p>
+      <p><span className="font-semibold text-ink-900">{t('scheduling.entry.hour.label')}:</span> {String(selected.completionReport?.entryHour || t('common.no.data'))}</p>
+      <p><span className="font-semibold text-ink-900">{t('scheduling.exit.hour.label')}:</span> {String(selected.completionReport?.exitHour || t('common.no.data'))}</p>
+      <p><span className="font-semibold text-ink-900">{t('scheduling.observations.label')}:</span> {String(selected.completionReport?.observations || t('common.no.data'))}</p>
 
       <div className="space-y-2">
-        <p className="font-semibold text-ink-900">{t('scheduling.checklistTitle')}</p>
+        <p className="font-semibold text-ink-900">{t('scheduling.checklist.title')}</p>
         <div className="max-h-80 space-y-2 overflow-y-auto rounded border border-fog-200 bg-white p-2 text-xs">
           <div className="space-y-2 rounded border border-fog-200 p-2">
-            <p className="font-semibold text-ink-900">{t('scheduling.group1Pumps')}</p>
+            <p className="font-semibold text-ink-900">{t('scheduling.group1.pumps')}</p>
             {bombaIds.length ? (
               bombaIds.map((bombaId, pumpIndex) => (
                 <div key={bombaId} className="space-y-1 rounded border border-fog-200 bg-fog-50 p-2">
-                  <p className="font-semibold text-ink-900">{t('scheduling.pumpLabel', { index: pumpIndex + 1 })}</p>
+                  <p className="font-semibold text-ink-900">{t('scheduling.pump.label', { index: pumpIndex + 1 })}</p>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
                       <thead>
                         <tr className="text-ink-700">
-                          <th className="py-1 pr-2 font-semibold">{t('scheduling.itemLabel')}</th>
-                          <th className="py-1 pr-2 font-semibold">{t('scheduling.statusLabelShort')}</th>
-                          <th className="py-1 font-semibold">{t('scheduling.distributionNetworkLabel')}</th>
+                          <th className="py-1 pr-2 font-semibold">{t('scheduling.item.label')}</th>
+                          <th className="py-1 pr-2 font-semibold">{t('scheduling.status.label.short')}</th>
+                          <th className="py-1 font-semibold">{t('scheduling.distribution.network.label')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -74,12 +74,12 @@ export default function CompletedServiceReportCard({
                 </div>
               ))
             ) : (
-              <p className="text-ink-600">{t('common.noData')}</p>
+              <p className="text-ink-600">{t('common.no.data')}</p>
             )}
           </div>
 
           <div className="space-y-1 rounded border border-fog-200 p-2">
-            <p className="font-semibold text-ink-900">{t('scheduling.group2Label')}</p>
+            <p className="font-semibold text-ink-900">{t('scheduling.group2.label')}</p>
             {group2Entries.map(([item, value]) => (
               <p key={item}>
                 <span className="font-semibold text-ink-900">{formatChecklistLabel(item)}:</span> {checklistValueLabel(value)}
@@ -88,7 +88,7 @@ export default function CompletedServiceReportCard({
           </div>
 
           <div className="space-y-1 rounded border border-fog-200 p-2">
-            <p className="font-semibold text-ink-900">{t('scheduling.group3Label')}</p>
+            <p className="font-semibold text-ink-900">{t('scheduling.group3.label')}</p>
             {group3Entries.map(([item, value]) => (
               <p key={item}>
                 <span className="font-semibold text-ink-900">{formatChecklistLabel(item)}:</span> {checklistValueLabel(value)}
@@ -99,7 +99,7 @@ export default function CompletedServiceReportCard({
       </div>
 
       <div className="space-y-1">
-        <p className="font-semibold text-ink-900">{t('scheduling.servicePhotosTitle')}</p>
+        <p className="font-semibold text-ink-900">{t('scheduling.service.photos.title')}</p>
         {selected.completionPhotos?.length ? (
           <div className="grid grid-cols-2 gap-2">
             {selected.completionPhotos.map((photo, index) => (
@@ -114,7 +114,7 @@ export default function CompletedServiceReportCard({
             ))}
           </div>
         ) : (
-          <p className="text-xs text-ink-600">{t('common.noData')}</p>
+          <p className="text-xs text-ink-600">{t('common.no.data')}</p>
         )}
       </div>
     </div>

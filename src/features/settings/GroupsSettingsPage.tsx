@@ -34,7 +34,7 @@ export default function GroupsSettingsPage() {
           setGroups(payload.groups ?? []);
         }
       } catch {
-        toast(t('common.actionError'), 'error');
+        toast(t('common.action.error'), 'error');
       } finally {
         setLoading(false);
       }
@@ -46,11 +46,11 @@ export default function GroupsSettingsPage() {
     const name = newGroupName.trim();
     if (!name) return;
     if (groups.some((group) => group.id !== editingId && group.name.toLowerCase() === name.toLowerCase())) {
-      toast(t('settings.groupExists'), 'error');
+      toast(t('settings.group.exists'), 'error');
       return;
     }
     if (groups.some((group) => group.id !== editingId && group.color.toLowerCase() === newGroupColor.toLowerCase())) {
-      toast(t('settings.groupColorExists'), 'error');
+      toast(t('settings.group.color.exists'), 'error');
       return;
     }
     const id = editingId ?? (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
@@ -71,9 +71,9 @@ export default function GroupsSettingsPage() {
     setGroupsSaving(true);
     try {
       await setDoc(doc(db, 'settings', 'building_groups'), { groups: payload ?? groups }, { merge: true });
-      toast(t('settings.groupsSaved'), 'success');
+      toast(t('settings.groups.saved'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     } finally {
       setGroupsSaving(false);
     }
@@ -90,27 +90,27 @@ export default function GroupsSettingsPage() {
   if (loading) {
     return (
       <Card>
-        <p className="text-sm text-ink-600">{t('common.loading')}</p>
+        <p className="text-sm text-ink-600">{t('common.loading.default')}</p>
       </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('settings.groupsTitle')} subtitle={t('settings.groupsSubtitle')} />
+      <PageHeader title={t('settings.groups.title')} subtitle={t('settings.groups.subtitle')} />
       <Card className="space-y-6">
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-ink-900">{t('settings.buildingGroups')}</h3>
+          <h3 className="text-sm font-semibold text-ink-900">{t('settings.building.groups')}</h3>
           <div className="flex flex-wrap items-end gap-3">
             <Input
-              label={t('settings.groupName')}
+              label={t('settings.group.name')}
               value={newGroupName}
               onChange={(event) => setNewGroupName(event.target.value)}
               required
             />
             <label className="flex flex-col gap-1 text-sm text-ink-700">
               <span className="font-medium text-ink-800">
-                {t('settings.groupColor')}
+                {t('settings.group.color.default')}
                 <span className="ml-1 text-red-500">*</span>
               </span>
               <input
@@ -124,8 +124,8 @@ export default function GroupsSettingsPage() {
               {groupsSaving
                 ? t('settings.saving')
                 : editingId
-                  ? t('settings.updateGroup')
-                  : t('settings.addGroup')}
+                  ? t('settings.update.group')
+                  : t('settings.add.group')}
             </Button>
             {editingId ? (
               <Button
@@ -137,19 +137,19 @@ export default function GroupsSettingsPage() {
                   setNewGroupColor('#4f46e5');
                 }}
               >
-                {t('settings.newGroup')}
+                {t('settings.new.group')}
               </Button>
             ) : null}
           </div>
         </div>
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-ink-900">{t('settings.groupsTableTitle')}</h3>
+          <h3 className="text-sm font-semibold text-ink-900">{t('settings.groups.table.title')}</h3>
           <div className="overflow-hidden rounded-xl border border-fog-200">
             <table className="w-full text-left text-sm">
               <thead className="bg-fog-100 text-xs uppercase text-ink-500">
                 <tr>
-                  <th className="px-3 py-2">{t('settings.groupName')}</th>
-                  <th className="px-3 py-2">{t('settings.groupColor')}</th>
+                  <th className="px-3 py-2">{t('settings.group.name')}</th>
+                  <th className="px-3 py-2">{t('settings.group.color.default')}</th>
                   <th className="px-3 py-2">{t('common.actions')}</th>
                 </tr>
               </thead>

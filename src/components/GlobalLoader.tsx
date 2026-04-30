@@ -37,7 +37,7 @@ export default function GlobalLoaderProvider({ children }: { children: React.Rea
   );
 
   const active = isFetching > 0 || isMutating > 0 || manualCount > 0;
-  const message = manualMessage || t('common.loading');
+  const message = manualMessage || t('common.loading.default');
 
   return (
     <LoaderContext.Provider value={value}>

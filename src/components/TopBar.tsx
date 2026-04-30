@@ -7,17 +7,17 @@ import type { InternalNotification } from '@/core/models/internalNotification';
 import { markInternalNotificationRead } from '@/lib/internalNotifications';
 import { useNavGroups } from '@/app/nav';
 
-const roleBadgeLabel: Record<string, string> = {
-  admin: 'Empresa',
-  editor: 'Empresa',
-  view: 'Empresa',
-  supervisor: 'Supervisor',
-  scheduler: 'Operación',
-  operator: 'Operación',
-  auditoria: 'Auditoría',
-  emergency_scheduler: 'Técnico',
-  building_admin: 'Cliente',
-  client: 'Cliente'
+const roleBadgeKey: Record<string, string> = {
+  admin: 'roles.company',
+  editor: 'roles.company',
+  view: 'roles.company',
+  supervisor: 'roles.supervisor',
+  scheduler: 'roles.operations',
+  operator: 'roles.operations',
+  auditoria: 'roles.audit',
+  emergency_scheduler: 'roles.technician',
+  building_admin: 'roles.client',
+  client: 'roles.client'
 };
 
 export default function TopBar() {
@@ -37,24 +37,24 @@ export default function TopBar() {
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{currentGroup?.label ?? t('common.panelTitle')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{currentGroup?.label ?? t('common.panel.title')}</p>
             <span className="hidden rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 md:inline-flex">
-              {t('shell.workspaceBadge')}
+              {t('shell.workspace.badge')}
             </span>
           </div>
-          <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950">{currentItem?.label ?? t('common.panelTitle')}</p>
-          <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500">{currentGroup?.description ?? t('common.panelSubtitle')}</p>
+          <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950">{currentItem?.label ?? t('common.panel.title')}</p>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500">{currentGroup?.description ?? t('common.panel.subtitle')}</p>
         </div>
         <div className="hidden items-center gap-2 md:flex">
           <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
-            {roleBadgeLabel[role] ?? t('common.tagline')}
+            {roleBadgeKey[role] ? t(roleBadgeKey[role]) : t('common.tagline')}
           </div>
           <button className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
-            {t('shell.globalSearchPlaceholder')}
+            {t('shell.global.search.placeholder')}
           </button>
           <div className="relative">
             <button className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm" onClick={() => setOpenNotifications((v) => !v)}>
-              Notificaciones {unreadCount ? `(${unreadCount})` : ''}
+              {t('notifications.empty.title')} {unreadCount ? `(${unreadCount})` : ''}
             </button>
             {openNotifications ? (
               <div className="absolute right-0 mt-2 w-96 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
@@ -64,13 +64,13 @@ export default function TopBar() {
                       <p className="text-sm font-semibold text-slate-900">{item.title}</p>
                       <p className="mt-1 text-xs text-slate-600">{item.message}</p>
                     </button>
-                  )) : <p className="text-sm text-slate-500">Sin notificaciones.</p>}
+                  )) : <p className="text-sm text-slate-500">{t('notifications.empty.none')}</p>}
                 </div>
               </div>
             ) : null}
           </div>
           <div className="rounded-full border border-slate-900 bg-slate-950 px-3 py-1 text-xs font-semibold text-white shadow-sm">
-            {user?.email ?? roleBadgeLabel[role] ?? t('common.panelTitle')}
+            {user?.email ?? (roleBadgeKey[role] ? t(roleBadgeKey[role]) : t('common.panel.title'))}
           </div>
         </div>
       </div>
