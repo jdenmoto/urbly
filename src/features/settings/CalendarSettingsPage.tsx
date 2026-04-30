@@ -47,7 +47,7 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
           setNonWorkingDays(payload.nonWorkingDays ?? []);
         }
       } catch {
-        toast(t('common.actionError'), 'error');
+        toast(t('common.action.error'), 'error');
       } finally {
         setLoading(false);
       }
@@ -65,9 +65,9 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
       );
       setHolidays(nextHolidays);
       setNonWorkingDays(nextNonWorking);
-      toast(t('settings.toastSaved'), 'success');
+      toast(t('settings.toast.saved'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     } finally {
       setSaving(false);
     }
@@ -77,7 +77,7 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
     const date = holidayDate.trim();
     if (!date) return;
     if (!editingHolidayId && holidayDates.has(date)) {
-      toast(t('settings.calendarDateDuplicate'), 'error');
+      toast(t('settings.calendar.date.duplicate'), 'error');
       return;
     }
     const id = editingHolidayId ?? (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
@@ -95,7 +95,7 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
     const date = nonWorkingDate.trim();
     if (!date) return;
     if (!editingNonWorkingId && nonWorkingDays.some((item) => item.date === date)) {
-      toast(t('settings.calendarDateDuplicate'), 'error');
+      toast(t('settings.calendar.date.duplicate'), 'error');
       return;
     }
     const id = editingNonWorkingId ?? (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
@@ -154,12 +154,12 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
     try {
       const year = Number(holidayYear);
       if (!Number.isFinite(year) || year < 2000) {
-        toast(t('settings.calendarYearInvalid'), 'error');
+        toast(t('settings.calendar.year.invalid'), 'error');
         return;
       }
       const mod = await import('festivos-colombianos');
       if (!mod || typeof mod !== 'object') {
-        toast(t('settings.calendarImportError'), 'error');
+        toast(t('settings.calendar.import.error'), 'error');
         return;
       }
       console.log(year);
@@ -167,7 +167,7 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
       const holidaysFromLib = typeof defaultFn === 'function' ? defaultFn(year) : [];
       console.log(holidaysFromLib[0])
       if (!Array.isArray(holidaysFromLib)) {
-        toast(t('settings.calendarImportError'), 'error');
+        toast(t('settings.calendar.import.error'), 'error');
         return;
       }
       const mapped: CalendarEntry[] = holidaysFromLib
@@ -177,7 +177,7 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
           return {
             id: item.id ?? `${date}`,
             date,
-            name: String(item.celebration ?? item.name ?? item.nombre ?? t('settings.calendarHolidayDefault'))
+            name: String(item.celebration ?? item.name ?? item.nombre ?? t('settings.calendar.holiday.default'))
           };
         })
         .filter(Boolean) as CalendarEntry[];
@@ -189,57 +189,57 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
         }
       });
       await persist(Array.from(existing.values()), nonWorkingDays);
-      toast(t('settings.calendarImported'), 'success');
+      toast(t('settings.calendar.imported'), 'success');
     } catch (error) {
       console.error(error);
-      toast(t('settings.calendarImportError'), 'error');
+      toast(t('settings.calendar.import.error'), 'error');
     }
   };
 
   if (loading) {
     return (
       <Card>
-        <p className="text-sm text-ink-600">{t('common.loading')}</p>
+        <p className="text-sm text-ink-600">{t('common.loading.default')}</p>
       </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('settings.calendarTitle')} subtitle={t('settings.calendarSubtitle')} />
+      <PageHeader title={t('settings.calendar.title')} subtitle={t('settings.calendar.subtitle')} />
       <Card className="space-y-8">
         {(section === 'all' || section === 'holidays') && (
         <section className="space-y-4">
-          <h3 className="text-sm font-semibold text-ink-900">{t('settings.holidaysTitle')}</h3>
+          <h3 className="text-sm font-semibold text-ink-900">{t('settings.holidays.title')}</h3>
           <div className="grid gap-3 md:grid-cols-3">
             <Input
-              label={t('settings.calendarYear')}
+              label={t('settings.calendar.year.default')}
               value={holidayYear}
               onChange={(event) => setHolidayYear(event.target.value)}
               inputMode="numeric"
             />
             <div className="flex items-end md:col-span-2">
               <Button type="button" variant="secondary" onClick={loadColombiaHolidays} disabled={saving} className="w-full">
-                {t('settings.calendarImportColombia')}
+                {t('settings.calendar.import.colombia')}
               </Button>
             </div>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             <Input
-              label={t('settings.calendarDate')}
+              label={t('settings.calendar.date.default')}
               type="date"
               value={holidayDate}
               onChange={(event) => setHolidayDate(event.target.value)}
               required
             />
             <Input
-              label={t('settings.calendarName')}
+              label={t('settings.calendar.name')}
               value={holidayName}
               onChange={(event) => setHolidayName(event.target.value)}
             />
             <div className="flex items-end">
               <Button type="button" onClick={saveHoliday} disabled={saving} className="w-full">
-                {editingHolidayId ? t('settings.calendarUpdate') : t('settings.calendarAddHoliday')}
+                {editingHolidayId ? t('settings.calendar.update') : t('settings.calendar.add.holiday')}
               </Button>
             </div>
           </div>
@@ -247,8 +247,8 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
             <table className="w-full text-left text-sm">
               <thead className="bg-fog-100 text-xs uppercase text-ink-500">
                 <tr>
-                  <th className="px-3 py-2">{t('settings.calendarDate')}</th>
-                  <th className="px-3 py-2">{t('settings.calendarName')}</th>
+                  <th className="px-3 py-2">{t('settings.calendar.date.default')}</th>
+                  <th className="px-3 py-2">{t('settings.calendar.name')}</th>
                   <th className="px-3 py-2">{t('common.actions')}</th>
                 </tr>
               </thead>
@@ -256,7 +256,7 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
                 {holidays.map((item) => (
                   <tr key={item.id} className="border-t border-fog-100">
                     <td className="px-3 py-2 text-ink-900">{item.date}</td>
-                    <td className="px-3 py-2 text-ink-700">{item.name || t('common.noData')}</td>
+                    <td className="px-3 py-2 text-ink-700">{item.name || t('common.no.data')}</td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         <button
@@ -289,23 +289,23 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
 
         {(section === 'all' || section === 'nonWorking') && (
         <section className="space-y-4">
-          <h3 className="text-sm font-semibold text-ink-900">{t('settings.nonWorkingTitle')}</h3>
+          <h3 className="text-sm font-semibold text-ink-900">{t('settings.non.working.title')}</h3>
           <div className="grid gap-3 md:grid-cols-3">
             <Input
-              label={t('settings.calendarDate')}
+              label={t('settings.calendar.date.default')}
               type="date"
               value={nonWorkingDate}
               onChange={(event) => setNonWorkingDate(event.target.value)}
               required
             />
             <Input
-              label={t('settings.calendarName')}
+              label={t('settings.calendar.name')}
               value={nonWorkingName}
               onChange={(event) => setNonWorkingName(event.target.value)}
             />
             <div className="flex items-end">
               <Button type="button" onClick={saveNonWorking} disabled={saving} className="w-full">
-                {editingNonWorkingId ? t('settings.calendarUpdate') : t('settings.calendarAddNonWorking')}
+                {editingNonWorkingId ? t('settings.calendar.update') : t('settings.calendar.add.non.working')}
               </Button>
             </div>
           </div>
@@ -313,8 +313,8 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
             <table className="w-full text-left text-sm">
               <thead className="bg-fog-100 text-xs uppercase text-ink-500">
                 <tr>
-                  <th className="px-3 py-2">{t('settings.calendarDate')}</th>
-                  <th className="px-3 py-2">{t('settings.calendarName')}</th>
+                  <th className="px-3 py-2">{t('settings.calendar.date.default')}</th>
+                  <th className="px-3 py-2">{t('settings.calendar.name')}</th>
                   <th className="px-3 py-2">{t('common.actions')}</th>
                 </tr>
               </thead>
@@ -322,7 +322,7 @@ export default function CalendarSettingsPage({ section = 'all' }: { section?: 'a
                 {nonWorkingDays.map((item) => (
                   <tr key={item.id} className="border-t border-fog-100">
                     <td className="px-3 py-2 text-ink-900">{item.date}</td>
-                    <td className="px-3 py-2 text-ink-700">{item.name || t('common.noData')}</td>
+                    <td className="px-3 py-2 text-ink-700">{item.name || t('common.no.data')}</td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         <button

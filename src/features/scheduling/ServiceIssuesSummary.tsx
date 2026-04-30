@@ -7,17 +7,17 @@ export default function ServiceIssuesSummary({
   openPhotoViewer
 }: {
   issues: ServiceOrderIssue[];
-  resolveIssueLabel: (prefix: 'scheduling.issueTypes' | 'scheduling.issueCategories', value: string) => string;
+  resolveIssueLabel: (prefix: 'scheduling.issue.types' | 'scheduling.issueCategories', value: string) => string;
   openPhotoViewer: (src: string, title?: string) => void;
 }) {
   const { t } = useI18n();
 
   return (
     <div className="space-y-2">
-      <p className="font-semibold text-ink-900">{t('scheduling.issuesTitle')}</p>
+      <p className="font-semibold text-ink-900">{t('scheduling.issues.title')}</p>
       {issues.map((issue) => (
         <div key={issue.id} className="space-y-1 rounded-lg border border-fog-200 bg-fog-50 p-2 text-xs text-ink-700">
-          <p className="font-semibold text-ink-900">{resolveIssueLabel('scheduling.issueTypes', issue.type)}</p>
+          <p className="font-semibold text-ink-900">{resolveIssueLabel('scheduling.issue.types', issue.type)}</p>
           <p>{resolveIssueLabel('scheduling.issueCategories', issue.category)}</p>
           {issue.description ? <p>{issue.description}</p> : null}
           {issue.photos?.length ? (

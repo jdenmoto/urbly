@@ -8,7 +8,7 @@ export default function AssetsPage() {
     <ComingSoonPage
       title={t('assets.title')}
       subtitle={t('assets.subtitle')}
-      description={t('assets.comingSoon')}
+      description={t('assets.coming.soon')}
     />
   );
 }

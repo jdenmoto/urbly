@@ -8,16 +8,16 @@ import {
 import { getServiceOrderStatusLabel, type TranslateFn } from '@/features/services/serviceOrderPresentation';
 
 const translations: Record<string, string> = {
-  'services.statusDraft': 'Borrador',
-  'services.statusUnassigned': 'Sin asignar',
-  'services.statusScheduled': 'Programado',
-  'services.statusConfirmed': 'Confirmado',
-  'services.statusInProgress': 'En progreso',
-  'services.statusPaused': 'Pausado',
-  'services.statusPendingReview': 'Pendiente de revisión',
-  'services.statusRequiresReschedule': 'Requiere reprogramación',
-  'services.statusCompleted': 'Completado',
-  'services.statusCancelled': 'Cancelado',
+  'services.status.draft': 'Borrador',
+  'services.status.unassigned': 'Sin asignar',
+  'services.status.scheduled': 'Programado',
+  'services.status.confirmed': 'Confirmado',
+  'services.status.in.progress': 'En progreso',
+  'services.status.paused': 'Pausado',
+  'services.status.pending.review': 'Pendiente de revisión',
+  'services.status.requires.reschedule': 'Requiere reprogramación',
+  'services.status.completed': 'Completado',
+  'services.status.cancelled': 'Cancelado',
 };
 
 const t: TranslateFn = (key) => translations[key] ?? key;

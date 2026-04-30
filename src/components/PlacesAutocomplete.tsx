@@ -61,7 +61,7 @@ export default function PlacesAutocomplete({
       if (!hasNewElement || !containerRef.current) return;
       if (!elementRef.current) {
         const element = new window.google.maps.places.PlaceAutocompleteElement();
-        element.setAttribute('placeholder', t('common.addressSearch'));
+        element.setAttribute('placeholder', t('common.address.search'));
         element.className =
           'w-full rounded-lg border border-fog-200 bg-white px-3 py-2 text-sm text-ink-900 shadow-sm outline-none transition focus:border-ink-900';
         element.style.display = 'block';
@@ -186,17 +186,17 @@ export default function PlacesAutocomplete({
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
           className="w-full rounded-lg border border-fog-200 bg-white px-3 py-2 text-sm text-ink-900 shadow-sm outline-none transition focus:border-ink-900"
-          placeholder={t('common.addressSearch')}
+          placeholder={t('common.address.search')}
         />
       ) : null}
       <div ref={containerRef} className={showAutocomplete ? 'block' : 'hidden'} />
-      {!ready ? <span className="text-xs text-ink-500">{t('common.loading')}</span> : null}
+      {!ready ? <span className="text-xs text-ink-500">{t('common.loading.default')}</span> : null}
       {ready && !unavailable && inputValue.length > 0 && inputValue.length < minChars ? (
         <span className="text-xs text-ink-500">
-          {t('common.addressMinChars')}
+          {t('common.address.min.chars')}
         </span>
       ) : null}
-      {ready && unavailable ? <span className="text-xs text-red-500">{t('common.mapsUnavailable')}</span> : null}
+      {ready && unavailable ? <span className="text-xs text-red-500">{t('common.maps.unavailable')}</span> : null}
       {ready && !unavailable && error ? <span className="text-xs text-red-500">{error}</span> : null}
     </label>
   );

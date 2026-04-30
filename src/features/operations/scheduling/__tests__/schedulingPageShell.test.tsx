@@ -50,9 +50,9 @@ describe('SchedulingPage shell', () => {
       </QueryClientProvider>,
     );
 
-    expect(html).toContain('Agenda operativa');
-    expect(html).toContain('Filtros');
-    expect(html).toContain('Calendario operativo');
-    expect(html).toContain('Resumen lateral');
+    expect(html).toContain('scheduling.title.default');
+    expect(html).toContain('scheduling.filters.title');
+    expect(html).toContain('scheduling.operational.calendar.title');
+    expect(html).toContain('scheduling.details.select');
   });
 });

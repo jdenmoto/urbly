@@ -71,7 +71,7 @@ export default function BuildingAdminPage() {
   const buildingColumns = useMemo<ColumnDef<Building>[]>(
     () => [
       { header: t('buildings.name'), accessorKey: 'name', enableSorting: true },
-      { header: t('buildings.address'), accessorKey: 'addressText', enableSorting: true },
+      { header: t('buildings.address.default'), accessorKey: 'addressText', enableSorting: true },
       {
         header: t('buildings.status'),
         accessorKey: 'active',
@@ -84,29 +84,29 @@ export default function BuildingAdminPage() {
 
   const serviceOrderColumns = useMemo<ColumnDef<(typeof scopedServiceOrders)[number]>[]>(
     () => [
-      { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: false },
+      { header: t('scheduling.title.label'), accessorKey: 'title', enableSorting: false },
       {
-        header: t('services.typeLabel'),
+        header: t('services.type.label'),
         enableSorting: false,
         cell: ({ row }) => getServiceOrderTypeLabel(t, row.original.type)
       },
       {
-        header: t('scheduling.building'),
+        header: t('scheduling.building.default'),
         enableSorting: false,
-        accessorFn: (row) => scopedBuildings.find((b) => b.id === row.buildingId)?.name ?? t('common.noData')
+        accessorFn: (row) => scopedBuildings.find((b) => b.id === row.buildingId)?.name ?? t('common.no.data')
       },
       {
-        header: t('scheduling.startAt'),
+        header: t('scheduling.start.at'),
         enableSorting: false,
         cell: ({ row }) => formatServiceDateTime(row.original.scheduledStartAt)
       },
       {
-        header: t('scheduling.endAt'),
+        header: t('scheduling.end.at'),
         enableSorting: false,
         cell: ({ row }) => formatServiceDateTime(row.original.scheduledEndAt)
       },
       {
-        header: t('scheduling.status'),
+        header: t('scheduling.status.default'),
         enableSorting: false,
         cell: ({ row }) => getServiceOrderStatusLabel(t, row.original.status)
       }
@@ -161,7 +161,7 @@ export default function BuildingAdminPage() {
   if (!administrationId) {
     return (
       <Card>
-        <p className="text-sm text-ink-600">{t('portal.missingAccess')}</p>
+        <p className="text-sm text-ink-600">{t('portal.missing.access')}</p>
       </Card>
     );
   }
@@ -193,7 +193,7 @@ export default function BuildingAdminPage() {
               <span className="font-semibold text-ink-900">{t('management.email')}:</span> {administration.email}
             </p>
             <p>
-              <span className="font-semibold text-ink-900">{t('management.contactPhone')}:</span>{' '}
+              <span className="font-semibold text-ink-900">{t('management.contact.phone')}:</span>{' '}
               {administration.contactPhone}
             </p>
             <p>
@@ -216,13 +216,13 @@ export default function BuildingAdminPage() {
       </section>
       {portalMode !== 'reports' ? (
         <div className="space-y-4">
-          <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading')}</div>}>
+          <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading.default')}</div>}>
             <BuildingsMap buildings={scopedBuildings} ready={mapsReady} />
           </Suspense>
           <DataTable
             columns={buildingColumns}
             data={scopedBuildings}
-            emptyState={<EmptyState title={t('portal.buildingsEmpty')} description={t('portal.buildingsEmptyHint')} />}
+            emptyState={<EmptyState title={t('portal.buildings.empty.default')} description={t('portal.buildings.empty.hint')} />}
           />
         </div>
       ) : null}
@@ -248,14 +248,14 @@ export default function BuildingAdminPage() {
                     <div>
                       <div className="flex flex-wrap gap-2">
                         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[order.priority]}`}>
-                          {getServiceOrderPriorityPill(t, order.priority, 'clientPortal.priorityPill')}
+                          {getServiceOrderPriorityPill(t, order.priority, 'client.portal.priority.pill')}
                         </span>
                         <span className="rounded-full bg-fog-100 px-3 py-1 text-xs font-semibold text-ink-700">
                           {getServiceOrderStatusLabel(t, order.status)}
                         </span>
                       </div>
                       <p className="mt-3 text-lg font-semibold text-ink-900">{order.title}</p>
-                      <p className="text-sm text-ink-600">{building?.name ?? t('common.noData')}</p>
+                      <p className="text-sm text-ink-600">{building?.name ?? t('common.no.data')}</p>
                       <p className="text-sm text-ink-500">{formatServiceDateTime(order.scheduledStartAt)}</p>
                       <p className="mt-2 text-sm text-ink-600">
                         {latestTimelineEvent?.summary ?? (portalMode === 'reports' ? 'Entrega visible para consulta rápida.' : 'Seguimiento operativo base disponible.')}
@@ -285,14 +285,14 @@ export default function BuildingAdminPage() {
             })}
           </div>
         ) : (
-          <EmptyState title={t('services.emptyTitle')} description={t('services.emptyDescription')} />
+          <EmptyState title={t('services.empty.title')} description={t('services.empty.description')} />
         )}
       </Card>
       {portalMode === 'overview' ? (
         <DataTable
           columns={serviceOrderColumns}
           data={scopedServiceOrders}
-          emptyState={<EmptyState title={t('services.emptyTitle')} description={t('services.emptyDescription')} />}
+          emptyState={<EmptyState title={t('services.empty.title')} description={t('services.empty.description')} />}
         />
       ) : null}
     </div>

@@ -38,23 +38,23 @@ export default function ReportsPage() {
   );
 
   const columns = useMemo<ColumnDef<AuditEvent>[]>(() => [
-    { header: 'Fecha', cell: ({ row }) => new Date(row.original.createdAt).toLocaleString('es-CO') },
-    { header: 'Entidad', cell: ({ row }) => row.original.entityType },
-    { header: 'Acción', cell: ({ row }) => row.original.action },
-    { header: 'Resumen', cell: ({ row }) => row.original.summary },
-    { header: 'Actor', cell: ({ row }) => row.original.actor?.uid ?? 'sistema' }
-  ], []);
+    { header: t('reports.audit.columns.date'), cell: ({ row }) => new Date(row.original.createdAt).toLocaleString('es-CO') },
+    { header: t('reports.audit.columns.entity'), cell: ({ row }) => row.original.entityType },
+    { header: t('reports.audit.columns.action'), cell: ({ row }) => row.original.action },
+    { header: t('reports.audit.columns.summary'), cell: ({ row }) => row.original.summary },
+    { header: t('reports.audit.columns.actor'), cell: ({ row }) => row.original.actor?.uid ?? t('reports.audit.system') }
+  ], [t]);
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('reports.title')} subtitle="Auditoría visible y exportable del sistema" />
+      <PageHeader title={t('reports.title')} subtitle={t('reports.audit.subtitle')} />
       <div className="flex justify-end">
-        <Button onClick={() => downloadCsv(sortedAuditEvents)} disabled={!sortedAuditEvents.length}>Exportar CSV</Button>
+        <Button onClick={() => downloadCsv(sortedAuditEvents)} disabled={!sortedAuditEvents.length}>{t('reports.audit.export.csv')}</Button>
       </div>
       {sortedAuditEvents.length ? (
         <DataTable columns={columns} data={sortedAuditEvents} />
       ) : (
-        <EmptyState title="Auditoría" description="Todavía no hay eventos auditables registrados." />
+        <EmptyState title={t('reports.audit.title')} description={t('reports.audit.empty')} />
       )}
     </div>
   );

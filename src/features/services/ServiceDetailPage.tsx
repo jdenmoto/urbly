@@ -144,7 +144,7 @@ export default function ServiceDetailPage() {
   const [assignTechnicianId, setAssignTechnicianId] = useState('');
 
   if (!serviceOrder) {
-    return <EmptyState title={t('services.detailTitle')} description={t('services.detailEmpty')} />;
+    return <EmptyState title={t('services.detail.title')} description={t('services.detail.empty')} />;
   }
 
   const submitAssignment = async () => {
@@ -155,7 +155,7 @@ export default function ServiceDetailPage() {
       reason: 'Asignación operativa desde detalle',
     });
     await queryClient.invalidateQueries({ queryKey: ['serviceOrders'] });
-    toast('Asignación actualizada.', 'success');
+    toast('asignación actualizada.', 'success');
     setAssignOpen(false);
   };
 
@@ -163,7 +163,7 @@ export default function ServiceDetailPage() {
     <div className="space-y-8">
       <PageHeader
         title={serviceOrder.title}
-        subtitle={t('services.detailSubtitle')}
+        subtitle={t('services.detail.subtitle')}
         actions={
           <div className="flex flex-wrap gap-2">
             <Link
@@ -222,7 +222,7 @@ export default function ServiceDetailPage() {
           <div className="grid gap-3 text-sm text-sky-950 md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3">
               <p className="text-xs uppercase tracking-wide text-sky-700">Edificio</p>
-              <p className="mt-1 font-semibold">{listContext?.buildingName ?? building?.name ?? t('common.noData')}</p>
+              <p className="mt-1 font-semibold">{listContext?.buildingName ?? building?.name ?? t('common.no.data')}</p>
             </div>
             <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3">
               <p className="text-xs uppercase tracking-wide text-sky-700">Técnico</p>
@@ -291,46 +291,46 @@ export default function ServiceDetailPage() {
                 </span>
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-ink-900">{t('services.contextTitle')}</h2>
-                <p className="max-w-2xl text-sm leading-6 text-ink-600">{t('services.contextSubtitle')}</p>
+                <h2 className="text-xl font-semibold text-ink-900">{t('services.context.title')}</h2>
+                <p className="max-w-2xl text-sm leading-6 text-ink-600">{t('services.context.subtitle')}</p>
               </div>
             </div>
             <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
               <p className="font-semibold text-ink-900">{getServiceOrderTypeLabel(t, serviceOrder.type)}</p>
-              <p>{t('services.activeTypeHint')}</p>
+              <p>{t('services.active.type.hint')}</p>
             </div>
           </div>
 
           <div className="grid gap-3 text-sm text-ink-700 md:grid-cols-2 xl:grid-cols-3">
             <div className="rounded-2xl bg-fog-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.buildingLabel')}</p>
-              <p className="mt-1 font-semibold text-ink-900">{building?.name ?? t('common.noData')}</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.building.label')}</p>
+              <p className="mt-1 font-semibold text-ink-900">{building?.name ?? t('common.no.data')}</p>
             </div>
             <div className="rounded-2xl bg-fog-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.customerLabel')}</p>
-              <p className="mt-1 font-semibold text-ink-900">{management?.name ?? t('common.noData')}</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.customer.label')}</p>
+              <p className="mt-1 font-semibold text-ink-900">{management?.name ?? t('common.no.data')}</p>
             </div>
             <div className="rounded-2xl bg-fog-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.technicianLabel')}</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.technician.label')}</p>
               <p className="mt-1 font-semibold text-ink-900">{technician?.fullName ?? t('common.unassigned')}</p>
             </div>
             <div className="rounded-2xl bg-fog-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.startLabel')}</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.start.label')}</p>
               <p className="mt-1 font-semibold text-ink-900">{formatServiceDateTime(serviceOrder.scheduledStartAt)}</p>
             </div>
             <div className="rounded-2xl bg-fog-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.endLabel')}</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.end.label')}</p>
               <p className="mt-1 font-semibold text-ink-900">{formatServiceDateTime(serviceOrder.scheduledEndAt)}</p>
             </div>
             <div className="rounded-2xl bg-fog-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issues.label')}</p>
               <p className="mt-1 font-semibold text-ink-900">{serviceOrder.issues.length}</p>
             </div>
           </div>
 
           {serviceOrder.description ? (
             <div className="rounded-2xl border border-fog-200 p-4">
-              <h3 className="text-sm font-semibold text-ink-900">{t('services.descriptionLabel')}</h3>
+              <h3 className="text-sm font-semibold text-ink-900">{t('services.description.label')}</h3>
               <p className="mt-2 text-sm leading-6 text-ink-600">{serviceOrder.description}</p>
             </div>
           ) : null}
@@ -339,8 +339,8 @@ export default function ServiceDetailPage() {
         <div className="space-y-4">
           <Card className="space-y-4 p-6">
             <div>
-              <h2 className="text-lg font-semibold text-ink-900">{t('services.timelineTitle')}</h2>
-              <p className="text-sm text-ink-600">{t('services.timelineSubtitle')}</p>
+              <h2 className="text-lg font-semibold text-ink-900">{t('services.timeline.title')}</h2>
+              <p className="text-sm text-ink-600">{t('services.timeline.subtitle')}</p>
             </div>
             {serviceOrder.timeline.length ? (
               <div className="space-y-3">
@@ -352,14 +352,14 @@ export default function ServiceDetailPage() {
                 ))}
               </div>
             ) : (
-              <EmptyState title={t('services.timelineTitle')} description={t('services.timelineEmpty')} />
+              <EmptyState title={t('services.timeline.title')} description={t('services.timeline.empty')} />
             )}
           </Card>
 
           <Card className="space-y-4 p-6">
             <div>
-              <h2 className="text-lg font-semibold text-ink-900">{t('services.issueSummaryTitle')}</h2>
-              <p className="text-sm text-ink-600">{t('services.issueSummarySubtitle')}</p>
+              <h2 className="text-lg font-semibold text-ink-900">{t('services.issue.summary.title')}</h2>
+              <p className="text-sm text-ink-600">{t('services.issue.summary.subtitle')}</p>
             </div>
             {serviceOrder.issues.length ? (
               <div className="space-y-3">
@@ -372,7 +372,7 @@ export default function ServiceDetailPage() {
                 ))}
               </div>
             ) : (
-              <EmptyState title={t('services.issueSummaryTitle')} description={t('services.issueSummaryEmpty')} />
+              <EmptyState title={t('services.issue.summary.title')} description={t('services.issue.summary.empty')} />
             )}
           </Card>
         </div>
@@ -429,23 +429,23 @@ export default function ServiceDetailPage() {
           <Card className="space-y-6 p-6">
             <div>
               <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
-                {t('services.aiBadge')}
+                {t('services.ai.badge')}
               </div>
-              <h2 className="mt-3 text-xl font-semibold text-ink-900">{t('services.aiActionsTitle')}</h2>
-              <p className="text-sm leading-6 text-ink-600">{t('services.aiActionsSubtitle')}</p>
+              <h2 className="mt-3 text-xl font-semibold text-ink-900">{t('services.ai.actions.title')}</h2>
+              <p className="text-sm leading-6 text-ink-600">{t('services.ai.actions.subtitle')}</p>
             </div>
 
             <div className="grid gap-4 text-sm text-ink-700 xl:grid-cols-3">
               <div className="rounded-3xl border border-fog-200 bg-white p-5">
-                <p className="font-semibold text-ink-900">{t('services.aiSummaryTitle')}</p>
+                <p className="font-semibold text-ink-900">{t('services.ai.summary.title')}</p>
                 <p className="mt-3 whitespace-pre-wrap leading-6">{aiSummary}</p>
               </div>
               <div className="rounded-3xl border border-fog-200 bg-white p-5">
-                <p className="font-semibold text-ink-900">{t('services.aiCustomerMessageTitle')}</p>
+                <p className="font-semibold text-ink-900">{t('services.ai.customer.message.title')}</p>
                 <p className="mt-3 whitespace-pre-wrap leading-6">{aiCustomerMessage}</p>
               </div>
               <div className="rounded-3xl border border-fog-200 bg-white p-5">
-                <p className="font-semibold text-ink-900">{t('services.aiFollowUpTitle')}</p>
+                <p className="font-semibold text-ink-900">{t('services.ai.follow.up.title')}</p>
                 <p className="mt-3 whitespace-pre-wrap leading-6">{aiFollowUp}</p>
               </div>
             </div>

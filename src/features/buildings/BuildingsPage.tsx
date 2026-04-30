@@ -48,32 +48,26 @@ const mapCsvRows = async (file: File) => {
 };
 
 const mapSpreadsheetRows = async (file: File) => {
-  const ExcelJS = (await import('exceljs')).default;
-  const data = await file.arrayBuffer();
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(data);
-  const worksheet = workbook.worksheets[0];
-  if (!worksheet) return [];
+  const readXlsxFile = (await import('read-excel-file/browser')).default;
+  const sheets = await readXlsxFile(file);
+  const sheetRows = sheets[0]?.data ?? [];
+  const [headerRow, ...bodyRows] = sheetRows;
+  if (!headerRow) return [];
 
-  const headerRow = worksheet.getRow(1);
-  const headers = Array.from({ length: headerRow.cellCount }, (_, index) => {
-    const cell = headerRow.getCell(index + 1).value;
-    return String(cell ?? '').trim();
-  });
+  const headers = headerRow.map((cell) => String(cell ?? '').trim());
 
-  const rows: PreviewRow[] = [];
-  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-    if (rowNumber === 1) return;
+  return bodyRows.reduce<PreviewRow[]>((rows, row) => {
     const entry = {} as PreviewRow;
     headers.forEach((header, idx) => {
       if (!header) return;
-      const value = row.getCell(idx + 1).value;
+      const value = row[idx];
       entry[header as keyof PreviewRow] = value ? String(value) : '';
     });
-    rows.push(entry);
-  });
-
-  return rows;
+    if (Object.values(entry).some((value) => value.trim())) {
+      rows.push(entry);
+    }
+    return rows;
+  }, []);
 };
 
 export default function BuildingsPage() {
@@ -118,10 +112,10 @@ export default function BuildingsPage() {
   const buildingGroups = useMemo(() => groupSettings?.groups ?? [], [groupSettings]);
   const statusLabels = useMemo(
     () => ({
-      programado: t('scheduling.statusProgrammed'),
-      confirmado: t('scheduling.statusConfirmed'),
-      completado: t('scheduling.statusCompleted'),
-      cancelado: t('scheduling.statusCanceled')
+      programado: t('scheduling.status.programmed'),
+      confirmado: t('scheduling.status.confirmed'),
+      completado: t('scheduling.status.completed'),
+      cancelado: t('scheduling.status.canceled')
     }),
     [t]
   );
@@ -142,12 +136,12 @@ export default function BuildingsPage() {
     type: z.enum(['EDIFICIO', 'CONJUNTO_RESIDENCIAL', 'UNIDAD']),
     delegateName: z.string().min(2, t('common.required')),
     delegatePhone: z.string().min(7, t('common.required')),
-    nit: z.string().regex(/^\d{6,12}-\d$/, t('management.nitFormat')),
-    email: z.string().email(t('auth.errorEmail')),
-    billingEmail: z.string().email(t('auth.errorEmail')),
+    nit: z.string().regex(/^\d{6,12}-\d$/, t('management.nit.format')),
+    email: z.string().email(t('auth.error.email')),
+    billingEmail: z.string().email(t('auth.error.email')),
     porterPhone: z.string().min(7, t('common.required')),
-    managementCompanyId: z.string().min(1, t('buildings.managementRequired')),
-    contractId: z.string().min(1, t('buildings.contractRequired'))
+    managementCompanyId: z.string().min(1, t('buildings.management.required')),
+    contractId: z.string().min(1, t('buildings.contract.required'))
   });
   type FormValues = z.infer<typeof schema>;
 
@@ -187,14 +181,14 @@ export default function BuildingsPage() {
   const columns = useMemo<ColumnDef<Building>[]>(() => {
     const base: ColumnDef<Building>[] = [
       { header: t('buildings.name'), accessorKey: 'name', enableSorting: true },
-      { header: t('buildings.porterPhone'), accessorKey: 'porterPhone', enableSorting: false },
-      { header: t('buildings.address'), accessorKey: 'addressText', enableSorting: true },
+      { header: t('buildings.porter.phone'), accessorKey: 'porterPhone', enableSorting: false },
+      { header: t('buildings.address.default'), accessorKey: 'addressText', enableSorting: true },
       {
-        header: t('buildings.contract'),
+        header: t('buildings.contract.default'),
         enableSorting: false,
         accessorFn: (row) => {
           const contract = contracts.find((item) => item.id === row.contractId);
-          return contract?.name ?? t('buildings.noContract');
+          return contract?.name ?? t('buildings.no.contract');
         }
       },
       {
@@ -277,28 +271,28 @@ export default function BuildingsPage() {
 
   const errorColumns = useMemo<ColumnDef<{ row: number; message: string }>[]>( 
     () => [
-      { header: t('buildings.errorRow'), accessorKey: 'row', enableSorting: false },
-      { header: t('buildings.errorMessage'), accessorKey: 'message', enableSorting: false }
+      { header: t('buildings.error.row'), accessorKey: 'row', enableSorting: false },
+      { header: t('buildings.error.message'), accessorKey: 'message', enableSorting: false }
     ],
     [t]
   );
   const maintenanceColumns = useMemo<ColumnDef<ServiceOrder>[]>(
     () => [
-      { header: t('scheduling.titleLabel'), accessorKey: 'title', enableSorting: false },
+      { header: t('scheduling.title.label'), accessorKey: 'title', enableSorting: false },
       {
-        header: t('scheduling.startAt'),
+        header: t('scheduling.start.at'),
         accessorKey: 'scheduledStartAt',
         enableSorting: false,
         cell: ({ row }) => formatDateTime(row.original.scheduledStartAt)
       },
       {
-        header: t('scheduling.endAt'),
+        header: t('scheduling.end.at'),
         accessorKey: 'scheduledEndAt',
         enableSorting: false,
         cell: ({ row }) => formatDateTime(row.original.scheduledEndAt)
       },
       {
-        header: t('scheduling.status'),
+        header: t('scheduling.status.default'),
         accessorKey: 'status',
         enableSorting: false,
         cell: ({ row }) => statusLabels[row.original.status === 'scheduled' ? 'programado' : row.original.status === 'confirmed' ? 'confirmado' : row.original.status === 'completed' ? 'completado' : 'cancelado'] ?? row.original.status
@@ -341,7 +335,7 @@ export default function BuildingsPage() {
     if (!place) return;
     const contract = contracts.find((item) => item.id === values.contractId);
     if (!contract || contract.administrationId !== values.managementCompanyId) {
-      toast(t('buildings.contractMismatch'), 'error');
+      toast(t('buildings.contract.mismatch'), 'error');
       return;
     }
     try {
@@ -366,9 +360,9 @@ export default function BuildingsPage() {
       await queryClient.refetchQueries({ queryKey: ['buildings'] });
       reset();
       setPlace(null);
-      toast(t('buildings.toastCreated'), 'success');
+      toast(t('buildings.toast.created'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     }
   };
 
@@ -404,7 +398,7 @@ export default function BuildingsPage() {
     };
     const contract = contracts.find((item) => item.id === values.contractId);
     if (!contract || contract.administrationId !== values.managementCompanyId) {
-      toast(t('buildings.contractMismatch'), 'error');
+      toast(t('buildings.contract.mismatch'), 'error');
       return;
     }
     try {
@@ -427,9 +421,9 @@ export default function BuildingsPage() {
       await queryClient.invalidateQueries({ queryKey: ['buildings'] });
       setEditOpen(false);
       setEditingBuilding(null);
-      toast(t('buildings.toastUpdated'), 'success');
+      toast(t('buildings.toast.updated'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     }
   };
 
@@ -438,9 +432,9 @@ export default function BuildingsPage() {
     try {
       await deleteDocById('buildings', deleteTarget.id);
       await queryClient.invalidateQueries({ queryKey: ['buildings'] });
-      toast(t('buildings.toastDeleted'), 'success');
+      toast(t('buildings.toast.deleted'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     } finally {
       setDeleteTarget(null);
     }
@@ -451,9 +445,9 @@ export default function BuildingsPage() {
     try {
       await updateDocById('buildings', building.id, { active: nextActive });
       await queryClient.invalidateQueries({ queryKey: ['buildings'] });
-      toast(nextActive ? t('buildings.toastEnabled') : t('buildings.toastDisabled'), 'success');
+      toast(nextActive ? t('buildings.toast.enabled') : t('buildings.toast.disabled'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     }
   };
 
@@ -481,7 +475,7 @@ export default function BuildingsPage() {
     const summary = validateImportRows(previewRows);
     if (summary.invalidRows > 0) {
       setImportResult({ created: 0, failed: summary.invalidRows, errors: summary.issues });
-      toast('Corrige los errores del archivo antes de importar.', 'error');
+      toast('corrige los errores del archivo antes de importar.', 'error');
       return;
     }
     setUploading(true);
@@ -493,14 +487,14 @@ export default function BuildingsPage() {
       if (errorUrl) URL.revokeObjectURL(errorUrl);
       if (result.errors.length) {
         const csv = [
-          t('buildings.errorFileHeader'),
+          t('buildings.error.file.header'),
           ...result.errors.map((err) => `${err.row},"${err.message}"`)
         ].join('\\n');
         setErrorUrl(URL.createObjectURL(new Blob([csv], { type: 'text/csv' })));
       } else {
         setErrorUrl(null);
       }
-      toast(result.summaryMessage ?? t('buildings.toastUpdated'), result.errors.length ? 'error' : 'success');
+      toast(result.summaryMessage ?? t('buildings.toast.updated'), result.errors.length ? 'error' : 'success');
     } finally {
       setUploading(false);
     }
@@ -563,7 +557,7 @@ export default function BuildingsPage() {
                 Ver administraciones y contratos
               </Link>
               <Button variant="secondary" onClick={() => setImportOpen(true)}>
-                {t('buildings.bulkTitle')}
+                {t('buildings.bulk.title')}
               </Button>
               <Button
                 type="button"
@@ -589,7 +583,7 @@ export default function BuildingsPage() {
           Ir a administraciones y contratos
         </Link>
       </div>
-      <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading')}</div>}>
+      <Suspense fallback={<div className="rounded-3xl border border-fog-200 bg-white p-6 text-sm text-ink-600">{t('common.loading.default')}</div>}>
         <BuildingsMap buildings={buildings} ready={mapsReady} />
       </Suspense>
       <CreateServiceOrderDrawer
@@ -605,12 +599,12 @@ export default function BuildingsPage() {
             <DataTable
               columns={columns}
               data={buildings}
-              emptyState={<EmptyState title={t('buildings.emptyTitle')} description={t('buildings.emptySubtitle')} />}
+              emptyState={<EmptyState title={t('buildings.empty.title')} description={t('buildings.empty.subtitle')} />}
             />
           </div>
-          <Modal open={importOpen} title={t('buildings.bulkTitle')} onClose={() => setImportOpen(false)}>
+          <Modal open={importOpen} title={t('buildings.bulk.title')} onClose={() => setImportOpen(false)}>
             <div className="space-y-4">
-              <p className="text-xs text-ink-500">{t('buildings.bulkHint')}</p>
+              <p className="text-xs text-ink-500">{t('buildings.bulk.hint')}</p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -628,31 +622,31 @@ export default function BuildingsPage() {
                   variant="secondary"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  {t('buildings.importSelectFile')}
+                  {t('buildings.import.select.file')}
                 </Button>
                 <Button
                   type="button"
                   onClick={() => void handleImport(importFile)}
                   disabled={!importFile || uploading || validationSummary.invalidRows > 0}
                 >
-                  {t('buildings.importRun')}
+                  {t('buildings.import.run')}
                 </Button>
               </div>
               {uploading ? <p className="text-sm text-ink-600">{t('buildings.uploading')}</p> : null}
               {previewRows.length ? (
                 <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
-                  <p><span className="font-semibold text-ink-900">{t('buildings.importValidatedEntity')}:</span> {validationSummary.entity}</p>
-                  <p><span className="font-semibold text-ink-900">{t('buildings.importValidRows')}:</span> {validationSummary.validRows}</p>
-                  <p><span className="font-semibold text-ink-900">{t('buildings.importInvalidRows')}:</span> {validationSummary.invalidRows}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.import.validated.entity')}:</span> {validationSummary.entity}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.import.valid.rows')}:</span> {validationSummary.validRows}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.import.invalid.rows')}:</span> {validationSummary.invalidRows}</p>
                 </div>
               ) : null}
               {remoteValidation ? (
                 <div className="rounded-xl border border-fog-200 bg-white p-3 text-sm text-ink-700">
-                  <p><span className="font-semibold text-ink-900">{t('buildings.importRemoteValidation')}:</span> {remoteValidation.dryRun ? t('buildings.importDryRunLabel') : t('buildings.importFinalLabel')}</p>
-                  <p><span className="font-semibold text-ink-900">{t('buildings.importEntityLabel')}:</span> {remoteValidation.entity ?? validationSummary.entity}</p>
-                  <p><span className="font-semibold text-ink-900">{t('buildings.importEvaluatedRows')}:</span> {remoteValidation.previewCount ?? previewRows.length}</p>
-                  <p><span className="font-semibold text-ink-900">{t('buildings.importValidRows')}:</span> {remoteValidation.validRows ?? validationSummary.validRows}</p>
-                  <p>{remoteValidation.summaryMessage ?? t('buildings.importNoRemoteSummary')}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.import.remote.validation')}:</span> {remoteValidation.dryRun ? t('buildings.import.dry.run.label') : t('buildings.import.final.label')}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.import.entity.label')}:</span> {remoteValidation.entity ?? validationSummary.entity}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.import.evaluated.rows')}:</span> {remoteValidation.previewCount ?? previewRows.length}</p>
+                  <p><span className="font-semibold text-ink-900">{t('buildings.import.valid.rows')}:</span> {remoteValidation.validRows ?? validationSummary.validRows}</p>
+                  <p>{remoteValidation.summaryMessage ?? t('buildings.import.no.remote.summary')}</p>
                 </div>
               ) : null}
               {importResult ? (
@@ -667,7 +661,7 @@ export default function BuildingsPage() {
               ) : null}
               {importResult?.errors.length ? (
                 <div className="space-y-3">
-                  <p className="text-sm font-semibold text-ink-800">{t('buildings.errorTableTitle')}</p>
+                  <p className="text-sm font-semibold text-ink-800">{t('buildings.error.table.title')}</p>
                   <DataTable columns={errorColumns} data={importResult.errors} pageSize={5} />
                 </div>
               ) : null}
@@ -675,15 +669,15 @@ export default function BuildingsPage() {
                 <a
                   className="text-sm font-semibold text-ink-900 underline"
                   href={errorUrl}
-                  download={t('buildings.errorsFileName')}
+                  download={t('buildings.errors.file.name')}
                 >
-                  {t('common.downloadErrors')}
+                  {t('common.download.errors')}
                 </a>
               ) : null}
               {previewRows.length ? (
                 <div className="space-y-3">
                   <div className="rounded-xl border border-fog-200 bg-fog-50 p-3 text-sm text-ink-700">
-                    <p><span className="font-semibold text-ink-900">{t('buildings.importDetectedEntity')}:</span> {previewGroup.entity}</p>
+                    <p><span className="font-semibold text-ink-900">{t('buildings.import.detected.entity')}:</span> {previewGroup.entity}</p>
                     <p><span className="font-semibold text-ink-900">Columnas:</span> {previewGroup.headers.join(', ')}</p>
                     <p><span className="font-semibold text-ink-900">Preview:</span> {previewRows.length} fila(s)</p>
                   </div>
@@ -692,7 +686,7 @@ export default function BuildingsPage() {
               ) : null}
             </div>
           </Modal>
-          <Modal open={createOpen} title={t('buildings.newTitle')} onClose={() => setCreateOpen(false)}>
+          <Modal open={createOpen} title={t('buildings.new.title')} onClose={() => setCreateOpen(false)}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
               <Input label={t('buildings.name')} error={errors.name?.message} required {...register('name')} />
               <Select label={t('buildings.group')} error={errors.group?.message} required {...register('group')}>
@@ -704,18 +698,18 @@ export default function BuildingsPage() {
                 ))}
               </Select>
               <Select label={t('buildings.type')} error={errors.type?.message} required {...register('type')}>
-                <option value="EDIFICIO">{t('buildings.types.EDIFICIO')}</option>
-                <option value="CONJUNTO_RESIDENCIAL">{t('buildings.types.CONJUNTO_RESIDENCIAL')}</option>
-                <option value="UNIDAD">{t('buildings.types.UNIDAD')}</option>
+                <option value="EDIFICIO">{t('buildings.types.edificio')}</option>
+                <option value="CONJUNTO_RESIDENCIAL">{t('buildings.types.conjunto_residencial')}</option>
+                <option value="UNIDAD">{t('buildings.types.unidad')}</option>
               </Select>
               <Input
-                label={t('buildings.delegateName')}
+                label={t('buildings.delegate.name')}
                 error={errors.delegateName?.message}
                 required
                 {...register('delegateName')}
               />
               <Input
-                label={t('buildings.delegatePhone')}
+                label={t('buildings.delegate.phone')}
                 error={errors.delegatePhone?.message}
                 required
                 {...register('delegatePhone')}
@@ -723,20 +717,20 @@ export default function BuildingsPage() {
               <Input label={t('buildings.nit')} error={errors.nit?.message} required {...register('nit')} />
               <Input label={t('buildings.email')} type="email" error={errors.email?.message} required {...register('email')} />
               <Input
-                label={t('buildings.billingEmail')}
+                label={t('buildings.billing.email')}
                 type="email"
                 error={errors.billingEmail?.message}
                 required
                 {...register('billingEmail')}
               />
               <Input
-                label={t('buildings.porterPhone')}
+                label={t('buildings.porter.phone')}
                 error={errors.porterPhone?.message}
                 required
                 {...register('porterPhone')}
               />
               <Select
-                label={t('buildings.managementCompany')}
+                label={t('buildings.management.company')}
                 error={errors.managementCompanyId?.message}
                 required
                 {...register('managementCompanyId')}
@@ -754,7 +748,7 @@ export default function BuildingsPage() {
                 </div>
               ) : null}
               <Select
-                label={t('buildings.contract')}
+                label={t('buildings.contract.default')}
                 error={errors.contractId?.message}
                 required
                 {...register('contractId')}
@@ -772,18 +766,18 @@ export default function BuildingsPage() {
                 </div>
               ) : null}
               <PlacesAutocomplete
-                label={t('buildings.address')}
+                label={t('buildings.address.default')}
                 onSelect={(next) => setPlace(next)}
                 ready={mapsReady}
                 required
-                error={place != null ? t('buildings.addressRequired') : undefined}
+                error={place != null ? t('buildings.address.required') : undefined}
               />
               <Button type="submit" disabled={isSubmitting || !place} className="w-full">
                 {isSubmitting ? t('buildings.saving') : t('buildings.create')}
               </Button>
             </form>
           </Modal>
-          <Modal open={editOpen} title={t('buildings.editTitle')} onClose={() => setEditOpen(false)}>
+          <Modal open={editOpen} title={t('buildings.edit.title')} onClose={() => setEditOpen(false)}>
             <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4" noValidate>
               <Input label={t('buildings.name')} error={editErrors.name?.message} required {...editRegister('name')} />
               <Select label={t('buildings.group')} error={editErrors.group?.message} required {...editRegister('group')}>
@@ -798,18 +792,18 @@ export default function BuildingsPage() {
                 ) : null}
               </Select>
               <Select label={t('buildings.type')} error={editErrors.type?.message} required {...editRegister('type')}>
-                <option value="EDIFICIO">{t('buildings.types.EDIFICIO')}</option>
-                <option value="CONJUNTO_RESIDENCIAL">{t('buildings.types.CONJUNTO_RESIDENCIAL')}</option>
-                <option value="UNIDAD">{t('buildings.types.UNIDAD')}</option>
+                <option value="EDIFICIO">{t('buildings.types.edificio')}</option>
+                <option value="CONJUNTO_RESIDENCIAL">{t('buildings.types.conjunto_residencial')}</option>
+                <option value="UNIDAD">{t('buildings.types.unidad')}</option>
               </Select>
               <Input
-                label={t('buildings.delegateName')}
+                label={t('buildings.delegate.name')}
                 error={editErrors.delegateName?.message}
                 required
                 {...editRegister('delegateName')}
               />
               <Input
-                label={t('buildings.delegatePhone')}
+                label={t('buildings.delegate.phone')}
                 error={editErrors.delegatePhone?.message}
                 required
                 {...editRegister('delegatePhone')}
@@ -823,20 +817,20 @@ export default function BuildingsPage() {
                 {...editRegister('email')}
               />
               <Input
-                label={t('buildings.billingEmail')}
+                label={t('buildings.billing.email')}
                 type="email"
                 error={editErrors.billingEmail?.message}
                 required
                 {...editRegister('billingEmail')}
               />
               <Input
-                label={t('buildings.porterPhone')}
+                label={t('buildings.porter.phone')}
                 error={editErrors.porterPhone?.message}
                 required
                 {...editRegister('porterPhone')}
               />
               <Select
-                label={t('buildings.managementCompany')}
+                label={t('buildings.management.company')}
                 error={editErrors.managementCompanyId?.message}
                 required
                 {...editRegister('managementCompanyId')}
@@ -849,7 +843,7 @@ export default function BuildingsPage() {
                 ))}
               </Select>
               <Select
-                label={t('buildings.contract')}
+                label={t('buildings.contract.default')}
                 error={editErrors.contractId?.message}
                 required
                 {...editRegister('contractId')}
@@ -867,7 +861,7 @@ export default function BuildingsPage() {
                 </div>
               ) : null}
               <PlacesAutocomplete
-                label={t('buildings.address')}
+                label={t('buildings.address.default')}
                 onSelect={(next) => setEditPlace(next)}
                 ready={mapsReady}
                 value={editPlace}
@@ -879,14 +873,14 @@ export default function BuildingsPage() {
           </Modal>
           <ConfirmModal
             open={Boolean(deleteTarget)}
-            title={t('buildings.deleteTitle')}
-            description={t('buildings.deleteConfirm')}
+            title={t('buildings.delete.title')}
+            description={t('buildings.delete.confirm')}
             onConfirm={confirmDelete}
             onClose={() => setDeleteTarget(null)}
           />
           <Modal
             open={Boolean(detailTarget)}
-            title={t('buildings.detailTitle')}
+            title={t('buildings.detail.title')}
             onClose={() => {
               setDetailTarget(null);
               setContractDetailOpen(false);
@@ -928,14 +922,14 @@ export default function BuildingsPage() {
                       <p className="text-sm font-semibold text-ink-900">{detailTarget.name}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">{t('buildings.address')}</p>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.address.default')}</p>
                       <p className="text-sm font-semibold text-ink-900">{detailTarget.addressText}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">{t('buildings.managementCompany')}</p>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.management.company')}</p>
                       <p className="text-sm font-semibold text-ink-900">
                         {managements.find((company) => company.id === detailTarget.managementCompanyId)?.name ??
-                          t('common.notAvailable')}
+                          t('common.not.available')}
                       </p>
                     </div>
                     <div>
@@ -944,39 +938,39 @@ export default function BuildingsPage() {
                     </div>
                     <div>
                       <p className="text-xs uppercase text-ink-400">Grupo</p>
-                      <p className="text-sm font-semibold text-ink-900">{detailTarget.group || t('common.notAvailable')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.group || t('common.not.available')}</p>
                     </div>
                     <div>
                       <p className="text-xs uppercase text-ink-400">Delegado</p>
-                      <p className="text-sm font-semibold text-ink-900">{detailTarget.delegateName || t('common.notAvailable')}</p>
-                      <p className="text-xs text-ink-500">{detailTarget.delegatePhone || t('common.notAvailable')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.delegateName || t('common.not.available')}</p>
+                      <p className="text-xs text-ink-500">{detailTarget.delegatePhone || t('common.not.available')}</p>
                     </div>
                     <div>
                       <p className="text-xs uppercase text-ink-400">Portería</p>
-                      <p className="text-sm font-semibold text-ink-900">{detailTarget.porterPhone || t('common.notAvailable')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.porterPhone || t('common.not.available')}</p>
                     </div>
                     <div>
                       <p className="text-xs uppercase text-ink-400">NIT</p>
-                      <p className="text-sm font-semibold text-ink-900">{detailTarget.nit || t('common.notAvailable')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.nit || t('common.not.available')}</p>
                     </div>
                     <div>
                       <p className="text-xs uppercase text-ink-400">Emails</p>
-                      <p className="text-sm font-semibold text-ink-900">{detailTarget.email || t('common.notAvailable')}</p>
-                      <p className="text-xs text-ink-500">Facturación: {detailTarget.billingEmail || t('common.notAvailable')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.email || t('common.not.available')}</p>
+                      <p className="text-xs text-ink-500">Facturación: {detailTarget.billingEmail || t('common.not.available')}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">{t('buildings.contract')}</p>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.contract.default')}</p>
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-semibold text-ink-900">
                           {contracts.find((contract) => contract.id === detailTarget.contractId)?.name ??
-                            t('buildings.noContract')}
+                            t('buildings.no.contract')}
                         </p>
                         <button
                           type="button"
                           className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-ink-700 hover:bg-fog-100 disabled:cursor-not-allowed disabled:text-ink-300"
                           onClick={() => setContractDetailOpen(true)}
-                          title={t('buildings.viewContract')}
-                          aria-label={t('buildings.viewContract')}
+                          title={t('buildings.view.contract')}
+                          aria-label={t('buildings.view.contract')}
                           disabled={!detailContract}
                         >
                           <EyeIcon className="h-4 w-4" aria-hidden />
@@ -987,25 +981,25 @@ export default function BuildingsPage() {
                 </div>
                 <div className="rounded-xl border border-fog-200 bg-white p-4 text-sm text-ink-700">
                   <div className="mb-3">
-                    <p className="text-xs uppercase text-ink-400">{t('buildings.technicalContextTitle')}</p>
-                    <p className="text-sm font-semibold text-ink-900">{t('buildings.technicalContextSubtitle')}</p>
+                    <p className="text-xs uppercase text-ink-400">{t('buildings.technical.context.title')}</p>
+                    <p className="text-sm font-semibold text-ink-900">{t('buildings.technical.context.subtitle')}</p>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
-                      <p className="text-xs uppercase text-ink-400">{t('buildings.technicalEquipmentLabel')}</p>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.technical.equipment.label')}</p>
                       <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.equipmentSummary || 'Sin contexto técnico cargado'}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">{t('buildings.technicalMechanicalRoomLabel')}</p>
-                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.mechanicalRoomNotes || t('common.notAvailable')}</p>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.technical.mechanical.room.label')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.mechanicalRoomNotes || t('common.not.available')}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">{t('buildings.technicalElectricalLabel')}</p>
-                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.electricalSetup || t('common.notAvailable')}</p>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.technical.electrical.label')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.electricalSetup || t('common.not.available')}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">{t('buildings.technicalObservationsLabel')}</p>
-                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.criticalObservations || t('common.notAvailable')}</p>
+                      <p className="text-xs uppercase text-ink-400">{t('buildings.technical.observations.label')}</p>
+                      <p className="text-sm font-semibold text-ink-900">{detailTarget.technicalContext?.criticalObservations || t('common.not.available')}</p>
                     </div>
                   </div>
                 </div>
@@ -1037,15 +1031,15 @@ export default function BuildingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-sm font-semibold text-ink-900">{t('buildings.maintenanceTitle')}</h3>
+                  <h3 className="text-sm font-semibold text-ink-900">{t('buildings.maintenance.title')}</h3>
                   <DataTable
                     columns={maintenanceColumns}
                     data={maintenanceServiceOrders}
                     pageSize={5}
                     emptyState={
                       <EmptyState
-                        title={t('buildings.maintenanceEmptyTitle')}
-                        description={t('buildings.maintenanceEmptySubtitle')}
+                        title={t('buildings.maintenance.empty.title')}
+                        description={t('buildings.maintenance.empty.subtitle')}
                       />
                     }
                   />
@@ -1055,7 +1049,7 @@ export default function BuildingsPage() {
           </Modal>
           <Modal
             open={contractDetailOpen}
-            title={t('contracts.detailTitle')}
+            title={t('contracts.detail.title')}
             onClose={() => setContractDetailOpen(false)}
             layer="confirm"
           >
@@ -1077,40 +1071,40 @@ export default function BuildingsPage() {
                       <p className="text-sm font-semibold text-ink-900">{detailContract.name}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">{t('contracts.status')}</p>
+                      <p className="text-xs uppercase text-ink-400">{t('contracts.status.default')}</p>
                       <p className="text-sm font-semibold text-ink-900">
-                        {detailContract.status === 'inactivo' ? t('contracts.statusInactive') : t('contracts.statusActive')}
+                        {detailContract.status === 'inactivo' ? t('contracts.status.inactive') : t('contracts.status.active')}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">{t('contracts.startAt')}</p>
+                      <p className="text-xs uppercase text-ink-400">{t('contracts.start.at')}</p>
                       <p className="text-sm font-semibold text-ink-900">
                         {formatDateTime(detailContract.startAt)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">{t('contracts.endAt')}</p>
+                      <p className="text-xs uppercase text-ink-400">{t('contracts.end.at')}</p>
                       <p className="text-sm font-semibold text-ink-900">
                         {formatDateTime(detailContract.endAt)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">{t('contracts.maintenanceType')}</p>
+                      <p className="text-xs uppercase text-ink-400">{t('contracts.maintenance.type.default')}</p>
                       <p className="text-sm font-semibold text-ink-900">
-                        {detailContract.maintenanceTypeName ?? t('common.notAvailable')}
+                        {detailContract.maintenanceTypeName ?? t('common.not.available')}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase text-ink-400">{t('contracts.labAnalysisType')}</p>
+                      <p className="text-xs uppercase text-ink-400">{t('contracts.lab.analysis.type')}</p>
                       <p className="text-sm font-semibold text-ink-900">
-                        {detailContract.labAnalysisTypeName ?? t('common.notAvailable')}
+                        {detailContract.labAnalysisTypeName ?? t('common.not.available')}
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <EmptyState title={t('buildings.noContract')} description={t('buildings.contractRequired')} />
+              <EmptyState title={t('buildings.no.contract')} description={t('buildings.contract.required')} />
             )}
           </Modal>
         </>
@@ -1118,7 +1112,7 @@ export default function BuildingsPage() {
         <DataTable
           columns={columns}
           data={buildings}
-          emptyState={<EmptyState title={t('buildings.emptyTitle')} description={t('buildings.emptySubtitle')} />}
+          emptyState={<EmptyState title={t('buildings.empty.title')} description={t('buildings.empty.subtitle')} />}
         />
       )}
     </div>

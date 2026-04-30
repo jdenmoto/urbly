@@ -160,7 +160,7 @@ export default function ServiceCloseoutPage() {
     completion.startComplete(item);
   };
 
-  const resolveIssueLabel = (prefix: 'scheduling.issueTypes' | 'scheduling.issueCategories', value: string) =>
+  const resolveIssueLabel = (prefix: 'scheduling.issue.types' | 'scheduling.issueCategories', value: string) =>
     resolveServiceIssueLabel(t, prefix, value);
 
   const saveAttachments = async () => {
@@ -290,14 +290,14 @@ export default function ServiceCloseoutPage() {
   };
 
   if (!serviceOrder) {
-    return <EmptyState title={t('services.closeoutTitle')} description={t('services.closeoutEmpty')} />;
+    return <EmptyState title={t('services.closeout.title')} description={t('services.closeout.empty')} />;
   }
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title={t('services.closeoutTitle')}
-        subtitle={t('services.closeoutSubtitle')}
+        title={t('services.closeout.title')}
+        subtitle={t('services.closeout.subtitle')}
         actions={
           <div className="flex flex-wrap gap-2">
             <Link
@@ -378,16 +378,16 @@ export default function ServiceCloseoutPage() {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-3">
             <div className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              {t('services.closeoutBadge')}
+              {t('services.closeout.badge')}
             </div>
             <div>
               <h2 className="text-xl font-semibold text-ink-900">{serviceOrder.title}</h2>
-              <p className="max-w-2xl text-sm leading-6 text-ink-600">{t('services.closeoutHint')}</p>
+              <p className="max-w-2xl text-sm leading-6 text-ink-600">{t('services.closeout.hint')}</p>
             </div>
           </div>
           <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
             <p className="font-semibold text-ink-900">{getServiceOrderStatusLabel(t, serviceOrder.status)}</p>
-            <p>{t('services.closeoutStatusHint')}</p>
+            <p>{t('services.closeout.status.hint')}</p>
           </div>
         </div>
 
@@ -449,23 +449,23 @@ export default function ServiceCloseoutPage() {
 
           <div className="space-y-3">
             <div className="rounded-3xl bg-fog-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.evidenceTitle')}</p>
-              <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.evidenceCount', { count: serviceOrder.completionPhotos.length })}</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.evidence.title')}</p>
+              <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.evidence.count', { count: serviceOrder.completionPhotos.length })}</p>
             </div>
             <div className="rounded-3xl bg-fog-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issuesLabel')}</p>
-              <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.issuesCount', { count: serviceOrder.issues.length })}</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.issues.label')}</p>
+              <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.issues.count', { count: serviceOrder.issues.length })}</p>
             </div>
             <div className="rounded-3xl bg-fog-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.timelineLabel')}</p>
-              <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.timelineCount', { count: serviceOrder.timeline.length })}</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('services.timeline.label')}</p>
+              <p className="mt-2 text-sm font-semibold text-ink-900">{t('services.timeline.count', { count: serviceOrder.timeline.length })}</p>
             </div>
           </div>
         </div>
 
         <div className="grid gap-4 xl:grid-cols-2">
           <div className="rounded-3xl border border-fog-200 bg-white p-5">
-            <h3 className="text-sm font-semibold text-ink-900">{t('services.issueSummaryTitle')}</h3>
+            <h3 className="text-sm font-semibold text-ink-900">{t('services.issue.summary.title')}</h3>
             {serviceOrder.issues.length ? (
               <div className="mt-4 space-y-3">
                 {serviceOrder.issues.map((issue) => (
@@ -477,12 +477,12 @@ export default function ServiceCloseoutPage() {
                 ))}
               </div>
             ) : (
-              <p className="mt-3 text-sm text-ink-600">{t('services.issueSummaryEmpty')}</p>
+              <p className="mt-3 text-sm text-ink-600">{t('services.issue.summary.empty')}</p>
             )}
           </div>
 
           <div className="rounded-3xl border border-fog-200 bg-white p-5">
-            <h3 className="text-sm font-semibold text-ink-900">{t('services.communicationTitle')}</h3>
+            <h3 className="text-sm font-semibold text-ink-900">{t('services.communication.title')}</h3>
             <div className="mt-3 space-y-3 rounded-2xl bg-fog-50 p-4 text-sm leading-6 text-ink-700">
               <div>
                 <p className="text-xs uppercase tracking-wide text-ink-500">Mensaje cliente</p>
@@ -606,23 +606,23 @@ export default function ServiceCloseoutPage() {
           <Card className="space-y-6 p-6">
             <div>
               <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
-                {t('services.aiCloseoutBadge')}
+                {t('services.ai.closeout.badge')}
               </div>
-              <h2 className="mt-3 text-xl font-semibold text-ink-900">{t('services.aiCloseoutTitle')}</h2>
-              <p className="text-sm leading-6 text-ink-600">{t('services.aiCloseoutSubtitle')}</p>
+              <h2 className="mt-3 text-xl font-semibold text-ink-900">{t('services.ai.closeout.title')}</h2>
+              <p className="text-sm leading-6 text-ink-600">{t('services.ai.closeout.subtitle')}</p>
             </div>
 
             <div className="grid gap-4 xl:grid-cols-3">
               <div className="rounded-3xl border border-fog-200 bg-white p-5">
-                <h3 className="text-sm font-semibold text-ink-900">{t('services.aiReportTitle')}</h3>
+                <h3 className="text-sm font-semibold text-ink-900">{t('services.ai.report.title')}</h3>
                 <pre className="mt-3 whitespace-pre-wrap text-xs leading-6 text-ink-600">{aiReport}</pre>
               </div>
               <div className="rounded-3xl border border-fog-200 bg-white p-5">
-                <h3 className="text-sm font-semibold text-ink-900">{t('services.aiCustomerMessageTitle')}</h3>
+                <h3 className="text-sm font-semibold text-ink-900">{t('services.ai.customer.message.title')}</h3>
                 <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-ink-600">{aiCustomerMessage}</p>
               </div>
               <div className="rounded-3xl border border-fog-200 bg-white p-5">
-                <h3 className="text-sm font-semibold text-ink-900">{t('services.aiFollowUpTitle')}</h3>
+                <h3 className="text-sm font-semibold text-ink-900">{t('services.ai.follow.up.title')}</h3>
                 <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-ink-600">{aiFollowUp}</p>
               </div>
             </div>

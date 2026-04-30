@@ -11,10 +11,11 @@ import Select from '@/components/Select';
 import { useToast } from '@/components/ToastProvider';
 import { createDoc } from '@/lib/api/firestore';
 import { buildServiceOrderPayload } from '@/lib/api/serviceOrders';
+import { useI18n } from '@/lib/i18n';
 import { listServiceTypes } from '@/lib/serviceTypes';
 import {
+  buildFastCreateServiceOrderSchema,
   buildFastCreateServiceOrderDraft,
-  fastCreateServiceOrderSchema,
   type FastCreateServiceOrderValues,
 } from './schedulingSchemas';
 
@@ -37,6 +38,7 @@ function buildTimelineEvent(type: 'created' | 'scheduled', summary: string) {
 }
 
 export default function CreateServiceOrderDrawer({ open, onClose, buildings, technicians, prefill }: Props) {
+  const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [serviceTypeOptions, setServiceTypeOptions] = useState<Array<{ code: string; name: string }>>([]);
@@ -47,7 +49,7 @@ export default function CreateServiceOrderDrawer({ open, onClose, buildings, tec
     reset,
     watch,
   } = useForm<FastCreateServiceOrderValues>({
-    resolver: zodResolver(fastCreateServiceOrderSchema),
+    resolver: zodResolver(buildFastCreateServiceOrderSchema(t)),
     defaultValues: {
       buildingId: '',
       type: '',
@@ -103,39 +105,39 @@ export default function CreateServiceOrderDrawer({ open, onClose, buildings, tec
           seriesId: null,
         }),
         timeline: [
-          buildTimelineEvent('created', 'Service order creada desde creación rápida'),
+          buildTimelineEvent('created', t('scheduling.quick.timeline.created')),
           buildTimelineEvent(
             'scheduled',
             draft.status === 'scheduled'
-              ? 'Servicio programado con técnico desde creación rápida'
-              : 'Servicio creado sin técnico desde creación rápida',
+              ? t('scheduling.quick.timeline.scheduled')
+              : t('scheduling.quick.timeline.unassigned'),
           ),
         ],
       });
       await queryClient.invalidateQueries({ queryKey: ['serviceOrders'] });
       toast(
         draft.status === 'scheduled'
-          ? 'Servicio creado y programado.'
-          : 'Servicio creado sin técnico. Quedó listo para asignación.',
+          ? t('scheduling.quick.toast.scheduled')
+          : t('scheduling.quick.toast.unassigned'),
         'success',
       );
       onClose();
       reset();
     } catch {
-      toast('No fue posible crear el service order.', 'error');
+      toast(t('scheduling.quick.toast.error'), 'error');
     }
   };
 
   return (
-    <Modal open={open} title="Crear servicio rápido" onClose={onClose}>
+    <Modal open={open} title={t('scheduling.quick.create')} onClose={onClose}>
       <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
-          Flujo rápido para agenda diaria. Si el caso requiere más contexto, recurrencia o notas operativas, escálalo a la edición completa.
+          {t('scheduling.quick.description')}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <Select label="Edificio" required error={errors.buildingId?.message} {...register('buildingId')}>
-            <option value="">Selecciona un edificio</option>
+          <Select label={t('scheduling.filters.building')} required error={errors.buildingId?.message} {...register('buildingId')}>
+            <option value="">{t('scheduling.quick.select.building')}</option>
             {buildings.map((building) => (
               <option key={building.id} value={building.id}>
                 {building.name}
@@ -143,8 +145,8 @@ export default function CreateServiceOrderDrawer({ open, onClose, buildings, tec
             ))}
           </Select>
 
-          <Select label="Tipo de servicio" required error={errors.type?.message} {...register('type')}>
-            <option value="">Selecciona un tipo</option>
+          <Select label={t('scheduling.quick.service.type')} required error={errors.type?.message} {...register('type')}>
+            <option value="">{t('scheduling.quick.select.type')}</option>
             {serviceTypeOptions.map((type) => (
               <option key={type.code} value={type.code}>
                 {type.name}
@@ -152,10 +154,10 @@ export default function CreateServiceOrderDrawer({ open, onClose, buildings, tec
             ))}
           </Select>
 
-          <Input label="Fecha y hora inicial" type="datetime-local" required error={errors.scheduledStartAt?.message} {...register('scheduledStartAt')} />
+          <Input label={t('scheduling.quick.start.at')} type="datetime-local" required error={errors.scheduledStartAt?.message} {...register('scheduledStartAt')} />
 
           <Input
-            label="Duración estimada (min)"
+            label={t('scheduling.quick.duration')}
             type="number"
             min={15}
             step={15}
@@ -164,8 +166,8 @@ export default function CreateServiceOrderDrawer({ open, onClose, buildings, tec
             {...register('estimatedDurationMinutes', { valueAsNumber: true })}
           />
 
-          <Select label="Técnico" error={errors.assignedTechnicianId?.message} {...register('assignedTechnicianId')}>
-            <option value="">Sin técnico</option>
+          <Select label={t('scheduling.filters.technician')} error={errors.assignedTechnicianId?.message} {...register('assignedTechnicianId')}>
+            <option value="">{t('services.status.unassigned')}</option>
             {technicians.map((technician) => (
               <option key={technician.id} value={technician.id}>
                 {technician.fullName}
@@ -175,19 +177,19 @@ export default function CreateServiceOrderDrawer({ open, onClose, buildings, tec
         </div>
 
         <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-          Estado resultante: <span className="font-semibold">{computedStatus === 'scheduled' ? 'Programado' : 'Sin técnico'}</span>
+          {t('scheduling.quick.resulting.status')} <span className="font-semibold">{computedStatus === 'scheduled' ? t('services.status.scheduled') : t('services.status.unassigned')}</span>
           <p className="mt-1 text-xs text-sky-700">
-            Con técnico asignado queda programado. Sin técnico queda visible para asignación desde la agenda.
+            {t('scheduling.quick.status.hint')}
           </p>
         </div>
 
         <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 md:flex-row md:items-center md:justify-between">
           <Link to="/scheduling" className="text-sm font-semibold text-sky-700 transition hover:text-sky-800">
-            Ir a edición completa
+            {t('scheduling.quick.full.edit')}
           </Link>
           <div className="flex items-center gap-2">
-            <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creando...' : 'Crear servicio'}</Button>
+            <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
+            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? t('scheduling.quick.creating') : t('scheduling.quick.submit')}</Button>
           </div>
         </div>
       </form>

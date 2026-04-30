@@ -6,17 +6,17 @@ import { useI18n } from '@/lib/i18n';
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from './ActionIcons';
 import { useState } from 'react';
 
-const roleLabel: Record<string, string> = {
-  admin: 'Empresa',
-  editor: 'Empresa',
-  view: 'Empresa',
-  supervisor: 'Operación',
-  scheduler: 'Operación',
-  operator: 'Operación',
-  auditoria: 'Auditoría',
-  emergency_scheduler: 'Técnico',
-  building_admin: 'Cliente',
-  client: 'Cliente'
+const roleLabelKey: Record<string, string> = {
+  admin: 'roles.company',
+  editor: 'roles.company',
+  view: 'roles.company',
+  supervisor: 'roles.operations',
+  scheduler: 'roles.operations',
+  operator: 'roles.operations',
+  auditoria: 'roles.audit',
+  emergency_scheduler: 'roles.technician',
+  building_admin: 'roles.client',
+  client: 'roles.client'
 };
 
 export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
@@ -41,8 +41,8 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
           </div>
           {!collapsed ? (
             <div>
-              <p className="text-base font-semibold tracking-tight text-white">{t('common.appName')}</p>
-              <p className="text-xs text-slate-400">{roleLabel[role] ?? t('common.tagline')}</p>
+              <p className="text-base font-semibold tracking-tight text-white">{t('common.app.name')}</p>
+              <p className="text-xs text-slate-400">{roleLabelKey[role] ? t(roleLabelKey[role]) : t('common.tagline')}</p>
             </div>
           ) : null}
         </div>
@@ -58,9 +58,9 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
         ) : null}
       </div>
       <div className="rounded-3xl border border-slate-800 bg-slate-900/70 px-4 py-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t('shell.workspaceLabel')}</p>
-        <p className="mt-2 text-sm font-semibold text-white">{t('shell.executionModeValue')}</p>
-        <p className="mt-1 text-xs leading-5 text-slate-400">{t('shell.sidebarHint')}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t('shell.workspace.label')}</p>
+        <p className="mt-2 text-sm font-semibold text-white">{t('shell.execution.mode.value')}</p>
+        <p className="mt-1 text-xs leading-5 text-slate-400">{t('shell.sidebar.hint')}</p>
       </div>
       <nav className="flex flex-1 flex-col gap-4">
         {navGroups.map((group, index) => {
@@ -130,7 +130,7 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; 
             {t('common.logout')}
           </button>
           <div className="rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-xs text-slate-300">
-            Vista actual: {roleLabel[role] ?? 'Panel'}
+            {t('shell.current.view')}: {roleLabelKey[role] ? t(roleLabelKey[role]) : t('common.panel.title')}
           </div>
         </div>
       ) : null}

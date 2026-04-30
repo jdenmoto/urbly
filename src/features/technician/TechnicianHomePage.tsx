@@ -48,8 +48,8 @@ export default function TechnicianHomePage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title={t('technician.homeTitle')}
-        subtitle={t('technician.homeSubtitle')}
+        title={t('technician.home.title')}
+        subtitle={t('technician.home.subtitle')}
         actions={
           <Link
             className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
@@ -61,23 +61,23 @@ export default function TechnicianHomePage() {
       />
 
       <section className="grid gap-4 md:grid-cols-3">
-        <StatCard label={t('technician.assignedServices')} value={assignedOrders.length} />
+        <StatCard label={t('technician.assigned.services')} value={assignedOrders.length} />
         <StatCard
-          label={t('technician.pendingServices')}
+          label={t('technician.pending.services')}
           value={assignedOrders.filter((item) => item.status !== 'completed' && item.status !== 'cancelled').length}
         />
-        <StatCard label={t('technician.issuesDetected')} value={assignedOrders.reduce((acc, item) => acc + item.issues.length, 0)} />
+        <StatCard label={t('technician.issues.detected')} value={assignedOrders.reduce((acc, item) => acc + item.issues.length, 0)} />
       </section>
 
       <Card className="space-y-6 p-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-2">
             <div className="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-              {t('technician.mobileBadge')}
+              {t('technician.mobile.badge')}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-ink-900">{t('technician.nextServiceTitle')}</h2>
-              <p className="max-w-2xl text-sm leading-6 text-ink-600">{t('technician.nextServiceSubtitle')}</p>
+              <h2 className="text-xl font-semibold text-ink-900">{t('technician.next.service.title')}</h2>
+              <p className="max-w-2xl text-sm leading-6 text-ink-600">{t('technician.next.service.subtitle')}</p>
             </div>
           </div>
           <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
@@ -87,34 +87,34 @@ export default function TechnicianHomePage() {
         </div>
 
         {!employee ? (
-          <EmptyState title={t('technician.nextServiceTitle')} description={t('technician.missingEmployee')} />
+          <EmptyState title={t('technician.next.service.title')} description={t('technician.missing.employee')} />
         ) : !nextOrder ? (
-          <EmptyState title={t('technician.nextServiceTitle')} description={t('technician.empty')} />
+          <EmptyState title={t('technician.next.service.title')} description={t('technician.empty')} />
         ) : (
           <div className="rounded-3xl border border-fog-200 bg-white p-5 shadow-sm">
             <div className="flex flex-wrap gap-2">
               <span className={`rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[nextOrder.priority]}`}>
-                {getServiceOrderPriorityPill(t, nextOrder.priority, 'technician.priorityPill')}
+                {getServiceOrderPriorityPill(t, nextOrder.priority, 'technician.priority.pill')}
               </span>
             </div>
             <div className="mt-3 space-y-1">
               <p className="text-lg font-semibold text-ink-900">{nextOrder.title}</p>
               <p className="text-sm text-ink-600">
-                {buildings.find((item) => item.id === nextOrder.buildingId)?.name ?? t('common.noData')}
+                {buildings.find((item) => item.id === nextOrder.buildingId)?.name ?? t('common.no.data')}
               </p>
               <p className="text-sm text-ink-500">{formatServiceDateTime(nextOrder.scheduledStartAt)}</p>
             </div>
             <div className="mt-4 grid gap-3 text-sm text-ink-600 md:grid-cols-3">
               <div className="rounded-2xl bg-fog-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.statusLabel')}</p>
+                <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.status.label')}</p>
                 <p className="mt-1 font-semibold text-ink-900">{getServiceOrderStatusLabel(t, nextOrder.status)}</p>
               </div>
               <div className="rounded-2xl bg-fog-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.priorityLabel')}</p>
+                <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.priority.label')}</p>
                 <p className="mt-1 font-semibold text-ink-900">{getServiceOrderPriorityLabel(t, nextOrder.priority)}</p>
               </div>
               <div className="rounded-2xl bg-fog-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.issuesLabel')}</p>
+                <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.issues.label')}</p>
                 <p className="mt-1 font-semibold text-ink-900">{nextOrder.issues.length}</p>
               </div>
             </div>
@@ -126,8 +126,8 @@ export default function TechnicianHomePage() {
                   fromServices: true,
                   ...technicianListState,
                   listContext: {
-                    buildingName: buildings.find((item) => item.id === nextOrder.buildingId)?.name ?? t('common.noData'),
-                    technicianName: employee?.fullName ?? t('common.noData'),
+                    buildingName: buildings.find((item) => item.id === nextOrder.buildingId)?.name ?? t('common.no.data'),
+                    technicianName: employee?.fullName ?? t('common.no.data'),
                     dailyProgressCount: nextOrder.timeline.length,
                     issueCount: nextOrder.issues.length
                   }
@@ -153,7 +153,7 @@ export default function TechnicianHomePage() {
           <p className="text-sm leading-6 text-ink-600">Vista mínima del día para saber qué sigue y entrar rápido a cada orden.</p>
         </div>
         {!employee ? (
-          <EmptyState title="Cola de trabajo" description={t('technician.missingEmployee')} />
+          <EmptyState title="Cola de trabajo" description={t('technician.missing.employee')} />
         ) : todaysOrders.length === 0 ? (
           <EmptyState title="Cola de trabajo" description={t('technician.empty')} />
         ) : (
@@ -164,11 +164,11 @@ export default function TechnicianHomePage() {
                   <div>
                     <div className="flex flex-wrap gap-2">
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[order.priority]}`}>
-                        {getServiceOrderPriorityPill(t, order.priority, 'technician.priorityPill')}
+                        {getServiceOrderPriorityPill(t, order.priority, 'technician.priority.pill')}
                       </span>
                     </div>
                     <p className="mt-3 text-lg font-semibold text-ink-900">{order.title}</p>
-                    <p className="text-sm text-ink-600">{buildings.find((item) => item.id === order.buildingId)?.name ?? t('common.noData')}</p>
+                    <p className="text-sm text-ink-600">{buildings.find((item) => item.id === order.buildingId)?.name ?? t('common.no.data')}</p>
                     <p className="text-sm text-ink-500">{formatServiceDateTime(order.scheduledStartAt)}</p>
                   </div>
                   <div className="flex flex-wrap gap-3">
@@ -179,8 +179,8 @@ export default function TechnicianHomePage() {
                         fromServices: true,
                         ...technicianListState,
                         listContext: {
-                          buildingName: buildings.find((item) => item.id === order.buildingId)?.name ?? t('common.noData'),
-                          technicianName: employee?.fullName ?? t('common.noData'),
+                          buildingName: buildings.find((item) => item.id === order.buildingId)?.name ?? t('common.no.data'),
+                          technicianName: employee?.fullName ?? t('common.no.data'),
                           dailyProgressCount: order.timeline.length,
                           issueCount: order.issues.length
                         }

@@ -52,7 +52,7 @@ export default function ServiceTypesSettingsPage() {
           setSettings(snapshot.data() as ServiceTypesSettings);
         }
       } catch {
-        toast(t('common.actionError'), 'error');
+        toast(t('common.action.error'), 'error');
       } finally {
         setLoading(false);
       }
@@ -65,9 +65,9 @@ export default function ServiceTypesSettingsPage() {
     try {
       await setDoc(doc(db, 'settings', 'service_types'), next, { merge: true });
       setSettings(next);
-      toast(t('settings.toastSaved'), 'success');
+      toast(t('settings.toast.saved'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     } finally {
       setSaving(false);
     }
@@ -120,25 +120,25 @@ export default function ServiceTypesSettingsPage() {
   if (loading) {
     return (
       <Card>
-        <p className="text-sm text-ink-600">{t('common.loading')}</p>
+        <p className="text-sm text-ink-600">{t('common.loading.default')}</p>
       </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Tipos de servicio" subtitle="Catálogo administrable de tipos de servicio" />
+      <PageHeader title={t('settings.service.types.title')} subtitle={t('settings.service.types.subtitle')} />
       <Card className="space-y-4">
         <div className="grid gap-3 md:grid-cols-2">
-          <Input label="Código" value={form.code} onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))} required />
-          <Input label="Nombre" value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} required />
-          <Input label="Categoría" value={form.category ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))} />
-          <Input label="Duración por defecto (min)" type="number" value={String(form.defaultDurationMinutes ?? 60)} onChange={(e) => setForm((prev) => ({ ...prev, defaultDurationMinutes: Number(e.target.value) }))} />
+          <Input label={t('settings.service.types.code')} value={form.code} onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))} required />
+          <Input label={t('settings.service.types.name')} value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} required />
+          <Input label={t('settings.service.types.category')} value={form.category ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))} />
+          <Input label={t('settings.service.types.default.duration')} type="number" value={String(form.defaultDurationMinutes ?? 60)} onChange={(e) => setForm((prev) => ({ ...prev, defaultDurationMinutes: Number(e.target.value) }))} />
         </div>
-        <Input label="Descripción" value={form.description ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} />
+        <Input label={t('settings.service.types.description')} value={form.description ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} />
         <div className="flex items-center gap-3">
-          <Button type="button" onClick={save} disabled={saving}>{saving ? t('settings.saving') : editingId ? 'Actualizar tipo' : 'Agregar tipo'}</Button>
-          {editingId ? <Button type="button" variant="secondary" onClick={resetForm}>Nuevo tipo</Button> : null}
+          <Button type="button" onClick={save} disabled={saving}>{saving ? t('settings.saving') : editingId ? t('settings.service.types.update') : t('settings.service.types.add')}</Button>
+          {editingId ? <Button type="button" variant="secondary" onClick={resetForm}>{t('settings.service.types.new')}</Button> : null}
         </div>
       </Card>
       <Card>
@@ -146,10 +146,10 @@ export default function ServiceTypesSettingsPage() {
           <table className="w-full text-left text-sm">
             <thead className="bg-fog-100 text-xs uppercase text-ink-500">
               <tr>
-                <th className="px-3 py-2">Código</th>
-                <th className="px-3 py-2">Nombre</th>
-                <th className="px-3 py-2">Estado</th>
-                <th className="px-3 py-2">Acciones</th>
+                <th className="px-3 py-2">{t('settings.service.types.code')}</th>
+                <th className="px-3 py-2">{t('settings.service.types.name')}</th>
+                <th className="px-3 py-2">{t('settings.service.types.status')}</th>
+                <th className="px-3 py-2">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -157,7 +157,7 @@ export default function ServiceTypesSettingsPage() {
                 <tr key={item.id} className="border-t border-fog-100">
                   <td className="px-3 py-2 font-mono text-xs text-ink-700">{item.code}</td>
                   <td className="px-3 py-2 font-semibold text-ink-900">{item.name}</td>
-                  <td className="px-3 py-2 text-xs text-ink-600">{item.active ? 'Activo' : 'Inactivo'}</td>
+                  <td className="px-3 py-2 text-xs text-ink-600">{item.active ? t('settings.service.types.active') : t('settings.service.types.inactive')}</td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2">
                       <button type="button" className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-ink-700 hover:bg-fog-100" onClick={() => startEdit(item)}>

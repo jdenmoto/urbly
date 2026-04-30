@@ -71,7 +71,7 @@ export default function CompleteServiceModal({
   setIssueDraft: React.Dispatch<React.SetStateAction<IssueDraft>>;
   dynamicIssueTypes: readonly string[];
   dynamicIssueCategories: Record<string, string[]>;
-  resolveIssueLabel: (prefix: 'scheduling.issueTypes' | 'scheduling.issueCategories', value: string) => string;
+  resolveIssueLabel: (prefix: 'scheduling.issue.types' | 'scheduling.issueCategories', value: string) => string;
   addIssue: () => void;
   issues: IssueDraft[];
   removeIssue: (id: string) => void;
@@ -81,44 +81,44 @@ export default function CompleteServiceModal({
   const { t } = useI18n();
 
   return (
-    <Modal open={open} title={t('scheduling.completeTitle')} onClose={onClose}>
+    <Modal open={open} title={t('scheduling.complete.title')} onClose={onClose}>
       <div className="space-y-4">
         <div className="space-y-3 rounded-xl border border-fog-200 bg-fog-50 p-4">
-          <p className="text-sm font-semibold text-ink-900">{t('scheduling.serviceReport')}</p>
+          <p className="text-sm font-semibold text-ink-900">{t('scheduling.service.report')}</p>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-ink-800">{t('scheduling.entryHourLabel')} <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium text-ink-800">{t('scheduling.entry.hour.label')} <span className="text-red-500">*</span></label>
               <div className="grid grid-cols-2 gap-2">
                 <Select value={getTimeParts(completionReport.entryHour).hour} onChange={(event) => setReportTimePart('entryHour', 'hour', event.target.value)}>
-                  <option value="">{t('scheduling.hourPlaceholder')}</option>
+                  <option value="">{t('scheduling.hour.placeholder')}</option>
                   {timeHourOptions.map((hour) => <option key={`entry-hour-${hour}`} value={hour}>{hour}</option>)}
                 </Select>
                 <Select value={getTimeParts(completionReport.entryHour).minute} onChange={(event) => setReportTimePart('entryHour', 'minute', event.target.value)}>
-                  <option value="">{t('scheduling.minutePlaceholder')}</option>
+                  <option value="">{t('scheduling.minute.placeholder')}</option>
                   {timeMinuteOptions.map((minute) => <option key={`entry-minute-${minute}`} value={minute}>{minute}</option>)}
                 </Select>
               </div>
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-ink-800">{t('scheduling.exitHourLabel')} <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium text-ink-800">{t('scheduling.exit.hour.label')} <span className="text-red-500">*</span></label>
               <div className="grid grid-cols-2 gap-2">
                 <Select value={getTimeParts(completionReport.exitHour).hour} onChange={(event) => setReportTimePart('exitHour', 'hour', event.target.value)}>
-                  <option value="">{t('scheduling.hourPlaceholder')}</option>
+                  <option value="">{t('scheduling.hour.placeholder')}</option>
                   {timeHourOptions.map((hour) => <option key={`exit-hour-${hour}`} value={hour}>{hour}</option>)}
                 </Select>
                 <Select value={getTimeParts(completionReport.exitHour).minute} onChange={(event) => setReportTimePart('exitHour', 'minute', event.target.value)}>
-                  <option value="">{t('scheduling.minutePlaceholder')}</option>
+                  <option value="">{t('scheduling.minute.placeholder')}</option>
                   {timeMinuteOptions.map((minute) => <option key={`exit-minute-${minute}`} value={minute}>{minute}</option>)}
                 </Select>
               </div>
             </div>
           </div>
-          <Input label={t('scheduling.observationsLabel')} required value={completionReport.observations} onChange={(event) => setCompletionReport((prev: any) => ({ ...prev, observations: event.target.value }))} />
+          <Input label={t('scheduling.observations.label')} required value={completionReport.observations} onChange={(event) => setCompletionReport((prev: any) => ({ ...prev, observations: event.target.value }))} />
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-ink-700">{t('scheduling.reviewDetailsTitle')}</p>
+            <p className="text-xs font-semibold text-ink-700">{t('scheduling.review.details.title')}</p>
             <div className="space-y-2 rounded-lg border border-fog-200 bg-white p-2">
               <button type="button" className="flex w-full items-center justify-between text-left text-xs font-semibold text-ink-800" onClick={() => setGroupPanelsOpen((prev) => ({ ...prev, grupo1: !prev.grupo1 }))}>
-                <span>{t('scheduling.group1Pumps')}</span>
+                <span>{t('scheduling.group1.pumps')}</span>
                 <span>{groupPanelsOpen.grupo1 ? '▾' : '▸'}</span>
               </button>
               {groupPanelsOpen.grupo1 ? (
@@ -128,14 +128,14 @@ export default function CompleteServiceModal({
                       const nextUnit = (group1Units.length ? group1Units[group1Units.length - 1] : 0) + 1;
                       setGroup1Units((prev) => [...prev, nextUnit]);
                       setBombaPanelsOpen((prev) => ({ ...prev, [nextUnit]: true }));
-                    }}>{t('scheduling.addPump')}</Button>
+                    }}>{t('scheduling.add.pump')}</Button>
                   </div>
                   {group1Units.map((unit, index) => (
                     <div key={unit} className="space-y-2 rounded-lg border border-fog-200 bg-fog-50 p-2">
                       <div className="flex items-center justify-between">
                         <button type="button" className="flex items-center gap-2 text-xs font-semibold text-ink-700" onClick={() => setBombaPanelsOpen((prev) => ({ ...prev, [unit]: !(prev[unit] ?? true) }))}>
                           <span>{bombaPanelsOpen[unit] ?? true ? '▾' : '▸'}</span>
-                          <span>{t('scheduling.pumpLabel', { index: index + 1 })}</span>
+                          <span>{t('scheduling.pump.label', { index: index + 1 })}</span>
                         </button>
                         {group1Units.length > 1 ? (
                           <button type="button" className="text-xs text-rose-600" onClick={() => {
@@ -157,18 +157,18 @@ export default function CompleteServiceModal({
                               <div key={key} className="space-y-2 rounded-lg border border-fog-200 bg-white p-2">
                                 <p className="mb-1 text-xs text-ink-700">{formatChecklistLabel(item)} <span className="text-red-500">*</span></p>
                                 <Select value={completionReport.checklist[key] ?? 'na'} onChange={(event) => setCompletionReport((prev: any) => ({ ...prev, checklist: { ...prev.checklist, [key]: event.target.value as 'ok' | 'regular' | 'malo' | 'na' } }))}>
-                                  <option value="ok">{t('scheduling.goodOption')}</option>
-                                  <option value="regular">{t('scheduling.regularOption')}</option>
-                                  <option value="malo">{t('scheduling.badOption')}</option>
-                                  <option value="na">{t('scheduling.notApplicableOption')}</option>
+                                  <option value="ok">{t('scheduling.good.option')}</option>
+                                  <option value="regular">{t('scheduling.regular.option')}</option>
+                                  <option value="malo">{t('scheduling.bad.option')}</option>
+                                  <option value="na">{t('scheduling.not.applicable.option')}</option>
                                 </Select>
                                 <div className="space-y-1">
-                                  <p className="text-xs text-ink-700">{t('scheduling.distributionNetworkLabel')} <span className="text-red-500">*</span></p>
+                                  <p className="text-xs text-ink-700">{t('scheduling.distribution.network.label')} <span className="text-red-500">*</span></p>
                                   <Select value={completionReport.checklist[redKey] ?? 'na'} onChange={(event) => setCompletionReport((prev: any) => ({ ...prev, checklist: { ...prev.checklist, [redKey]: event.target.value as 'ok' | 'regular' | 'malo' | 'na' } }))}>
-                                    <option value="ok">{t('scheduling.goodFemaleOption')}</option>
-                                    <option value="regular">{t('scheduling.regularOption')}</option>
-                                    <option value="malo">{t('scheduling.badFemaleOption')}</option>
-                                    <option value="na">{t('scheduling.notApplicableOption')}</option>
+                                    <option value="ok">{t('scheduling.good.female.option')}</option>
+                                    <option value="regular">{t('scheduling.regular.option')}</option>
+                                    <option value="malo">{t('scheduling.bad.female.option')}</option>
+                                    <option value="na">{t('scheduling.not.applicable.option')}</option>
                                   </Select>
                                 </div>
                               </div>
@@ -182,8 +182,8 @@ export default function CompleteServiceModal({
               ) : null}
             </div>
             {[
-              { key: 'grupo2', title: t('scheduling.group2Label'), items: completionChecklistGroups.grupo2 },
-              { key: 'grupo3', title: t('scheduling.group3Label'), items: completionChecklistGroups.grupo3 }
+              { key: 'grupo2', title: t('scheduling.group2.label'), items: completionChecklistGroups.grupo2 },
+              { key: 'grupo3', title: t('scheduling.group3.label'), items: completionChecklistGroups.grupo3 }
             ].map((group) => (
               <div key={group.title} className="space-y-2 rounded-lg border border-fog-200 bg-white p-2">
                 <button type="button" className="flex w-full items-center justify-between text-left text-xs font-semibold text-ink-800" onClick={() => setGroupPanelsOpen((prev) => ({ ...prev, [group.key]: !prev[group.key as 'grupo2' | 'grupo3'] }))}>
@@ -196,10 +196,10 @@ export default function CompleteServiceModal({
                       <div key={item} className="space-y-2 rounded-lg border border-fog-200 bg-fog-50 p-2">
                         <p className="mb-1 text-xs text-ink-700">{formatChecklistLabel(item)} <span className="text-red-500">*</span></p>
                         <Select value={completionReport.checklist[item] ?? 'na'} onChange={(event) => setCompletionReport((prev: any) => ({ ...prev, checklist: { ...prev.checklist, [item]: event.target.value as 'ok' | 'regular' | 'malo' | 'na' } }))}>
-                          <option value="ok">{t('scheduling.goodOption')}</option>
-                          <option value="regular">{t('scheduling.regularOption')}</option>
-                          <option value="malo">{t('scheduling.badOption')}</option>
-                          <option value="na">{t('scheduling.notApplicableOption')}</option>
+                          <option value="ok">{t('scheduling.good.option')}</option>
+                          <option value="regular">{t('scheduling.regular.option')}</option>
+                          <option value="malo">{t('scheduling.bad.option')}</option>
+                          <option value="na">{t('scheduling.not.applicable.option')}</option>
                         </Select>
                       </div>
                     ))}
@@ -209,7 +209,7 @@ export default function CompleteServiceModal({
             ))}
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-ink-800">{t('scheduling.servicePhotosTitle')} <span className="text-red-500">*</span> {t('scheduling.servicePhotosRequirement')}</label>
+            <label className="text-sm font-medium text-ink-800">{t('scheduling.service.photos.title')} <span className="text-red-500">*</span> {t('scheduling.service.photos.requirement')}</label>
             <input type="file" accept="image/*" multiple onChange={(event) => {
               const files = Array.from(event.target.files ?? []);
               if (!files.length) return;
@@ -231,24 +231,24 @@ export default function CompleteServiceModal({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <p className="text-sm font-semibold text-ink-800">{t('scheduling.issueQuestion')}</p>
+          <p className="text-sm font-semibold text-ink-800">{t('scheduling.issue.question')}</p>
           <Button variant={hasIssues === 'yes' ? 'primary' : 'secondary'} onClick={() => { setIssueError(null); setHasIssues('yes'); }} type="button">{t('common.yes')}</Button>
-          <Button variant={hasIssues === 'no' ? 'primary' : 'secondary'} onClick={() => { setIssueError(null); setHasIssues('no'); }} type="button">{t('common.no')}</Button>
+          <Button variant={hasIssues === 'no' ? 'primary' : 'secondary'} onClick={() => { setIssueError(null); setHasIssues('no'); }} type="button">{t('common.no.default')}</Button>
         </div>
         {issueError && hasIssues !== 'yes' ? <p className="text-xs text-red-500">{issueError}</p> : null}
         {hasIssues === 'yes' ? (
           <div className="space-y-4 rounded-xl border border-fog-200 bg-fog-50 p-4">
-            <Select label={t('scheduling.issueType')} required value={issueDraft.type} onChange={(event) => setIssueDraft((prev) => ({ ...prev, type: event.target.value, category: '' }))}>
+            <Select label={t('scheduling.issue.type')} required value={issueDraft.type} onChange={(event) => setIssueDraft((prev) => ({ ...prev, type: event.target.value, category: '' }))}>
               <option value="">{t('common.select')}</option>
-              {dynamicIssueTypes.map((option: string) => <option key={option} value={option}>{resolveIssueLabel('scheduling.issueTypes', option)}</option>)}
+              {dynamicIssueTypes.map((option: string) => <option key={option} value={option}>{resolveIssueLabel('scheduling.issue.types', option)}</option>)}
             </Select>
-            <Select label={t('scheduling.issueCategory')} required value={issueDraft.category} onChange={(event) => setIssueDraft((prev) => ({ ...prev, category: event.target.value }))} disabled={!issueDraft.type}>
+            <Select label={t('scheduling.issue.category')} required value={issueDraft.category} onChange={(event) => setIssueDraft((prev) => ({ ...prev, category: event.target.value }))} disabled={!issueDraft.type}>
               <option value="">{t('common.select')}</option>
               {(issueDraft.type ? dynamicIssueCategories[issueDraft.type] ?? [] : []).map((option: string) => <option key={option} value={option}>{resolveIssueLabel('scheduling.issueCategories', option)}</option>)}
             </Select>
-            <Input label={t('scheduling.issueDescription')} value={issueDraft.description} onChange={(event) => setIssueDraft((prev) => ({ ...prev, description: event.target.value }))} maxLength={300} />
+            <Input label={t('scheduling.issue.description')} value={issueDraft.description} onChange={(event) => setIssueDraft((prev) => ({ ...prev, description: event.target.value }))} maxLength={300} />
             <div className="space-y-2">
-              <label className="text-sm font-medium text-ink-800">{t('scheduling.issuePhotos')}<span className="ml-1 text-red-500">*</span></label>
+              <label className="text-sm font-medium text-ink-800">{t('scheduling.issue.photos.default')}<span className="ml-1 text-red-500">*</span></label>
               <input type="file" accept="image/*" multiple onChange={(event) => {
                 const files = Array.from(event.target.files ?? []);
                 if (!files.length) return;
@@ -264,17 +264,17 @@ export default function CompleteServiceModal({
                   ))}
                 </div>
               ) : null}
-              <p className="text-xs text-ink-500">{t('scheduling.issuePhotosHint')}</p>
+              <p className="text-xs text-ink-500">{t('scheduling.issue.photos.hint')}</p>
             </div>
             {issueError ? <p className="text-xs text-red-500">{issueError}</p> : null}
-            <Button type="button" variant="secondary" onClick={addIssue}>{t('scheduling.addIssue')}</Button>
+            <Button type="button" variant="secondary" onClick={addIssue}>{t('scheduling.add.issue')}</Button>
             {issues.length ? (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-ink-700">{t('scheduling.issueList')}</p>
+                <p className="text-xs font-semibold text-ink-700">{t('scheduling.issue.list')}</p>
                 {issues.map((issue) => (
                   <div key={issue.id} className="flex items-center justify-between rounded-lg bg-white p-2 text-xs text-ink-700">
                     <div>
-                      <p className="font-semibold">{t(`scheduling.issueTypes.${issue.type}`)}</p>
+                      <p className="font-semibold">{t(`scheduling.issue.types.${issue.type}`)}</p>
                       <p>{t(`scheduling.issueCategories.${issue.category}`)}</p>
                     </div>
                     <button type="button" className="text-rose-600" onClick={() => removeIssue(issue.id)}>{t('common.delete')}</button>
@@ -285,7 +285,7 @@ export default function CompleteServiceModal({
           </div>
         ) : null}
         <Button type="button" className="w-full" disabled={completeSubmitting} onClick={completeService}>
-          {completeSubmitting ? t('scheduling.completing') : t('scheduling.complete')}
+          {completeSubmitting ? t('scheduling.completing') : t('scheduling.complete.default')}
         </Button>
       </div>
     </Modal>

@@ -2,11 +2,21 @@ import { z } from 'zod';
 
 import { createServiceOrderStatus } from '@/features/services/serviceOrderTransitions';
 
+export function buildFastCreateServiceOrderSchema(t: (key: string) => string) {
+  return z.object({
+    buildingId: z.string().min(1, t('scheduling.validation.building.required')),
+    type: z.string().min(1, t('scheduling.validation.type.required')),
+    scheduledStartAt: z.string().min(1, t('scheduling.validation.start.required')),
+    estimatedDurationMinutes: z.coerce.number().int().min(15, t('scheduling.validation.duration.min')),
+    assignedTechnicianId: z.string().optional().default(''),
+  });
+}
+
 export const fastCreateServiceOrderSchema = z.object({
-  buildingId: z.string().min(1, 'El edificio es obligatorio.'),
-  type: z.string().min(1, 'El tipo de servicio es obligatorio.'),
-  scheduledStartAt: z.string().min(1, 'La fecha y hora inicial son obligatorias.'),
-  estimatedDurationMinutes: z.coerce.number().int().min(15, 'La duración mínima es de 15 minutos.'),
+  buildingId: z.string().min(1),
+  type: z.string().min(1),
+  scheduledStartAt: z.string().min(1),
+  estimatedDurationMinutes: z.coerce.number().int().min(15),
   assignedTechnicianId: z.string().optional().default(''),
 });
 

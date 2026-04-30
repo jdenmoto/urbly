@@ -9,34 +9,34 @@ function humanizeFallback(value: string) {
 }
 
 const priorityLabelKey: Record<string, string> = {
-  urgent: 'services.priorityUrgent',
-  high: 'services.priorityHigh',
-  medium: 'services.priorityMedium',
-  low: 'services.priorityLow'
+  urgent: 'services.priority.urgent',
+  high: 'services.priority.high',
+  medium: 'services.priority.medium',
+  low: 'services.priority.low'
 };
 
 const statusLabelKey: Record<ServiceOrder['status'], string> = {
-  draft: 'services.statusDraft',
-  unassigned: 'services.statusUnassigned',
-  scheduled: 'services.statusScheduled',
-  confirmed: 'services.statusConfirmed',
-  in_progress: 'services.statusInProgress',
-  paused: 'services.statusPaused',
-  pending_review: 'services.statusPendingReview',
-  requires_reschedule: 'services.statusRequiresReschedule',
-  completed: 'services.statusCompleted',
-  cancelled: 'services.statusCancelled'
+  draft: 'services.status.draft',
+  unassigned: 'services.status.unassigned',
+  scheduled: 'services.status.scheduled',
+  confirmed: 'services.status.confirmed',
+  in_progress: 'services.status.in.progress',
+  paused: 'services.status.paused',
+  pending_review: 'services.status.pending.review',
+  requires_reschedule: 'services.status.requires.reschedule',
+  completed: 'services.status.completed',
+  cancelled: 'services.status.cancelled'
 };
 
 export function getServiceOrderStatusLabel(t: TranslateFn, status: ServiceOrder['status']) {
-  return t(statusLabelKey[status] ?? 'services.statusDraft');
+  return t(statusLabelKey[status] ?? 'services.status.draft');
 }
 
 export function getServiceOrderPriorityLabel(t: TranslateFn, priority: ServiceOrder['priority']) {
-  return t(priorityLabelKey[priority] ?? 'services.priorityMedium');
+  return t(priorityLabelKey[priority] ?? 'services.priority.medium');
 }
 
-export function getServiceOrderPriorityPill(t: TranslateFn, priority: ServiceOrder['priority'], key = 'services.priorityPill') {
+export function getServiceOrderPriorityPill(t: TranslateFn, priority: ServiceOrder['priority'], key = 'services.priority.pill') {
   return t(key, { value: getServiceOrderPriorityLabel(t, priority) });
 }
 
@@ -45,7 +45,7 @@ export function getServiceOrderTypeLabel(t: TranslateFn, type: string) {
 }
 
 export function getIssueTypeLabel(t: TranslateFn, value: string) {
-  return t(`scheduling.issueTypes.${value}`, { defaultValue: humanizeFallback(value) });
+  return t(`scheduling.issue.types.${value}`, { defaultValue: humanizeFallback(value) });
 }
 
 export function getIssueCategoryLabel(t: TranslateFn, value: string) {

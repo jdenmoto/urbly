@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import EmptyState from '@/components/EmptyState';
 import { StatusPill } from '@/components/premium';
+import { useI18n } from '@/lib/i18n';
 import type { SchedulingCalendarEvent, SchedulingSidebarGroup } from './useSchedulingPageData';
 
 type Props = {
@@ -22,35 +23,37 @@ function getStatusTone(event: SchedulingCalendarEvent): 'success' | 'warning' | 
   return 'info';
 }
 
-function getStatusLabel(event: SchedulingCalendarEvent) {
-  if (event.hasConflict) return 'Conflicto';
+function getStatusLabel(t: (key: string) => string, event: SchedulingCalendarEvent) {
+  if (event.hasConflict) return t('scheduling.metrics.conflicts.default');
 
   switch (event.status) {
     case 'unassigned':
-      return 'Sin técnico';
+      return t('services.status.unassigned');
     case 'scheduled':
     case 'confirmed':
-      return 'Programado';
+      return t('services.status.scheduled');
     case 'in_progress':
-      return 'En ejecución';
+      return t('services.status.in.progress');
     case 'paused':
-      return 'Pausado';
+      return t('services.status.paused');
     case 'pending_review':
-      return 'Pendiente';
+      return t('services.status.pending.review');
     case 'requires_reschedule':
-      return 'Reprogramar';
+      return t('services.status.requires.reschedule');
     case 'completed':
-      return 'Completado';
+      return t('services.status.completed');
     case 'cancelled':
-      return 'Cancelado';
+      return t('services.status.cancelled');
     default:
       return event.status;
   }
 }
 
 export default function SchedulingSidebarList({ groups, selectedEventId, onSelectEvent }: Props) {
+  const { t } = useI18n();
+
   if (!groups.length) {
-    return <EmptyState title="Resumen lateral" description="Aún no hay grupos visibles para esta agenda." />;
+    return <EmptyState title={t('scheduling.sidebar.title')} description={t('scheduling.sidebar.empty')} />;
   }
 
   return (
@@ -79,18 +82,18 @@ export default function SchedulingSidebarList({ groups, selectedEventId, onSelec
                         <p className="text-sm text-slate-600">{item.technicianName} · {item.buildingName}</p>
                         <p className="mt-1 text-xs text-slate-500">{item.start.slice(11, 16)} → {item.end.slice(11, 16)}</p>
                       </div>
-                      <StatusPill tone={getStatusTone(item)}>{getStatusLabel(item)}</StatusPill>
+                      <StatusPill tone={getStatusTone(item)}>{getStatusLabel(t, item)}</StatusPill>
                     </div>
                   </button>
 
                   {isSelected ? (
                     <div className="mt-3 flex items-center justify-between gap-3 border-t border-sky-100 pt-3 text-sm">
-                      <span className="text-slate-600">Abrir edición completa del service order.</span>
+                      <span className="text-slate-600">{t('scheduling.sidebar.edit.hint')}</span>
                       <Link
                         to={`/services?edit=${item.id}&from=scheduling`}
                         className="font-semibold text-sky-700 transition hover:text-sky-800"
                       >
-                        Editar
+                        {t('common.edit')}
                       </Link>
                     </div>
                   ) : null}

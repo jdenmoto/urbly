@@ -13,6 +13,7 @@ import {
   type SchedulingPageData,
   type SchedulingPageFilters,
 } from './useSchedulingPageData';
+import { useI18n } from '@/lib/i18n';
 
 const defaultFilters: SchedulingPageFilters = {
   technicianId: '',
@@ -32,6 +33,7 @@ export function SchedulingPageContent(props: {
   buildings?: Array<{ id: string; name: string }>;
   technicians?: Array<{ id: string; fullName: string }>;
 }) {
+  const { t } = useI18n();
   const { filters, onFiltersChange, data, isLoading, buildings = [], technicians = [] } = props;
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
@@ -49,8 +51,8 @@ export function SchedulingPageContent(props: {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Agendamientos"
-        subtitle="Programa y monitorea servicios operativos desde un solo calendario."
+        title={t('scheduling.title.default')}
+        subtitle={t('scheduling.subtitle')}
         actions={
           <div className="flex items-center gap-2">
             <button
@@ -58,31 +60,31 @@ export function SchedulingPageContent(props: {
               className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
               onClick={() => setIsCreateDrawerOpen(true)}
             >
-              Crear servicio rápido
+              {t('scheduling.quick.create')}
             </button>
             <Link
               className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
               to="/services"
             >
-              Ir a services
+              {t('scheduling.go.to.services')}
             </Link>
           </div>
         }
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Servicios visibles" value={data.summary.total} hint="Scope actual de la agenda." />
-        <MetricCard label="Programados" value={data.summary.scheduled} hint="Con franja activa y asignación operativa." />
-        <MetricCard label="Sin técnico" value={data.summary.unassigned} hint="Listos para asignación." />
-        <MetricCard label="Conflictos" value={data.summary.conflicts} hint="Detectados sobre la agenda filtrada." />
+        <MetricCard label={t('scheduling.metrics.visible.services')} value={data.summary.total} hint={t('scheduling.metrics.visible.hint')} />
+        <MetricCard label={t('scheduling.metrics.scheduled.default')} value={data.summary.scheduled} hint={t('scheduling.metrics.scheduled.hint')} />
+        <MetricCard label={t('scheduling.metrics.unassigned.default')} value={data.summary.unassigned} hint={t('scheduling.metrics.unassigned.hint')} />
+        <MetricCard label={t('scheduling.metrics.conflicts.default')} value={data.summary.conflicts} hint={t('scheduling.metrics.conflicts.hint')} />
       </section>
 
       <GlassPanel className="space-y-6">
         <SectionHeader
-          eyebrow="Agendamiento"
-          title="Filtros"
-          subtitle="Filtra por técnico, edificio, estado, tipo, prioridad y rango de fechas."
-          aside={<StatusPill tone="info">{`${data.filteredOrders.length} resultados`}</StatusPill>}
+          eyebrow={t('scheduling.eyebrow')}
+          title={t('scheduling.filters.title')}
+          subtitle={t('scheduling.filters.subtitle')}
+          aside={<StatusPill tone="info">{t('scheduling.filters.results', { count: data.filteredOrders.length })}</StatusPill>}
         />
 
         <SchedulingFiltersBar
@@ -96,12 +98,12 @@ export function SchedulingPageContent(props: {
       <div className="grid gap-4 xl:grid-cols-[1.7fr,1fr]">
         <GlassPanel className="space-y-4">
           <SectionHeader
-            title="Calendario operativo"
-            subtitle="Vistas día/semana/mes/trimestre/año. También puedes seleccionar una franja para crear agendamiento."
+            title={t('scheduling.operational.calendar.title')}
+            subtitle={t('scheduling.operational.calendar.subtitle')}
           />
 
           {isLoading ? (
-            <p className="text-sm text-slate-600">Cargando agenda...</p>
+            <p className="text-sm text-slate-600">{t('scheduling.loading.agenda')}</p>
           ) : data.calendarEvents.length ? (
             <SchedulingCalendar
               events={data.calendarEvents}
@@ -119,7 +121,7 @@ export function SchedulingPageContent(props: {
               }}
             />
           ) : (
-            <EmptyState title="Calendario operativo" description="No hay eventos visibles con los filtros actuales." />
+            <EmptyState title={t('scheduling.operational.calendar.title')} description={t('scheduling.operational.calendar.empty')} />
           )}
         </GlassPanel>
 

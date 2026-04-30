@@ -8,7 +8,7 @@ export { serviceIssueTypeOptions, serviceIssueCategoryOptions };
 
 export function resolveServiceIssueLabel(
   t: (key: string) => string,
-  prefix: 'scheduling.issueTypes' | 'scheduling.issueCategories',
+  prefix: 'scheduling.issue.types' | 'scheduling.issueCategories',
   value: string
 ) {
   return resolveSchedulingIssueLabel(t, prefix, value);

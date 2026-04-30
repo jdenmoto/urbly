@@ -8,7 +8,7 @@ export default function CustomersPage() {
     <ComingSoonPage
       title={t('customers.title')}
       subtitle={t('customers.subtitle')}
-      description={t('customers.comingSoon')}
+      description={t('customers.coming.soon')}
     />
   );
 }

@@ -73,14 +73,14 @@ export default function ClientSummaryPage() {
   }, [scopedServiceOrders]);
 
   if (!administrationId) {
-    return <EmptyState title={t('clientPortal.summaryTitle')} description={t('portal.missingAccess')} />;
+    return <EmptyState title={t('client.portal.summary.title')} description={t('portal.missing.access')} />;
   }
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title={t('clientPortal.summaryTitle')}
-        subtitle={administration ? `${t('clientPortal.summarySubtitle')} ${administration.name}` : t('clientPortal.summarySubtitle')}
+        title={t('client.portal.summary.title')}
+        subtitle={administration ? `${t('client.portal.summary.subtitle')} ${administration.name}` : t('client.portal.summary.subtitle')}
         actions={
           <>
             <Link className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" to="/portal/services">
@@ -94,9 +94,9 @@ export default function ClientSummaryPage() {
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label={t('clientPortal.activeServices')} value={summary.active} hint="Seguimiento en curso" />
-        <StatCard label={t('clientPortal.completedServices')} value={summary.completed} hint="Histórico reciente" />
-        <StatCard label={t('clientPortal.buildingsCount')} value={scopedBuildings.length} hint="Cobertura visible" />
+        <StatCard label={t('client.portal.active.services')} value={summary.active} hint="Seguimiento en curso" />
+        <StatCard label={t('client.portal.completed.services')} value={summary.completed} hint="Histórico reciente" />
+        <StatCard label={t('client.portal.buildings.count')} value={scopedBuildings.length} hint="Cobertura visible" />
         <StatCard label="Informes listos" value={summary.reportsReady} hint="Con evidencia o cierre visible" />
       </section>
 
@@ -104,7 +104,7 @@ export default function ClientSummaryPage() {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-2">
             <div className="inline-flex rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
-              {t('clientPortal.clientViewBadge')}
+              {t('client.portal.client.view.badge')}
             </div>
             <div>
               <h2 className="text-xl font-semibold text-ink-900">Próximos servicios</h2>
@@ -113,7 +113,7 @@ export default function ClientSummaryPage() {
           </div>
           <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
             <p className="font-semibold text-ink-900">{summary.upcoming.length}</p>
-            <p>{t('clientPortal.visibleWindowHint')}</p>
+            <p>{t('client.portal.visible.window.hint')}</p>
           </div>
         </div>
 
@@ -125,12 +125,12 @@ export default function ClientSummaryPage() {
                 <article key={serviceOrder.id} className="rounded-3xl border border-fog-200 bg-white p-5 shadow-sm">
                   <div className="flex flex-wrap gap-2">
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[serviceOrder.priority]}`}>
-                      {getServiceOrderPriorityPill(t, serviceOrder.priority, 'clientPortal.priorityPill')}
+                      {getServiceOrderPriorityPill(t, serviceOrder.priority, 'client.portal.priority.pill')}
                     </span>
                   </div>
                   <div className="mt-3 space-y-1">
                     <h3 className="text-lg font-semibold text-ink-900">{serviceOrder.title}</h3>
-                    <p className="text-sm text-ink-600">{building?.name ?? t('common.noData')}</p>
+                    <p className="text-sm text-ink-600">{building?.name ?? t('common.no.data')}</p>
                     <p className="text-sm text-ink-500">{formatServiceDateTime(serviceOrder.scheduledStartAt)}</p>
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -148,7 +148,7 @@ export default function ClientSummaryPage() {
             })}
           </div>
         ) : (
-          <EmptyState title={t('clientPortal.upcomingTitle')} description={t('clientPortal.empty')} />
+          <EmptyState title={t('client.portal.upcoming.title')} description={t('client.portal.empty')} />
         )}
       </Card>
 
@@ -176,14 +176,14 @@ export default function ClientSummaryPage() {
                       <div className="space-y-2">
                         <div className="flex flex-wrap gap-2">
                           <span className={`rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[serviceOrder.priority]}`}>
-                            {getServiceOrderPriorityPill(t, serviceOrder.priority, 'clientPortal.priorityPill')}
+                            {getServiceOrderPriorityPill(t, serviceOrder.priority, 'client.portal.priority.pill')}
                           </span>
                           <span className="rounded-full bg-fog-100 px-3 py-1 text-xs font-semibold text-ink-700">
                             {getServiceOrderStatusLabel(t, serviceOrder.status)}
                           </span>
                         </div>
                         <p className="font-semibold text-ink-900">{serviceOrder.title}</p>
-                        <p className="text-sm text-ink-600">{building?.name ?? t('common.noData')}</p>
+                        <p className="text-sm text-ink-600">{building?.name ?? t('common.no.data')}</p>
                         <p className="text-sm text-ink-500">{getTraceabilitySummary(serviceOrder, t)}</p>
                       </div>
                       <div className="grid gap-2 text-sm text-ink-600 sm:grid-cols-2 lg:w-[20rem]">
@@ -210,7 +210,7 @@ export default function ClientSummaryPage() {
               })}
             </div>
           ) : (
-            <EmptyState title="Trazabilidad reciente" description={t('clientPortal.empty')} />
+            <EmptyState title="Trazabilidad reciente" description={t('client.portal.empty')} />
           )}
         </Card>
 
@@ -249,7 +249,7 @@ export default function ClientSummaryPage() {
               })}
             </div>
           ) : (
-            <EmptyState title="Cobertura por edificio" description={t('portal.buildingsEmptyHint')} />
+            <EmptyState title="Cobertura por edificio" description={t('portal.buildings.empty.hint')} />
           )}
         </Card>
       </div>

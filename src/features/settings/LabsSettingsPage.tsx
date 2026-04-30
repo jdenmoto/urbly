@@ -44,7 +44,7 @@ export default function LabsSettingsPage() {
           setLabTypes(payload.types ?? []);
         }
       } catch {
-        toast(t('common.actionError'), 'error');
+        toast(t('common.action.error'), 'error');
       } finally {
         setLoading(false);
       }
@@ -57,9 +57,9 @@ export default function LabsSettingsPage() {
     try {
       await setDoc(doc(db, 'settings', 'lab_analysis_types'), { types: next }, { merge: true });
       setLabTypes(next);
-      toast(t('settings.toastSaved'), 'success');
+      toast(t('settings.toast.saved'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     } finally {
       setSaving(false);
     }
@@ -80,7 +80,7 @@ export default function LabsSettingsPage() {
     const labType = labTypeKind.trim();
     if (!name || !description || !labType) return;
     if (isDuplicate(name, labType, editingId)) {
-      toast(t('settings.labTypeDuplicate'), 'error');
+      toast(t('settings.lab.type.duplicate'), 'error');
       return;
     }
     if (editingId) {
@@ -88,11 +88,11 @@ export default function LabsSettingsPage() {
         item.id === editingId ? { ...item, name, description, labType } : item
       );
       await persistLabTypes(next);
-      toast(t('settings.labTypeUpdated'), 'success');
+      toast(t('settings.lab.type.updated'), 'success');
     } else {
       const id = crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`;
       await persistLabTypes([...labTypes, { id, name, description, labType, active: true }]);
-      toast(t('settings.labTypeCreated'), 'success');
+      toast(t('settings.lab.type.created'), 'success');
     }
     setLabTypeName('');
     setLabTypeDescription('');
@@ -112,17 +112,17 @@ export default function LabsSettingsPage() {
       item.id === id ? { ...item, active: item.active === false } : item
     );
     await persistLabTypes(next);
-    toast(t('settings.labTypeUpdated'), 'success');
+    toast(t('settings.lab.type.updated'), 'success');
   };
 
   const removeLabType = async (id: string) => {
     const inUse = contracts.some((contract) => contract.labAnalysisTypeId === id);
     if (inUse) {
-      toast(t('settings.labTypeDeleteBlocked'), 'error');
+      toast(t('settings.lab.type.delete.blocked'), 'error');
       return;
     }
     await persistLabTypes(labTypes.filter((item) => item.id !== id));
-    toast(t('settings.labTypeDeleted'), 'success');
+    toast(t('settings.lab.type.deleted'), 'success');
   };
 
   const labRows = useMemo(() => labTypes, [labTypes]);
@@ -130,32 +130,32 @@ export default function LabsSettingsPage() {
   if (loading) {
     return (
       <Card>
-        <p className="text-sm text-ink-600">{t('common.loading')}</p>
+        <p className="text-sm text-ink-600">{t('common.loading.default')}</p>
       </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('settings.labsTitle')} subtitle={t('settings.labsSubtitle')} />
+      <PageHeader title={t('settings.labs.title')} subtitle={t('settings.labs.subtitle')} />
       <Card className="space-y-6">
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-ink-900">{t('settings.labTypesTitle')}</h3>
+          <h3 className="text-sm font-semibold text-ink-900">{t('settings.lab.types.title')}</h3>
           <div className="grid gap-2 md:grid-cols-3">
             <Input
-              label={t('settings.labTypeName')}
+              label={t('settings.lab.type.name')}
               value={labTypeName}
               onChange={(event) => setLabTypeName(event.target.value)}
               required
             />
             <Input
-              label={t('settings.labTypeDescription')}
+              label={t('settings.lab.type.description')}
               value={labTypeDescription}
               onChange={(event) => setLabTypeDescription(event.target.value)}
               required
             />
             <Input
-              label={t('settings.labTypeKind')}
+              label={t('settings.lab.type.kind')}
               value={labTypeKind}
               onChange={(event) => setLabTypeKind(event.target.value)}
               required
@@ -172,11 +172,11 @@ export default function LabsSettingsPage() {
                   <span
                     className={`h-2 w-2 rounded-full ${editingItem.active === false ? 'bg-rose-400' : 'bg-emerald-400'}`}
                   />
-                  {editingItem.active === false ? t('settings.labTypeEnable') : t('settings.labTypeDisable')}
+                  {editingItem.active === false ? t('settings.lab.type.enable') : t('settings.lab.type.disable')}
                 </button>
               ) : null}
               <Button type="button" variant="secondary" onClick={addLabType} disabled={saving}>
-                {editingId ? t('settings.updateLabType') : t('settings.addLabType')}
+                {editingId ? t('settings.update.lab.type') : t('settings.add.lab.type')}
               </Button>
             </div>
           </div>
@@ -184,10 +184,10 @@ export default function LabsSettingsPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-fog-100 text-xs uppercase text-ink-500">
                 <tr>
-                  <th className="px-3 py-2">{t('settings.labTypeName')}</th>
-                  <th className="px-3 py-2">{t('settings.labTypeDescription')}</th>
-                  <th className="px-3 py-2">{t('settings.labTypeKind')}</th>
-                  <th className="px-3 py-2">{t('settings.labTypeStatus')}</th>
+                  <th className="px-3 py-2">{t('settings.lab.type.name')}</th>
+                  <th className="px-3 py-2">{t('settings.lab.type.description')}</th>
+                  <th className="px-3 py-2">{t('settings.lab.type.kind')}</th>
+                  <th className="px-3 py-2">{t('settings.lab.type.status')}</th>
                   <th className="px-3 py-2">{t('common.actions')}</th>
                 </tr>
               </thead>
@@ -198,7 +198,7 @@ export default function LabsSettingsPage() {
                     <td className="px-3 py-2 text-xs text-ink-600">{item.description}</td>
                     <td className="px-3 py-2 text-xs text-ink-600">{item.labType}</td>
                     <td className="px-3 py-2 text-xs text-ink-600">
-                      {item.active === false ? t('settings.labTypeDisabled') : t('settings.labTypeActive')}
+                      {item.active === false ? t('settings.lab.type.disabled') : t('settings.lab.type.active')}
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
@@ -215,8 +215,8 @@ export default function LabsSettingsPage() {
                           type="button"
                           className="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-amber-600 hover:bg-amber-50"
                           onClick={() => toggleActive(item.id)}
-                          title={item.active === false ? t('settings.labTypeEnable') : t('settings.labTypeDisable')}
-                          aria-label={item.active === false ? t('settings.labTypeEnable') : t('settings.labTypeDisable')}
+                          title={item.active === false ? t('settings.lab.type.enable') : t('settings.lab.type.disable')}
+                          aria-label={item.active === false ? t('settings.lab.type.enable') : t('settings.lab.type.disable')}
                         >
                           <PowerIcon className="h-4 w-4" aria-hidden />
                         </button>

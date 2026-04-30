@@ -70,14 +70,14 @@ export function validateCompletion(args: {
 }) {
   const { t, hasIssues, issues, completionPhotos, completionReport } = args;
 
-  if (!hasIssues) return t('scheduling.issueDecisionRequired');
-  if (hasIssues === 'yes' && issues.length === 0) return t('scheduling.issueAtLeastOne');
-  if (completionPhotos.length < 1) return t('scheduling.completionPhotoRequired');
+  if (!hasIssues) return t('scheduling.issue.decision.required');
+  if (hasIssues === 'yes' && issues.length === 0) return t('scheduling.issue.at.least.one');
+  if (completionPhotos.length < 1) return t('scheduling.completion.photo.required');
   if (!completionReport.entryHour || !completionReport.exitHour || !completionReport.observations.trim()) {
-    return t('scheduling.completionRequiredFields');
+    return t('scheduling.completion.required.fields');
   }
   if (toMinutes(completionReport.exitHour) <= toMinutes(completionReport.entryHour)) {
-    return t('scheduling.completionExitAfterEntry');
+    return t('scheduling.completion.exit.after.entry');
   }
 
   return null;

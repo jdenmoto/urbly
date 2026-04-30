@@ -38,7 +38,7 @@ export default function IssuesSettingsPage() {
           setSettings(snapshot.data() as IssueSettings);
         }
       } catch {
-        toast(t('common.actionError'), 'error');
+        toast(t('common.action.error'), 'error');
       } finally {
         setLoading(false);
       }
@@ -53,9 +53,9 @@ export default function IssuesSettingsPage() {
     try {
       await setDoc(doc(db, 'settings', 'issues'), next, { merge: true });
       setSettings(next);
-      toast(t('settings.toastSaved'), 'success');
+      toast(t('settings.toast.saved'), 'success');
     } catch {
-      toast(t('common.actionError'), 'error');
+      toast(t('common.action.error'), 'error');
     } finally {
       setSaving(false);
     }
@@ -79,7 +79,7 @@ export default function IssuesSettingsPage() {
     const nextCategories = { ...settings.categories };
     delete nextCategories[value];
     await persistSettings({ types: nextTypes, categories: nextCategories });
-    toast(t('settings.issueDeleted'), 'success');
+    toast(t('settings.issue.deleted'), 'success');
   };
 
   const startEdit = (value: string) => {
@@ -104,7 +104,7 @@ export default function IssuesSettingsPage() {
     setEditingType(null);
     setNewType('');
     setNewTypeCategories([]);
-    toast(t('settings.issueUpdated'), 'success');
+    toast(t('settings.issue.updated'), 'success');
   };
 
   const addCategoryChip = () => {
@@ -117,32 +117,32 @@ export default function IssuesSettingsPage() {
   if (loading) {
     return (
       <Card>
-        <p className="text-sm text-ink-600">{t('common.loading')}</p>
+        <p className="text-sm text-ink-600">{t('common.loading.default')}</p>
       </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('settings.issuesTitle')} subtitle={t('settings.issuesSubtitle')} />
+      <PageHeader title={t('settings.issues.title')} subtitle={t('settings.issues.subtitle')} />
       <Card className="space-y-6">
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-ink-900">{t('settings.issueTypes')}</h3>
+          <h3 className="text-sm font-semibold text-ink-900">{t('settings.issue.types')}</h3>
           <div className="grid gap-2 md:grid-cols-2">
             <Input
-              label={t('settings.issueName')}
+              label={t('settings.issue.name')}
               value={newType}
               onChange={(e) => setNewType(e.target.value)}
               required
             />
             <div className="space-y-2">
               <Input
-                label={t('settings.issueCategories')}
+                label={t('settings.issue.categories')}
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
               />
               <Button type="button" variant="secondary" onClick={addCategoryChip}>
-                {t('settings.addCategory')}
+                {t('settings.add.category')}
               </Button>
             </div>
           </div>
@@ -173,24 +173,24 @@ export default function IssuesSettingsPage() {
             ))}
           </div>
           <div className="flex items-center justify-between">
-            <p className="text-xs text-ink-500">{t('settings.categoryPillHint')}</p>
+            <p className="text-xs text-ink-500">{t('settings.category.pill.hint')}</p>
             <Button type="button" onClick={editingType ? saveEdit : addType} disabled={saving}>
               {saving
                 ? t('settings.saving')
                 : editingType
-                  ? t('settings.updateIssue')
-                  : t('settings.addIssue')}
+                  ? t('settings.update.issue')
+                  : t('settings.add.issue')}
             </Button>
           </div>
         </div>
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-ink-900">{t('settings.issuesTableTitle')}</h3>
+          <h3 className="text-sm font-semibold text-ink-900">{t('settings.issues.table.title')}</h3>
           <div className="overflow-hidden rounded-xl border border-fog-200">
             <table className="w-full text-left text-sm">
               <thead className="bg-fog-100 text-xs uppercase text-ink-500">
                 <tr>
-                  <th className="px-3 py-2">{t('settings.issueName')}</th>
-                  <th className="px-3 py-2">{t('settings.issueCategories')}</th>
+                  <th className="px-3 py-2">{t('settings.issue.name')}</th>
+                  <th className="px-3 py-2">{t('settings.issue.categories')}</th>
                   <th className="px-3 py-2">{t('common.actions')}</th>
                 </tr>
               </thead>
