@@ -365,39 +365,35 @@ When done, update this file:
 
 ## 7. Estado actual de ejecución
 
-Current phase: Fase 0 — Estabilizar tests/CI base mínima
+Current phase: Fase 1 — Multitenancy + seguridad
 
-Last completed task: F0-T04 — Preparar test harness para Firebase Rules
+Last completed task: F1-T01 — Definir tipos Account y Membership
 
 - Status: done
-- Branch: `test/firebase-rules-harness`
-- Commit: HEAD de `test/firebase-rules-harness` (`test: agregar harness de reglas firebase`)
+- Branch: `feat/account-membership-types`
+- Commit: HEAD de `feat/account-membership-types` (`feat: agregar modelos de cuenta y membresia`)
 - Files changed:
-  - `package.json`
-  - `package-lock.json`
-  - `src/test/rules/firebaseRules.test.ts`
+  - `src/core/models/account.ts`
+  - `src/core/models/appUser.ts`
+  - `src/core/models/__tests__/account.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:rules`
-  - `npm run test:run`
   - `npm run typecheck`
+  - `npm run test:run -- account appUser`
   - `npm run lint`
-  - `npm run build:minimum`
-  - `npm audit`
-  - `npm --prefix functions audit`
-- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. Vitest mantiene warnings SSR de `useLayoutEffect` no bloqueantes en scheduling. `npm run test:rules` levanta emuladores Firestore/Storage con proyecto demo y carga `firestore.rules` + `storage.rules`. El suite de rules queda omitido en `npm run test:run` cuando no está activo el Emulator Suite para mantener el gate unitario normal. No se modificaron reglas de producción.
+- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. `AppUserRole` conserva `emergency_scheduler` como compatibilidad legacy para no romper rutas/permisos actuales; el nuevo rol canónico `technician` queda definido en `AccountRole` para memberships y debe migrarse en tareas posteriores.
 
 Next required step:
 
-Fase 0 queda lista para gate final y PR contra `develop`.
+F1-T02 — Crear helpers de permisos por account.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Abrir `docs/plans/urbly-agent-execution-instructions.md`.
-2. Cambiar a `phase/0-tests-ci-base` e integrar `test/firebase-rules-harness` si aún no está integrado.
-3. Ejecutar gate final de Fase 0: `npm run lint`, `npm run typecheck`, `npm run test:run`, `npm run test:coverage`, `npm run test:rules`, `npm run build:minimum`.
-4. Crear/actualizar `docs/plans/phase-0-changelog.md` y abrir PR de Fase 0 contra `develop`.
+1. Abrir `docs/plans/urbly-atomic-task-list.md`.
+2. Cambiar a `phase/1-multitenancy-security` y crear branch `feat/account-permission-helpers`.
+3. Implementar F1-T02 en `src/lib/permissions/**`, `src/features/services/serviceOrderPermissions.ts` y tests de permisos.
+4. Validar con `npm run test:run -- permissions serviceOrderPermissions` y `npm run typecheck`.
 
 ## 8. Archivos relacionados
 

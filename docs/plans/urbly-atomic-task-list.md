@@ -8,9 +8,9 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 
 ## Estado global
 
-Current phase: Fase 0 — Estabilizar tests/CI base mínima  
-Current task: final gate/PR de Fase 0
-Next agent start: ejecutar gate final de Fase 0 desde branch `phase/0-tests-ci-base`, integrar `test/firebase-rules-harness` si aplica y preparar PR contra `develop`.
+Current phase: Fase 1 — Multitenancy + seguridad  
+Current task: F1-T02 — Crear helpers de permisos por account
+Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `feat/account-permission-helpers` y ejecutar F1-T02.
 
 ---
 
@@ -236,7 +236,7 @@ Branch de fase: `phase/1-multitenancy-security`
 
 ## TASK F1-T01 — Definir tipos Account y Membership
 
-Status: pending  
+Status: done  
 Branch: `feat/account-membership-types`
 
 ### Objective
@@ -261,6 +261,14 @@ Tenant root confirmado: `account`. Memberships viven en `accounts/{accountId}/me
 npm run typecheck
 npm run test:run -- account appUser
 ```
+
+### Completion notes
+- Agregado `src/core/models/account.ts` con `Account`, `AccountMember`, `AccountRole`, `AccountPermission` y roles confirmados: owner, admin, editor, supervisor, scheduler, operator, technician, auditoria, view, client, building_admin.
+- Actualizado `src/core/models/appUser.ts` para reutilizar `AccountPermission` y agregar `activeAccountId` + `accountIds`, preservando `tenantId` y `emergency_scheduler` como compatibilidad legacy mientras las rutas/permissions se migran en tareas posteriores.
+- Agregado test mínimo en `src/core/models/__tests__/account.test.ts`.
+- Commit: HEAD de `feat/account-membership-types` (`feat: agregar modelos de cuenta y membresia`).
+- Validaciones: `npm run typecheck`, `npm run test:run -- account appUser`, `npm run lint` (pasa con 8 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F1-T02 creando helpers de permisos por account en `src/lib/permissions/**` y tests de permisos.
 
 ## TASK F1-T02 — Crear helpers de permisos por account
 
