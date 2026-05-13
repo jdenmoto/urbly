@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 1 — Multitenancy + seguridad  
-Current task: F1-T08 — Proteger generateServiceReportPdf
-Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `fix/authorize-service-report-pdf` y ejecutar F1-T08.
+Current task: F1-T09 — Proteger importBuildings
+Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `fix/authorize-import-buildings` y ejecutar F1-T09.
 
 ---
 
@@ -463,7 +463,7 @@ npm run test:rules
 
 ## TASK F1-T08 — Proteger generateServiceReportPdf
 
-Status: pending  
+Status: done
 Branch: `fix/authorize-service-report-pdf`
 
 ### Objective
@@ -484,6 +484,15 @@ Agregar autorización granular a PDF de reporte.
 npm --prefix functions run build
 npm run test:run -- serviceReports
 ```
+
+### Completion notes
+- `generateServiceReportPdf` ahora exige `activeAccountId` igual al `accountId` de la orden y membresía activa en `accounts/{accountId}/members/{uid}` antes de generar el PDF.
+- Roles internos `owner/admin/editor/supervisor/scheduler/operator/auditoria` pueden generar reportes dentro de su cuenta.
+- `technician` solo puede generar si está asignado directamente o vinculado al empleado asignado por uid/userId/authUid/email.
+- `client` y `building_admin` solo pueden generar si su membership coincide por `customerId`, `managementCompanyId`/`administrationId` o `buildingId`.
+- Agregada suite `src/serviceReports.authorization.test.ts` para cubrir roles internos, técnico asignado, clientes relacionados y rechazos.
+- Validaciones: `npm --prefix functions run build`, `npm run test:run -- serviceReports`.
+- Siguiente agente: empezar F1-T09 protegiendo `importBuildings` desde branch `fix/authorize-import-buildings`.
 
 ## TASK F1-T09 — Proteger importBuildings
 
