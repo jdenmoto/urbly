@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 1 — Multitenancy + seguridad  
-Current task: F1-T06 — Reglas explícitas write para service_orders
-Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `fix/service-orders-write-rules` y ejecutar F1-T06.
+Current task: F1-T07 — Storage Rules tenant-aware para evidencias
+Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `fix/storage-evidence-account-rules` y ejecutar F1-T07.
 
 ---
 
@@ -366,7 +366,7 @@ npm run test:rules
 - Agregado match mínimo para `accounts/{accountId}` y `accounts/{accountId}/members/{memberId}` para ejercitar helpers: miembros del account activo leen su membresía y `owner/admin` del account activo leen otras membresías; no habilita escrituras. El fallback legacy `/{document=**}` queda intacto para no ampliar el scope.
 - Extendidos tests de reglas para lectura de membresía propia, bloqueo a no-miembro/account inactivo y lectura admin de otra membresía.
 - Commit: HEAD de `fix/firestore-account-rule-helpers` (`fix: agregar helpers tenant-aware en reglas firestore`).
-- Validaciones: `npm run test:rules`, `npm run typecheck`.
+- Validaciones: `npm run test:rules`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes).
 - Siguiente agente: empezar F1-T05 agregando reglas explícitas de lectura tenant-aware para `service_orders` desde branch `fix/service-orders-read-rules`.
 
 ## TASK F1-T05 — Reglas explícitas read para service_orders
@@ -402,7 +402,7 @@ npm run test:rules
 
 ## TASK F1-T06 — Reglas explícitas write para service_orders
 
-Status: pending  
+Status: done
 Branch: `fix/service-orders-write-rules`
 
 ### Objective
@@ -421,6 +421,15 @@ Separar permisos de create/update por rol y acción.
 npm run test:rules
 npm run typecheck
 ```
+
+### Completion notes
+- Agregadas reglas explícitas `create`, `update` y `delete: false` para `service_orders` en `firestore.rules`.
+- Create valida `accountId` activo, membership tenant-aware y campos mínimos (`accountId`, `buildingId`, `title`, `type`, `priority`, `status`, `scheduledStartAt`, `scheduledEndAt`).
+- `scheduler` puede crear/agendar/asignar/reprogramar sin cerrar; `operator` puede cerrar dentro del account; `technician` solo actualiza progreso/evidencia/incidencias si está asignado; `owner/admin/editor/supervisor` pueden editar y reabrir; `view/auditoria` no escriben.
+- Tests de reglas agregados para acciones permitidas/denegadas por rol, account activo incorrecto, campos mínimos y bloqueo del fallback legacy admin/editor sobre `service_orders`.
+- Commit: HEAD de `fix/service-orders-write-rules` (`fix: proteger escrituras de service orders`).
+- Validaciones: `npm run test:rules`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F1-T07 agregando Storage Rules tenant-aware para evidencias desde branch `fix/storage-evidence-account-rules`.
 
 ## TASK F1-T07 — Storage Rules tenant-aware para evidencias
 

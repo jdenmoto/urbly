@@ -146,6 +146,161 @@ service cloud.firestore {
         );
     }
 
+    function isValidServiceOrderStatus(status) {
+      return status == 'draft'
+        || status == 'unassigned'
+        || status == 'scheduled'
+        || status == 'confirmed'
+        || status == 'in_progress'
+        || status == 'paused'
+        || status == 'pending_review'
+        || status == 'requires_reschedule'
+        || status == 'completed'
+        || status == 'cancelled';
+    }
+
+    function isValidServiceOrderPriority(priority) {
+      return priority == 'low'
+        || priority == 'medium'
+        || priority == 'high'
+        || priority == 'urgent';
+    }
+
+    function validServiceOrderData(data) {
+      return hasFields(data, [
+        'accountId',
+        'buildingId',
+        'title',
+        'type',
+        'priority',
+        'status',
+        'scheduledStartAt',
+        'scheduledEndAt'
+      ])
+      && isNonEmptyString(data.accountId)
+      && isNonEmptyString(data.buildingId)
+      && isNonEmptyString(data.title)
+      && isNonEmptyString(data.type)
+      && isValidServiceOrderPriority(data.priority)
+      && isValidServiceOrderStatus(data.status)
+      && isNonEmptyString(data.scheduledStartAt)
+      && isNonEmptyString(data.scheduledEndAt);
+    }
+
+    function isServiceOrderPrivilegedRole(memberRole) {
+      return memberRole == 'owner'
+        || memberRole == 'admin'
+        || memberRole == 'editor'
+        || memberRole == 'supervisor';
+    }
+
+    function serviceOrderChangedOnly(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+
+    function isServiceOrderClosed(data) {
+      return data.status == 'completed';
+    }
+
+    function isTechnicianLinkedToServiceOrder(data) {
+      return hasAssignedTechnician(data)
+        && (
+          data.assignedTechnicianId == request.auth.uid
+          || isLinkedEmployee(data.assignedTechnicianId)
+        );
+    }
+
+    function isServiceOrderAccountWrite(data) {
+      let accountId = serviceOrderAccountId(data);
+      return validServiceOrderData(data)
+        && accountId == activeAccountId()
+        && isActiveAccountMember(accountId);
+    }
+
+    function serviceOrderAccountUnchanged() {
+      let accountId = serviceOrderAccountId(resource.data);
+      return accountId is string
+        && serviceOrderAccountId(request.resource.data) == accountId
+        && isServiceOrderAccountWrite(request.resource.data);
+    }
+
+    function canCreateServiceOrder() {
+      let accountId = serviceOrderAccountId(request.resource.data);
+      let memberRole = accountRole(accountId);
+      return isServiceOrderAccountWrite(request.resource.data)
+        && (
+          isServiceOrderPrivilegedRole(memberRole)
+          || (memberRole == 'scheduler' && !isServiceOrderClosed(request.resource.data))
+        );
+    }
+
+    function canSchedulerUpdateServiceOrder(memberRole) {
+      return memberRole == 'scheduler'
+        && !isServiceOrderClosed(request.resource.data)
+        && !request.resource.data.diff(resource.data).changedKeys().hasAny(['completedAt'])
+        && serviceOrderChangedOnly([
+          'assignedTechnicianId',
+          'scheduledStartAt',
+          'scheduledEndAt',
+          'status',
+          'rescheduleReason',
+          'rescheduleHistory',
+          'assignmentHistory',
+          'timeline',
+          'updatedAt'
+        ]);
+    }
+
+    function canOperatorCloseServiceOrder(memberRole) {
+      return memberRole == 'operator'
+        && !isServiceOrderClosed(resource.data)
+        && isServiceOrderClosed(request.resource.data)
+        && serviceOrderChangedOnly([
+          'status',
+          'completedAt',
+          'completionPhotos',
+          'report',
+          'checklist',
+          'issues',
+          'attachments',
+          'timeline',
+          'updatedAt'
+        ]);
+    }
+
+    function canTechnicianUpdateServiceOrder(memberRole) {
+      return memberRole == 'technician'
+        && isTechnicianLinkedToServiceOrder(resource.data)
+        && !isServiceOrderClosed(request.resource.data)
+        && !request.resource.data.diff(resource.data).changedKeys().hasAny(['completedAt'])
+        && serviceOrderChangedOnly([
+          'status',
+          'startedAt',
+          'pausedAt',
+          'pauseReason',
+          'pauseHistory',
+          'issues',
+          'attachments',
+          'completionPhotos',
+          'report',
+          'checklist',
+          'timeline',
+          'updatedAt'
+        ]);
+    }
+
+    function canUpdateServiceOrder() {
+      let accountId = serviceOrderAccountId(resource.data);
+      let memberRole = accountRole(accountId);
+      return serviceOrderAccountUnchanged()
+        && (
+          isServiceOrderPrivilegedRole(memberRole)
+          || canSchedulerUpdateServiceOrder(memberRole)
+          || canOperatorCloseServiceOrder(memberRole)
+          || canTechnicianUpdateServiceOrder(memberRole)
+        );
+    }
+
     function isAdmin() {
       return isSignedIn() && role() == 'admin';
     }
@@ -353,12 +508,19 @@ service cloud.firestore {
 
     match /service_orders/{serviceOrderId} {
       allow read: if canReadServiceOrder(resource.data);
-      allow write: if false;
+      allow create: if canCreateServiceOrder();
+      allow update: if canUpdateServiceOrder();
+      allow delete: if false;
     }
 
-    match /{document=**} {
+    match /{collectionId}/{documentId} {
       allow read: if isStaff();
-      allow write: if isAdmin() || isEditor();
+      allow write: if collectionId != 'service_orders' && (isAdmin() || isEditor());
+    }
+
+    match /{collectionId}/{documentId}/{document=**} {
+      allow read: if isStaff();
+      allow write: if collectionId != 'service_orders' && (isAdmin() || isEditor());
     }
   }
 }
