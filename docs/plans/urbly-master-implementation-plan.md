@@ -367,33 +367,36 @@ When done, update this file:
 
 Current phase: Fase 1 — Multitenancy + seguridad
 
-Last completed task: F1-T01 — Definir tipos Account y Membership
+Last completed task: F1-T02 — Crear helpers de permisos por account
 
 - Status: done
-- Branch: `feat/account-membership-types`
-- Commit: HEAD de `feat/account-membership-types` (`feat: agregar modelos de cuenta y membresia`)
+- Branch: `feat/account-permission-helpers`
+- Commits:
+  - `e06e893` — `test: cubrir helpers de permisos por cuenta`
+  - `fdb460f` — `feat: centralizar permisos por cuenta`
 - Files changed:
-  - `src/core/models/account.ts`
-  - `src/core/models/appUser.ts`
-  - `src/core/models/__tests__/account.test.ts`
+  - `src/lib/permissions/accountPermissions.ts`
+  - `src/lib/permissions/__tests__/accountPermissions.test.ts`
+  - `src/features/services/serviceOrderPermissions.ts`
+  - `src/features/services/__tests__/serviceOrderPermissions.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
+  - `npm run test:run -- permissions serviceOrderPermissions`
   - `npm run typecheck`
-  - `npm run test:run -- account appUser`
   - `npm run lint`
-- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. `AppUserRole` conserva `emergency_scheduler` como compatibilidad legacy para no romper rutas/permisos actuales; el nuevo rol canónico `technician` queda definido en `AccountRole` para memberships y debe migrarse en tareas posteriores.
+- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. `serviceOrderPermissions` mantiene compatibilidad legacy con `emergency_scheduler` normalizado a `technician`. La matriz aplicada deja a `scheduler` sin cierre, a `operator`/`technician` con acciones de ejecución y cierre, a `view`/`auditoria` sin mutaciones de service order, y a `owner`/`admin`/`editor`/`supervisor` con acciones completas y reapertura.
 
 Next required step:
 
-F1-T02 — Crear helpers de permisos por account.
+F1-T03 — Script idempotente default account.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Abrir `docs/plans/urbly-atomic-task-list.md`.
-2. Cambiar a `phase/1-multitenancy-security` y crear branch `feat/account-permission-helpers`.
-3. Implementar F1-T02 en `src/lib/permissions/**`, `src/features/services/serviceOrderPermissions.ts` y tests de permisos.
-4. Validar con `npm run test:run -- permissions serviceOrderPermissions` y `npm run typecheck`.
+2. Cambiar a `phase/1-multitenancy-security` y crear branch `feat/default-account-migration-script`.
+3. Implementar F1-T03 en `scripts/migrate-default-account.mjs`, `package.json` y docs seed/migration si aplica.
+4. Validar con `node scripts/migrate-default-account.mjs --dry-run` y `npm run lint`.
 
 ## 8. Archivos relacionados
 

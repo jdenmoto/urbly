@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 1 — Multitenancy + seguridad  
-Current task: F1-T02 — Crear helpers de permisos por account
-Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `feat/account-permission-helpers` y ejecutar F1-T02.
+Current task: F1-T03 — Script idempotente default account
+Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `feat/default-account-migration-script` y ejecutar F1-T03.
 
 ---
 
@@ -272,7 +272,7 @@ npm run test:run -- account appUser
 
 ## TASK F1-T02 — Crear helpers de permisos por account
 
-Status: pending  
+Status: done  
 Branch: `feat/account-permission-helpers`
 
 ### Objective
@@ -293,6 +293,14 @@ Centralizar permisos por rol + permissions[].
 npm run test:run -- permissions serviceOrderPermissions
 npm run typecheck
 ```
+
+### Completion notes
+- Agregado `src/lib/permissions/accountPermissions.ts` con helpers activos por membership: `hasAccountRole`, `hasPermission`, `canReadEvidence`, `canCloseService` y `canReopenService`.
+- Actualizado `src/features/services/serviceOrderPermissions.ts` para usar `AccountRole`, mantener compatibilidad legacy con `emergency_scheduler` como `technician` y aplicar la matriz confirmada: scheduler agenda/asigna/reprograma sin cerrar, operator/technician ejecutan y cierran, view/auditoria quedan sin mutaciones de servicio, owner/admin/editor/supervisor conservan acciones completas.
+- Agregados tests unitarios para roles críticos en `src/lib/permissions/__tests__/accountPermissions.test.ts` y actualizado `src/features/services/__tests__/serviceOrderPermissions.test.ts`.
+- Commits: `e06e893` (`test: cubrir helpers de permisos por cuenta`), `fdb460f` (`feat: centralizar permisos por cuenta`).
+- Validaciones: `npm run test:run -- permissions serviceOrderPermissions`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F1-T03 creando el script idempotente `scripts/migrate-default-account.mjs` desde branch `feat/default-account-migration-script`.
 
 ## TASK F1-T03 — Script idempotente default account
 
