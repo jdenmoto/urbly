@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 1 — Multitenancy + seguridad  
-Current task: F1-T04 — Firestore Rules helpers tenant-aware
-Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `fix/firestore-account-rule-helpers` y ejecutar F1-T04.
+Current task: F1-T05 — Reglas explícitas read para service_orders
+Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `fix/service-orders-read-rules` y ejecutar F1-T05.
 
 ---
 
@@ -340,7 +340,7 @@ npm run lint
 
 ## TASK F1-T04 — Firestore Rules helpers tenant-aware
 
-Status: pending  
+Status: done
 Branch: `fix/firestore-account-rule-helpers`
 
 ### Objective
@@ -360,6 +360,14 @@ Agregar helpers de reglas para membership/account sin cambiar todavía todos los
 ```bash
 npm run test:rules
 ```
+
+### Completion notes
+- Agregados helpers tenant-aware en `firestore.rules`: `activeAccountId()`, `isAccountMember(accountId)`, `accountRole(accountId)`, `accountPermissions(accountId)` e `isActiveAccountMember(accountId)`.
+- Agregado match mínimo para `accounts/{accountId}` y `accounts/{accountId}/members/{memberId}` para ejercitar helpers: miembros del account activo leen su membresía y `owner/admin` del account activo leen otras membresías; no habilita escrituras. El fallback legacy `/{document=**}` queda intacto para no ampliar el scope.
+- Extendidos tests de reglas para lectura de membresía propia, bloqueo a no-miembro/account inactivo y lectura admin de otra membresía.
+- Commit: HEAD de `fix/firestore-account-rule-helpers` (`fix: agregar helpers tenant-aware en reglas firestore`).
+- Validaciones: `npm run test:rules`, `npm run typecheck`.
+- Siguiente agente: empezar F1-T05 agregando reglas explícitas de lectura tenant-aware para `service_orders` desde branch `fix/service-orders-read-rules`.
 
 ## TASK F1-T05 — Reglas explícitas read para service_orders
 
