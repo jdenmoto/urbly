@@ -5,7 +5,7 @@ import {
   assertFails,
   assertSucceeds,
   initializeTestEnvironment,
-  type RulesTestEnvironment,
+  type RulesTestEnvironment
 } from '@firebase/rules-unit-testing';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
@@ -19,16 +19,50 @@ async function readRulesFile(fileName: string) {
   return readFile(resolve(process.cwd(), fileName), 'utf8');
 }
 
+function serviceOrder(overrides: Record<string, unknown> = {}) {
+  return {
+    accountId: 'account-a',
+    buildingId: 'building-1',
+    title: 'Lavado de tanque',
+    type: 'maintenance',
+    priority: 'medium',
+    status: 'scheduled',
+    scheduledStartAt: '2026-05-14T08:00:00.000Z',
+    scheduledEndAt: '2026-05-14T10:00:00.000Z',
+    ...overrides
+  };
+}
+
+async function seedAccountMember(uid: string, role: string, extra: Record<string, unknown> = {}) {
+  await testEnv!.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
+    await context
+      .firestore()
+      .doc(`accounts/account-a/members/${uid}`)
+      .set({
+        role,
+        permissions: [],
+        ...extra
+      });
+  });
+}
+
+function accountDb(uid: string) {
+  return testEnv!
+    .authenticatedContext(uid, { activeAccountId: 'account-a', role: 'custom' })
+    .firestore();
+}
+
 describeWithEmulators('Firebase Rules harness', () => {
   beforeAll(async () => {
     testEnv = await initializeTestEnvironment({
       projectId,
       firestore: {
-        rules: await readRulesFile('firestore.rules'),
+        rules: await readRulesFile('firestore.rules')
       },
       storage: {
-        rules: await readRulesFile('storage.rules'),
-      },
+        rules: await readRulesFile('storage.rules')
+      }
     });
   });
 
@@ -56,10 +90,13 @@ describeWithEmulators('Firebase Rules harness', () => {
   it('permite leer membresía propia cuando el usuario pertenece al account activo', async () => {
     await testEnv!.withSecurityRulesDisabled(async (context) => {
       await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
-      await context.firestore().doc('accounts/account-a/members/member-user').set({
-        role: 'operator',
-        permissions: ['service_orders.read'],
-      });
+      await context
+        .firestore()
+        .doc('accounts/account-a/members/member-user')
+        .set({
+          role: 'operator',
+          permissions: ['service_orders.read']
+        });
     });
 
     const memberDb = testEnv!
@@ -72,10 +109,13 @@ describeWithEmulators('Firebase Rules harness', () => {
   it('bloquea lectura de membresía si el usuario no pertenece al account activo', async () => {
     await testEnv!.withSecurityRulesDisabled(async (context) => {
       await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
-      await context.firestore().doc('accounts/account-a/members/member-user').set({
-        role: 'operator',
-        permissions: ['service_orders.read'],
-      });
+      await context
+        .firestore()
+        .doc('accounts/account-a/members/member-user')
+        .set({
+          role: 'operator',
+          permissions: ['service_orders.read']
+        });
     });
 
     const nonMemberDb = testEnv!
@@ -94,12 +134,15 @@ describeWithEmulators('Firebase Rules harness', () => {
       await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
       await context.firestore().doc('accounts/account-a/members/admin-user').set({
         role: 'admin',
-        permissions: [],
+        permissions: []
       });
-      await context.firestore().doc('accounts/account-a/members/member-user').set({
-        role: 'operator',
-        permissions: ['service_orders.read'],
-      });
+      await context
+        .firestore()
+        .doc('accounts/account-a/members/member-user')
+        .set({
+          role: 'operator',
+          permissions: ['service_orders.read']
+        });
     });
 
     const accountAdminDb = testEnv!
@@ -109,18 +152,17 @@ describeWithEmulators('Firebase Rules harness', () => {
     await assertSucceeds(accountAdminDb.doc('accounts/account-a/members/member-user').get());
   });
 
-
   it('permite leer service_orders a roles operativos dentro del account activo', async () => {
     await testEnv!.withSecurityRulesDisabled(async (context) => {
       await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
       await context.firestore().doc('accounts/account-a/members/operator-user').set({
         role: 'operator',
-        permissions: [],
+        permissions: []
       });
       await context.firestore().doc('service_orders/order-1').set({
         accountId: 'account-a',
         buildingId: 'building-1',
-        status: 'scheduled',
+        status: 'scheduled'
       });
     });
 
@@ -136,12 +178,12 @@ describeWithEmulators('Firebase Rules harness', () => {
       await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
       await context.firestore().doc('accounts/account-a/members/operator-user').set({
         role: 'operator',
-        permissions: [],
+        permissions: []
       });
       await context.firestore().doc('service_orders/order-1').set({
         accountId: 'account-a',
         buildingId: 'building-1',
-        status: 'scheduled',
+        status: 'scheduled'
       });
     });
 
@@ -157,26 +199,26 @@ describeWithEmulators('Firebase Rules harness', () => {
       await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
       await context.firestore().doc('accounts/account-a/members/tech-user').set({
         role: 'technician',
-        permissions: [],
+        permissions: []
       });
       await context.firestore().doc('accounts/account-a/members/linked-tech-user').set({
         role: 'technician',
-        permissions: [],
+        permissions: []
       });
       await context.firestore().doc('employees/employee-1').set({
-        email: 'linked-tech@urbly.local',
+        email: 'linked-tech@urbly.local'
       });
       await context.firestore().doc('service_orders/order-by-uid').set({
         accountId: 'account-a',
         assignedTechnicianId: 'tech-user',
         buildingId: 'building-1',
-        status: 'scheduled',
+        status: 'scheduled'
       });
       await context.firestore().doc('service_orders/order-by-employee').set({
         accountId: 'account-a',
         assignedTechnicianId: 'employee-1',
         buildingId: 'building-1',
-        status: 'scheduled',
+        status: 'scheduled'
       });
     });
 
@@ -184,7 +226,11 @@ describeWithEmulators('Firebase Rules harness', () => {
       .authenticatedContext('tech-user', { activeAccountId: 'account-a', role: 'custom' })
       .firestore();
     const linkedTechDb = testEnv!
-      .authenticatedContext('linked-tech-user', { activeAccountId: 'account-a', role: 'custom', email: 'linked-tech@urbly.local' })
+      .authenticatedContext('linked-tech-user', {
+        activeAccountId: 'account-a',
+        role: 'custom',
+        email: 'linked-tech@urbly.local'
+      })
       .firestore();
 
     await assertSucceeds(techDb.doc('service_orders/order-by-uid').get());
@@ -196,19 +242,22 @@ describeWithEmulators('Firebase Rules harness', () => {
       await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
       await context.firestore().doc('accounts/account-a/members/other-tech-user').set({
         role: 'technician',
-        permissions: [],
+        permissions: []
       });
       await context.firestore().doc('accounts/account-a/members/view-user').set({
         role: 'view',
-        permissions: [],
+        permissions: []
       });
-      await context.firestore().doc('service_orders/order-1').set({
-        accountId: 'account-a',
-        assignedTechnicianId: 'tech-user',
-        buildingId: 'building-1',
-        attachments: ['evidence.png'],
-        status: 'scheduled',
-      });
+      await context
+        .firestore()
+        .doc('service_orders/order-1')
+        .set({
+          accountId: 'account-a',
+          assignedTechnicianId: 'tech-user',
+          buildingId: 'building-1',
+          attachments: ['evidence.png'],
+          status: 'scheduled'
+        });
     });
 
     const otherTechDb = testEnv!
@@ -227,27 +276,27 @@ describeWithEmulators('Firebase Rules harness', () => {
       await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
       await context.firestore().doc('accounts/account-a/members/client-user').set({
         role: 'client',
-        customerId: 'customer-1',
+        customerId: 'customer-1'
       });
       await context.firestore().doc('accounts/account-a/members/building-admin-user').set({
         role: 'building_admin',
-        administrationId: 'mgmt-1',
+        administrationId: 'mgmt-1'
       });
       await context.firestore().doc('buildings/building-1').set({
         accountId: 'account-a',
-        managementCompanyId: 'mgmt-1',
+        managementCompanyId: 'mgmt-1'
       });
       await context.firestore().doc('service_orders/order-by-customer').set({
         accountId: 'account-a',
         customerId: 'customer-1',
         buildingId: 'building-2',
-        status: 'scheduled',
+        status: 'scheduled'
       });
       await context.firestore().doc('service_orders/order-by-building').set({
         accountId: 'account-a',
         buildingId: 'building-1',
         managementCompanyId: 'mgmt-1',
-        status: 'scheduled',
+        status: 'scheduled'
       });
     });
 
@@ -260,6 +309,159 @@ describeWithEmulators('Firebase Rules harness', () => {
 
     await assertSucceeds(clientDb.doc('service_orders/order-by-customer').get());
     await assertSucceeds(buildingAdminDb.doc('service_orders/order-by-building').get());
+  });
+
+  it('permite a scheduler crear/agendar, asignar y reprogramar sin cerrar service_orders', async () => {
+    await seedAccountMember('scheduler-user', 'scheduler');
+    const schedulerDb = accountDb('scheduler-user');
+
+    await assertSucceeds(
+      schedulerDb
+        .doc('service_orders/order-scheduler')
+        .set(serviceOrder({ assignedTechnicianId: 'tech-1' }))
+    );
+    await assertSucceeds(
+      schedulerDb.doc('service_orders/order-scheduler').update({
+        assignedTechnicianId: 'tech-2',
+        scheduledStartAt: '2026-05-15T08:00:00.000Z',
+        scheduledEndAt: '2026-05-15T10:00:00.000Z',
+        status: 'scheduled',
+        updatedAt: '2026-05-13T22:00:00.000Z'
+      })
+    );
+    await assertFails(
+      schedulerDb.doc('service_orders/order-scheduler').update({
+        status: 'completed',
+        completedAt: '2026-05-15T10:00:00.000Z',
+        updatedAt: '2026-05-15T10:00:00.000Z'
+      })
+    );
+  });
+
+  it('bloquea create de service_orders sin campos mínimos o con accountId ajeno', async () => {
+    await seedAccountMember('admin-user', 'admin');
+    const adminDb = accountDb('admin-user');
+    const wrongAccountDb = testEnv!
+      .authenticatedContext('admin-user', { activeAccountId: 'account-b', role: 'custom' })
+      .firestore();
+
+    await assertFails(
+      adminDb
+        .doc('service_orders/missing-fields')
+        .set({ accountId: 'account-a', status: 'scheduled' })
+    );
+    await assertFails(wrongAccountDb.doc('service_orders/wrong-account').set(serviceOrder()));
+  });
+
+  it('bloquea escrituras legacy de admin/editor sin membership tenant-aware en service_orders', async () => {
+    const legacyAdminDb = testEnv!
+      .authenticatedContext('legacy-admin', { role: 'admin' })
+      .firestore();
+
+    await assertFails(legacyAdminDb.doc('service_orders/legacy-admin-create').set(serviceOrder()));
+  });
+
+  it('permite a operator cerrar service_orders dentro del account pero no reabrir ni reasignar', async () => {
+    await seedAccountMember('operator-user', 'operator');
+    await testEnv!.withSecurityRulesDisabled(async (context) => {
+      await context
+        .firestore()
+        .doc('service_orders/order-to-close')
+        .set(serviceOrder({ status: 'in_progress' }));
+    });
+
+    const operatorDb = accountDb('operator-user');
+
+    await assertSucceeds(
+      operatorDb.doc('service_orders/order-to-close').update({
+        status: 'completed',
+        completedAt: '2026-05-15T10:00:00.000Z',
+        completionPhotos: ['gs://photo-1'],
+        report: { observations: 'Servicio finalizado' },
+        updatedAt: '2026-05-15T10:00:00.000Z'
+      })
+    );
+    await assertFails(
+      operatorDb.doc('service_orders/order-to-close').update({ status: 'in_progress' })
+    );
+    await assertFails(
+      operatorDb.doc('service_orders/order-to-close').update({ assignedTechnicianId: 'tech-2' })
+    );
+  });
+
+  it('permite al técnico asignado actualizar solo progreso, evidencias e incidencias', async () => {
+    await seedAccountMember('tech-user', 'technician');
+    await seedAccountMember('other-tech-user', 'technician');
+    await testEnv!.withSecurityRulesDisabled(async (context) => {
+      await context
+        .firestore()
+        .doc('service_orders/order-tech')
+        .set(serviceOrder({ assignedTechnicianId: 'tech-user' }));
+    });
+
+    const techDb = accountDb('tech-user');
+    const otherTechDb = accountDb('other-tech-user');
+
+    await assertSucceeds(
+      techDb.doc('service_orders/order-tech').update({
+        status: 'in_progress',
+        startedAt: '2026-05-15T08:00:00.000Z',
+        attachments: ['gs://evidence-1'],
+        issues: [{ id: 'issue-1', type: 'leak', category: 'technical', photos: [] }],
+        updatedAt: '2026-05-15T08:00:00.000Z'
+      })
+    );
+    await assertFails(
+      techDb.doc('service_orders/order-tech').update({ assignedTechnicianId: 'tech-2' })
+    );
+    await assertFails(techDb.doc('service_orders/order-tech').update({ status: 'completed' }));
+    await assertFails(
+      otherTechDb.doc('service_orders/order-tech').update({ status: 'in_progress' })
+    );
+  });
+
+  it('permite owner/admin/editor/supervisor editar y reabrir service_orders; view/auditoria no escriben', async () => {
+    const privilegedRoles = ['owner', 'admin', 'editor', 'supervisor'];
+    for (const role of privilegedRoles) {
+      await seedAccountMember(`${role}-user`, role);
+    }
+    await seedAccountMember('view-user', 'view');
+    await seedAccountMember('auditor-user', 'auditoria');
+    await testEnv!.withSecurityRulesDisabled(async (context) => {
+      for (const role of privilegedRoles) {
+        await context
+          .firestore()
+          .doc(`service_orders/order-reopen-${role}`)
+          .set(
+            serviceOrder({
+              status: 'completed',
+              completedAt: '2026-05-15T10:00:00.000Z'
+            })
+          );
+      }
+    });
+
+    for (const role of privilegedRoles) {
+      const privilegedDb = accountDb(`${role}-user`);
+      await assertSucceeds(
+        privilegedDb.doc(`service_orders/order-reopen-${role}`).update({
+          status: 'in_progress',
+          completedAt: null,
+          updatedAt: '2026-05-16T08:00:00.000Z'
+        })
+      );
+      await assertSucceeds(
+        privilegedDb.doc(`service_orders/order-reopen-${role}`).update({ priority: 'high' })
+      );
+    }
+
+    const viewDb = accountDb('view-user');
+    const auditorDb = accountDb('auditor-user');
+
+    await assertFails(viewDb.doc('service_orders/order-reopen-owner').update({ priority: 'low' }));
+    await assertFails(
+      auditorDb.doc('service_orders/order-reopen-owner').update({ priority: 'low' })
+    );
   });
 
   it('carga las reglas actuales de Storage y permite subir imagen a staff', async () => {

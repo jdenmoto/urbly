@@ -367,31 +367,31 @@ When done, update this file:
 
 Current phase: Fase 1 — Multitenancy + seguridad
 
-Last completed task: F1-T04 — Firestore Rules helpers tenant-aware
+Last completed task: F1-T06 — Reglas explícitas write para service_orders
 
 - Status: done
-- Branch: `fix/firestore-account-rule-helpers`
-- Commit: HEAD de `fix/firestore-account-rule-helpers` — `fix: agregar helpers tenant-aware en reglas firestore`
+- Branch: `fix/service-orders-write-rules`
+- Commit: HEAD de `fix/service-orders-write-rules` — `fix: proteger escrituras de service orders`
 - Files changed:
   - `firestore.rules`
   - `src/test/rules/firebaseRules.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
-  - `project/runs/2026-05-13-f1-t04-firestore-account-rule-helpers.md`
 - Validations executed:
   - `npm run test:rules`
   - `npm run typecheck`
-- Notes: Se agregaron helpers tenant-aware `activeAccountId()`, `isAccountMember(accountId)`, `accountRole(accountId)`, `accountPermissions(accountId)` e `isActiveAccountMember(accountId)` en `firestore.rules`. Se agregó un match mínimo para `accounts/{accountId}` y `accounts/{accountId}/members/{memberId}` para probar lectura de membresía propia/admin del account activo sin convertir todavía todos los matches legacy. No se habilitaron escrituras de accounts/members. El fallback legacy `/{document=**}` queda intacto y debe ir cerrándose en las siguientes reglas explícitas.
+  - `npm run lint` (pasa con 8 warnings preexistentes)
+- Notes: Se agregaron reglas explícitas tenant-aware para `create`, `update` y `delete: false` en `service_orders`. Las escrituras validan `accountId` activo, membership y campos mínimos. `scheduler` puede crear/agendar/asignar/reprogramar sin cerrar; `operator` puede cerrar; `technician` solo actualiza progreso/evidencia/incidencias si está asignado; `owner/admin/editor/supervisor` pueden editar y reabrir; `view/auditoria` no escriben. Se agregaron tests de emulator para acciones permitidas/denegadas por rol, campos mínimos, account activo incorrecto y bloqueo del fallback legacy admin/editor sobre `service_orders`.
 
 Next required step:
 
-F1-T05 — Reglas explícitas read para service_orders.
+F1-T07 — Storage Rules tenant-aware para evidencias.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Abrir `docs/plans/urbly-atomic-task-list.md`.
-2. Cambiar a `phase/1-multitenancy-security` y crear branch `fix/service-orders-read-rules`.
-3. Implementar F1-T05 en `firestore.rules` con reglas explícitas de lectura tenant-aware para `service_orders`.
+2. Cambiar a `phase/1-multitenancy-security` y crear branch `fix/storage-evidence-account-rules`.
+3. Implementar F1-T07 en `storage.rules` con reglas tenant-aware para evidencias por account/serviceOrder/rol.
 4. Validar con `npm run test:rules`.
 
 ## 8. Archivos relacionados
