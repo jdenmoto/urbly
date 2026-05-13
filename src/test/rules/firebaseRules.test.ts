@@ -53,6 +53,62 @@ describeWithEmulators('Firebase Rules harness', () => {
     await assertSucceeds(adminDb.doc('feature_flags/bootstrap').get());
   });
 
+  it('permite leer membresía propia cuando el usuario pertenece al account activo', async () => {
+    await testEnv!.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
+      await context.firestore().doc('accounts/account-a/members/member-user').set({
+        role: 'operator',
+        permissions: ['service_orders.read'],
+      });
+    });
+
+    const memberDb = testEnv!
+      .authenticatedContext('member-user', { activeAccountId: 'account-a', role: 'operator' })
+      .firestore();
+
+    await assertSucceeds(memberDb.doc('accounts/account-a/members/member-user').get());
+  });
+
+  it('bloquea lectura de membresía si el usuario no pertenece al account activo', async () => {
+    await testEnv!.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
+      await context.firestore().doc('accounts/account-a/members/member-user').set({
+        role: 'operator',
+        permissions: ['service_orders.read'],
+      });
+    });
+
+    const nonMemberDb = testEnv!
+      .authenticatedContext('other-user', { activeAccountId: 'account-a', role: 'operator' })
+      .firestore();
+    const inactiveAccountDb = testEnv!
+      .authenticatedContext('member-user', { activeAccountId: 'account-b', role: 'operator' })
+      .firestore();
+
+    await assertFails(nonMemberDb.doc('accounts/account-a/members/member-user').get());
+    await assertFails(inactiveAccountDb.doc('accounts/account-a/members/member-user').get());
+  });
+
+  it('permite a admin del account activo leer otra membresía del mismo account', async () => {
+    await testEnv!.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
+      await context.firestore().doc('accounts/account-a/members/admin-user').set({
+        role: 'admin',
+        permissions: [],
+      });
+      await context.firestore().doc('accounts/account-a/members/member-user').set({
+        role: 'operator',
+        permissions: ['service_orders.read'],
+      });
+    });
+
+    const accountAdminDb = testEnv!
+      .authenticatedContext('admin-user', { activeAccountId: 'account-a', role: 'admin' })
+      .firestore();
+
+    await assertSucceeds(accountAdminDb.doc('accounts/account-a/members/member-user').get());
+  });
+
   it('carga las reglas actuales de Storage y permite subir imagen a staff', async () => {
     const adminStorage = testEnv!
       .authenticatedContext('admin-user', { role: 'admin' })

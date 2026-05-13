@@ -367,31 +367,31 @@ When done, update this file:
 
 Current phase: Fase 1 — Multitenancy + seguridad
 
-Last completed task: F1-T03 — Script idempotente default account
+Last completed task: F1-T04 — Firestore Rules helpers tenant-aware
 
 - Status: done
-- Branch: `feat/default-account-migration-script`
-- Commit: HEAD de `feat/default-account-migration-script` — `feat: agregar migracion default account`
+- Branch: `fix/firestore-account-rule-helpers`
+- Commit: HEAD de `fix/firestore-account-rule-helpers` — `fix: agregar helpers tenant-aware en reglas firestore`
 - Files changed:
-  - `scripts/migrate-default-account.mjs`
-  - `package.json`
-  - `docs/getting-started/seed.md`
+  - `firestore.rules`
+  - `src/test/rules/firebaseRules.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
+  - `project/runs/2026-05-13-f1-t04-firestore-account-rule-helpers.md`
 - Validations executed:
-  - `node scripts/migrate-default-account.mjs --dry-run`
-  - `npm run lint`
-- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. El script opera en dry-run por defecto, requiere `--commit` para escribir y bloquea escrituras fuera de emulator salvo `--confirm-production`. Crea `accounts/urbly-default`, asigna `accountId` a colecciones críticas existentes, actualiza usuarios con `accountIds[]`/`activeAccountId`, crea memberships y copia settings raíz a settings por cuenta. Falla antes de escribir si detecta datos ya asociados a otra cuenta. Sin credenciales locales, `--dry-run` hace validación estática y explica cómo validar contra Firestore real/emulator.
+  - `npm run test:rules`
+  - `npm run typecheck`
+- Notes: Se agregaron helpers tenant-aware `activeAccountId()`, `isAccountMember(accountId)`, `accountRole(accountId)`, `accountPermissions(accountId)` e `isActiveAccountMember(accountId)` en `firestore.rules`. Se agregó un match mínimo para `accounts/{accountId}` y `accounts/{accountId}/members/{memberId}` para probar lectura de membresía propia/admin del account activo sin convertir todavía todos los matches legacy. No se habilitaron escrituras de accounts/members. El fallback legacy `/{document=**}` queda intacto y debe ir cerrándose en las siguientes reglas explícitas.
 
 Next required step:
 
-F1-T04 — Firestore Rules helpers tenant-aware.
+F1-T05 — Reglas explícitas read para service_orders.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Abrir `docs/plans/urbly-atomic-task-list.md`.
-2. Cambiar a `phase/1-multitenancy-security` y crear branch `fix/firestore-account-rule-helpers`.
-3. Implementar F1-T04 en `firestore.rules` y tests de reglas mínimos.
+2. Cambiar a `phase/1-multitenancy-security` y crear branch `fix/service-orders-read-rules`.
+3. Implementar F1-T05 en `firestore.rules` con reglas explícitas de lectura tenant-aware para `service_orders`.
 4. Validar con `npm run test:rules`.
 
 ## 8. Archivos relacionados
