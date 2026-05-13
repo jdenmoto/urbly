@@ -365,33 +365,43 @@ When done, update this file:
 
 ## 7. Estado actual de ejecución
 
-Current phase: Fase 1 — Multitenancy + seguridad
+Current phase: Fase 2 — Unificación Services/Scheduling
 
-Last completed task: F1-C01 — Corrección de cobertura serviceOrderPermissions
+Last completed task: Phase 1 final gate — Multitenancy + seguridad
 
-- Status: done
-- Branch: `test/service-order-permissions-coverage`
-- Commit: HEAD de `test/service-order-permissions-coverage` — `test: cubrir ramas defensivas de permisos de servicios`
+- Status: done, listo para PR contra `develop`
+- Branch: `phase/1-multitenancy-security`
+- Changelog: `docs/plans/phase-1-changelog.md`
 - Files changed:
-  - `src/features/services/__tests__/serviceOrderPermissions.test.ts`
-  - `docs/plans/urbly-atomic-task-list.md`
-  - `docs/plans/urbly-master-implementation-plan.md`
+  - modelos/account memberships
+  - helpers de permisos por account
+  - migración `urbly-default`
+  - `firestore.rules`
+  - `storage.rules`
+  - `functions/src/serviceReports.ts`
+  - `functions/src/imports.ts`
+  - tests unitarios y de Firebase Rules
 - Validations executed:
-  - `npm run test:coverage`
-  - `npm run test:run -- serviceOrderPermissions`
+  - `npm run lint` — pasa con 8 warnings preexistentes
   - `npm run typecheck`
-- Notes: cobertura de branches para `src/features/services/serviceOrderPermissions.ts` sube a 100% cubriendo roles legacy vacíos sin cambiar comportamiento de producción. El gate de Fase 1 puede reanudarse.
+  - `npm run test:run` — 69 passed, 20 skipped fuera de emulator normal
+  - `npm run test:coverage` — coverage gate pasa; `serviceOrderPermissions.ts` al 100% branch coverage
+  - `npm run test:rules` — 20 passed con emulator Firestore/Storage
+  - `npm run build:minimum`
+  - `npm audit` — 0 vulnerabilities reportadas
+  - `npm --prefix functions audit` — 0 vulnerabilities reportadas
+- Notes: Fase 1 queda lista para PR. No se hizo merge a `develop` porque GitHub exige PR/checks.
 
 Next required step:
 
-Reanudar gate final de Fase 1 y PR contra `develop`.
+Abrir PR grande de Fase 1 contra `develop`; después de merge/checks, iniciar F2-T01.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Cambiar a `phase/1-multitenancy-security`.
-2. Integrar `test/service-order-permissions-coverage` si falta.
-3. Correr gates de Fase 1 y crear/actualizar `docs/plans/phase-1-changelog.md`.
-4. Abrir PR grande de Fase 1 contra `develop` sin hacer merge.
+1. Abrir PR: `phase/1-multitenancy-security` → `develop`.
+2. Esperar checks/review y merge autorizado.
+3. Crear/usar `phase/2-services-only` desde `develop` actualizado.
+4. Ejecutar F2-T01: quitar Scheduling del nav visible en `src/app/nav.ts`.
 
 ## 8. Archivos relacionados
 

@@ -8,9 +8,9 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 
 ## Estado global
 
-Current phase: Fase 1 — Multitenancy + seguridad  
-Current task: Fase 1 — gate final puede reanudarse
-Next agent start: cambiar a `phase/1-multitenancy-security`, integrar `test/service-order-permissions-coverage` si falta, correr gates de Fase 1, crear/actualizar `docs/plans/phase-1-changelog.md` y abrir PR contra `develop`.
+Current phase: Fase 2 — Unificación Services/Scheduling  
+Current task: F2-T01 — Quitar Scheduling del nav  
+Next agent start: esperar PR/merge de Fase 1 a `develop`; luego crear/usar `phase/2-services-only` desde `develop` actualizado y ejecutar `refactor/remove-scheduling-nav`.
 
 ---
 
