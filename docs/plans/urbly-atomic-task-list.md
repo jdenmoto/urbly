@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 0 — Estabilizar tests/CI base mínima  
-Current task: F0-T02  
-Next agent start: abrir `TASK F0-T02 — Agregar test:run al CI` y `docs/plans/urbly-agent-execution-instructions.md`.
+Current task: F0-T03  
+Next agent start: abrir `TASK F0-T03 — Configurar cobertura Vitest 70/90` y `docs/plans/urbly-agent-execution-instructions.md`.
 
 ---
 
@@ -75,8 +75,9 @@ Al terminar:
 
 ## TASK F0-T02 — Agregar test:run al CI
 
-Status: pending  
-Branch: `test/add-vitest-to-ci`
+Status: done  
+Branch: `test/add-vitest-to-ci`  
+Model: `openai-codex/gpt-5.5`
 
 ### Objective
 Hacer que CI ejecute Vitest.
@@ -108,6 +109,20 @@ npm run typecheck
 ### Done when
 - CI incluye `npm run test:run`.
 - Validaciones locales pasan.
+
+### Completion notes
+- Agregado step `Run tests` con `npm run test:run` en `.github/workflows/ci.yml`, después de typecheck y antes de `build:minimum`.
+- No se agregó env dummy al CI: Vitest ya usa setup de test con env dummy y el workflow conserva `.env.local` desde secrets.
+- Commit: HEAD de `test/add-vitest-to-ci` (`chore: agregar vitest al ci`).
+- Validaciones: `npm run test:run`, `npm run typecheck`, `npm run build:minimum`, `npm run lint` (pasa con 8 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F0-T03 configurando cobertura Vitest 70/90.
+
+### Master plan update
+Al terminar:
+- marcar F0-T02 done
+- registrar branch/commit
+- cambiar Current task a F0-T03
+- indicar que el siguiente agente empieza configurando cobertura Vitest 70/90.
 
 ## TASK F0-T03 — Configurar cobertura Vitest 70/90
 

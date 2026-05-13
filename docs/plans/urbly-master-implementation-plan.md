@@ -367,32 +367,32 @@ When done, update this file:
 
 Current phase: Fase 0 — Estabilizar tests/CI base mínima
 
-Last completed task: F0-T01 — Mock/env Firebase para Vitest
+Last completed task: F0-T02 — Agregar test:run al CI
 
 - Status: done
-- Branch: `test/vitest-firebase-mock`
-- Commit: ver HEAD de `test/vitest-firebase-mock` (`test: configurar env firebase para vitest`)
+- Branch: `test/add-vitest-to-ci`
+- Commit: HEAD de `test/add-vitest-to-ci` (`chore: agregar vitest al ci`)
 - Files changed:
-  - `src/test/setup.ts`
+  - `.github/workflows/ci.yml`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/features/operations/scheduling/__tests__/schedulingSelectors.test.ts src/features/operations/scheduling/__tests__/useSchedulingPageData.test.ts src/features/operations/scheduling/__tests__/schedulingPageShell.test.tsx`
   - `npm run test:run`
-  - `npm run lint`
   - `npm run typecheck`
-- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. Las suites scheduling siguen emitiendo warnings SSR de `useLayoutEffect`, no bloqueantes.
+  - `npm run build:minimum`
+  - `npm run lint`
+- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. Vitest mantiene warnings SSR de `useLayoutEffect` no bloqueantes en scheduling. El build mantiene warnings de chunks circulares preexistentes/no bloqueantes.
 
 Next required step:
 
-Ejecutar F0-T02 en `docs/plans/urbly-atomic-task-list.md`: agregar `npm run test:run` al CI.
+Ejecutar F0-T03 en `docs/plans/urbly-atomic-task-list.md`: configurar cobertura Vitest 70/90.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Abrir `docs/plans/urbly-atomic-task-list.md`.
 2. Abrir `docs/plans/urbly-agent-execution-instructions.md`.
-3. Empezar por `TASK F0-T02 — Agregar test:run al CI`.
-4. Revisar `.github/workflows/ci.yml` y agregar el step de tests después de typecheck.
+3. Empezar por `TASK F0-T03 — Configurar cobertura Vitest 70/90`.
+4. Revisar `vitest.config.ts` y `package.json` para agregar script/comando de cobertura y thresholds.
 
 ## 8. Archivos relacionados
 
