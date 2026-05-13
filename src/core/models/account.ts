@@ -20,7 +20,8 @@ export type AccountPermission =
   | 'manage_ai_policy'
   | 'regenerate_secure_tokens'
   | 'review_reports'
-  | 'approve_quotations_internal';
+  | 'approve_quotations_internal'
+  | 'import_buildings';
 
 export type Account = {
   id: string;
