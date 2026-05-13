@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 1 — Multitenancy + seguridad  
-Current task: F1-T05 — Reglas explícitas read para service_orders
-Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `fix/service-orders-read-rules` y ejecutar F1-T05.
+Current task: F1-T06 — Reglas explícitas write para service_orders
+Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `fix/service-orders-write-rules` y ejecutar F1-T06.
 
 ---
 
@@ -371,7 +371,7 @@ npm run test:rules
 
 ## TASK F1-T05 — Reglas explícitas read para service_orders
 
-Status: pending  
+Status: done  
 Branch: `fix/service-orders-read-rules`
 
 ### Objective
@@ -388,6 +388,17 @@ Agregar `match /service_orders/{serviceOrderId}` con lectura tenant-aware.
 ```bash
 npm run test:rules
 ```
+
+### Completion notes
+- Agregado `match /service_orders/{serviceOrderId}` explícito en `firestore.rules` con lectura tenant-aware basada en `accountId` y membership del account activo.
+- Roles internos permitidos dentro del account: `owner`, `admin`, `editor`, `supervisor`, `scheduler`, `operator`, `auditoria`.
+- `technician` solo lee órdenes asignadas por `assignedTechnicianId == uid` o por empleado vinculado en `employees/{assignedTechnicianId}` vía `uid`/`userId`/`authUid`/`email`.
+- `client` y `building_admin` leen solo si su membership está relacionada por `customerId`, `managementCompanyId`/`administrationId` o `buildingId` presentes en la orden.
+- No se habilitaron escrituras en el match explícito; el comportamiento write legacy queda limitado al fallback existente hasta F1-T06.
+- Limitación documentada: Firestore Rules no puede proyectar campos en un document read; por eso `view` de account no recibe lectura básica separada mientras evidencias sensibles vivan en el mismo documento. El fallback legacy `/{document=**}` todavía puede conceder lectura por claims staff legacy hasta que se cierre en una tarea posterior.
+- Tests de reglas agregados para roles operativos, account activo incorrecto, técnico asignado/no asignado, client/building_admin relacionados y bloqueo de `view` account.
+- Validación: `npm run test:rules`.
+- Siguiente agente: empezar F1-T06 agregando reglas explícitas write para `service_orders` desde branch `fix/service-orders-write-rules`.
 
 ## TASK F1-T06 — Reglas explícitas write para service_orders
 
