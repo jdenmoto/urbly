@@ -15,6 +15,9 @@ import {
   canStartServiceOrder,
   getAllowedServiceOrderPermissionActions,
   hasServiceOrderPermission,
+  isInternalServiceOrderRole,
+  isRequestOnlyServiceOrderRole,
+  isTechnicianServiceOrderRole,
   SERVICE_ORDER_PERMISSION_ACTIONS,
 } from '@/features/services/serviceOrderPermissions';
 import type { AppUserRole } from '@/core/models/appUser';
@@ -83,11 +86,36 @@ describe('service order permissions', () => {
     }
   });
 
+  it('classifies service order roles by permission scope', () => {
+    for (const role of internalRoles) {
+      expect(isInternalServiceOrderRole(role)).toBe(true);
+      expect(isTechnicianServiceOrderRole(role)).toBe(false);
+      expect(isRequestOnlyServiceOrderRole(role)).toBe(false);
+    }
+
+    expect(isInternalServiceOrderRole(technicianRole)).toBe(false);
+    expect(isTechnicianServiceOrderRole(technicianRole)).toBe(true);
+    expect(isRequestOnlyServiceOrderRole(technicianRole)).toBe(false);
+
+    for (const role of requestOnlyRoles) {
+      expect(isInternalServiceOrderRole(role)).toBe(false);
+      expect(isTechnicianServiceOrderRole(role)).toBe(false);
+      expect(isRequestOnlyServiceOrderRole(role)).toBe(true);
+    }
+  });
+
   it('supports action-level checks through the generic helper', () => {
     expect(hasServiceOrderPermission('scheduler', 'assign')).toBe(true);
     expect(hasServiceOrderPermission('client', 'create')).toBe(true);
     expect(hasServiceOrderPermission('client', 'assign')).toBe(false);
     expect(hasServiceOrderPermission('emergency_scheduler', 'close')).toBe(true);
     expect(hasServiceOrderPermission('emergency_scheduler', 'override_conflict')).toBe(false);
+  });
+
+  it('returns no permissions for unknown legacy roles', () => {
+    const unknownRole = 'legacy_role' as AppUserRole;
+
+    expect(getAllowedServiceOrderPermissionActions(unknownRole)).toEqual([]);
+    expect(hasServiceOrderPermission(unknownRole, 'create')).toBe(false);
   });
 });
