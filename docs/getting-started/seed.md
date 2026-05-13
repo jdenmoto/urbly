@@ -22,6 +22,16 @@ npm run seed:users
 npm run seed:all
 ```
 
+## Migrar datos existentes a account default
+```bash
+node scripts/migrate-default-account.mjs --dry-run
+npm run firestore:migrate:default-account -- --commit --confirm-production
+```
+
+El script es idempotente y seguro por defecto: sin `--commit` solo hace dry-run. Crea `accounts/urbly-default`, agrega `accountId` a colecciones críticas, copia `settings` raíz a `accounts/urbly-default/settings` cuando falta y crea memberships en `accounts/urbly-default/members/{uid}` para usuarios existentes. Si detecta datos ya asignados a otro `accountId`, `activeAccountId` o `accountIds[]`, falla sin escribir.
+
+No ejecutar `--commit --confirm-production` sin revisar primero el dry-run contra el proyecto objetivo.
+
 ## Usuarios demo creados
 - `admin.demo@urbly.local`
 - `editor.demo@urbly.local`
