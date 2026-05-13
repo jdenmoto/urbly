@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 1 — Multitenancy + seguridad  
-Current task: F1-T09 — Proteger importBuildings
-Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `fix/authorize-import-buildings` y ejecutar F1-T09.
+Current task: Fase 1 — lista para gate final/PR
+Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, integrar/verificar cambios de Fase 1, crear/actualizar `docs/plans/phase-1-changelog.md` y abrir PR contra `develop`.
 
 ---
 
@@ -496,7 +496,7 @@ npm run test:run -- serviceReports
 
 ## TASK F1-T09 — Proteger importBuildings
 
-Status: pending  
+Status: done
 Branch: `fix/authorize-import-buildings`
 
 ### Objective
@@ -512,6 +512,14 @@ Exigir permiso específico para importación.
 ```bash
 npm --prefix functions run build
 ```
+
+### Completion notes
+- `importBuildings` ahora rechaza llamadas sin auth, sin `activeAccountId`, sin membership activa en `accounts/{accountId}/members/{uid}` o sin rol `owner/admin/editor` ni permiso explícito `import_buildings`.
+- La URL de descarga se limita a Firebase Storage bajo el prefijo controlado `imports/`, compatible con el flujo actual de `src/lib/api/functions.ts`.
+- La importación persistida propaga `accountId` a `buildings` y `management_companies`, y busca administraciones existentes dentro del account activo.
+- Agregado permiso `import_buildings` al modelo de permisos y suite `src/imports.authorization.test.ts` para roles, permiso explícito, membresía inactiva y URL controlada.
+- Validaciones: `npm run test:run -- imports.authorization`, `npm --prefix functions run build`, `npm run lint` (pasa con 8 warnings preexistentes), `npm run typecheck`.
+- Fase 1 queda lista para gate final y PR contra `develop`.
 
 ---
 

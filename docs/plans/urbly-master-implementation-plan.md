@@ -367,33 +367,35 @@ When done, update this file:
 
 Current phase: Fase 1 — Multitenancy + seguridad
 
-Last completed task: F1-T07 — Storage Rules tenant-aware para evidencias
+Last completed task: F1-T09 — Proteger importBuildings
 
 - Status: done
-- Branch: `fix/storage-evidence-account-rules`
-- Commit: HEAD de `fix/storage-evidence-account-rules` — `fix: proteger evidencias storage por cuenta`
+- Branch: `fix/authorize-import-buildings`
+- Commit: HEAD de `fix/authorize-import-buildings` — `fix: proteger importacion de edificios por cuenta`
 - Files changed:
-  - `storage.rules`
-  - `src/test/rules/firebaseRules.test.ts`
+  - `functions/src/imports.ts`
+  - `functions/src/importBuildingPipeline.ts`
+  - `src/core/models/account.ts`
+  - `src/imports.authorization.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:rules`
-  - `npm run typecheck`
+  - `npm run test:run -- imports.authorization`
+  - `npm --prefix functions run build`
   - `npm run lint` (pasa con 8 warnings preexistentes)
-  - `npm run build:minimum`
-- Notes: Storage Rules para evidencias de `service-orders` ahora consultan `service_orders/{serviceOrderId}` y memberships tenant-aware. La lectura queda separada de escritura: `auditoria` puede leer pero no escribir; `view` no lee ni escribe evidencias; `technician` solo lee/escribe si está asignado; roles operativos autorizados escriben imágenes bajo límite. Se agregaron tests de emulator para permisos por rol, account activo y asignación.
+  - `npm run typecheck`
+- Notes: `importBuildings` ahora exige `activeAccountId`, membership activa en `accounts/{accountId}/members/{uid}` y rol `owner/admin/editor` o permiso explícito `import_buildings`. También limita `downloadUrl` a Firebase Storage bajo `imports/` y propaga `accountId` al persistir edificios y administraciones importadas.
 
 Next required step:
 
-F1-T08 — Proteger generateServiceReportPdf.
+Fase 1 queda lista para gate final y PR contra `develop`.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Abrir `docs/plans/urbly-atomic-task-list.md`.
-2. Cambiar a `phase/1-multitenancy-security` y crear branch `fix/authorize-service-report-pdf`.
-3. Implementar F1-T08 en `functions/src/serviceReports.ts` con autorización granular por service order/account/rol.
-4. Validar con `npm --prefix functions run build` y `npm run test:run -- serviceReports`.
+2. Cambiar a `phase/1-multitenancy-security`.
+3. Integrar/verificar las ramas atómicas de Fase 1 si falta alguna, correr gates de fase y crear/actualizar `docs/plans/phase-1-changelog.md`.
+4. Abrir PR grande de Fase 1 contra `develop` sin hacer merge.
 
 ## 8. Archivos relacionados
 
