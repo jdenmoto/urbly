@@ -166,4 +166,12 @@ describe('service order permissions', () => {
     expect(getAllowedServiceOrderPermissionActions(unknownRole)).toEqual([]);
     expect(hasServiceOrderPermission(unknownRole, 'create')).toBe(false);
   });
+
+  it('denies empty legacy roles defensively', () => {
+    const emptyRole = '' as ServiceOrderPermissionRole;
+
+    expect(getAllowedServiceOrderPermissionActions(emptyRole)).toEqual([]);
+    expect(hasServiceOrderPermission(emptyRole, 'create')).toBe(false);
+    expect(canCloseServiceOrder(emptyRole)).toBe(false);
+  });
 });

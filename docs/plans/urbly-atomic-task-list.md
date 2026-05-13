@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 1 — Multitenancy + seguridad  
-Current task: Fase 1 — lista para gate final/PR
-Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, integrar/verificar cambios de Fase 1, crear/actualizar `docs/plans/phase-1-changelog.md` y abrir PR contra `develop`.
+Current task: Fase 1 — gate final puede reanudarse
+Next agent start: cambiar a `phase/1-multitenancy-security`, integrar `test/service-order-permissions-coverage` si falta, correr gates de Fase 1, crear/actualizar `docs/plans/phase-1-changelog.md` y abrir PR contra `develop`.
 
 ---
 
@@ -520,6 +520,21 @@ npm --prefix functions run build
 - Agregado permiso `import_buildings` al modelo de permisos y suite `src/imports.authorization.test.ts` para roles, permiso explícito, membresía inactiva y URL controlada.
 - Validaciones: `npm run test:run -- imports.authorization`, `npm --prefix functions run build`, `npm run lint` (pasa con 8 warnings preexistentes), `npm run typecheck`.
 - Fase 1 queda lista para gate final y PR contra `develop`.
+
+## TASK F1-C01 — Corrección de cobertura serviceOrderPermissions
+
+Status: done  
+Branch: `test/service-order-permissions-coverage`
+
+### Objective
+Cubrir ramas defensivas faltantes en `src/features/services/serviceOrderPermissions.ts` para que el gate de cobertura de Fase 1 pueda reanudarse.
+
+### Completion notes
+- Agregado test focalizado para roles legacy vacíos en `src/features/services/__tests__/serviceOrderPermissions.test.ts`.
+- `serviceOrderPermissions.ts` queda en 100% de branches bajo `npm run test:coverage`.
+- No se cambió comportamiento de producción.
+- Validaciones: `npm run test:coverage`, `npm run test:run -- serviceOrderPermissions`, `npm run typecheck`.
+- Fase 1 puede reanudar gate final/PR contra `develop`.
 
 ---
 

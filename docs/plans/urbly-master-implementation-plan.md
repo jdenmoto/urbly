@@ -367,34 +367,30 @@ When done, update this file:
 
 Current phase: Fase 1 — Multitenancy + seguridad
 
-Last completed task: F1-T09 — Proteger importBuildings
+Last completed task: F1-C01 — Corrección de cobertura serviceOrderPermissions
 
 - Status: done
-- Branch: `fix/authorize-import-buildings`
-- Commit: HEAD de `fix/authorize-import-buildings` — `fix: proteger importacion de edificios por cuenta`
+- Branch: `test/service-order-permissions-coverage`
+- Commit: HEAD de `test/service-order-permissions-coverage` — `test: cubrir ramas defensivas de permisos de servicios`
 - Files changed:
-  - `functions/src/imports.ts`
-  - `functions/src/importBuildingPipeline.ts`
-  - `src/core/models/account.ts`
-  - `src/imports.authorization.test.ts`
+  - `src/features/services/__tests__/serviceOrderPermissions.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- imports.authorization`
-  - `npm --prefix functions run build`
-  - `npm run lint` (pasa con 8 warnings preexistentes)
+  - `npm run test:coverage`
+  - `npm run test:run -- serviceOrderPermissions`
   - `npm run typecheck`
-- Notes: `importBuildings` ahora exige `activeAccountId`, membership activa en `accounts/{accountId}/members/{uid}` y rol `owner/admin/editor` o permiso explícito `import_buildings`. También limita `downloadUrl` a Firebase Storage bajo `imports/` y propaga `accountId` al persistir edificios y administraciones importadas.
+- Notes: cobertura de branches para `src/features/services/serviceOrderPermissions.ts` sube a 100% cubriendo roles legacy vacíos sin cambiar comportamiento de producción. El gate de Fase 1 puede reanudarse.
 
 Next required step:
 
-Fase 1 queda lista para gate final y PR contra `develop`.
+Reanudar gate final de Fase 1 y PR contra `develop`.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Abrir `docs/plans/urbly-atomic-task-list.md`.
-2. Cambiar a `phase/1-multitenancy-security`.
-3. Integrar/verificar las ramas atómicas de Fase 1 si falta alguna, correr gates de fase y crear/actualizar `docs/plans/phase-1-changelog.md`.
+1. Cambiar a `phase/1-multitenancy-security`.
+2. Integrar `test/service-order-permissions-coverage` si falta.
+3. Correr gates de Fase 1 y crear/actualizar `docs/plans/phase-1-changelog.md`.
 4. Abrir PR grande de Fase 1 contra `develop` sin hacer merge.
 
 ## 8. Archivos relacionados
