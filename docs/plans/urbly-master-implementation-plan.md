@@ -367,37 +367,37 @@ When done, update this file:
 
 Current phase: Fase 0 — Estabilizar tests/CI base mínima
 
-Last completed task: F0-T03 — Configurar cobertura Vitest 70/90
+Last completed task: F0-T04 — Preparar test harness para Firebase Rules
 
 - Status: done
-- Branch: `test/configure-coverage-thresholds`
-- Commit: HEAD de `test/configure-coverage-thresholds` (`test: configurar umbrales de cobertura vitest`)
+- Branch: `test/firebase-rules-harness`
+- Commit: HEAD de `test/firebase-rules-harness` (`test: agregar harness de reglas firebase`)
 - Files changed:
   - `package.json`
   - `package-lock.json`
-  - `vitest.config.ts`
-  - `src/features/services/__tests__/serviceOrderPermissions.test.ts`
+  - `src/test/rules/firebaseRules.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:coverage`
+  - `npm run test:rules`
   - `npm run test:run`
   - `npm run typecheck`
   - `npm run lint`
+  - `npm run build:minimum`
   - `npm audit`
   - `npm --prefix functions audit`
-- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. Vitest mantiene warnings SSR de `useLayoutEffect` no bloqueantes en scheduling. Coverage usa provider `v8`, threshold global 70% y threshold crítico 90% para `serviceOrderPermissions.ts` y `serviceOrderTransitions.ts`. Excepción exacta: el threshold crítico 90% de reports queda pendiente porque aún no existe suite estable dedicada de reportes; habilitarlo sin esa suite bloquearía `test:coverage` por infraestructura incompleta, no por regresión funcional.
+- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. Vitest mantiene warnings SSR de `useLayoutEffect` no bloqueantes en scheduling. `npm run test:rules` levanta emuladores Firestore/Storage con proyecto demo y carga `firestore.rules` + `storage.rules`. El suite de rules queda omitido en `npm run test:run` cuando no está activo el Emulator Suite para mantener el gate unitario normal. No se modificaron reglas de producción.
 
 Next required step:
 
-Ejecutar F0-T04 en `docs/plans/urbly-atomic-task-list.md`: preparar test harness para Firebase Rules.
+Fase 0 queda lista para gate final y PR contra `develop`.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Abrir `docs/plans/urbly-atomic-task-list.md`.
-2. Abrir `docs/plans/urbly-agent-execution-instructions.md`.
-3. Empezar por `TASK F0-T04 — Preparar test harness para Firebase Rules`.
-4. Revisar `package.json`, `firebase.json` y la estructura `test/rules/**` o `src/test/rules/**` para crear el harness y script `test:rules`.
+1. Abrir `docs/plans/urbly-agent-execution-instructions.md`.
+2. Cambiar a `phase/0-tests-ci-base` e integrar `test/firebase-rules-harness` si aún no está integrado.
+3. Ejecutar gate final de Fase 0: `npm run lint`, `npm run typecheck`, `npm run test:run`, `npm run test:coverage`, `npm run test:rules`, `npm run build:minimum`.
+4. Crear/actualizar `docs/plans/phase-0-changelog.md` y abrir PR de Fase 0 contra `develop`.
 
 ## 8. Archivos relacionados
 
