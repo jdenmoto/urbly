@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 0 — Estabilizar tests/CI base mínima  
-Current task: F0-T01  
-Next agent start: abrir esta tarea y `docs/plans/urbly-agent-execution-instructions.md`.
+Current task: F0-T02  
+Next agent start: abrir `TASK F0-T02 — Agregar test:run al CI` y `docs/plans/urbly-agent-execution-instructions.md`.
 
 ---
 
@@ -20,7 +20,7 @@ Branch de fase: `phase/0-tests-ci-base`
 
 ## TASK F0-T01 — Mock/env Firebase para Vitest
 
-Status: pending  
+Status: done  
 Branch: `test/vitest-firebase-mock`  
 Model: `ollama/qwen2.5-coder:3b`
 
@@ -59,6 +59,12 @@ npm run test:run
 - Las 3 suites que fallaban ya no fallan por Firebase config.
 - `npm run test:run` termina exitosamente o solo falla por errores funcionales reales documentados.
 - Plan maestro y esta task list quedan actualizados.
+
+### Completion notes
+- Env dummy de Firebase configurado en `src/test/setup.ts` con `vi.stubEnv`.
+- Commit: ver HEAD de `test/vitest-firebase-mock` (`test: configurar env firebase para vitest`).
+- Validaciones: suites scheduling objetivo, `npm run test:run`, `npm run lint`, `npm run typecheck`.
+- Siguiente agente: empezar F0-T02 agregando `npm run test:run` al CI.
 
 ### Master plan update
 Al terminar:

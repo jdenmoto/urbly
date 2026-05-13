@@ -365,18 +365,34 @@ When done, update this file:
 
 ## 7. Estado actual de ejecución
 
-Current phase: ready for task expansion / execution planning
+Current phase: Fase 0 — Estabilizar tests/CI base mínima
+
+Last completed task: F0-T01 — Mock/env Firebase para Vitest
+
+- Status: done
+- Branch: `test/vitest-firebase-mock`
+- Commit: ver HEAD de `test/vitest-firebase-mock` (`test: configurar env firebase para vitest`)
+- Files changed:
+  - `src/test/setup.ts`
+  - `docs/plans/urbly-atomic-task-list.md`
+  - `docs/plans/urbly-master-implementation-plan.md`
+- Validations executed:
+  - `npm run test:run -- src/features/operations/scheduling/__tests__/schedulingSelectors.test.ts src/features/operations/scheduling/__tests__/useSchedulingPageData.test.ts src/features/operations/scheduling/__tests__/schedulingPageShell.test.tsx`
+  - `npm run test:run`
+  - `npm run lint`
+  - `npm run typecheck`
+- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. Las suites scheduling siguen emitiendo warnings SSR de `useLayoutEffect`, no bloqueantes.
 
 Next required step:
 
-Usar este plan maestro para generar tareas atómicas detalladas por fase en `docs/plans/urbly-atomic-task-list.md`.
+Ejecutar F0-T02 en `docs/plans/urbly-atomic-task-list.md`: agregar `npm run test:run` al CI.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Abrir `docs/plans/urbly-master-implementation-plan.md`.
+1. Abrir `docs/plans/urbly-atomic-task-list.md`.
 2. Abrir `docs/plans/urbly-agent-execution-instructions.md`.
-3. Crear `docs/plans/urbly-atomic-task-list.md` si no existe o continuar desde la primera tarea `pending`.
-4. Empezar por Fase 0 / TASK F0-T01: estabilizar mocks/env Firebase para Vitest.
+3. Empezar por `TASK F0-T02 — Agregar test:run al CI`.
+4. Revisar `.github/workflows/ci.yml` y agregar el step de tests después de typecheck.
 
 ## 8. Archivos relacionados
 
