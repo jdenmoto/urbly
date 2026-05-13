@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 1 — Multitenancy + seguridad  
-Current task: F1-T03 — Script idempotente default account
-Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `feat/default-account-migration-script` y ejecutar F1-T03.
+Current task: F1-T04 — Firestore Rules helpers tenant-aware
+Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `fix/firestore-account-rule-helpers` y ejecutar F1-T04.
 
 ---
 
@@ -304,7 +304,7 @@ npm run typecheck
 
 ## TASK F1-T03 — Script idempotente default account
 
-Status: pending  
+Status: done  
 Branch: `feat/default-account-migration-script`
 
 ### Objective
@@ -327,6 +327,16 @@ Crear script idempotente que cree `accounts/urbly-default` y asigne datos actual
 node scripts/migrate-default-account.mjs --dry-run
 npm run lint
 ```
+
+### Completion notes
+- Agregado `scripts/migrate-default-account.mjs` con modo dry-run por defecto, `--commit` explícito y bloqueo adicional `--confirm-production` para escrituras fuera de emulator.
+- El script crea `accounts/urbly-default`, asigna `accountId` a colecciones críticas existentes, actualiza `users` con `accountIds[]`/`activeAccountId`, crea `accounts/urbly-default/members/{uid}` y copia `settings` raíz a settings por cuenta si faltan.
+- Falla antes de escribir si detecta `accountId`, `activeAccountId` o `accountIds[]` que apunten a otra cuenta.
+- Agregado script npm `firestore:migrate:default-account` y documentación de uso seguro en `docs/getting-started/seed.md`.
+- No se creó test automatizado por ser script operativo contra Firestore; la validación objetivo fue dry-run + lint y el script permite dry-run estático sin credenciales locales.
+- Commit: HEAD de `feat/default-account-migration-script` (`feat: agregar migracion default account`).
+- Validaciones: `node scripts/migrate-default-account.mjs --dry-run`, `npm run lint` (pasa con 8 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F1-T04 agregando helpers tenant-aware en `firestore.rules` y tests mínimos de reglas desde branch `fix/firestore-account-rule-helpers`.
 
 ## TASK F1-T04 — Firestore Rules helpers tenant-aware
 

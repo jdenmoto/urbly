@@ -25,6 +25,7 @@
     "deploy:frontend": "npm run build && firebase deploy --only hosting",
     "functions:logs": "firebase functions:log",
     "firestore:seed": "node scripts/seed-firestore.mjs",
+    "firestore:migrate:default-account": "node scripts/migrate-default-account.mjs",
     "firestore:clear:buildings": "node scripts/clear-buildings.mjs",
     "firestore:clear": "node scripts/clear-firestore.mjs",
     "sync:users": "node scripts/sync-users.mjs",

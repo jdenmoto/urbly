@@ -367,36 +367,32 @@ When done, update this file:
 
 Current phase: Fase 1 — Multitenancy + seguridad
 
-Last completed task: F1-T02 — Crear helpers de permisos por account
+Last completed task: F1-T03 — Script idempotente default account
 
 - Status: done
-- Branch: `feat/account-permission-helpers`
-- Commits:
-  - `e06e893` — `test: cubrir helpers de permisos por cuenta`
-  - `fdb460f` — `feat: centralizar permisos por cuenta`
+- Branch: `feat/default-account-migration-script`
+- Commit: HEAD de `feat/default-account-migration-script` — `feat: agregar migracion default account`
 - Files changed:
-  - `src/lib/permissions/accountPermissions.ts`
-  - `src/lib/permissions/__tests__/accountPermissions.test.ts`
-  - `src/features/services/serviceOrderPermissions.ts`
-  - `src/features/services/__tests__/serviceOrderPermissions.test.ts`
+  - `scripts/migrate-default-account.mjs`
+  - `package.json`
+  - `docs/getting-started/seed.md`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- permissions serviceOrderPermissions`
-  - `npm run typecheck`
+  - `node scripts/migrate-default-account.mjs --dry-run`
   - `npm run lint`
-- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. `serviceOrderPermissions` mantiene compatibilidad legacy con `emergency_scheduler` normalizado a `technician`. La matriz aplicada deja a `scheduler` sin cierre, a `operator`/`technician` con acciones de ejecución y cierre, a `view`/`auditoria` sin mutaciones de service order, y a `owner`/`admin`/`editor`/`supervisor` con acciones completas y reapertura.
+- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. El script opera en dry-run por defecto, requiere `--commit` para escribir y bloquea escrituras fuera de emulator salvo `--confirm-production`. Crea `accounts/urbly-default`, asigna `accountId` a colecciones críticas existentes, actualiza usuarios con `accountIds[]`/`activeAccountId`, crea memberships y copia settings raíz a settings por cuenta. Falla antes de escribir si detecta datos ya asociados a otra cuenta. Sin credenciales locales, `--dry-run` hace validación estática y explica cómo validar contra Firestore real/emulator.
 
 Next required step:
 
-F1-T03 — Script idempotente default account.
+F1-T04 — Firestore Rules helpers tenant-aware.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Abrir `docs/plans/urbly-atomic-task-list.md`.
-2. Cambiar a `phase/1-multitenancy-security` y crear branch `feat/default-account-migration-script`.
-3. Implementar F1-T03 en `scripts/migrate-default-account.mjs`, `package.json` y docs seed/migration si aplica.
-4. Validar con `node scripts/migrate-default-account.mjs --dry-run` y `npm run lint`.
+2. Cambiar a `phase/1-multitenancy-security` y crear branch `fix/firestore-account-rule-helpers`.
+3. Implementar F1-T04 en `firestore.rules` y tests de reglas mínimos.
+4. Validar con `npm run test:rules`.
 
 ## 8. Archivos relacionados
 
