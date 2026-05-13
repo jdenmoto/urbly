@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 1 — Multitenancy + seguridad  
-Current task: F1-T07 — Storage Rules tenant-aware para evidencias
-Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `fix/storage-evidence-account-rules` y ejecutar F1-T07.
+Current task: F1-T08 — Proteger generateServiceReportPdf
+Next agent start: abrir `docs/plans/urbly-atomic-task-list.md`, cambiar a `phase/1-multitenancy-security`, crear branch `fix/authorize-service-report-pdf` y ejecutar F1-T08.
 
 ---
 
@@ -433,7 +433,7 @@ npm run typecheck
 
 ## TASK F1-T07 — Storage Rules tenant-aware para evidencias
 
-Status: pending  
+Status: done  
 Branch: `fix/storage-evidence-account-rules`
 
 ### Objective
@@ -450,6 +450,16 @@ Restringir evidencias por account/serviceOrder/rol.
 ```bash
 npm run test:rules
 ```
+
+### Completion notes
+- `storage.rules` ahora valida evidencias de `service-orders/{serviceOrderId}` contra `service_orders/{serviceOrderId}` en Firestore, exige `accountId` activo y membership tenant-aware en `accounts/{accountId}/members/{uid}`.
+- Lectura separada: `owner/admin/editor/supervisor/scheduler/operator/auditoria` leen evidencias del account activo; `technician` lee solo si está asignado; `view` queda bloqueado para evidencias.
+- Escritura separada: `owner/admin/editor/supervisor/operator` y `technician` asignado pueden subir imágenes bajo límite; `view`, `auditoria`, `scheduler` y técnicos no asignados no escriben.
+- Agregados matches tenant-aware alternativos bajo `accounts/{accountId}/service-orders/{serviceOrderId}/...` para rutas nuevas, manteniendo rutas actuales de `service-orders/...`.
+- Tests de emulator agregados para lectura/escritura permitida y denegada por rol/account/asignación.
+- Commit: HEAD de `fix/storage-evidence-account-rules` (`fix: proteger evidencias storage por cuenta`).
+- Validaciones: `npm run test:rules`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes), `npm run build:minimum`.
+- Siguiente agente: empezar F1-T08 protegiendo `generateServiceReportPdf` desde branch `fix/authorize-service-report-pdf`.
 
 ## TASK F1-T08 — Proteger generateServiceReportPdf
 

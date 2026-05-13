@@ -367,13 +367,13 @@ When done, update this file:
 
 Current phase: Fase 1 — Multitenancy + seguridad
 
-Last completed task: F1-T06 — Reglas explícitas write para service_orders
+Last completed task: F1-T07 — Storage Rules tenant-aware para evidencias
 
 - Status: done
-- Branch: `fix/service-orders-write-rules`
-- Commit: HEAD de `fix/service-orders-write-rules` — `fix: proteger escrituras de service orders`
+- Branch: `fix/storage-evidence-account-rules`
+- Commit: HEAD de `fix/storage-evidence-account-rules` — `fix: proteger evidencias storage por cuenta`
 - Files changed:
-  - `firestore.rules`
+  - `storage.rules`
   - `src/test/rules/firebaseRules.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
@@ -381,18 +381,19 @@ Last completed task: F1-T06 — Reglas explícitas write para service_orders
   - `npm run test:rules`
   - `npm run typecheck`
   - `npm run lint` (pasa con 8 warnings preexistentes)
-- Notes: Se agregaron reglas explícitas tenant-aware para `create`, `update` y `delete: false` en `service_orders`. Las escrituras validan `accountId` activo, membership y campos mínimos. `scheduler` puede crear/agendar/asignar/reprogramar sin cerrar; `operator` puede cerrar; `technician` solo actualiza progreso/evidencia/incidencias si está asignado; `owner/admin/editor/supervisor` pueden editar y reabrir; `view/auditoria` no escriben. Se agregaron tests de emulator para acciones permitidas/denegadas por rol, campos mínimos, account activo incorrecto y bloqueo del fallback legacy admin/editor sobre `service_orders`.
+  - `npm run build:minimum`
+- Notes: Storage Rules para evidencias de `service-orders` ahora consultan `service_orders/{serviceOrderId}` y memberships tenant-aware. La lectura queda separada de escritura: `auditoria` puede leer pero no escribir; `view` no lee ni escribe evidencias; `technician` solo lee/escribe si está asignado; roles operativos autorizados escriben imágenes bajo límite. Se agregaron tests de emulator para permisos por rol, account activo y asignación.
 
 Next required step:
 
-F1-T07 — Storage Rules tenant-aware para evidencias.
+F1-T08 — Proteger generateServiceReportPdf.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Abrir `docs/plans/urbly-atomic-task-list.md`.
-2. Cambiar a `phase/1-multitenancy-security` y crear branch `fix/storage-evidence-account-rules`.
-3. Implementar F1-T07 en `storage.rules` con reglas tenant-aware para evidencias por account/serviceOrder/rol.
-4. Validar con `npm run test:rules`.
+2. Cambiar a `phase/1-multitenancy-security` y crear branch `fix/authorize-service-report-pdf`.
+3. Implementar F1-T08 en `functions/src/serviceReports.ts` con autorización granular por service order/account/rol.
+4. Validar con `npm --prefix functions run build` y `npm run test:run -- serviceReports`.
 
 ## 8. Archivos relacionados
 
