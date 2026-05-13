@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 0 — Estabilizar tests/CI base mínima  
-Current task: F0-T04  
-Next agent start: abrir `TASK F0-T04 — Preparar test harness para Firebase Rules` y `docs/plans/urbly-agent-execution-instructions.md`.
+Current task: final gate/PR de Fase 0
+Next agent start: ejecutar gate final de Fase 0 desde branch `phase/0-tests-ci-base`, integrar `test/firebase-rules-harness` si aplica y preparar PR contra `develop`.
 
 ---
 
@@ -179,7 +179,7 @@ Al terminar:
 
 ## TASK F0-T04 — Preparar test harness para Firebase Rules
 
-Status: pending  
+Status: done
 Branch: `test/firebase-rules-harness`
 
 ### Objective
@@ -211,6 +211,22 @@ npm run test:rules
 ### Done when
 - Hay script `test:rules` ejecutable.
 - Hay al menos un test de reglas pasando.
+
+### Completion notes
+- Agregado harness mínimo con `@firebase/rules-unit-testing` y `firebase-tools` como dev dependencies.
+- Agregado script `test:rules` que ejecuta emuladores Firestore/Storage con proyecto demo y corre `src/test/rules/firebaseRules.test.ts`.
+- El test carga las reglas actuales de `firestore.rules` y `storage.rules`, valida bloqueo anónimo en Firestore, lectura staff en Firestore y subida de imagen staff en Storage.
+- El suite queda omitido automáticamente en `npm run test:run` cuando no está activo el Emulator Suite, para no romper el gate unitario normal.
+- No se modificaron reglas de producción.
+- Commit: HEAD de `test/firebase-rules-harness` (`test: agregar harness de reglas firebase`).
+- Validaciones: `npm run test:rules`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes), `npm run build:minimum`, `npm audit`, `npm --prefix functions audit`.
+- Fase 0 queda lista para gate final y PR contra `develop`.
+
+### Master plan update
+Al terminar:
+- marcar F0-T04 done
+- registrar branch/commit
+- indicar que Fase 0 queda lista para gate final/PR.
 
 ---
 

@@ -34,7 +34,8 @@
     "firestore:re-init": "npm run firestore:clear && npm run firestore:seed",
     "deploy:preview": "PATH=$PATH:/snap/bin node scripts/deploy-preview.mjs",
     "deploy:preview:branch": "PATH=$PATH:/snap/bin node scripts/deploy-preview.mjs",
-    "preview:allow-url": "node scripts/add-preview-referrer.mjs"
+    "preview:allow-url": "node scripts/add-preview-referrer.mjs",
+    "test:rules": "firebase emulators:exec --project demo-urbly-rules --only firestore,storage \"vitest run --environment node src/test/rules/firebaseRules.test.ts\""
   },
   "dependencies": {
     "@fullcalendar/daygrid": "^6.1.11",
@@ -64,6 +65,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.1",
     "@types/js-yaml": "^4.0.9",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18.3.5",
@@ -74,6 +76,7 @@
     "eslint": "^9.11.1",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.12",
+    "firebase-tools": "^15.18.0",
     "globals": "^15.15.0",
     "jsdom": "^29.1.0",
     "postcss": "^8.5.12",
