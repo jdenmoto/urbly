@@ -53,6 +53,27 @@ function accountDb(uid: string) {
     .firestore();
 }
 
+function accountStorage(uid: string) {
+  return testEnv!
+    .authenticatedContext(uid, { activeAccountId: 'account-a', role: 'custom' })
+    .storage(`gs://${storageBucket}`);
+}
+
+async function seedServiceOrderEvidence(
+  serviceOrderId: string,
+  serviceOrderData: Record<string, unknown> = {},
+  filePath = `service-orders/${serviceOrderId}/attachments/existing.png`
+) {
+  await testEnv!.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().doc('accounts/account-a').set({ name: 'Account A' });
+    await context.firestore().doc(`service_orders/${serviceOrderId}`).set(serviceOrder(serviceOrderData));
+    await context
+      .storage(`gs://${storageBucket}`)
+      .ref(filePath)
+      .putString('existing-image', 'raw', { contentType: 'image/png' });
+  });
+}
+
 describeWithEmulators('Firebase Rules harness', () => {
   beforeAll(async () => {
     testEnv = await initializeTestEnvironment({
@@ -464,17 +485,85 @@ describeWithEmulators('Firebase Rules harness', () => {
     );
   });
 
-  it('carga las reglas actuales de Storage y permite subir imagen a staff', async () => {
-    const adminStorage = testEnv!
-      .authenticatedContext('admin-user', { role: 'admin' })
+  it('permite leer evidencias de service_orders a roles operativos y auditoria del account activo', async () => {
+    await seedServiceOrderEvidence('order-storage-read');
+
+    for (const role of ['owner', 'admin', 'editor', 'supervisor', 'scheduler', 'operator', 'auditoria']) {
+      await seedAccountMember(`${role}-storage-user`, role);
+
+      await assertSucceeds(
+        accountStorage(`${role}-storage-user`)
+          .ref('service-orders/order-storage-read/attachments/existing.png')
+          .getMetadata()
+      );
+    }
+  });
+
+  it('bloquea lectura de evidencias a view, técnico no asignado y account activo incorrecto', async () => {
+    await seedServiceOrderEvidence('order-storage-private', { assignedTechnicianId: 'tech-user' });
+    await seedAccountMember('view-storage-user', 'view');
+    await seedAccountMember('other-tech-storage-user', 'technician');
+    await seedAccountMember('operator-storage-user', 'operator');
+
+    const wrongAccountStorage = testEnv!
+      .authenticatedContext('operator-storage-user', { activeAccountId: 'account-b', role: 'custom' })
       .storage(`gs://${storageBucket}`);
 
-    const uploadTask = adminStorage
-      .ref('service-orders/order-1/attachments/photo.png')
-      .putString('placeholder-image', 'raw', { contentType: 'image/png' });
+    await assertFails(
+      accountStorage('view-storage-user')
+        .ref('service-orders/order-storage-private/attachments/existing.png')
+        .getMetadata()
+    );
+    await assertFails(
+      accountStorage('other-tech-storage-user')
+        .ref('service-orders/order-storage-private/attachments/existing.png')
+        .getMetadata()
+    );
+    await assertFails(
+      wrongAccountStorage.ref('service-orders/order-storage-private/attachments/existing.png').getMetadata()
+    );
+  });
 
-    const uploadResult = await assertSucceeds(uploadTask.then((snapshot) => snapshot));
+  it('permite escribir evidencias a roles autorizados y técnico asignado', async () => {
+    await seedServiceOrderEvidence('order-storage-write', { assignedTechnicianId: 'tech-storage-user' });
+    for (const role of ['owner', 'admin', 'editor', 'supervisor', 'operator']) {
+      await seedAccountMember(`${role}-writer-user`, role);
 
-    expect(uploadResult.metadata.contentType).toBe('image/png');
+      const uploadResult = await assertSucceeds(
+        accountStorage(`${role}-writer-user`)
+          .ref(`service-orders/order-storage-write/attachments/${role}.png`)
+          .putString('placeholder-image', 'raw', { contentType: 'image/png' })
+          .then((snapshot) => snapshot)
+      );
+
+      expect(uploadResult.metadata.contentType).toBe('image/png');
+    }
+
+    await seedAccountMember('tech-storage-user', 'technician');
+    await assertSucceeds(
+      accountStorage('tech-storage-user')
+        .ref('service-orders/order-storage-write/completion-photos/tech.png')
+        .putString('placeholder-image', 'raw', { contentType: 'image/png' })
+        .then((snapshot) => snapshot)
+    );
+  });
+
+  it('bloquea escritura de evidencias a view, auditoria, scheduler y técnico no asignado', async () => {
+    await seedServiceOrderEvidence('order-storage-denied', { assignedTechnicianId: 'tech-storage-user' });
+    for (const [uid, role] of [
+      ['view-storage-writer', 'view'],
+      ['auditor-storage-writer', 'auditoria'],
+      ['scheduler-storage-writer', 'scheduler'],
+      ['other-tech-storage-writer', 'technician']
+    ] as const) {
+      await seedAccountMember(uid, role);
+
+      await assertFails(
+        accountStorage(uid)
+          .ref(`service-orders/order-storage-denied/attachments/${uid}.png`)
+          .putString('placeholder-image', 'raw', { contentType: 'image/png' })
+          .then((snapshot) => snapshot)
+      );
+    }
   });
 });
