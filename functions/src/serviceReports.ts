@@ -2,8 +2,118 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { db } from './admin';
 
-function requireAuth(auth: { uid?: string; token?: Record<string, unknown> } | null | undefined) {
-  if (!auth) throw new HttpsError('unauthenticated', 'Debe autenticarse.');
+type AuthShape = { uid?: string; token?: Record<string, unknown> } | null | undefined;
+type ServiceOrderData = Record<string, any>;
+type AccountMemberData = Record<string, any>;
+
+const INTERNAL_REPORT_ROLES = new Set([
+  'owner',
+  'admin',
+  'editor',
+  'supervisor',
+  'scheduler',
+  'operator',
+  'auditoria'
+]);
+const CLIENT_REPORT_ROLES = new Set(['client', 'building_admin']);
+
+function requireAuth(auth: AuthShape): asserts auth is NonNullable<AuthShape> & { uid: string } {
+  if (!auth?.uid) throw new HttpsError('unauthenticated', 'Debe autenticarse.');
+}
+
+function getString(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value : null;
+}
+
+function getActiveAccountId(auth: AuthShape) {
+  return getString(auth?.token?.activeAccountId);
+}
+
+function assertActiveServiceOrderAccount(auth: AuthShape, serviceOrder: ServiceOrderData) {
+  const serviceOrderAccountId = getString(serviceOrder.accountId);
+  const activeAccountId = getActiveAccountId(auth);
+  if (!serviceOrderAccountId || activeAccountId !== serviceOrderAccountId) {
+    throw new HttpsError('permission-denied', 'No autorizado.');
+  }
+  return serviceOrderAccountId;
+}
+
+async function getAccountMember(accountId: string, uid: string) {
+  const memberSnap = await db.collection('accounts').doc(accountId).collection('members').doc(uid).get();
+  if (!memberSnap.exists) {
+    throw new HttpsError('permission-denied', 'No autorizado.');
+  }
+  return memberSnap.data() as AccountMemberData;
+}
+
+async function isLinkedEmployee(employeeId: string, auth: NonNullable<AuthShape>) {
+  const employeeSnap = await db.collection('employees').doc(employeeId).get();
+  if (!employeeSnap.exists) return false;
+
+  const employee = employeeSnap.data() as Record<string, unknown>;
+  const email = getString(auth.token?.email);
+  return (
+    employee.uid === auth.uid ||
+    employee.userId === auth.uid ||
+    employee.authUid === auth.uid ||
+    (email !== null && employee.email === email)
+  );
+}
+
+async function isAssignedTechnician(serviceOrder: ServiceOrderData, auth: NonNullable<AuthShape>) {
+  const assignedTechnicianId = getString(serviceOrder.assignedTechnicianId);
+  if (!assignedTechnicianId) return false;
+  if (assignedTechnicianId === auth.uid) return true;
+  return isLinkedEmployee(assignedTechnicianId, auth);
+}
+
+function matchesMemberField(member: AccountMemberData, field: string, expected: unknown) {
+  const expectedValue = getString(expected);
+  return expectedValue !== null && member[field] === expectedValue;
+}
+
+function isRelatedClient(serviceOrder: ServiceOrderData, member: AccountMemberData) {
+  return (
+    matchesMemberField(member, 'customerId', serviceOrder.customerId) ||
+    matchesMemberField(member, 'managementCompanyId', serviceOrder.managementCompanyId) ||
+    matchesMemberField(member, 'managementCompanyId', serviceOrder.administrationId) ||
+    matchesMemberField(member, 'administrationId', serviceOrder.managementCompanyId) ||
+    matchesMemberField(member, 'administrationId', serviceOrder.administrationId) ||
+    matchesMemberField(member, 'buildingId', serviceOrder.buildingId)
+  );
+}
+
+export function canGenerateServiceReportPdfForMember(args: {
+  serviceOrder: ServiceOrderData;
+  member: AccountMemberData;
+  uid: string;
+  linkedEmployee?: boolean;
+}) {
+  const { serviceOrder, member, uid, linkedEmployee = false } = args;
+  const memberRole = getString(member.role);
+
+  if (memberRole && INTERNAL_REPORT_ROLES.has(memberRole)) return true;
+
+  if (memberRole === 'technician') {
+    const assignedTechnicianId = getString(serviceOrder.assignedTechnicianId);
+    return assignedTechnicianId !== null && (assignedTechnicianId === uid || linkedEmployee);
+  }
+
+  return Boolean(memberRole && CLIENT_REPORT_ROLES.has(memberRole) && isRelatedClient(serviceOrder, member));
+}
+
+async function assertCanGenerateServiceReportPdf(auth: AuthShape, serviceOrder: ServiceOrderData) {
+  requireAuth(auth);
+  const accountId = assertActiveServiceOrderAccount(auth, serviceOrder);
+  const member = await getAccountMember(accountId, auth.uid);
+  const memberRole = getString(member.role);
+  const linkedEmployee = memberRole === 'technician'
+    ? await isAssignedTechnician(serviceOrder, auth)
+    : false;
+
+  if (canGenerateServiceReportPdfForMember({ serviceOrder, member, uid: auth.uid, linkedEmployee })) return;
+
+  throw new HttpsError('permission-denied', 'No autorizado.');
 }
 
 function formatDateTime(value?: string | null) {
@@ -32,7 +142,9 @@ export const generateServiceReportPdf = onCall(async (request) => {
 
   const snap = await db.collection('service_orders').doc(serviceOrderId).get();
   if (!snap.exists) throw new HttpsError('not-found', 'Servicio no encontrado.');
-  const serviceOrder = snap.data() as Record<string, any>;
+  const serviceOrder = snap.data() as ServiceOrderData;
+
+  await assertCanGenerateServiceReportPdf(request.auth, serviceOrder);
 
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]);
