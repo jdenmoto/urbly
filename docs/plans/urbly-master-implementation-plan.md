@@ -367,32 +367,37 @@ When done, update this file:
 
 Current phase: Fase 0 — Estabilizar tests/CI base mínima
 
-Last completed task: F0-T02 — Agregar test:run al CI
+Last completed task: F0-T03 — Configurar cobertura Vitest 70/90
 
 - Status: done
-- Branch: `test/add-vitest-to-ci`
-- Commit: HEAD de `test/add-vitest-to-ci` (`chore: agregar vitest al ci`)
+- Branch: `test/configure-coverage-thresholds`
+- Commit: HEAD de `test/configure-coverage-thresholds` (`test: configurar umbrales de cobertura vitest`)
 - Files changed:
-  - `.github/workflows/ci.yml`
+  - `package.json`
+  - `package-lock.json`
+  - `vitest.config.ts`
+  - `src/features/services/__tests__/serviceOrderPermissions.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
+  - `npm run test:coverage`
   - `npm run test:run`
   - `npm run typecheck`
-  - `npm run build:minimum`
   - `npm run lint`
-- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. Vitest mantiene warnings SSR de `useLayoutEffect` no bloqueantes en scheduling. El build mantiene warnings de chunks circulares preexistentes/no bloqueantes.
+  - `npm audit`
+  - `npm --prefix functions audit`
+- Notes: `npm run lint` pasa con 8 warnings preexistentes/no relacionados. Vitest mantiene warnings SSR de `useLayoutEffect` no bloqueantes en scheduling. Coverage usa provider `v8`, threshold global 70% y threshold crítico 90% para `serviceOrderPermissions.ts` y `serviceOrderTransitions.ts`. Excepción exacta: el threshold crítico 90% de reports queda pendiente porque aún no existe suite estable dedicada de reportes; habilitarlo sin esa suite bloquearía `test:coverage` por infraestructura incompleta, no por regresión funcional.
 
 Next required step:
 
-Ejecutar F0-T03 en `docs/plans/urbly-atomic-task-list.md`: configurar cobertura Vitest 70/90.
+Ejecutar F0-T04 en `docs/plans/urbly-atomic-task-list.md`: preparar test harness para Firebase Rules.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Abrir `docs/plans/urbly-atomic-task-list.md`.
 2. Abrir `docs/plans/urbly-agent-execution-instructions.md`.
-3. Empezar por `TASK F0-T03 — Configurar cobertura Vitest 70/90`.
-4. Revisar `vitest.config.ts` y `package.json` para agregar script/comando de cobertura y thresholds.
+3. Empezar por `TASK F0-T04 — Preparar test harness para Firebase Rules`.
+4. Revisar `package.json`, `firebase.json` y la estructura `test/rules/**` o `src/test/rules/**` para crear el harness y script `test:rules`.
 
 ## 8. Archivos relacionados
 

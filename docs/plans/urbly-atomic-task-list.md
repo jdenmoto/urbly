@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 0 — Estabilizar tests/CI base mínima  
-Current task: F0-T03  
-Next agent start: abrir `TASK F0-T03 — Configurar cobertura Vitest 70/90` y `docs/plans/urbly-agent-execution-instructions.md`.
+Current task: F0-T04  
+Next agent start: abrir `TASK F0-T04 — Preparar test harness para Firebase Rules` y `docs/plans/urbly-agent-execution-instructions.md`.
 
 ---
 
@@ -126,7 +126,7 @@ Al terminar:
 
 ## TASK F0-T03 — Configurar cobertura Vitest 70/90
 
-Status: pending  
+Status: done  
 Branch: `test/configure-coverage-thresholds`
 
 ### Objective
@@ -159,6 +159,23 @@ npm run test:coverage
 ### Done when
 - Existe comando de coverage.
 - CI puede usar coverage o queda preparado para fase.
+
+### Completion notes
+- Agregado `test:coverage` con `vitest run --coverage`.
+- Agregado `@vitest/coverage-v8@4.1.5` como dev dependency.
+- Configurado coverage con provider `v8`, threshold global 70% y threshold crítico 90% para `serviceOrderPermissions.ts` y `serviceOrderTransitions.ts`.
+- Coverage inicial queda limitado a archivos de dominio crítico ya estables/cubiertos: `serviceOrder`, `serviceOrderOptions`, `serviceOrderPermissions` y `serviceOrderTransitions`.
+- Excepción documentada: reports aún no tiene threshold crítico 90% porque no existe suite estable dedicada de reportes; debe cubrirse antes de habilitar ese threshold.
+- Commit: HEAD de `test/configure-coverage-thresholds` (`test: configurar umbrales de cobertura vitest`).
+- Validaciones: `npm run test:coverage`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes), `npm audit`, `npm --prefix functions audit`.
+- Siguiente agente: empezar F0-T04 preparando harness para Firebase Rules.
+
+### Master plan update
+Al terminar:
+- marcar F0-T03 done
+- registrar branch/commit
+- cambiar Current task a F0-T04
+- indicar que el siguiente agente empieza preparando test harness para Firebase Rules.
 
 ## TASK F0-T04 — Preparar test harness para Firebase Rules
 
