@@ -367,32 +367,35 @@ When done, update this file:
 
 Current phase: Fase 3 — Portal cliente
 
-Last completed task: F3-T03 — Validar relación token-service-customer-account
+Last completed task: F3-T04 — Crear ClientServicesPage
 
 - Status: done
-- Branch: `fix/client-portal-token-scope`
-- Commit: HEAD de `fix/client-portal-token-scope` (`fix: validar alcance del token del portal cliente`)
+- Branch: `feat/client-services-page`
+- Commit: HEAD de `feat/client-services-page` (`feat: crear vista de servicios del portal cliente`)
 - Files changed:
-  - `functions/src/clientPortal.ts`
-  - `src/test/clientPortalScope.test.ts`
+  - `src/features/portal/ClientServicesPage.tsx`
+  - `src/features/portal/clientServices.ts`
+  - `src/features/portal/__tests__/clientServices.test.ts`
+  - `src/app/App.tsx`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/test/clientPortalScope.test.ts`
-  - `npm --prefix functions run build`
-- Notes: el token del portal ahora queda fijado a `accountId`, `buildingId`, `customerId`, `managementCompanyId`, `jti` y `tokenVersion`. La generación valida cuenta activa del operador; la validación recalcula la relación servicio/edificio/cliente/administración/cuenta y rechaza accesos cross-account, customer mismatch, service/building mismatch o token fuera de alcance.
+  - `npm run test:run -- src/features/portal/__tests__/clientServices.test.ts`
+  - `npm run typecheck`
+  - `npm run build`
+- Notes: `/portal/services` ahora usa una página dedicada de portal cliente, con alcance por administración/edificios/cliente, filtros todos/activos/completados, exclusión de borradores/cancelados y tarjetas de seguimiento visible. El build mantiene los warnings circulares preexistentes de chunks.
 
 Next required step:
 
-Ejecutar F3-T04 — Crear ClientServicesPage.
+Ejecutar F3-T05 — Crear ClientReportsPage.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Partir de `phase/3-client-portal` actualizado.
-2. Integrar/revisar F3-T03 si la rama de fase aún no lo contiene.
-3. Crear branch `feat/client-services-page`.
-4. Abrir `src/features/portal/**` y conectar la nueva vista de servicios del cliente.
-5. Implementar F3-T04 según `docs/plans/urbly-atomic-task-list.md` y validar `npm run typecheck` + `npm run build`.
+2. Integrar/revisar F3-T04 si la rama de fase aún no lo contiene.
+3. Crear branch `feat/client-reports-page`.
+4. Abrir `src/features/portal/**` y conectar la nueva vista de reportes del cliente.
+5. Implementar F3-T05 según `docs/plans/urbly-atomic-task-list.md` y validar `npm run typecheck` + `npm run build`.
 
 ## 8. Archivos relacionados
 
