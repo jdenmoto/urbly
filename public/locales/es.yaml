@@ -229,6 +229,8 @@ portal:
       hint: No hay agendamientos para tus edificios.
 client:
   portal:
+    missing:
+      access: No encontramos una administración asociada a tu usuario.
     summary:
       title: Resumen del cliente
       subtitle: Vista inicial del portal cliente para seguimiento operativo.
@@ -267,6 +269,49 @@ client:
       urgent:
         label: Prioridad urgente
         hint: Requiere atención
+      priority:
+        urgent: Urgente
+        high: Alta
+        medium: Media
+        low: Baja
+      status:
+        draft: En preparación
+        unassigned: Por asignar
+        scheduled: Programado
+        confirmed: Confirmado
+        in:
+          progress: En atención
+        paused: Pausado
+        pending:
+          review: En revisión
+        requires:
+          reschedule: Requiere nueva fecha
+        completed: Completado
+        cancelled: Cancelado
+      type:
+        mantenimiento: Mantenimiento
+        lavado_tanque: Lavado de tanque
+        emergencia: Emergencia
+        interventoria: Interventoría
+      issues:
+        label: Novedades
+      issue:
+        types:
+          operativo: Operativo
+          seguridad: Seguridad
+          infraestructura: Infraestructura
+          otro: Otro
+        categories:
+          limpieza: Limpieza
+          mantenimiento: Mantenimiento
+          logistica: Logística
+          acceso: Acceso
+          incidente: Incidente
+          prevencion: Prevención
+          electricidad: Electricidad
+          plomeria: Plomería
+          estructura: Estructura
+          general: General
       evidence:
         label: Evidencia
         hint: Fotos publicadas
@@ -314,6 +359,18 @@ client:
         count: '{count} fotos'
       summary:
         label: Resumen del informe
+      technicalReport:
+        service: Servicio
+        type: Tipo de servicio
+        status: Estado visible
+        priority: Prioridad
+        scheduledStart: Inicio programado
+        scheduledEnd: Fin programado
+        registeredIssues: Novedades registradas
+        timelineEvents: Actualizaciones registradas
+        photos: Evidencias fotográficas
+        issueDetail: Detalle de novedades
+        noIssues: sin novedades visibles por ahora
       pdf:
         available: PDFs disponibles
         primary: PDF principal

@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 5 — UX/mobile/i18n
-Current task: F5-T06 — Separar copy interno vs cliente
-Next agent start: desde `phase/5-ux-mobile-i18n` actualizado con F5-T05 integrado, crear rama propia y ejecutar F5-T06.
+Current task: F5-T07 — Ajustar navegación cliente
+Next agent start: desde `phase/5-ux-mobile-i18n` actualizado con F5-T06 integrado, crear rama propia y ejecutar F5-T07.
 
 ---
 
@@ -963,7 +963,17 @@ Branch: `refactor/migrate-hardcoded-copy`
 - Siguiente agente: empezar F5-T06 separando copy interno vs cliente desde `public/locales/es.yaml`, `src/features/portal/ClientServicesPage.tsx` y `src/features/portal/ClientReportsPage.tsx`.
 
 ## TASK F5-T06 — Separar copy interno vs cliente
-Status: pending
+Status: done
+Branch: `feat/separate-client-internal-copy`
+
+### Completion notes
+- Separado copy de portal cliente bajo `client.portal.*`, incluyendo acceso faltante, estados/prioridades/tipos visibles, novedades y etiquetas del resumen técnico cliente.
+- `ClientServicesPage` y `ClientReportsPage` dejaron de consumir claves internas `services.*` para copy visible al cliente.
+- Agregado `buildClientTechnicalReport` para reutilizar el reporte técnico con labels y namespaces cliente sin cambiar el reporte interno operativo.
+- Agregado test enfocado `clientPortalCopy.test.ts` para bloquear regresiones de copy interno en las páginas cliente y validar claves cliente requeridas en `es.yaml`.
+- Commit: este cambio (`feat: separar copy interno y cliente`).
+- Validaciones: `npm run test:run -- src/lib/__tests__/i18nDictionary.test.ts` (pasa), `npm run test:run -- src/features/portal/__tests__/clientPortalCopy.test.ts` (pasa), `npm run test:run` (108 passed, 20 skipped fuera de emulator normal), `npm run typecheck` (pasa), `npm run lint` (pasa con 6 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F5-T07 ajustando navegación cliente desde `phase/5-ux-mobile-i18n` actualizado con F5-T06 integrado.
 
 ## TASK F5-T07 — Ajustar navegación cliente
 Status: pending

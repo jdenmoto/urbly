@@ -101,7 +101,7 @@ export default function ClientServicesPage() {
     return (
       <EmptyState
         title={t('client.portal.services.title')}
-        description={t('portal.missing.access')}
+        description={t('client.portal.missing.access')}
       />
     );
   }
@@ -206,14 +206,23 @@ export default function ClientServicesPage() {
                           {getServiceOrderPriorityPill(
                             t,
                             serviceOrder.priority,
-                            'client.portal.priority.pill'
+                            'client.portal.priority.pill',
+                            'client.portal.services.priority'
                           )}
                         </span>
                         <span className="rounded-full bg-fog-100 px-3 py-1 text-xs font-semibold text-ink-700">
-                          {getServiceOrderStatusLabel(t, serviceOrder.status)}
+                          {getServiceOrderStatusLabel(
+                            t,
+                            serviceOrder.status,
+                            'client.portal.services.status'
+                          )}
                         </span>
                         <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-ink-600 ring-1 ring-fog-200">
-                          {getServiceOrderTypeLabel(t, serviceOrder.type)}
+                          {getServiceOrderTypeLabel(
+                            t,
+                            serviceOrder.type,
+                            'client.portal.services.type'
+                          )}
                         </span>
                       </div>
                       <div>
@@ -246,7 +255,7 @@ export default function ClientServicesPage() {
                       </div>
                       <div className="rounded-2xl bg-fog-50 p-3">
                         <p className="text-xs uppercase tracking-wide text-ink-500">
-                          {t('services.issues.label')}
+                          {t('client.portal.services.issues.label')}
                         </p>
                         <p className="mt-1 font-semibold text-ink-900">
                           {serviceOrder.issues.length}
