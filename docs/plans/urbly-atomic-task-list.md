@@ -1025,11 +1025,25 @@ Validations:
 - `npm run build:minimum` — pasa, con warnings preexistentes de circular chunks Vite.
 
 ## TASK F6-T03 — Migrar PDF function a snapshot
-Status: pending
-Start from: rama de fase `phase/6-reports-pdf` con F6-T02 integrado; crear rama propia para migrar `functions/src/serviceReports.ts`/PDF al snapshot canónico sin reabrir la UI de impresión.
+Status: done
+Branch: `feat/pdf-report-snapshot`
+Commit: HEAD (`refactor: usar snapshot en pdf de servicio`)
+Completion notes:
+- Agregado `functions/src/serviceReportPdfModel.ts` como adaptador puro de Functions alineado por contrato con `buildServiceReportSnapshot` para evitar importar TS frontend desde Cloud Functions.
+- `generateServiceReportPdf` ahora construye el contenido del PDF desde `buildServiceReportPdfModel`, preservando los checks de autorización de Fase 1 antes de generar el PDF.
+- Agregado test de contrato `src/serviceReports.snapshot.test.ts` que compara el modelo PDF con el snapshot canónico del frontend en campos de resumen, operación, checklist, novedades y siguientes pasos.
+Validations:
+- RED: `npm run test:run -- src/serviceReports.snapshot.test.ts` falló inicialmente por módulo faltante esperado.
+- `npm run test:run -- src/serviceReports.snapshot.test.ts` — pasa.
+- `npm run test:run` — pasa, con warnings SSR preexistentes/no relacionados en scheduling.
+- `npm run typecheck` — pasa.
+- `npm --prefix functions run build` — pasa.
+- `npm run lint` — pasa con 6 warnings preexistentes/no relacionados.
+- `npm run build:minimum` — pasa, con warnings preexistentes de chunks circulares Vite.
 
 ## TASK F6-T04 — Alinear narrativa IA al snapshot
 Status: pending
+Start from: rama de fase `phase/6-reports-pdf` actualizada con F6-T03 integrado; crear rama propia para alinear narrativa/sugerencias IA al snapshot canónico sin reabrir print ni PDF.
 
 ## TASK F6-T05 — Tests de contrato del snapshot
 Status: pending
