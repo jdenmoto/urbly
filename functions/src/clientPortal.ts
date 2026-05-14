@@ -1,8 +1,28 @@
+import { randomUUID } from 'crypto';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import jwt from 'jsonwebtoken';
 import { db } from './admin';
 
 type AuthShape = { uid?: string; token?: Record<string, unknown> } | null | undefined;
+
+type ClientPortalAccess = {
+  active?: boolean;
+  activeTokenJti?: string | null;
+  customerId?: string | null;
+  revoked?: boolean;
+  revokedAt?: string | null;
+  revokedTokenIds?: string[];
+  tokenVersion?: number;
+};
+
+type ClientPortalTokenPayload = {
+  serviceOrderId: string;
+  customerId: string;
+  scope: string;
+  tokenVersion: number;
+  version: number;
+  jti?: string;
+};
 
 function requirePermission(auth: AuthShape, permission: string) {
   if (!auth) throw new HttpsError('unauthenticated', 'Debe autenticarse.');
@@ -28,18 +48,36 @@ export const generateClientPortalToken = onCall(async (request) => {
     throw new HttpsError('invalid-argument', 'serviceOrderId y customerId son requeridos.');
   }
 
-  const token = jwt.sign(
-    { serviceOrderId, customerId, scope: 'client_portal' },
-    getPortalSecret(),
-    { expiresIn: '7d', issuer: 'urbly-functions' }
-  );
+  const serviceOrderRef = db.collection('service_orders').doc(serviceOrderId);
+  const jti = randomUUID();
+  const now = new Date().toISOString();
+  const tokenVersion = await db.runTransaction(async (transaction) => {
+    const serviceOrderSnap = await transaction.get(serviceOrderRef);
+    const serviceOrder = serviceOrderSnap.data() as { clientPortalAccess?: ClientPortalAccess } | undefined;
+    const storedVersion = Number(serviceOrder?.clientPortalAccess?.tokenVersion ?? 0);
+    const currentVersion = Number.isFinite(storedVersion) ? storedVersion : 0;
+    const nextVersion = currentVersion + 1;
 
-  await db.collection('service_orders').doc(serviceOrderId).set({
-    clientPortalAccess: {
-      tokenIssuedAt: new Date().toISOString(),
-      customerId
-    }
-  }, { merge: true });
+    transaction.set(serviceOrderRef, {
+      clientPortalAccess: {
+        active: true,
+        activeTokenJti: jti,
+        customerId,
+        revoked: false,
+        revokedAt: null,
+        tokenIssuedAt: now,
+        tokenVersion: nextVersion
+      }
+    }, { merge: true });
+
+    return nextVersion;
+  });
+
+  const token = jwt.sign(
+    { serviceOrderId, customerId, scope: 'client_portal', tokenVersion, version: tokenVersion },
+    getPortalSecret(),
+    { expiresIn: '7d', issuer: 'urbly-functions', jwtid: jti }
+  );
 
   return { token };
 });
@@ -51,13 +89,14 @@ export const validateClientPortalToken = onCall(async (request) => {
   }
 
   try {
-    const payload = jwt.verify(token, getPortalSecret()) as {
-      serviceOrderId: string;
-      customerId: string;
-      scope: string;
-    };
+    const payload = jwt.verify(token, getPortalSecret(), { issuer: 'urbly-functions' }) as ClientPortalTokenPayload;
 
-    if (payload.scope !== 'client_portal') {
+    if (
+      payload.scope !== 'client_portal' ||
+      !payload.jti ||
+      !Number.isInteger(payload.tokenVersion) ||
+      payload.version !== payload.tokenVersion
+    ) {
       throw new HttpsError('permission-denied', 'Token invalido.');
     }
 
@@ -66,9 +105,29 @@ export const validateClientPortalToken = onCall(async (request) => {
       throw new HttpsError('not-found', 'Servicio no encontrado.');
     }
 
-    const serviceOrder = serviceOrderSnap.data() as { customerId?: string | null; title?: string; status?: string };
+    const serviceOrder = serviceOrderSnap.data() as {
+      clientPortalAccess?: ClientPortalAccess;
+      customerId?: string | null;
+      title?: string;
+      status?: string;
+    };
     if (serviceOrder.customerId !== payload.customerId) {
       throw new HttpsError('permission-denied', 'Token no corresponde al cliente.');
+    }
+
+    const portalAccess = serviceOrder.clientPortalAccess;
+    const tokenRevoked = portalAccess?.revokedTokenIds?.includes(payload.jti) ?? false;
+    if (
+      !portalAccess ||
+      portalAccess.active === false ||
+      portalAccess.revoked === true ||
+      Boolean(portalAccess.revokedAt) ||
+      tokenRevoked ||
+      portalAccess.activeTokenJti !== payload.jti ||
+      portalAccess.tokenVersion !== payload.tokenVersion ||
+      portalAccess.customerId !== payload.customerId
+    ) {
+      throw new HttpsError('permission-denied', 'Token revocado o desactualizado.');
     }
 
     return {

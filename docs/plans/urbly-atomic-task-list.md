@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 3 — Portal cliente
-Current task: F3-T02 — JWT con jti/tokenVersion revocable
-Next agent start: partir de `phase/3-client-portal` actualizado, crear branch `fix/revocable-client-portal-token` y abrir `functions/src/clientPortal.ts`.
+Current task: F3-T03 — Validar relación token-service-customer-account
+Next agent start: partir de `phase/3-client-portal` actualizado, integrar/revisar F3-T02 si aplica, crear branch `fix/client-portal-token-scope` y abrir `functions/src/clientPortal.ts`.
 
 ---
 
@@ -675,7 +675,7 @@ npm run build
 
 ## TASK F3-T02 — JWT con jti/tokenVersion revocable
 
-Status: pending  
+Status: done  
 Branch: `fix/revocable-client-portal-token`
 
 ### Files allowed
@@ -685,6 +685,15 @@ Branch: `fix/revocable-client-portal-token`
 ```bash
 npm --prefix functions run build
 ```
+
+### Completion notes
+- `generateClientPortalToken` ahora emite JWT con `jti`, `tokenVersion` y `version`, con expiración de 7 días e issuer validado.
+- La generación incrementa `clientPortalAccess.tokenVersion` en transacción y guarda `activeTokenJti`, `active`, `revoked`, `revokedAt`, `customerId` y `tokenIssuedAt` en `service_orders/{serviceOrderId}`.
+- `validateClientPortalToken` rechaza tokens sin `jti`/versión, revocados, inactivos, con `revokedAt`, incluidos en `revokedTokenIds`, con `activeTokenJti` distinto o con `tokenVersion` desactualizado.
+- Tests automáticos dedicados no se agregaron porque no existe harness de Functions/callable para `clientPortal.ts` en esta fase; se validó con build TypeScript.
+- Commit: HEAD de `fix/revocable-client-portal-token` (`fix: hacer revocable token del portal cliente`).
+- Validación: `npm --prefix functions run build`.
+- Siguiente agente: empezar F3-T03 validando relación token-service-customer-account en `functions/src/clientPortal.ts` desde branch `fix/client-portal-token-scope`.
 
 ## TASK F3-T03 — Validar relación token-service-customer-account
 
