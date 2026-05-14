@@ -118,10 +118,9 @@ export function useNavGroups(role: AppUserRole = 'view') {
         description: t('nav.operations.section.description'),
         items: [
           { to: '/', label: t('nav.dashboard'), shortLabel: t('nav.short.dashboard'), icon: LayoutDashboard, enabled: flags.dashboard, allow: routeAccess['/'], mobile: true, mobileOrder: 1 },
-          { to: '/scheduling', label: t('nav.scheduling', { defaultValue: 'Agenda' }), shortLabel: t('nav.short.scheduling', { defaultValue: 'Agenda' }), icon: Briefcase, enabled: flags.scheduling, allow: routeAccess['/scheduling'], mobile: true, mobileOrder: 2 },
-          { to: '/services', label: t('nav.services'), shortLabel: t('nav.short.services'), icon: Briefcase, enabled: flags.services, allow: routeAccess['/services'], mobile: true, mobileOrder: 3 },
-          { to: '/buildings', label: t('nav.buildings'), shortLabel: t('nav.short.buildings'), icon: Building2, enabled: flags.buildings, allow: routeAccess['/buildings'], mobile: true, mobileOrder: 4 },
-          { to: '/reports', label: t('nav.reports'), shortLabel: t('nav.short.reports'), icon: FileText, enabled: flags.reports, allow: routeAccess['/reports'], mobile: true, mobileOrder: 5 }
+          { to: '/services', label: t('nav.services'), shortLabel: t('nav.short.services'), icon: Briefcase, enabled: flags.services, allow: routeAccess['/services'], mobile: true, mobileOrder: 2 },
+          { to: '/buildings', label: t('nav.buildings'), shortLabel: t('nav.short.buildings'), icon: Building2, enabled: flags.buildings, allow: routeAccess['/buildings'], mobile: true, mobileOrder: 3 },
+          { to: '/reports', label: t('nav.reports'), shortLabel: t('nav.short.reports'), icon: FileText, enabled: flags.reports, allow: routeAccess['/reports'], mobile: true, mobileOrder: 4 }
         ]
       },
       {
