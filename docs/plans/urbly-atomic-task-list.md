@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 4 — IA contextual
-Current task: F4-T06 — Detección de faltantes antes de cerrar
-Next agent start: partir de `phase/4-contextual-ai` actualizado e implementar F4-T06 agregando detección de faltantes antes de cerrar con `AiSuggestion` y `AiSuggestionCard`, sin guardar ni mutar automáticamente.
+Current task: F4-T07 — Follow-up sugerido
+Next agent start: partir de `phase/4-contextual-ai` actualizado e implementar F4-T07 agregando follow-up sugerido con `AiSuggestion` y `AiSuggestionCard`, sin guardar, enviar ni mutar automáticamente.
 
 ---
 
@@ -860,7 +860,18 @@ Branch: `feat/client-message-suggestion`
 - Siguiente agente: empezar F4-T06 agregando detección de faltantes antes de cerrar con `AiSuggestionCard`.
 
 ## TASK F4-T06 — Detección de faltantes antes de cerrar
-Status: pending
+Status: done
+Branch: `feat/closeout-missing-items-suggestion`
+
+### Completion notes
+- Agregado helper `buildServiceMissingRequirementsSuggestion` que genera un contrato `AiSuggestion` `missing_requirements` para `services.closeout` con política `suggestion_only`, trazabilidad y plantilla `missing-requirements-closeout-v1`.
+- La detección revisa faltantes de observaciones de cierre, evidencia fotográfica final y checklist técnico desde el snapshot del reporte.
+- `ServiceCloseoutPage` renderiza la sugerencia con `AiSuggestionCard` antes de completar el cierre cuando el servicio aún no está completado.
+- No se agregó bloqueo automático, guardado automático, envío automático ni mutación automática; las validaciones existentes siguen siendo las únicas que pueden impedir cerrar.
+- Agregado test unitario en `src/features/services/__tests__/serviceSuggestions.test.ts` para validar contrato seguro, trazabilidad y acciones permitidas.
+- Commit: HEAD de `feat/closeout-missing-items-suggestion` (`feat: sugerir faltantes antes del cierre`)
+- Validaciones: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F4-T07 agregando follow-up sugerido con `AiSuggestionCard` sin guardado, envío ni mutación automática.
 
 ## TASK F4-T07 — Follow-up sugerido
 Status: pending
