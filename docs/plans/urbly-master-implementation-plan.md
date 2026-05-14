@@ -367,33 +367,33 @@ When done, update this file:
 
 Current phase: Fase 4 — IA contextual
 
-Last completed task: F4-T01 — Contrato de sugerencias IA
+Last completed task: F4-T02 — AiSuggestionCard reutilizable
 
 - Status: done
-- Branch: `feat/ai-suggestion-contract`
-- Commit: HEAD de `feat/ai-suggestion-contract` (`feat: definir contrato seguro de sugerencias ia`)
+- Branch: `feat/ai-suggestion-card`
+- Commit: HEAD de `feat/ai-suggestion-card` (`feat: agregar tarjeta segura de sugerencias ia`)
 - Files changed:
-  - `src/core/models/aiSuggestion.ts`
-  - `src/core/models/__tests__/aiSuggestion.test.ts`
-  - `src/features/services/serviceSuggestions.ts`
+  - `src/features/ai/AiSuggestionCard.tsx`
+  - `src/features/ai/__tests__/AiSuggestionCard.test.tsx`
+  - `src/features/ai/AiWorkspacePage.tsx`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/core/models/__tests__/aiSuggestion.test.ts src/features/services/__tests__`
+  - `npm run test:run -- src/features/ai/__tests__/AiSuggestionCard.test.tsx`
   - `npm run test:run`
   - `npm run typecheck`
-  - `npm run lint` — pasa con warnings preexistentes si aparecen
-- Notes: Las sugerencias IA quedan modeladas como `suggestion_only`, requieren aprobación humana y declaran como prohibidas las acciones `auto_save`, `auto_send` y `auto_mutate`.
+  - `npm run lint` — pasa con 8 warnings preexistentes
+- Notes: `AiSuggestionCard` renderiza solo contratos `AiSuggestion` válidos, bloquea payloads inseguros, etiqueta la salida como sugerencia y solo expone acciones humanas permitidas por `safety.allowedUserActions` con handlers explícitos. No tiene acciones automáticas de guardado, envío ni mutación.
 
 Next required step:
 
-Ejecutar F4-T02 — `AiSuggestionCard` reutilizable.
+Ejecutar F4-T03 — Resumen técnico en detalle de servicio.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/4-contextual-ai` actualizado e integrar `feat/ai-suggestion-contract` si falta.
-2. Abrir `src/core/models/aiSuggestion.ts` para usar el contrato seguro.
-3. Crear componente reutilizable para renderizar sugerencias sin acciones automáticas de guardado/envío/mutación.
+1. Partir de `phase/4-contextual-ai` actualizado e integrar `feat/ai-suggestion-card` si falta.
+2. Abrir `src/features/services/ServiceDetailPage.tsx` y revisar el bloque actual de IA.
+3. Usar `AiSuggestionCard` para mostrar el resumen técnico sugerido dentro del detalle sin guardar/enviar/mutar automáticamente.
 
 ## 8. Archivos relacionados
 

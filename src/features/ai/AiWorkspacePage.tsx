@@ -4,7 +4,8 @@ import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
 import { useI18n } from '@/lib/i18n';
 import { useOperationalServiceOrders } from '@/features/services/useOperationalServiceOrders';
-import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from '@/features/services/serviceOrderAi';
+import AiSuggestionCard from '@/features/ai/AiSuggestionCard';
+import { buildServiceSuggestions } from '@/features/services/serviceSuggestions';
 import { getServiceOrderPriorityPill, serviceOrderPriorityTone } from '@/features/services/serviceOrderPresentation';
 
 export default function AiWorkspacePage() {
@@ -32,9 +33,7 @@ export default function AiWorkspacePage() {
             : item.issues.length
               ? t('ai.suggestion.issues')
               : t('ai.suggestion.default'),
-        summary: buildServiceSummary(item, t),
-        customerMessage: buildCustomerMessage(item, t),
-        followUp: buildFollowUp(item)
+        suggestions: buildServiceSuggestions(item, t)
       }));
   }, [serviceOrders, t]);
 
@@ -72,19 +71,10 @@ export default function AiWorkspacePage() {
                     <p className="mt-1 text-sm text-ink-600">{item.suggestion}</p>
                   </div>
                 </div>
-                <div className="mt-4 grid gap-3 xl:grid-cols-3 text-sm text-ink-700">
-                  <div className="rounded-2xl bg-fog-50 p-4">
-                    <p className="font-semibold text-ink-900">{t('ai.case.summary.title')}</p>
-                    <p className="mt-2 whitespace-pre-wrap leading-6">{item.summary}</p>
-                  </div>
-                  <div className="rounded-2xl bg-fog-50 p-4">
-                    <p className="font-semibold text-ink-900">{t('ai.customer.message.title')}</p>
-                    <p className="mt-2 whitespace-pre-wrap leading-6">{item.customerMessage}</p>
-                  </div>
-                  <div className="rounded-2xl bg-fog-50 p-4">
-                    <p className="font-semibold text-ink-900">{t('ai.follow.up.title')}</p>
-                    <p className="mt-2 whitespace-pre-wrap leading-6">{item.followUp}</p>
-                  </div>
+                <div className="mt-4 grid gap-3 xl:grid-cols-3">
+                  {item.suggestions.map((suggestion) => (
+                    <AiSuggestionCard key={suggestion.id} suggestion={suggestion} className="p-4" />
+                  ))}
                 </div>
               </article>
             ))}
