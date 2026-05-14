@@ -1,6 +1,7 @@
 import type { ServiceOrder } from '@/core/models/serviceOrder';
 import { createAiSuggestion, type AiSuggestion } from '@/core/models/aiSuggestion';
 import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from './serviceOrderAi';
+import { buildTechnicalReport } from './serviceReport';
 
 type Translate = (key: string, params?: Record<string, string | number | undefined>) => string;
 
@@ -22,6 +23,23 @@ export function buildServiceTechnicalSummarySuggestion(serviceOrder: ServiceOrde
     trace: buildServiceSuggestionTrace(serviceOrder, 'services.detail'),
     safety: {
       allowedUserActions: ['copy', 'dismiss', 'regenerate'],
+    },
+  });
+}
+
+export function buildServiceReportDraftSuggestion(serviceOrder: ServiceOrder, t: Translate): AiSuggestion {
+  return createAiSuggestion({
+    id: `${serviceOrder.id}-report-draft`,
+    kind: 'report_draft',
+    title: 'Borrador de reporte sugerido',
+    content: buildTechnicalReport(serviceOrder, t),
+    trace: {
+      ...buildServiceSuggestionTrace(serviceOrder, 'services.closeout'),
+      policyId: 'suggestion-only-human-approval',
+      templateId: 'service-report-draft-v1',
+    },
+    safety: {
+      allowedUserActions: ['copy', 'insert_draft', 'dismiss', 'regenerate'],
     },
   });
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ServiceOrder } from '@/core/models/serviceOrder';
-import { buildServiceTechnicalSummarySuggestion } from '@/features/services/serviceSuggestions';
+import { buildServiceReportDraftSuggestion, buildServiceTechnicalSummarySuggestion } from '@/features/services/serviceSuggestions';
 
 function t(key: string) {
   const labels: Record<string, string> = {
@@ -46,6 +46,21 @@ describe('service AI suggestions', () => {
     expect(suggestion.trace.module).toBe('services.detail');
     expect(suggestion.safety.mode).toBe('suggestion_only');
     expect(suggestion.safety.requiresHumanApproval).toBe(true);
+    expect(suggestion.safety.forbiddenSystemActions).toEqual(['auto_save', 'auto_send', 'auto_mutate']);
+  });
+
+  it('builds a suggestion-only report draft for service closeout', () => {
+    const suggestion = buildServiceReportDraftSuggestion(serviceOrder, t);
+
+    expect(suggestion.kind).toBe('report_draft');
+    expect(suggestion.title).toBe('Borrador de reporte sugerido');
+    expect(suggestion.content).toContain('Servicio: Mantenimiento bomba principal');
+    expect(suggestion.content).toContain('Novedades registradas: 1');
+    expect(suggestion.trace.module).toBe('services.closeout');
+    expect(suggestion.trace.templateId).toBe('service-report-draft-v1');
+    expect(suggestion.safety.mode).toBe('suggestion_only');
+    expect(suggestion.safety.requiresHumanApproval).toBe(true);
+    expect(suggestion.safety.allowedUserActions).toEqual(['copy', 'insert_draft', 'dismiss', 'regenerate']);
     expect(suggestion.safety.forbiddenSystemActions).toEqual(['auto_save', 'auto_send', 'auto_mutate']);
   });
 });
