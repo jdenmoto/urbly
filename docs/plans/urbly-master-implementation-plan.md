@@ -365,36 +365,39 @@ When done, update this file:
 
 ## 7. Estado actual de ejecución
 
-Current phase: Fase 4 — IA contextual
+Current phase: Fase 5 — UX/mobile/i18n
 
-Last completed task: F4-T07 — Follow-up sugerido
+Last completed task: Phase 4 final gate — IA contextual suggestion-only
 
-- Status: done
-- Branch: `feat/service-follow-up-suggestion`
-- Commit: HEAD de `feat/service-follow-up-suggestion` (`feat: agregar follow-up sugerido en cierre`)
+- Status: done, listo para PR contra `develop`
+- Branch: `phase/4-contextual-ai`
+- Changelog: `docs/plans/phase-4-changelog.md`
 - Files changed:
-  - `src/features/services/ServiceCloseoutPage.tsx`
+  - `src/core/models/aiSuggestion.ts`
+  - `src/features/ai/**`
   - `src/features/services/serviceSuggestions.ts`
-  - `src/features/services/__tests__/serviceSuggestions.test.ts`
-  - `docs/plans/urbly-atomic-task-list.md`
-  - `docs/plans/urbly-master-implementation-plan.md`
+  - `src/features/services/ServiceDetailPage.tsx`
+  - `src/features/services/ServiceCloseoutPage.tsx`
+  - tests de sugerencias IA
 - Validations executed:
-  - `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts`
-  - `npm run test:run`
-  - `npm run typecheck`
   - `npm run lint` — pasa con 8 warnings preexistentes
-  - `npm run build:minimum` — pasa con avisos preexistentes de chunks circulares
-- Notes: `ServiceCloseoutPage` muestra una sugerencia `follow_up` mediante `AiSuggestionCard` cerca del cierre completado y en el bloque IA de cierre para servicios aún no completados. La sugerencia usa `AiSuggestion`, política `suggestion_only`, aprobación humana requerida y no guarda, agenda, envía ni muta automáticamente.
+  - `npm run typecheck`
+  - `npm run test:run` — 92 passed, 20 skipped fuera de emulator normal
+  - `npm run test:coverage` — coverage gate pasa
+  - `npm run test:rules` — 20 passed con emulator Firestore/Storage
+  - `npm run build:minimum`
+- Notes: La IA queda limitada a sugerencias visibles para revisión humana; no guarda, no envía, no agenda ni muta automáticamente.
 
 Next required step:
 
-Fase 4 queda lista para gate final, changelog y PR contra `develop`.
+Abrir PR grande de Fase 4 contra `develop`; después de merge/checks, iniciar F5-T01.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/4-contextual-ai` actualizado e integrar `feat/service-follow-up-suggestion` si falta.
-2. Correr el gate final de Fase 4 (`npm run test:run`, `npm run typecheck`, `npm run lint`, `npm run build:minimum`).
-3. Crear o actualizar `docs/plans/phase-4-changelog.md` y abrir PR de Fase 4 contra `develop`.
+1. Abrir PR: `phase/4-contextual-ai` → `develop`.
+2. Esperar checks/review y merge autorizado.
+3. Crear `phase/5-ux-mobile-i18n` desde `develop` actualizado.
+4. Ejecutar F5-T01: bottom nav dinámico.
 
 ## 8. Archivos relacionados
 

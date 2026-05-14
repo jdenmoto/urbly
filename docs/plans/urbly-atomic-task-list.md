@@ -8,9 +8,9 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 
 ## Estado global
 
-Current phase: Fase 4 — IA contextual
-Current task: Fase 4 final gate / changelog / PR
-Next agent start: partir de `phase/4-contextual-ai` actualizado, integrar `feat/service-follow-up-suggestion` si falta, correr gate final de Fase 4, crear/actualizar changelog y abrir PR contra `develop`.
+Current phase: Fase 5 — UX/mobile/i18n  
+Current task: Fase 4 lista para PR/merge; luego iniciar F5-T01  
+Next agent start: abrir PR `phase/4-contextual-ai` → `develop`; tras merge/checks, crear `phase/5-ux-mobile-i18n` desde `develop` actualizado y ejecutar F5-T01.
 
 ---
 
