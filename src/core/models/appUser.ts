@@ -1,14 +1,10 @@
+import type { AccountPermission } from './account';
+
 export type InternalAppUserRole = 'admin' | 'editor' | 'view' | 'building_admin' | 'emergency_scheduler' | 'supervisor' | 'scheduler' | 'operator' | 'auditoria';
 export type ExternalAppUserRole = 'client';
 export type AppUserRole = InternalAppUserRole | ExternalAppUserRole;
 
-export type AppUserPermission =
-  | 'export_audit'
-  | 'manage_templates'
-  | 'manage_ai_policy'
-  | 'regenerate_secure_tokens'
-  | 'review_reports'
-  | 'approve_quotations_internal';
+export type AppUserPermission = AccountPermission;
 
 export type AppUser = {
   id: string;
@@ -17,6 +13,8 @@ export type AppUser = {
   active: boolean;
   administrationId?: string | null;
   permissions?: AppUserPermission[];
+  activeAccountId?: string | null;
+  accountIds?: string[];
   tenantId?: string | null;
   createdAt?: string;
 };

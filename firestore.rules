@@ -9,6 +9,298 @@ service cloud.firestore {
       return request.auth.token.role;
     }
 
+    function activeAccountId() {
+      return isSignedIn()
+        && request.auth.token.keys().hasAny(['activeAccountId'])
+        && request.auth.token.activeAccountId is string
+        ? request.auth.token.activeAccountId
+        : null;
+    }
+
+    function isAccountMember(accountId) {
+      return isSignedIn()
+        && accountId is string
+        && exists(/databases/$(database)/documents/accounts/$(accountId)/members/$(request.auth.uid));
+    }
+
+    function accountRole(accountId) {
+      return isAccountMember(accountId)
+        ? get(/databases/$(database)/documents/accounts/$(accountId)/members/$(request.auth.uid)).data.role
+        : null;
+    }
+
+    function accountPermissions(accountId) {
+      return isAccountMember(accountId)
+        && get(/databases/$(database)/documents/accounts/$(accountId)/members/$(request.auth.uid)).data.keys().hasAny(['permissions'])
+        ? get(/databases/$(database)/documents/accounts/$(accountId)/members/$(request.auth.uid)).data.permissions
+        : [];
+    }
+
+    function isActiveAccountMember(accountId) {
+      return activeAccountId() == accountId && isAccountMember(accountId);
+    }
+
+    function isAccountRole(accountId, expectedRole) {
+      return isActiveAccountMember(accountId) && accountRole(accountId) == expectedRole;
+    }
+
+    function accountMemberData(accountId) {
+      return get(/databases/$(database)/documents/accounts/$(accountId)/members/$(request.auth.uid)).data;
+    }
+
+    function serviceOrderAccountId(data) {
+      return data.keys().hasAny(['accountId']) && data.accountId is string
+        ? data.accountId
+        : null;
+    }
+
+    function isServiceOrderOperationalReader(accountId) {
+      return isActiveAccountMember(accountId)
+        && (
+          accountRole(accountId) == 'owner'
+          || accountRole(accountId) == 'admin'
+          || accountRole(accountId) == 'editor'
+          || accountRole(accountId) == 'supervisor'
+          || accountRole(accountId) == 'scheduler'
+          || accountRole(accountId) == 'operator'
+          || accountRole(accountId) == 'auditoria'
+        );
+    }
+
+    function hasAssignedTechnician(data) {
+      return data.keys().hasAny(['assignedTechnicianId']) && data.assignedTechnicianId is string;
+    }
+
+    function hasAuthEmail() {
+      return isSignedIn()
+        && request.auth.token.keys().hasAny(['email'])
+        && request.auth.token.email is string;
+    }
+
+    function isLinkedEmployee(employeeId) {
+      return employeeId is string
+        && exists(/databases/$(database)/documents/employees/$(employeeId))
+        && (
+          get(/databases/$(database)/documents/employees/$(employeeId)).data.uid == request.auth.uid
+          || get(/databases/$(database)/documents/employees/$(employeeId)).data.userId == request.auth.uid
+          || get(/databases/$(database)/documents/employees/$(employeeId)).data.authUid == request.auth.uid
+          || (
+            hasAuthEmail()
+            && get(/databases/$(database)/documents/employees/$(employeeId)).data.email == request.auth.token.email
+          )
+        );
+    }
+
+    function isAssignedTechnician(accountId, data) {
+      return isAccountRole(accountId, 'technician')
+        && hasAssignedTechnician(data)
+        && (
+          data.assignedTechnicianId == request.auth.uid
+          || isLinkedEmployee(data.assignedTechnicianId)
+        );
+    }
+
+    function memberMatchesCustomer(accountId, customerId) {
+      return customerId is string
+        && accountMemberData(accountId).keys().hasAny(['customerId'])
+        && accountMemberData(accountId).customerId == customerId;
+    }
+
+    function memberMatchesManagement(accountId, managementCompanyId) {
+      return managementCompanyId is string
+        && (
+          (
+            accountMemberData(accountId).keys().hasAny(['managementCompanyId'])
+            && accountMemberData(accountId).managementCompanyId == managementCompanyId
+          )
+          || (
+            accountMemberData(accountId).keys().hasAny(['administrationId'])
+            && accountMemberData(accountId).administrationId == managementCompanyId
+          )
+        );
+    }
+
+    function memberMatchesBuilding(accountId, buildingId) {
+      return buildingId is string
+        && accountMemberData(accountId).keys().hasAny(['buildingId'])
+        && accountMemberData(accountId).buildingId == buildingId;
+    }
+
+    function isRelatedServiceOrderClient(accountId, data) {
+      return isActiveAccountMember(accountId)
+        && (accountRole(accountId) == 'client' || accountRole(accountId) == 'building_admin')
+        && (
+          memberMatchesCustomer(accountId, data.customerId)
+          || memberMatchesManagement(accountId, data.managementCompanyId)
+          || memberMatchesManagement(accountId, data.administrationId)
+          || memberMatchesBuilding(accountId, data.buildingId)
+        );
+    }
+
+    function canReadServiceOrder(data) {
+      return serviceOrderAccountId(data) is string
+        && (
+          isServiceOrderOperationalReader(serviceOrderAccountId(data))
+          || isAssignedTechnician(serviceOrderAccountId(data), data)
+          || isRelatedServiceOrderClient(serviceOrderAccountId(data), data)
+        );
+    }
+
+    function isValidServiceOrderStatus(status) {
+      return status == 'draft'
+        || status == 'unassigned'
+        || status == 'scheduled'
+        || status == 'confirmed'
+        || status == 'in_progress'
+        || status == 'paused'
+        || status == 'pending_review'
+        || status == 'requires_reschedule'
+        || status == 'completed'
+        || status == 'cancelled';
+    }
+
+    function isValidServiceOrderPriority(priority) {
+      return priority == 'low'
+        || priority == 'medium'
+        || priority == 'high'
+        || priority == 'urgent';
+    }
+
+    function validServiceOrderData(data) {
+      return hasFields(data, [
+        'accountId',
+        'buildingId',
+        'title',
+        'type',
+        'priority',
+        'status',
+        'scheduledStartAt',
+        'scheduledEndAt'
+      ])
+      && isNonEmptyString(data.accountId)
+      && isNonEmptyString(data.buildingId)
+      && isNonEmptyString(data.title)
+      && isNonEmptyString(data.type)
+      && isValidServiceOrderPriority(data.priority)
+      && isValidServiceOrderStatus(data.status)
+      && isNonEmptyString(data.scheduledStartAt)
+      && isNonEmptyString(data.scheduledEndAt);
+    }
+
+    function isServiceOrderPrivilegedRole(memberRole) {
+      return memberRole == 'owner'
+        || memberRole == 'admin'
+        || memberRole == 'editor'
+        || memberRole == 'supervisor';
+    }
+
+    function serviceOrderChangedOnly(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+
+    function isServiceOrderClosed(data) {
+      return data.status == 'completed';
+    }
+
+    function isTechnicianLinkedToServiceOrder(data) {
+      return hasAssignedTechnician(data)
+        && (
+          data.assignedTechnicianId == request.auth.uid
+          || isLinkedEmployee(data.assignedTechnicianId)
+        );
+    }
+
+    function isServiceOrderAccountWrite(data) {
+      let accountId = serviceOrderAccountId(data);
+      return validServiceOrderData(data)
+        && accountId == activeAccountId()
+        && isActiveAccountMember(accountId);
+    }
+
+    function serviceOrderAccountUnchanged() {
+      let accountId = serviceOrderAccountId(resource.data);
+      return accountId is string
+        && serviceOrderAccountId(request.resource.data) == accountId
+        && isServiceOrderAccountWrite(request.resource.data);
+    }
+
+    function canCreateServiceOrder() {
+      let accountId = serviceOrderAccountId(request.resource.data);
+      let memberRole = accountRole(accountId);
+      return isServiceOrderAccountWrite(request.resource.data)
+        && (
+          isServiceOrderPrivilegedRole(memberRole)
+          || (memberRole == 'scheduler' && !isServiceOrderClosed(request.resource.data))
+        );
+    }
+
+    function canSchedulerUpdateServiceOrder(memberRole) {
+      return memberRole == 'scheduler'
+        && !isServiceOrderClosed(request.resource.data)
+        && !request.resource.data.diff(resource.data).changedKeys().hasAny(['completedAt'])
+        && serviceOrderChangedOnly([
+          'assignedTechnicianId',
+          'scheduledStartAt',
+          'scheduledEndAt',
+          'status',
+          'rescheduleReason',
+          'rescheduleHistory',
+          'assignmentHistory',
+          'timeline',
+          'updatedAt'
+        ]);
+    }
+
+    function canOperatorCloseServiceOrder(memberRole) {
+      return memberRole == 'operator'
+        && !isServiceOrderClosed(resource.data)
+        && isServiceOrderClosed(request.resource.data)
+        && serviceOrderChangedOnly([
+          'status',
+          'completedAt',
+          'completionPhotos',
+          'report',
+          'checklist',
+          'issues',
+          'attachments',
+          'timeline',
+          'updatedAt'
+        ]);
+    }
+
+    function canTechnicianUpdateServiceOrder(memberRole) {
+      return memberRole == 'technician'
+        && isTechnicianLinkedToServiceOrder(resource.data)
+        && !isServiceOrderClosed(request.resource.data)
+        && !request.resource.data.diff(resource.data).changedKeys().hasAny(['completedAt'])
+        && serviceOrderChangedOnly([
+          'status',
+          'startedAt',
+          'pausedAt',
+          'pauseReason',
+          'pauseHistory',
+          'issues',
+          'attachments',
+          'completionPhotos',
+          'report',
+          'checklist',
+          'timeline',
+          'updatedAt'
+        ]);
+    }
+
+    function canUpdateServiceOrder() {
+      let accountId = serviceOrderAccountId(resource.data);
+      let memberRole = accountRole(accountId);
+      return serviceOrderAccountUnchanged()
+        && (
+          isServiceOrderPrivilegedRole(memberRole)
+          || canSchedulerUpdateServiceOrder(memberRole)
+          || canOperatorCloseServiceOrder(memberRole)
+          || canTechnicianUpdateServiceOrder(memberRole)
+        );
+    }
+
     function isAdmin() {
       return isSignedIn() && role() == 'admin';
     }
@@ -149,6 +441,21 @@ service cloud.firestore {
       && get(/databases/$(database)/documents/contracts/$(data.contractId)).data.administrationId == data.managementCompanyId;
     }
 
+    match /accounts/{accountId} {
+      allow read: if isActiveAccountMember(accountId);
+      allow write: if false;
+
+      match /members/{memberId} {
+        allow read: if isActiveAccountMember(accountId)
+          && (
+            request.auth.uid == memberId
+            || accountRole(accountId) == 'owner'
+            || accountRole(accountId) == 'admin'
+          );
+        allow write: if false;
+      }
+    }
+
     match /users/{userId} {
       allow read: if isAdmin() || (isBuildingAdmin() && request.auth.uid == userId);
       allow write: if isAdmin();
@@ -199,9 +506,21 @@ service cloud.firestore {
         || (isEmergencyScheduler() && request.resource.data.type == 'emergencia');
     }
 
-    match /{document=**} {
+    match /service_orders/{serviceOrderId} {
+      allow read: if canReadServiceOrder(resource.data);
+      allow create: if canCreateServiceOrder();
+      allow update: if canUpdateServiceOrder();
+      allow delete: if false;
+    }
+
+    match /{collectionId}/{documentId} {
       allow read: if isStaff();
-      allow write: if isAdmin() || isEditor();
+      allow write: if collectionId != 'service_orders' && (isAdmin() || isEditor());
+    }
+
+    match /{collectionId}/{documentId}/{document=**} {
+      allow read: if isStaff();
+      allow write: if collectionId != 'service_orders' && (isAdmin() || isEditor());
     }
   }
 }

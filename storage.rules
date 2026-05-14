@@ -5,51 +5,91 @@ service firebase.storage {
       return request.auth != null;
     }
 
-    function role() {
-      return request.auth.token.role;
+    function activeAccountId() {
+      return isSignedIn()
+        && request.auth.token.keys().hasAny(['activeAccountId'])
+        && request.auth.token.activeAccountId is string
+        ? request.auth.token.activeAccountId
+        : null;
     }
 
-    function isAdmin() {
-      return isSignedIn() && role() == 'admin';
+    function isAccountMember(accountId) {
+      return isSignedIn()
+        && accountId is string
+        && firestore.exists(/databases/(default)/documents/accounts/$(accountId)/members/$(request.auth.uid));
     }
 
-    function isEditor() {
-      return isSignedIn() && role() == 'editor';
+    function accountRole(accountId) {
+      return isAccountMember(accountId)
+        ? firestore.get(/databases/(default)/documents/accounts/$(accountId)/members/$(request.auth.uid)).data.role
+        : null;
     }
 
-    function isSupervisor() {
-      return isSignedIn() && role() == 'supervisor';
+    function isActiveAccountMember(accountId) {
+      return activeAccountId() == accountId && isAccountMember(accountId);
     }
 
-    function isScheduler() {
-      return isSignedIn() && role() == 'scheduler';
+    function serviceOrderExists(serviceOrderId) {
+      return serviceOrderId is string
+        && firestore.exists(/databases/(default)/documents/service_orders/$(serviceOrderId));
     }
 
-    function isOperator() {
-      return isSignedIn() && role() == 'operator';
+    function serviceOrderData(serviceOrderId) {
+      return firestore.get(/databases/(default)/documents/service_orders/$(serviceOrderId)).data;
     }
 
-    function isAuditoria() {
-      return isSignedIn() && role() == 'auditoria';
+    function serviceOrderAccountId(serviceOrderId) {
+      return serviceOrderExists(serviceOrderId)
+        && serviceOrderData(serviceOrderId).keys().hasAny(['accountId'])
+        && serviceOrderData(serviceOrderId).accountId is string
+        ? serviceOrderData(serviceOrderId).accountId
+        : null;
     }
 
-    function isViewRole() {
-      return isSignedIn() && role() == 'view';
+    function isServiceOrderActiveAccount(serviceOrderId) {
+      let accountId = serviceOrderAccountId(serviceOrderId);
+      return accountId is string && isActiveAccountMember(accountId);
     }
 
-    function isEmergencyScheduler() {
-      return isSignedIn() && role() == 'emergency_scheduler';
+    function isEvidenceReaderRole(memberRole) {
+      return memberRole == 'owner'
+        || memberRole == 'admin'
+        || memberRole == 'editor'
+        || memberRole == 'supervisor'
+        || memberRole == 'scheduler'
+        || memberRole == 'operator'
+        || memberRole == 'auditoria';
     }
 
-    function isStaff() {
-      return isAdmin()
-        || isEditor()
-        || isSupervisor()
-        || isScheduler()
-        || isOperator()
-        || isAuditoria()
-        || isViewRole()
-        || isEmergencyScheduler();
+    function isEvidenceWriterRole(memberRole) {
+      return memberRole == 'owner'
+        || memberRole == 'admin'
+        || memberRole == 'editor'
+        || memberRole == 'supervisor'
+        || memberRole == 'operator';
+    }
+
+    function isAssignedTechnician(serviceOrderId) {
+      return isServiceOrderActiveAccount(serviceOrderId)
+        && accountRole(serviceOrderAccountId(serviceOrderId)) == 'technician'
+        && serviceOrderData(serviceOrderId).keys().hasAny(['assignedTechnicianId'])
+        && serviceOrderData(serviceOrderId).assignedTechnicianId == request.auth.uid;
+    }
+
+    function canReadServiceOrderEvidence(serviceOrderId) {
+      return isServiceOrderActiveAccount(serviceOrderId)
+        && (
+          isEvidenceReaderRole(accountRole(serviceOrderAccountId(serviceOrderId)))
+          || isAssignedTechnician(serviceOrderId)
+        );
+    }
+
+    function canWriteServiceOrderEvidence(serviceOrderId) {
+      return isServiceOrderActiveAccount(serviceOrderId)
+        && (
+          isEvidenceWriterRole(accountRole(serviceOrderAccountId(serviceOrderId)))
+          || isAssignedTechnician(serviceOrderId)
+        );
     }
 
     function isImage() {
@@ -63,29 +103,52 @@ service firebase.storage {
         && request.resource.size < 15 * 1024 * 1024;
     }
 
+    function canUploadEvidence(serviceOrderId) {
+      return canWriteServiceOrderEvidence(serviceOrderId) && isImage() && underSizeLimit();
+    }
+
     match /appointments/{appointmentId}/issues/{issueId}/{fileName} {
-      allow read: if isStaff();
-      allow write: if isStaff() && isImage() && underSizeLimit();
+      allow read, write: if false;
     }
 
     match /appointments/{appointmentId}/completion-photos/{fileName} {
-      allow read: if isStaff();
-      allow write: if isStaff() && isImage() && underSizeLimit();
+      allow read, write: if false;
     }
 
     match /service-orders/{serviceOrderId}/attachments/{fileName} {
-      allow read: if isStaff();
-      allow write: if isStaff() && isImage() && underSizeLimit();
+      allow read: if canReadServiceOrderEvidence(serviceOrderId);
+      allow write: if canUploadEvidence(serviceOrderId);
     }
 
     match /service-orders/{serviceOrderId}/completion-photos/{fileName} {
-      allow read: if isStaff();
-      allow write: if isStaff() && isImage() && underSizeLimit();
+      allow read: if canReadServiceOrderEvidence(serviceOrderId);
+      allow write: if canUploadEvidence(serviceOrderId);
     }
 
     match /service-orders/{serviceOrderId}/issues/{issueId}/{fileName} {
-      allow read: if isStaff();
-      allow write: if isStaff() && isImage() && underSizeLimit();
+      allow read: if canReadServiceOrderEvidence(serviceOrderId);
+      allow write: if canUploadEvidence(serviceOrderId);
+    }
+
+    match /accounts/{accountId}/service-orders/{serviceOrderId}/attachments/{fileName} {
+      allow read: if serviceOrderAccountId(serviceOrderId) == accountId
+        && canReadServiceOrderEvidence(serviceOrderId);
+      allow write: if serviceOrderAccountId(serviceOrderId) == accountId
+        && canUploadEvidence(serviceOrderId);
+    }
+
+    match /accounts/{accountId}/service-orders/{serviceOrderId}/completion-photos/{fileName} {
+      allow read: if serviceOrderAccountId(serviceOrderId) == accountId
+        && canReadServiceOrderEvidence(serviceOrderId);
+      allow write: if serviceOrderAccountId(serviceOrderId) == accountId
+        && canUploadEvidence(serviceOrderId);
+    }
+
+    match /accounts/{accountId}/service-orders/{serviceOrderId}/issues/{issueId}/{fileName} {
+      allow read: if serviceOrderAccountId(serviceOrderId) == accountId
+        && canReadServiceOrderEvidence(serviceOrderId);
+      allow write: if serviceOrderAccountId(serviceOrderId) == accountId
+        && canUploadEvidence(serviceOrderId);
     }
 
     match /{allPaths=**} {

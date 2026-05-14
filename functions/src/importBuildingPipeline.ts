@@ -14,8 +14,11 @@ export type GeocodeResult = {
   location: { lat: number; lng: number };
 };
 
-export async function buildManagementIndex() {
-  const managementSnapshot = await db.collection('management_companies').get();
+export async function buildManagementIndex(accountId?: string) {
+  const query = accountId
+    ? db.collection('management_companies').where('accountId', '==', accountId)
+    : db.collection('management_companies');
+  const managementSnapshot = await query.get();
   const managementByName = new Map<string, string>();
   managementSnapshot.forEach((doc) => {
     const data = doc.data() as { name?: string };
@@ -26,8 +29,8 @@ export async function buildManagementIndex() {
   return managementByName;
 }
 
-export async function resolveManagementId(args: { row: BuildingImportRow; managementByName: Map<string, string> }) {
-  const { row, managementByName } = args;
+export async function resolveManagementId(args: { row: BuildingImportRow; managementByName: Map<string, string>; accountId?: string }) {
+  const { row, managementByName, accountId } = args;
   const managementKey = String(row.management_name ?? '').toLowerCase();
   let managementId = managementByName.get(managementKey);
   if (!managementId) {
@@ -38,6 +41,7 @@ export async function resolveManagementId(args: { row: BuildingImportRow; manage
       email: '',
       nit: 'PENDING',
       address: '',
+      ...(accountId ? { accountId } : {}),
       createdAt: FieldValue.serverTimestamp()
     });
     managementId = newDoc.id;
@@ -48,16 +52,17 @@ export async function resolveManagementId(args: { row: BuildingImportRow; manage
 
 export async function persistBuildingImport(args: {
   rows: BuildingImportRow[];
+  accountId?: string;
   geocodeAddress: (address: string) => Promise<GeocodeResult>;
 }) {
-  const { rows, geocodeAddress } = args;
-  const managementByName = await buildManagementIndex();
+  const { rows, accountId, geocodeAddress } = args;
+  const managementByName = await buildManagementIndex(accountId);
   const errors: Array<{ row: number; message: string }> = [];
   let created = 0;
 
   for (const [index, row] of rows.entries()) {
     const rowNumber = index + 2;
-    const managementId = await resolveManagementId({ row, managementByName });
+    const managementId = await resolveManagementId({ row, managementByName, accountId });
 
     let geocode: GeocodeResult;
     try {
@@ -75,6 +80,7 @@ export async function persistBuildingImport(args: {
       addressText: geocode.formattedAddress,
       googlePlaceId: geocode.placeId,
       location: geocode.location,
+      ...(accountId ? { accountId } : {}),
       active: true,
       createdAt: FieldValue.serverTimestamp()
     });
