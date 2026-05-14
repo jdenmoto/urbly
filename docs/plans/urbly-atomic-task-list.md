@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 4 — IA contextual
-Current task: F4-T05 — Mensaje cliente sugerido sin envío automático
-Next agent start: partir de `phase/4-contextual-ai` actualizado e implementar F4-T05 agregando mensaje cliente sugerido con `AiSuggestion` y `AiSuggestionCard`, sin enviar, guardar ni mutar automáticamente.
+Current task: F4-T06 — Detección de faltantes antes de cerrar
+Next agent start: partir de `phase/4-contextual-ai` actualizado e implementar F4-T06 agregando detección de faltantes antes de cerrar con `AiSuggestion` y `AiSuggestionCard`, sin guardar ni mutar automáticamente.
 
 ---
 
@@ -847,7 +847,17 @@ Branch: `feat/service-report-draft-suggestion`
 - Siguiente agente: empezar F4-T05 agregando mensaje cliente sugerido sin envío automático con `AiSuggestionCard`.
 
 ## TASK F4-T05 — Mensaje cliente sugerido sin envío automático
-Status: pending
+Status: done
+Branch: `feat/client-message-suggestion`
+
+### Completion notes
+- Agregado helper `buildServiceCustomerMessageSuggestion` que genera un contrato `AiSuggestion` `customer_message` para `services.closeout` con política `suggestion_only`, trazabilidad y plantilla `customer-message-closeout-v1`.
+- `ServiceCloseoutPage` ahora renderiza el mensaje cliente sugerido con `AiSuggestionCard` dentro del bloque de comunicación de cierre.
+- La acción disponible es copiar para revisión/aprobación humana; no existe envío automático, guardado automático ni mutación del servicio.
+- Agregado test unitario en `src/features/services/__tests__/serviceSuggestions.test.ts` para validar contrato seguro, trazabilidad y ausencia de acción de envío.
+- Commit: HEAD de `feat/client-message-suggestion` (`feat: agregar mensaje cliente sugerido`)
+- Validaciones: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F4-T06 agregando detección de faltantes antes de cerrar con `AiSuggestionCard`.
 
 ## TASK F4-T06 — Detección de faltantes antes de cerrar
 Status: pending

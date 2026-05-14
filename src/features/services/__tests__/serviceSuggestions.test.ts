@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ServiceOrder } from '@/core/models/serviceOrder';
-import { buildServiceReportDraftSuggestion, buildServiceTechnicalSummarySuggestion } from '@/features/services/serviceSuggestions';
+import {
+  buildServiceCustomerMessageSuggestion,
+  buildServiceReportDraftSuggestion,
+  buildServiceTechnicalSummarySuggestion,
+} from '@/features/services/serviceSuggestions';
 
 function t(key: string) {
   const labels: Record<string, string> = {
@@ -61,6 +65,22 @@ describe('service AI suggestions', () => {
     expect(suggestion.safety.mode).toBe('suggestion_only');
     expect(suggestion.safety.requiresHumanApproval).toBe(true);
     expect(suggestion.safety.allowedUserActions).toEqual(['copy', 'insert_draft', 'dismiss', 'regenerate']);
+    expect(suggestion.safety.forbiddenSystemActions).toEqual(['auto_save', 'auto_send', 'auto_mutate']);
+  });
+
+  it('builds a suggestion-only customer message for service closeout without send action', () => {
+    const suggestion = buildServiceCustomerMessageSuggestion(serviceOrder, t);
+
+    expect(suggestion.kind).toBe('customer_message');
+    expect(suggestion.title).toBe('Mensaje cliente sugerido');
+    expect(suggestion.content).toContain('Hola, te comparto actualización');
+    expect(suggestion.content).toContain('Mantenimiento bomba principal');
+    expect(suggestion.trace.module).toBe('services.closeout');
+    expect(suggestion.trace.templateId).toBe('customer-message-closeout-v1');
+    expect(suggestion.safety.mode).toBe('suggestion_only');
+    expect(suggestion.safety.requiresHumanApproval).toBe(true);
+    expect(suggestion.safety.allowedUserActions).toEqual(['copy', 'dismiss', 'regenerate']);
+    expect(suggestion.safety.allowedUserActions).not.toContain('insert_draft');
     expect(suggestion.safety.forbiddenSystemActions).toEqual(['auto_save', 'auto_send', 'auto_mutate']);
   });
 });

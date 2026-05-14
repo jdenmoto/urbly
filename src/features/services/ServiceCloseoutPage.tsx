@@ -15,9 +15,9 @@ import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
 import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
-import { buildCustomerMessage, buildFollowUp } from './serviceOrderAi';
+import { buildFollowUp } from './serviceOrderAi';
 import { buildTechnicalReport } from './serviceReport';
-import { buildServiceReportDraftSuggestion } from './serviceSuggestions';
+import { buildServiceCustomerMessageSuggestion, buildServiceReportDraftSuggestion } from './serviceSuggestions';
 import { generateServiceReportPdf } from '@/lib/api/functions';
 import { useToast } from '@/components/ToastProvider';
 import {
@@ -136,8 +136,9 @@ export default function ServiceCloseoutPage() {
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const [attachmentUploading, setAttachmentUploading] = useState(false);
   const aiReportDraftSuggestion = serviceOrder ? buildServiceReportDraftSuggestion(serviceOrder, t) : null;
+  const aiCustomerMessageSuggestion = serviceOrder ? buildServiceCustomerMessageSuggestion(serviceOrder, t) : null;
   const aiReport = aiReportDraftSuggestion?.content ?? (serviceOrder ? buildTechnicalReport(serviceOrder, t) : '');
-  const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
+  const aiCustomerMessage = aiCustomerMessageSuggestion?.content ?? '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder, t) : '';
   const qualityAnalysis = serviceOrder ? analyzeReportQuality(serviceOrder) : null;
   const detailTarget = locationState?.fromPath ?? `/services/${serviceOrderId}`;
@@ -292,6 +293,13 @@ export default function ServiceCloseoutPage() {
     } finally {
       setPdfLoading(false);
     }
+  };
+
+  const copySuggestedCustomerMessage = async () => {
+    if (!aiCustomerMessageSuggestion) return;
+
+    await navigator.clipboard.writeText(aiCustomerMessageSuggestion.content);
+    toast('Mensaje sugerido copiado. Revísalo y apruébalo antes de enviarlo manualmente.', 'success');
   };
 
   if (!serviceOrder) {
@@ -490,18 +498,29 @@ export default function ServiceCloseoutPage() {
 
           <div className="rounded-3xl border border-fog-200 bg-white p-5">
             <h3 className="text-sm font-semibold text-ink-900">{t('services.communication.title')}</h3>
-            <div className="mt-3 space-y-3 rounded-2xl bg-fog-50 p-4 text-sm leading-6 text-ink-700">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-ink-500">Mensaje cliente</p>
-                <p>{serviceOrder.communication?.customerMessage?.trim() || 'Sin mensaje.'}</p>
+            <div className="mt-3 space-y-4">
+              {aiCustomerMessageSuggestion ? (
+                <AiSuggestionCard
+                  suggestion={aiCustomerMessageSuggestion}
+                  actions={{ copy: () => void copySuggestedCustomerMessage() }}
+                />
+              ) : null}
+              <div className="rounded-2xl bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+                Este mensaje es solo una sugerencia: copia el texto, revísalo y apruébalo antes de enviarlo manualmente al cliente.
               </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-ink-500">Resumen interno</p>
-                <p>{serviceOrder.communication?.internalSummary?.trim() || 'Sin resumen interno.'}</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-ink-500">Siguiente paso</p>
-                <p>{serviceOrder.communication?.followUpSuggestion?.trim() || 'Sin recomendación.'}</p>
+              <div className="space-y-3 rounded-2xl bg-fog-50 p-4 text-sm leading-6 text-ink-700">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-ink-500">Mensaje cliente guardado</p>
+                  <p>{serviceOrder.communication?.customerMessage?.trim() || 'Sin mensaje guardado.'}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-ink-500">Resumen interno</p>
+                  <p>{serviceOrder.communication?.internalSummary?.trim() || 'Sin resumen interno.'}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-ink-500">Siguiente paso</p>
+                  <p>{serviceOrder.communication?.followUpSuggestion?.trim() || 'Sin recomendación.'}</p>
+                </div>
               </div>
             </div>
           </div>
