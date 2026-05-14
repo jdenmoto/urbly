@@ -8,9 +8,9 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 
 ## Estado global
 
-Current phase: Fase 3 — Portal cliente
-Current task: Fase 3 lista para gate final/changelog/PR
-Next agent start: partir de `phase/3-client-portal` actualizado, integrar `feat/client-service-requests` si falta y ejecutar gate final de Fase 3: changelog + PR contra `develop`.
+Current phase: Fase 4 — IA contextual
+Current task: F4-T02 — AiSuggestionCard reutilizable
+Next agent start: partir de `phase/4-contextual-ai` actualizado e implementar F4-T02 usando el contrato seguro en `src/core/models/aiSuggestion.ts`.
 
 ---
 
@@ -783,7 +783,28 @@ npm run build:minimum
 Branch de fase: `phase/4-contextual-ai`
 
 ## TASK F4-T01 — Contrato de sugerencias IA
-Status: pending
+Status: done
+Branch: `feat/ai-suggestion-contract`
+
+### Objective
+Definir un contrato reutilizable y seguro para sugerencias IA contextuales.
+
+### Context
+La IA solo puede sugerir; no puede guardar, enviar ni mutar estado sin acción humana explícita.
+
+### Files changed
+- `src/core/models/aiSuggestion.ts`
+- `src/core/models/__tests__/aiSuggestion.test.ts`
+- `src/features/services/serviceSuggestions.ts`
+
+### Completion notes
+- Agregado contrato `AiSuggestion` con `kind`, `title`, `trace` y `safety`.
+- Agregada política obligatoria `suggestion_only` con aprobación humana y acciones prohibidas `auto_save`, `auto_send`, `auto_mutate`.
+- Agregados guards `isAiSuggestion`, `isSuggestionOnlyPolicy`, `hasForbiddenAiSystemAction` y factory `createAiSuggestion`.
+- `serviceSuggestions` ahora crea sugerencias mediante el contrato seguro manteniendo compatibilidad temporal con `type`.
+- Commit: HEAD de `feat/ai-suggestion-contract` (`feat: definir contrato seguro de sugerencias ia`).
+- Validaciones: `npm run test:run -- src/core/models/__tests__/aiSuggestion.test.ts src/features/services/__tests__`, `npm run test:run`, `npm run typecheck`, `npm run lint`.
+- Siguiente agente: empezar F4-T02 creando `AiSuggestionCard` reutilizable basado en `src/core/models/aiSuggestion.ts`.
 
 ## TASK F4-T02 — AiSuggestionCard reutilizable
 Status: pending
