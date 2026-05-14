@@ -422,16 +422,33 @@ Last completed task: F2-T02 — Redirigir `/scheduling` a `/services`
   - `npm run build:minimum`
 - Notes: `/scheduling` ahora redirige a `/services` con `replace`; se removió el lazy import de `SchedulingPage`. No se agregó test de routing porque no existen tests cercanos de routing/App y el cambio se mantuvo mínimo.
 
+Last completed task: F2-T03 — Migrar labels scheduling usados por services
+
+- Status: done
+- Branch: `refactor/services-i18n-labels`
+- Commit: HEAD de `refactor/services-i18n-labels` (`refactor: migrar labels de services`)
+- Files changed:
+  - `public/locales/es.yaml`
+  - `src/features/services/serviceOrderPresentation.ts`
+  - `src/features/services/serviceCloseoutBridge.ts`
+  - `src/features/services/ServiceCloseoutPage.tsx`
+  - `docs/plans/urbly-atomic-task-list.md`
+  - `docs/plans/urbly-master-implementation-plan.md`
+- Validations executed:
+  - `npm run lint` — pasa con 8 warnings preexistentes/no relacionados
+  - `npm run typecheck`
+- Notes: Services ahora resuelve tipos de servicio y labels de novedades desde `services.*`. No se removieron labels legacy `scheduling.*` porque el módulo legacy todavía las usa.
+
 Next required step:
 
-Ejecutar F2-T03 — Migrar labels scheduling usados por services.
+Ejecutar F2-T04 — Aislar legacy scheduling no visible.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Partir de `phase/2-services-only` actualizado.
-2. Crear rama `refactor/services-i18n-labels`.
-3. Abrir `public/locales/es.yaml`.
-4. Buscar usos de `scheduling.*` en archivos de services y migrar labels necesarios sin cambiar comportamiento.
+2. Crear rama `refactor/isolate-scheduling-legacy`.
+3. Revisar imports de `@/features/scheduling/*` dentro de `src/features/services/**`.
+4. Aislar dependencias legacy que todavía usa services sin cambiar comportamiento visible.
 
 ## 8. Archivos relacionados
 

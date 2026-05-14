@@ -305,6 +305,11 @@ services:
     low: Baja
   type:
     label: Tipo
+  types:
+    mantenimiento: Mantenimiento
+    lavado_tanque: Lavado de tanque
+    emergencia: Emergencia
+    interventoria: Interventoria
   start:
     label: Inicio
   end:
@@ -340,6 +345,22 @@ services:
       title: Resumen de novedades
       subtitle: Primer corte de incidencias derivadas del servicio actual.
       empty: No hay novedades registradas para este servicio.
+    types:
+      operativo: Operativo
+      seguridad: Seguridad
+      infraestructura: Infraestructura
+      otro: Otro
+    categories:
+      limpieza: Limpieza
+      mantenimiento: Mantenimiento
+      logistica: Logistica
+      acceso: Acceso
+      incidente: Incidente
+      prevencion: Prevencion
+      electricidad: Electricidad
+      plomeria: Plomeria
+      estructura: Estructura
+      general: General
   ai:
     actions:
       title: IA operativa aplicada
