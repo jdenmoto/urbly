@@ -367,30 +367,32 @@ When done, update this file:
 
 Current phase: Fase 3 — Portal cliente
 
-Last completed task: F3-T02 — JWT con `jti`/`tokenVersion` revocable
+Last completed task: F3-T03 — Validar relación token-service-customer-account
 
 - Status: done
-- Branch: `fix/revocable-client-portal-token`
-- Commit: HEAD de `fix/revocable-client-portal-token` (`fix: hacer revocable token del portal cliente`)
+- Branch: `fix/client-portal-token-scope`
+- Commit: HEAD de `fix/client-portal-token-scope` (`fix: validar alcance del token del portal cliente`)
 - Files changed:
   - `functions/src/clientPortal.ts`
+  - `src/test/clientPortalScope.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
+  - `npm run test:run -- src/test/clientPortalScope.test.ts`
   - `npm --prefix functions run build`
-- Notes: los JWT del portal cliente ahora incluyen `jti`, `tokenVersion` y `version`. La generación incrementa la versión en `clientPortalAccess` y guarda el `activeTokenJti`; la validación rechaza tokens revocados, inactivos, con `revokedAt`, incluidos en `revokedTokenIds`, con `jti` distinto o con versión desactualizada.
+- Notes: el token del portal ahora queda fijado a `accountId`, `buildingId`, `customerId`, `managementCompanyId`, `jti` y `tokenVersion`. La generación valida cuenta activa del operador; la validación recalcula la relación servicio/edificio/cliente/administración/cuenta y rechaza accesos cross-account, customer mismatch, service/building mismatch o token fuera de alcance.
 
 Next required step:
 
-Ejecutar F3-T03 — Validar relación token-service-customer-account.
+Ejecutar F3-T04 — Crear ClientServicesPage.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Partir de `phase/3-client-portal` actualizado.
-2. Integrar/revisar F3-T02 si la rama de fase aún no lo contiene.
-3. Crear branch `fix/client-portal-token-scope`.
-4. Abrir `functions/src/clientPortal.ts`.
-5. Implementar F3-T03 según `docs/plans/urbly-atomic-task-list.md` y validar `npm --prefix functions run build`.
+2. Integrar/revisar F3-T03 si la rama de fase aún no lo contiene.
+3. Crear branch `feat/client-services-page`.
+4. Abrir `src/features/portal/**` y conectar la nueva vista de servicios del cliente.
+5. Implementar F3-T04 según `docs/plans/urbly-atomic-task-list.md` y validar `npm run typecheck` + `npm run build`.
 
 ## 8. Archivos relacionados
 
