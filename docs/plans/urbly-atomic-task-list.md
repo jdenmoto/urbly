@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 4 — IA contextual
-Current task: F4-T02 — AiSuggestionCard reutilizable
-Next agent start: partir de `phase/4-contextual-ai` actualizado e implementar F4-T02 usando el contrato seguro en `src/core/models/aiSuggestion.ts`.
+Current task: F4-T03 — Resumen técnico en detalle de servicio
+Next agent start: partir de `phase/4-contextual-ai` actualizado e implementar F4-T03 usando `AiSuggestionCard` en `src/features/services/ServiceDetailPage.tsx`.
 
 ---
 
@@ -807,7 +807,18 @@ La IA solo puede sugerir; no puede guardar, enviar ni mutar estado sin acción h
 - Siguiente agente: empezar F4-T02 creando `AiSuggestionCard` reutilizable basado en `src/core/models/aiSuggestion.ts`.
 
 ## TASK F4-T02 — AiSuggestionCard reutilizable
-Status: pending
+Status: done
+Branch: `feat/ai-suggestion-card`
+
+### Completion notes
+- Creado `AiSuggestionCard` reutilizable para renderizar contratos `AiSuggestion` con validación runtime mediante `isAiSuggestion`.
+- El componente marca explícitamente `Solo sugerencia` y `Requiere aprobación humana`.
+- Las acciones visibles se limitan a acciones humanas permitidas por `safety.allowedUserActions` y handlers explícitos; no muestra ni ejecuta guardado/envío/mutación automática.
+- Payloads malformados o inseguros se bloquean sin renderizar contenido sugerido.
+- `AiWorkspacePage` ahora usa `buildServiceSuggestions` + `AiSuggestionCard` para mostrar sugerencias con el contrato seguro.
+- Commit: HEAD de `feat/ai-suggestion-card` (`feat: agregar tarjeta segura de sugerencias ia`).
+- Validaciones: `npm run test:run -- src/features/ai/__tests__/AiSuggestionCard.test.tsx`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F4-T03 agregando resumen técnico sugerido en el detalle de servicio con `AiSuggestionCard`.
 
 ## TASK F4-T03 — Resumen técnico en detalle de servicio
 Status: pending
