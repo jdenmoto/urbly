@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 3 — Portal cliente
-Current task: F3-T04 — Crear ClientServicesPage
-Next agent start: partir de `phase/3-client-portal` actualizado, integrar/revisar F3-T03 si aplica, crear branch `feat/client-services-page` y abrir `src/features/portal/**`.
+Current task: F3-T05 — Crear ClientReportsPage
+Next agent start: partir de `phase/3-client-portal` actualizado, integrar/revisar F3-T04 si aplica, crear branch `feat/client-reports-page` y abrir `src/features/portal/**`.
 
 ---
 
@@ -717,14 +717,24 @@ npm --prefix functions run build
 
 ## TASK F3-T04 — Crear ClientServicesPage
 
-Status: pending  
+Status: done  
 Branch: `feat/client-services-page`
 
 ### Validation
 ```bash
+npm run test:run -- src/features/portal/__tests__/clientServices.test.ts
 npm run typecheck
 npm run build
 ```
+
+### Completion notes
+- Creada `ClientServicesPage` para `/portal/services` con estadísticas, filtros por todos/activos/completados y tarjetas de seguimiento visible para cliente.
+- Agregado helper `src/features/portal/clientServices.ts` para scope por administración, edificios visibles y servicios publicados al cliente, excluyendo borradores/cancelados.
+- `/portal/services` ahora carga la nueva página dedicada en lugar de reutilizar `BuildingAdminPage`; `/portal/reports` se mantiene sin cambios para F3-T05.
+- Agregados tests unitarios de selectores en `src/features/portal/__tests__/clientServices.test.ts`.
+- Commit: HEAD de `feat/client-services-page` (`feat: crear vista de servicios del portal cliente`).
+- Validaciones: `npm run test:run -- src/features/portal/__tests__/clientServices.test.ts`, `npm run typecheck`, `npm run build`.
+- Siguiente agente: empezar F3-T05 creando `ClientReportsPage` desde branch `feat/client-reports-page`.
 
 ## TASK F3-T05 — Crear ClientReportsPage
 
