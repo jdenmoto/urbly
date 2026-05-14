@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 4 — IA contextual
-Current task: F4-T03 — Resumen técnico en detalle de servicio
-Next agent start: partir de `phase/4-contextual-ai` actualizado e implementar F4-T03 usando `AiSuggestionCard` en `src/features/services/ServiceDetailPage.tsx`.
+Current task: F4-T04 — Borrador de reporte en cierre
+Next agent start: partir de `phase/4-contextual-ai` actualizado e implementar F4-T04 en `src/features/services/ServiceCloseoutPage.tsx` usando el contrato `AiSuggestion` y `AiSuggestionCard`, sin guardar/enviar/mutar automáticamente.
 
 ---
 
@@ -821,7 +821,17 @@ Branch: `feat/ai-suggestion-card`
 - Siguiente agente: empezar F4-T03 agregando resumen técnico sugerido en el detalle de servicio con `AiSuggestionCard`.
 
 ## TASK F4-T03 — Resumen técnico en detalle de servicio
-Status: pending
+Status: done
+Branch: `feat/service-technical-summary-suggestion`
+
+### Completion notes
+- Agregado helper `buildServiceTechnicalSummarySuggestion` que genera un contrato `AiSuggestion` `technical_summary` para `services.detail` con política `suggestion_only`.
+- `ServiceDetailPage` ahora renderiza el resumen técnico sugerido con `AiSuggestionCard`, mostrando trazabilidad y aprobación humana requerida.
+- La UI no guarda, envía ni muta el servicio automáticamente; solo muestra la sugerencia contextual.
+- Agregado test unitario `src/features/services/__tests__/serviceSuggestions.test.ts` para el contrato seguro del resumen técnico.
+- Commit: HEAD de `feat/service-technical-summary-suggestion` (`feat: agregar resumen tecnico sugerido en servicio`).
+- Validaciones: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F4-T04 agregando borrador de reporte en cierre con `AiSuggestionCard` en `src/features/services/ServiceCloseoutPage.tsx`.
 
 ## TASK F4-T04 — Borrador de reporte en cierre
 Status: pending
