@@ -1,7 +1,7 @@
 import { Building2, Users, Landmark, LayoutDashboard, ShieldUser, Settings, Briefcase, Sparkles, FileText } from './navIcons';
 import { useI18n } from '@/lib/i18n';
 import { useFeatureFlags } from '@/lib/featureFlags';
-import type { AppUserRole } from '@/core/models/appUser';
+import type { AppUserPermission, AppUserRole } from '@/core/models/appUser';
 
 export type NavItem = {
   to?: string;
@@ -10,6 +10,7 @@ export type NavItem = {
   icon: (props: React.SVGProps<SVGSVGElement>) => JSX.Element;
   enabled: boolean;
   allow?: AppUserRole[];
+  allowPermissions?: AppUserPermission[];
   kind?: 'link' | 'section';
   sectionId?: string;
   mobile?: boolean;
@@ -22,30 +23,35 @@ export type NavGroup = {
   items: NavItem[];
 };
 
-const internalDashboardRoles: AppUserRole[] = ['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'];
+type NavAccess = {
+  role: AppUserRole;
+  permissions?: AppUserPermission[];
+};
+
+const internalDashboardRoles: AppUserRole[] = ['owner', 'admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'];
 
 const routeAccess: Record<string, AppUserRole[]> = {
-  '/': ['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'],
-  '/technician': ['emergency_scheduler'],
-  '/services': ['admin', 'editor', 'view', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria'],
-  '/scheduling': ['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'],
-  '/buildings': ['admin', 'editor', 'view'],
-  '/management': ['admin', 'editor', 'view'],
-  '/customers': ['admin', 'editor', 'view'],
-  '/assets': ['admin', 'editor', 'view'],
-  '/employees': ['admin', 'editor', 'view'],
-  '/notifications': ['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'],
-  '/reports': ['admin', 'editor', 'view', 'supervisor', 'auditoria'],
-  '/ai': ['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'],
-  '/users': ['admin'],
-  '/settings/groups': ['admin'],
-  '/settings/issues': ['admin'],
-  '/settings/service-types': ['admin'],
-  '/settings/automation': ['admin', 'editor', 'building_admin', 'client', 'supervisor'],
-  '/settings/contracts': ['admin'],
-  '/settings/labs': ['admin'],
-  '/settings/calendar/holidays': ['admin'],
-  '/settings/calendar/non-working': ['admin'],
+  '/': ['owner', 'admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'],
+  '/technician': ['technician', 'emergency_scheduler'],
+  '/services': ['owner', 'admin', 'editor', 'view', 'technician', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria'],
+  '/scheduling': ['owner', 'admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'],
+  '/buildings': ['owner', 'admin', 'editor', 'view'],
+  '/management': ['owner', 'admin', 'editor', 'view'],
+  '/customers': ['owner', 'admin', 'editor', 'view'],
+  '/assets': ['owner', 'admin', 'editor', 'view'],
+  '/employees': ['owner', 'admin', 'editor', 'view'],
+  '/notifications': ['owner', 'admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'],
+  '/reports': ['owner', 'admin', 'editor', 'view', 'supervisor', 'auditoria'],
+  '/ai': ['owner', 'admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'],
+  '/users': ['owner', 'admin'],
+  '/settings/groups': ['owner', 'admin'],
+  '/settings/issues': ['owner', 'admin'],
+  '/settings/service-types': ['owner', 'admin'],
+  '/settings/automation': ['owner', 'admin', 'editor', 'building_admin', 'client', 'supervisor'],
+  '/settings/contracts': ['owner', 'admin'],
+  '/settings/labs': ['owner', 'admin'],
+  '/settings/calendar/holidays': ['owner', 'admin'],
+  '/settings/calendar/non-working': ['owner', 'admin'],
   '/portal': ['building_admin', 'client'],
   '/portal/services': ['building_admin', 'client'],
   '/portal/reports': ['building_admin', 'client']
@@ -57,8 +63,36 @@ function canAccessRoute(role: AppUserRole, to?: string) {
   return Array.isArray(allowedRoles) ? allowedRoles.includes(role) : false;
 }
 
+function canAccessNavItem(item: NavItem, access: NavAccess) {
+  const allowedByPermission = item.allowPermissions?.some((permission) => access.permissions?.includes(permission)) ?? false;
+  const allowedByRole = canAccessRoute(access.role, item.to) && (!item.allow || item.allow.includes(access.role));
+  return item.enabled && (allowedByRole || allowedByPermission);
+}
+
+export function filterNavGroupsByAccess(groups: NavGroup[], access: NavAccess) {
+  return groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => canAccessNavItem(item, access))
+    }))
+    .filter((group) => group.items.length > 0);
+}
+
+export function getMobileNavItemsFromGroups(groups: NavGroup[], access: NavAccess) {
+  return filterNavGroupsByAccess(groups, access)
+    .flatMap((group) => group.items)
+    .filter((item) => item.kind !== 'section' && item.to && item.mobile !== false)
+    .sort((a, b) => (a.mobileOrder ?? Number.MAX_SAFE_INTEGER) - (b.mobileOrder ?? Number.MAX_SAFE_INTEGER))
+    .slice(0, 5);
+}
+
+export function getBottomNavGridClass(itemCount: number) {
+  const columns = Math.min(Math.max(itemCount, 1), 5);
+  return `grid-cols-${columns}`;
+}
+
 export function getDefaultRouteForRole(role: AppUserRole) {
-  if (role === 'emergency_scheduler') return '/technician';
+  if (role === 'technician' || role === 'emergency_scheduler') return '/technician';
   if (role === 'building_admin' || role === 'client') return '/portal';
   if (role === 'scheduler' || role === 'operator') return '/services';
   if (role === 'auditoria') return '/reports';
@@ -66,7 +100,7 @@ export function getDefaultRouteForRole(role: AppUserRole) {
   return '/';
 }
 
-export function useNavGroups(role: AppUserRole = 'view') {
+export function useNavGroups(role: AppUserRole = 'view', permissions: AppUserPermission[] = []) {
   const { t } = useI18n();
   const { flags } = useFeatureFlags();
 
@@ -83,15 +117,10 @@ export function useNavGroups(role: AppUserRole = 'view') {
       }
     ];
 
-    return groups
-      .map((group) => ({
-        ...group,
-        items: group.items.filter((item) => item.enabled && canAccessRoute(role, item.to) && (!item.allow || item.allow.includes(role)))
-      }))
-      .filter((group) => group.items.length > 0);
+    return filterNavGroupsByAccess(groups, { role, permissions });
   }
 
-  if (role === 'emergency_scheduler') {
+  if (role === 'technician' || role === 'emergency_scheduler') {
     const groups: NavGroup[] = [
       {
         label: t('nav.operations.section.default'),
@@ -103,12 +132,7 @@ export function useNavGroups(role: AppUserRole = 'view') {
       }
     ];
 
-    return groups
-      .map((group) => ({
-        ...group,
-        items: group.items.filter((item) => item.enabled && canAccessRoute(role, item.to) && (!item.allow || item.allow.includes(role)))
-      }))
-      .filter((group) => group.items.length > 0);
+    return filterNavGroupsByAccess(groups, { role, permissions });
   }
 
   if (internalDashboardRoles.includes(role)) {
@@ -120,7 +144,7 @@ export function useNavGroups(role: AppUserRole = 'view') {
           { to: '/', label: t('nav.dashboard'), shortLabel: t('nav.short.dashboard'), icon: LayoutDashboard, enabled: flags.dashboard, allow: routeAccess['/'], mobile: true, mobileOrder: 1 },
           { to: '/services', label: t('nav.services'), shortLabel: t('nav.short.services'), icon: Briefcase, enabled: flags.services, allow: routeAccess['/services'], mobile: true, mobileOrder: 2 },
           { to: '/buildings', label: t('nav.buildings'), shortLabel: t('nav.short.buildings'), icon: Building2, enabled: flags.buildings, allow: routeAccess['/buildings'], mobile: true, mobileOrder: 3 },
-          { to: '/reports', label: t('nav.reports'), shortLabel: t('nav.short.reports'), icon: FileText, enabled: flags.reports, allow: routeAccess['/reports'], mobile: true, mobileOrder: 4 }
+          { to: '/reports', label: t('nav.reports'), shortLabel: t('nav.short.reports'), icon: FileText, enabled: flags.reports, allow: routeAccess['/reports'], allowPermissions: ['review_reports', 'export_audit'], mobile: true, mobileOrder: 4 }
         ]
       },
       {
@@ -141,102 +165,34 @@ export function useNavGroups(role: AppUserRole = 'view') {
         label: t('nav.settings.section.default'),
         description: t('nav.settings.section.description'),
         items: [
-          {
-            to: '/settings/groups',
-            label: t('nav.settings.groups'),
-            icon: Settings,
-            allow: routeAccess['/settings/groups'],
-            enabled: flags.settings
-          },
-          {
-            to: '/settings/issues',
-            label: t('nav.settings.issues'),
-            icon: Settings,
-            allow: routeAccess['/settings/issues'],
-            enabled: flags.settings
-          },
-          {
-            to: '/settings/service-types',
-            label: t('nav.settings.service.types'),
-            icon: Settings,
-            allow: routeAccess['/settings/service-types'],
-            enabled: flags.settings
-          },
-          {
-            to: '/settings/automation',
-            label: t('nav.settings.automation'),
-            icon: Settings,
-            allow: routeAccess['/settings/automation'],
-            enabled: flags.settings
-          },
-          {
-            to: '/settings/contracts',
-            label: t('nav.settings.contracts'),
-            icon: Settings,
-            allow: routeAccess['/settings/contracts'],
-            enabled: flags.settings
-          },
-          {
-            to: '/settings/labs',
-            label: t('nav.settings.labs'),
-            icon: Settings,
-            allow: routeAccess['/settings/labs'],
-            enabled: flags.settings
-          },
-          {
-            to: '/users',
-            label: t('nav.users'),
-            icon: ShieldUser,
-            allow: routeAccess['/users'],
-            enabled: flags.users
-          },
-          {
-            label: t('nav.settings.calendar.section'),
-            icon: Settings,
-            allow: routeAccess['/settings/calendar/holidays'],
-            enabled: flags.settings,
-            kind: 'section',
-            sectionId: 'calendar'
-          },
-          {
-            to: '/settings/calendar/holidays',
-            label: t('nav.settings.calendar.holidays'),
-            icon: Settings,
-            allow: routeAccess['/settings/calendar/holidays'],
-            enabled: flags.settings,
-            sectionId: 'calendar'
-          },
-          {
-            to: '/settings/calendar/non-working',
-            label: t('nav.settings.calendar.non.working'),
-            icon: Settings,
-            allow: routeAccess['/settings/calendar/non-working'],
-            enabled: flags.settings,
-            sectionId: 'calendar'
-          }
+          { to: '/settings/groups', label: t('nav.settings.groups'), icon: Settings, allow: routeAccess['/settings/groups'], enabled: flags.settings },
+          { to: '/settings/issues', label: t('nav.settings.issues'), icon: Settings, allow: routeAccess['/settings/issues'], enabled: flags.settings },
+          { to: '/settings/service-types', label: t('nav.settings.service.types'), icon: Settings, allow: routeAccess['/settings/service-types'], enabled: flags.settings },
+          { to: '/settings/automation', label: t('nav.settings.automation'), icon: Settings, allow: routeAccess['/settings/automation'], enabled: flags.settings },
+          { to: '/settings/contracts', label: t('nav.settings.contracts'), icon: Settings, allow: routeAccess['/settings/contracts'], enabled: flags.settings },
+          { to: '/settings/labs', label: t('nav.settings.labs'), icon: Settings, allow: routeAccess['/settings/labs'], enabled: flags.settings },
+          { to: '/users', label: t('nav.users'), icon: ShieldUser, allow: routeAccess['/users'], enabled: flags.users },
+          { label: t('nav.settings.calendar.section'), icon: Settings, allow: routeAccess['/settings/calendar/holidays'], enabled: flags.settings, kind: 'section', sectionId: 'calendar' },
+          { to: '/settings/calendar/holidays', label: t('nav.settings.calendar.holidays'), icon: Settings, allow: routeAccess['/settings/calendar/holidays'], enabled: flags.settings, sectionId: 'calendar' },
+          { to: '/settings/calendar/non-working', label: t('nav.settings.calendar.non.working'), icon: Settings, allow: routeAccess['/settings/calendar/non-working'], enabled: flags.settings, sectionId: 'calendar' }
         ]
       }
     ];
 
-    return groups
-      .map((group) => ({
-        ...group,
-        items: group.items.filter((item) => item.enabled && canAccessRoute(role, item.to) && (!item.allow || item.allow.includes(role)))
-      }))
-      .filter((group) => group.items.length > 0);
+    return filterNavGroupsByAccess(groups, { role, permissions });
   }
 
   return [];
 }
 
-export function useNavItems(role: AppUserRole = 'view') {
-  return useNavGroups(role)
+export function useNavItems(role: AppUserRole = 'view', permissions: AppUserPermission[] = []) {
+  return useNavGroups(role, permissions)
     .flatMap((group) => group.items)
     .filter((item) => item.kind !== 'section' && item.to);
 }
 
-export function useMobileNavItems(role: AppUserRole = 'view') {
-  return useNavItems(role)
+export function useMobileNavItems(role: AppUserRole = 'view', permissions: AppUserPermission[] = []) {
+  return useNavItems(role, permissions)
     .filter((item) => item.mobile !== false)
     .sort((a, b) => (a.mobileOrder ?? Number.MAX_SAFE_INTEGER) - (b.mobileOrder ?? Number.MAX_SAFE_INTEGER))
     .slice(0, 5);

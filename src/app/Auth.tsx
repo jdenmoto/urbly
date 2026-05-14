@@ -22,6 +22,7 @@ type AuthState = {
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
 const qaRoleClaims: Record<AppUserRole, true> = {
+  owner: true,
   admin: true,
   editor: true,
   view: true,
@@ -29,6 +30,7 @@ const qaRoleClaims: Record<AppUserRole, true> = {
   supervisor: true,
   operator: true,
   auditoria: true,
+  technician: true,
   emergency_scheduler: true,
   building_admin: true,
   client: true

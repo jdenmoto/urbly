@@ -8,6 +8,7 @@ import { markInternalNotificationRead } from '@/lib/internalNotifications';
 import { useNavGroups } from '@/app/nav';
 
 const roleBadgeKey: Record<string, string> = {
+  owner: 'roles.company',
   admin: 'roles.company',
   editor: 'roles.company',
   view: 'roles.company',
@@ -15,6 +16,7 @@ const roleBadgeKey: Record<string, string> = {
   scheduler: 'roles.operations',
   operator: 'roles.operations',
   auditoria: 'roles.audit',
+  technician: 'roles.technician',
   emergency_scheduler: 'roles.technician',
   building_admin: 'roles.client',
   client: 'roles.client'
@@ -23,10 +25,10 @@ const roleBadgeKey: Record<string, string> = {
 export default function TopBar() {
   const { t } = useI18n();
   const location = useLocation();
-  const { role, user } = useAuth();
+  const { role, permissions, user } = useAuth();
   const [openNotifications, setOpenNotifications] = useState(false);
   const { data: notifications = [] } = useList<InternalNotification>('internalNotifications', 'internal_notifications');
-  const navGroups = useNavGroups(role);
+  const navGroups = useNavGroups(role, permissions);
   const currentItem = navGroups.flatMap((group) => group.items).find((item) => item.to === location.pathname);
   const scopedNotifications = useMemo(() => notifications.filter((item) => !item.userId || item.userId === user?.uid).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()), [notifications, user?.uid]);
   const unreadCount = scopedNotifications.filter((item) => !item.read).length;

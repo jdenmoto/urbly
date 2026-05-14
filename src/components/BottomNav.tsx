@@ -1,8 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
-import { useMobileNavItems } from '@/app/nav';
+import { getBottomNavGridClass, useMobileNavItems } from '@/app/nav';
 import { useAuth } from '@/app/Auth';
-import type { AppUserRole } from '@/core/models/appUser';
 import { useI18n } from '@/lib/i18n';
 
 type BottomNavProps = {
@@ -10,18 +9,18 @@ type BottomNavProps = {
 };
 
 export default function BottomNav({ show = true }: BottomNavProps) {
-  const { role } = useAuth();
+  const { role, permissions } = useAuth();
   const { t } = useI18n();
-  const navItems = useMobileNavItems(role);
+  const navItems = useMobileNavItems(role, permissions);
 
-  if (!show) return null;
+  if (!show || navItems.length === 0) return null;
 
   return (
     <nav
       className="fixed inset-x-3 bottom-3 z-40 rounded-[24px] border border-white/60 bg-white/90 px-2 py-2 shadow-[0_12px_40px_rgba(15,23,42,0.14)] backdrop-blur-xl"
       aria-label={t('nav.mobile.primary')}
     >
-      <div className="grid grid-cols-5 items-center gap-1">
+      <div className={clsx('grid items-center gap-1', getBottomNavGridClass(navItems.length))}>
         {navItems
           .filter((item) => item.to)
           .map((item) => (

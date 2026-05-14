@@ -1,6 +1,6 @@
 import type { AccountPermission } from './account';
 
-export type InternalAppUserRole = 'admin' | 'editor' | 'view' | 'building_admin' | 'emergency_scheduler' | 'supervisor' | 'scheduler' | 'operator' | 'auditoria';
+export type InternalAppUserRole = 'owner' | 'admin' | 'editor' | 'view' | 'building_admin' | 'technician' | 'emergency_scheduler' | 'supervisor' | 'scheduler' | 'operator' | 'auditoria';
 export type ExternalAppUserRole = 'client';
 export type AppUserRole = InternalAppUserRole | ExternalAppUserRole;
 

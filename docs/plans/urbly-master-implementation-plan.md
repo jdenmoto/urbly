@@ -1,8 +1,8 @@
 # Urbly — Master Implementation Plan
 
-Estado: draft pendiente de cierre de decisiones críticas  
-Base branch: `develop`  
-Modelo ejecutor: `ollama/qwen2.5-coder:3b`  
+Estado: draft pendiente de cierre de decisiones críticas
+Base branch: `develop`
+Modelo ejecutor: `ollama/qwen2.5-coder:3b`
 Estrategia: tareas atómicas, concisas, autónomas, con PR grande por fase
 
 ## 0. Reglas operativas
@@ -41,7 +41,7 @@ Como la implementación será ejecutada por `ollama/qwen2.5-coder:3b`, cada tare
 - con validación clara
 - idealmente ejecutable en 20–45 minutos
 
-Prohibido crear tareas grandes tipo “implementar multitenancy completo”.  
+Prohibido crear tareas grandes tipo “implementar multitenancy completo”.
 Cada tarea debe modificar un área concreta y verificable.
 
 ## 2. Prioridad de producto confirmada
@@ -367,37 +367,42 @@ When done, update this file:
 
 Current phase: Fase 5 — UX/mobile/i18n
 
-Last completed task: Phase 4 final gate — IA contextual suggestion-only
+Last completed task: F5-T01 — Bottom nav dinámico
 
-- Status: done, listo para PR contra `develop`
-- Branch: `phase/4-contextual-ai`
-- Changelog: `docs/plans/phase-4-changelog.md`
+- Status: done
+- Branch: `feat/dynamic-bottom-nav`
+- Commit: HEAD de `feat/dynamic-bottom-nav` (`feat: hacer dinamico el bottom nav`)
 - Files changed:
-  - `src/core/models/aiSuggestion.ts`
-  - `src/features/ai/**`
-  - `src/features/services/serviceSuggestions.ts`
-  - `src/features/services/ServiceDetailPage.tsx`
-  - `src/features/services/ServiceCloseoutPage.tsx`
-  - tests de sugerencias IA
+  - `src/app/nav.ts`
+  - `src/app/nav.test.ts`
+  - `src/components/BottomNav.tsx`
+  - `src/components/Sidebar.tsx`
+  - `src/components/TopBar.tsx`
+  - `src/app/App.tsx`
+  - `src/app/Auth.tsx`
+  - `src/app/layouts/AppLayout.tsx`
+  - `src/core/models/appUser.ts`
+  - `src/features/users/UsersPage.tsx`
+  - `public/locales/es.yaml`
+  - `docs/plans/urbly-atomic-task-list.md`
+  - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run lint` — pasa con 8 warnings preexistentes
-  - `npm run typecheck`
-  - `npm run test:run` — 92 passed, 20 skipped fuera de emulator normal
-  - `npm run test:coverage` — coverage gate pasa
-  - `npm run test:rules` — 20 passed con emulator Firestore/Storage
-  - `npm run build:minimum`
-- Notes: La IA queda limitada a sugerencias visibles para revisión humana; no guarda, no envía, no agenda ni muta automáticamente.
+  - `npm run test:run -- src/app/nav.test.ts` — pasa
+  - `npm run test:run` — 96 passed, 20 skipped fuera de emulator normal
+  - `npm run typecheck` — pasa
+  - `npm run lint` — pasa con 7 warnings preexistentes/no relacionados
+- Notes: `BottomNav` usa columnas dinámicas y el modelo de navegación filtra por rol + permisos; `Services` queda como entrada operativa y el portal cliente se mantiene separado bajo `/portal`.
 
 Next required step:
 
-Abrir PR grande de Fase 4 contra `develop`; después de merge/checks, iniciar F5-T01.
+Ejecutar F5-T02 — CTA móvil principal para técnico.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Abrir PR: `phase/4-contextual-ai` → `develop`.
-2. Esperar checks/review y merge autorizado.
-3. Crear `phase/5-ux-mobile-i18n` desde `develop` actualizado.
-4. Ejecutar F5-T01: bottom nav dinámico.
+1. Partir de `phase/5-ux-mobile-i18n` actualizado con F5-T01 integrado.
+2. Crear rama `feat/technician-mobile-primary-cta`.
+3. Abrir `src/features/technician/TechnicianHomePage.tsx`, `src/features/services/ServicesPage.tsx` y componentes móviles relacionados.
+4. Implementar F5-T02: CTA móvil principal para técnico.
 
 ## 8. Archivos relacionados
 
