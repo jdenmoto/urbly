@@ -367,33 +367,33 @@ When done, update this file:
 
 Current phase: Fase 4 — IA contextual
 
-Last completed task: F4-T02 — AiSuggestionCard reutilizable
+Last completed task: F4-T03 — Resumen técnico en detalle de servicio
 
 - Status: done
-- Branch: `feat/ai-suggestion-card`
-- Commit: HEAD de `feat/ai-suggestion-card` (`feat: agregar tarjeta segura de sugerencias ia`)
+- Branch: `feat/service-technical-summary-suggestion`
+- Commit: HEAD de `feat/service-technical-summary-suggestion` (`feat: agregar resumen tecnico sugerido en servicio`)
 - Files changed:
-  - `src/features/ai/AiSuggestionCard.tsx`
-  - `src/features/ai/__tests__/AiSuggestionCard.test.tsx`
-  - `src/features/ai/AiWorkspacePage.tsx`
+  - `src/features/services/ServiceDetailPage.tsx`
+  - `src/features/services/serviceSuggestions.ts`
+  - `src/features/services/__tests__/serviceSuggestions.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/features/ai/__tests__/AiSuggestionCard.test.tsx`
+  - `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts`
   - `npm run test:run`
   - `npm run typecheck`
   - `npm run lint` — pasa con 8 warnings preexistentes
-- Notes: `AiSuggestionCard` renderiza solo contratos `AiSuggestion` válidos, bloquea payloads inseguros, etiqueta la salida como sugerencia y solo expone acciones humanas permitidas por `safety.allowedUserActions` con handlers explícitos. No tiene acciones automáticas de guardado, envío ni mutación.
+- Notes: `ServiceDetailPage` renderiza el resumen técnico contextual mediante `AiSuggestionCard` y el contrato `AiSuggestion`; la sugerencia queda marcada como `suggestion_only`, requiere aprobación humana y no guarda, envía ni muta automáticamente.
 
 Next required step:
 
-Ejecutar F4-T03 — Resumen técnico en detalle de servicio.
+Ejecutar F4-T04 — Borrador de reporte en cierre.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/4-contextual-ai` actualizado e integrar `feat/ai-suggestion-card` si falta.
-2. Abrir `src/features/services/ServiceDetailPage.tsx` y revisar el bloque actual de IA.
-3. Usar `AiSuggestionCard` para mostrar el resumen técnico sugerido dentro del detalle sin guardar/enviar/mutar automáticamente.
+1. Partir de `phase/4-contextual-ai` actualizado e integrar `feat/service-technical-summary-suggestion` si falta.
+2. Abrir `src/features/services/ServiceCloseoutPage.tsx` y revisar el bloque de reporte/cierre técnico.
+3. Agregar borrador de reporte sugerido usando `AiSuggestion` y `AiSuggestionCard`, manteniendo el comportamiento de solo sugerencia sin guardar/enviar/mutar automáticamente.
 
 ## 8. Archivos relacionados
 
