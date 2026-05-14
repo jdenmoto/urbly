@@ -1,5 +1,10 @@
 import { renderTenantTemplate } from '@/lib/tenantTemplateEngine';
 import type { ServiceOrderPriority, ServiceOrderStatus } from '@/core/models/serviceOrder';
+import {
+  buildServiceReportSnapshot,
+  type ServiceReportSnapshot,
+  type ServiceReportSnapshotInput,
+} from './serviceReportSnapshot';
 export {
   buildServiceReportSnapshot,
   type ServiceReportSnapshot,
@@ -59,6 +64,93 @@ type TechnicalReportCopyOptions = {
 
 function reportLabel(t: TranslateFn, keyPrefix: string | undefined, key: string, fallback: string) {
   return keyPrefix ? t(`${keyPrefix}.${key}`, { defaultValue: fallback }) : fallback;
+}
+
+export type PrintableServiceReportModel = {
+  snapshot: ServiceReportSnapshot;
+  summary: {
+    title: string;
+    statusLabel: string;
+    scheduledStartAt: string;
+    scheduledEndAt: string;
+    photoCount: number;
+    issueCount: number;
+    attachmentCount: number;
+  };
+  reportText: string;
+  photos: string[];
+  attachments: string[];
+};
+
+function formatSnapshotChecklist(snapshot: ServiceReportSnapshot) {
+  return snapshot.results.checklist.length
+    ? snapshot.results.checklist.map((item) => `${item.label}: ${item.valueLabel}`).join(', ')
+    : null;
+}
+
+function formatSnapshotIssueDetail(snapshot: ServiceReportSnapshot) {
+  return snapshot.issues.length
+    ? snapshot.issues.map((issue) => `${issue.typeLabel}/${issue.categoryLabel}`).join(', ')
+    : null;
+}
+
+function buildSnapshotReportText(snapshot: ServiceReportSnapshot, t: TranslateFn, options: TechnicalReportCopyOptions = {}) {
+  const labelsKeyPrefix = options.labelsKeyPrefix;
+  const issueDetail = reportLabel(t, labelsKeyPrefix, 'issueDetail', 'Detalle de novedades');
+  const checklist = formatSnapshotChecklist(snapshot);
+  const issueDetailValue = formatSnapshotIssueDetail(snapshot);
+  const lines = [
+    `${reportLabel(t, labelsKeyPrefix, 'service', 'Servicio')}: ${snapshot.service.title}`,
+    `${reportLabel(t, labelsKeyPrefix, 'type', 'Tipo')}: ${snapshot.service.typeLabel}`,
+    `${reportLabel(t, labelsKeyPrefix, 'status', 'Estado')}: ${snapshot.service.statusLabel}`,
+    `${reportLabel(t, labelsKeyPrefix, 'priority', 'Prioridad')}: ${snapshot.service.priorityLabel}`,
+    `${reportLabel(t, labelsKeyPrefix, 'scheduledStart', 'Inicio programado')}: ${formatServiceDateTime(snapshot.schedule.scheduledStartAt)}`,
+    `${reportLabel(t, labelsKeyPrefix, 'scheduledEnd', 'Fin programado')}: ${formatServiceDateTime(snapshot.schedule.scheduledEndAt)}`,
+    `${reportLabel(t, labelsKeyPrefix, 'registeredIssues', 'Novedades registradas')}: ${snapshot.issueCount}`,
+    `${reportLabel(t, labelsKeyPrefix, 'photos', 'Evidencias fotográficas')}: ${snapshot.photoCount}`,
+    `${issueDetail}: ${issueDetailValue ?? reportLabel(t, labelsKeyPrefix, 'noIssues', 'sin novedades registradas por ahora')}`,
+  ];
+
+  if (snapshot.results.entryHour) {
+    lines.push(`${reportLabel(t, labelsKeyPrefix, 'entryHour', 'Hora de ingreso')}: ${snapshot.results.entryHour}`);
+  }
+  if (snapshot.results.exitHour) {
+    lines.push(`${reportLabel(t, labelsKeyPrefix, 'exitHour', 'Hora de salida')}: ${snapshot.results.exitHour}`);
+  }
+  if (snapshot.observations) {
+    lines.push(`${reportLabel(t, labelsKeyPrefix, 'observations', 'Observaciones')}: ${snapshot.observations}`);
+  }
+  if (checklist) {
+    lines.push(`${reportLabel(t, labelsKeyPrefix, 'checklist', 'Checklist')}: ${checklist}`);
+  }
+  if (snapshot.nextSteps.length) {
+    lines.push(`${reportLabel(t, labelsKeyPrefix, 'nextSteps', 'Siguientes pasos')}: ${snapshot.nextSteps.join(', ')}`);
+  }
+
+  return lines.join('\n');
+}
+
+export function buildPrintableServiceReportModel(
+  serviceOrder: ServiceReportSnapshotInput,
+  t: TranslateFn = defaultTranslate
+): PrintableServiceReportModel {
+  const snapshot = buildServiceReportSnapshot(serviceOrder, { t });
+
+  return {
+    snapshot,
+    summary: {
+      title: snapshot.service.title,
+      statusLabel: snapshot.service.statusLabel,
+      scheduledStartAt: snapshot.schedule.scheduledStartAt,
+      scheduledEndAt: snapshot.schedule.scheduledEndAt,
+      photoCount: snapshot.photoCount,
+      issueCount: snapshot.issueCount,
+      attachmentCount: snapshot.attachmentCount,
+    },
+    reportText: buildSnapshotReportText(snapshot, t),
+    photos: snapshot.evidence.photos,
+    attachments: snapshot.evidence.attachments,
+  };
 }
 
 export function buildTechnicalReport(
