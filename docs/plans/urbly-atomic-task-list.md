@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 3 — Portal cliente
-Current task: F3-T06 — Crear solicitudes desde portal
-Next agent start: partir de `phase/3-client-portal` actualizado, integrar/revisar F3-T05 si aplica, crear branch `feat/client-service-requests` y abrir `src/features/portal/**`.
+Current task: Fase 3 lista para gate final/changelog/PR
+Next agent start: partir de `phase/3-client-portal` actualizado, integrar `feat/client-service-requests` si falta y ejecutar gate final de Fase 3: changelog + PR contra `develop`.
 
 ---
 
@@ -758,7 +758,7 @@ npm run build
 
 ## TASK F3-T06 — Crear solicitudes desde portal
 
-Status: pending  
+Status: done
 Branch: `feat/client-service-requests`
 
 ### Validation
@@ -766,6 +766,15 @@ Branch: `feat/client-service-requests`
 npm run test:run -- client portal requests
 npm run build:minimum
 ```
+
+### Completion notes
+- Agregada callable pública `createClientPortalServiceRequest` que valida el JWT revocable del portal antes de crear una solicitud en `service_orders`.
+- La solicitud queda ligada al `accountId`, `customerId`, `managementCompanyId` y `buildingId` resueltos desde el token; no acepta scope enviado por el cliente.
+- El portal seguro tokenizado permite crear una solicitud con título, detalle, prioridad y fecha sugerida.
+- Agregados tests unitarios `src/test/clientPortalRequests.test.ts` para payload seguro y saneamiento de entrada.
+- Commit: HEAD de `feat/client-service-requests` (`feat: crear solicitudes desde portal cliente`).
+- Validaciones: `npm run test:run -- client portal requests`, `npm run test:run -- src/test/clientPortalRequests.test.ts src/test/clientPortalScope.test.ts`, `npm run typecheck`, `npm --prefix functions run build`, `npm run build:minimum`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Fase 3 queda lista para gate final, changelog y PR contra `develop`.
 
 ---
 

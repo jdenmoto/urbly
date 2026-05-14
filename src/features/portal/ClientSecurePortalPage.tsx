@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import Card from '@/components/Card';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
 import StatCard from '@/components/StatCard';
-import { validateClientPortalToken } from '@/lib/api/functions';
+import { createClientPortalServiceRequest, validateClientPortalToken } from '@/lib/api/functions';
 import { buildTechnicalReport } from '@/features/services/serviceReport';
 import { useOperationalServiceOrders } from '@/features/services/useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
@@ -17,12 +17,24 @@ const quoteStatusLabel: Record<string, string> = {
   approved: 'Aprobada'
 };
 
+const requestPriorityOptions = [
+  { value: 'medium', label: 'Normal' },
+  { value: 'high', label: 'Alta' },
+  { value: 'urgent', label: 'Urgente' },
+  { value: 'low', label: 'Baja' }
+] as const;
+
 export default function ClientSecurePortalPage() {
   const { t } = useI18n();
   const [params] = useSearchParams();
   const token = params.get('token') ?? '';
   const [validated, setValidated] = useState<null | { serviceOrderId: string; customerId: string }>(null);
   const [error, setError] = useState('');
+  const [requestTitle, setRequestTitle] = useState('');
+  const [requestDescription, setRequestDescription] = useState('');
+  const [requestPriority, setRequestPriority] = useState<(typeof requestPriorityOptions)[number]['value']>('medium');
+  const [requestedForAt, setRequestedForAt] = useState('');
+  const [requestStatus, setRequestStatus] = useState<{ kind: 'idle' | 'submitting' | 'success' | 'error'; message?: string }>({ kind: 'idle' });
 
   useEffect(() => {
     let cancelled = false;
@@ -54,6 +66,27 @@ export default function ClientSecurePortalPage() {
     () => (serviceOrder?.timeline?.length ? [...serviceOrder.timeline].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) : []),
     [serviceOrder]
   );
+
+  async function submitClientRequest(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setRequestStatus({ kind: 'submitting', message: 'Creando solicitud...' });
+    try {
+      const result = await createClientPortalServiceRequest({
+        token,
+        title: requestTitle,
+        description: requestDescription,
+        priority: requestPriority,
+        requestedForAt: requestedForAt ? new Date(requestedForAt).toISOString() : undefined
+      });
+      setRequestStatus({ kind: 'success', message: `Solicitud creada: ${result.serviceOrderId}` });
+      setRequestTitle('');
+      setRequestDescription('');
+      setRequestPriority('medium');
+      setRequestedForAt('');
+    } catch {
+      setRequestStatus({ kind: 'error', message: 'No se pudo crear la solicitud. Verifica el token o intenta de nuevo.' });
+    }
+  }
 
   if (error) {
     return <EmptyState title="Portal de cliente" description={error} />;
@@ -107,6 +140,78 @@ export default function ClientSecurePortalPage() {
             </div>
           </div>
         </div>
+      </Card>
+
+      <Card className="space-y-4 p-6">
+        <div>
+          <h2 className="text-lg font-semibold text-ink-900">Crear solicitud de servicio</h2>
+          <p className="mt-1 text-sm text-ink-600">
+            La solicitud queda vinculada al mismo cliente, cuenta y edificio autorizados por este acceso seguro.
+          </p>
+        </div>
+        <form className="grid gap-4 lg:grid-cols-[1fr,0.35fr]" onSubmit={submitClientRequest}>
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-ink-700" htmlFor="client-request-title">
+              Título de la solicitud
+            </label>
+            <input
+              id="client-request-title"
+              className="w-full rounded-2xl border border-fog-200 px-4 py-3 text-sm text-ink-900 outline-none transition focus:border-slate-400"
+              value={requestTitle}
+              onChange={(event) => setRequestTitle(event.target.value)}
+              maxLength={120}
+              placeholder="Ej. Fuga en zona común"
+            />
+            <label className="block text-sm font-semibold text-ink-700" htmlFor="client-request-description">
+              Detalle
+            </label>
+            <textarea
+              id="client-request-description"
+              className="min-h-28 w-full rounded-2xl border border-fog-200 px-4 py-3 text-sm text-ink-900 outline-none transition focus:border-slate-400"
+              value={requestDescription}
+              onChange={(event) => setRequestDescription(event.target.value)}
+              maxLength={1200}
+              placeholder="Describe qué ocurre, ubicación exacta y cualquier restricción de acceso."
+            />
+          </div>
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-ink-700" htmlFor="client-request-priority">
+              Prioridad
+            </label>
+            <select
+              id="client-request-priority"
+              className="w-full rounded-2xl border border-fog-200 px-4 py-3 text-sm text-ink-900 outline-none transition focus:border-slate-400"
+              value={requestPriority}
+              onChange={(event) => setRequestPriority(event.target.value as typeof requestPriority)}
+            >
+              {requestPriorityOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+            <label className="block text-sm font-semibold text-ink-700" htmlFor="client-request-date">
+              Fecha sugerida
+            </label>
+            <input
+              id="client-request-date"
+              type="datetime-local"
+              className="w-full rounded-2xl border border-fog-200 px-4 py-3 text-sm text-ink-900 outline-none transition focus:border-slate-400"
+              value={requestedForAt}
+              onChange={(event) => setRequestedForAt(event.target.value)}
+            />
+            <button
+              type="submit"
+              disabled={requestStatus.kind === 'submitting'}
+              className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {requestStatus.kind === 'submitting' ? 'Creando...' : 'Crear solicitud'}
+            </button>
+            {requestStatus.message ? (
+              <p className={`rounded-2xl p-3 text-sm ${requestStatus.kind === 'error' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                {requestStatus.message}
+              </p>
+            ) : null}
+          </div>
+        </form>
       </Card>
 
       <div className="grid gap-4 xl:grid-cols-[0.95fr,1.05fr]">

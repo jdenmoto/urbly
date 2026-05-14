@@ -367,36 +367,39 @@ When done, update this file:
 
 Current phase: Fase 3 — Portal cliente
 
-Last completed task: F3-T05 — Crear ClientReportsPage
+Last completed task: F3-T06 — Crear solicitudes desde portal
 
 - Status: done
-- Branch: `feat/client-reports-page`
-- Commit: HEAD de `feat/client-reports-page` (`feat: crear vista de reportes del portal cliente`)
+- Branch: `feat/client-service-requests`
+- Commit: HEAD de `feat/client-service-requests` (`feat: crear solicitudes desde portal cliente`)
 - Files changed:
-  - `src/features/portal/ClientReportsPage.tsx`
-  - `src/features/portal/clientReports.ts`
-  - `src/features/portal/__tests__/clientServices.test.ts`
-  - `src/app/App.tsx`
+  - `functions/src/clientPortal.ts`
+  - `functions/src/index.ts`
+  - `src/lib/api/functions.ts`
+  - `src/features/portal/ClientSecurePortalPage.tsx`
+  - `src/test/clientPortalRequests.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/features/portal/__tests__/clientServices.test.ts`
+  - `npm run test:run -- client portal requests`
+  - `npm run test:run -- src/test/clientPortalRequests.test.ts src/test/clientPortalScope.test.ts`
   - `npm run typecheck`
-  - `npm run build`
+  - `npm --prefix functions run build`
+  - `npm run build:minimum`
   - `npm run lint` (pasa con 8 warnings preexistentes)
-- Notes: `/portal/reports` ahora usa una página dedicada de portal cliente, con alcance por administración/edificios/cliente, lista de informes visibles, resumen técnico y PDFs adjuntos. El build mantiene los warnings circulares preexistentes de chunks.
+- Notes: el portal tokenizado ahora puede crear solicitudes sin login interno mediante callable que valida token revocable y deriva `accountId`, `customerId`, `managementCompanyId` y `buildingId` del scope del token. La UI no envía ni puede sobrescribir alcance tenant/cliente.
 
 Next required step:
 
-Ejecutar F3-T06 — Crear solicitudes desde portal.
+Cerrar Fase 3 con gate final, changelog y PR contra `develop`.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Partir de `phase/3-client-portal` actualizado.
-2. Integrar/revisar F3-T05 si la rama de fase aún no lo contiene.
-3. Crear branch `feat/client-service-requests`.
-4. Abrir `src/features/portal/**` y diseñar el flujo mínimo de creación de solicitudes del cliente.
-5. Implementar F3-T06 según `docs/plans/urbly-atomic-task-list.md` y validar `npm run test:run -- client portal requests` + `npm run build:minimum`.
+2. Integrar `feat/client-service-requests` si todavía no está incorporada en la rama de fase.
+3. Ejecutar el gate completo de Fase 3.
+4. Crear o actualizar `docs/plans/phase-3-changelog.md`.
+5. Abrir PR grande de Fase 3 contra `develop`; no hacer merge sin revisión humana.
 
 ## 8. Archivos relacionados
 

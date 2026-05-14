@@ -39,6 +39,81 @@ type PortalScope = {
   managementCompanyId?: string;
 };
 
+type ClientPortalServiceRequestInput = {
+  scope: PortalScope;
+  sourceServiceOrderId: string;
+  title?: unknown;
+  description?: unknown;
+  priority?: unknown;
+  requestedForAt?: unknown;
+  now?: string;
+};
+
+const SERVICE_REQUEST_PRIORITIES = new Set(['low', 'medium', 'high', 'urgent']);
+
+function toTrimmedString(value: unknown) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizePriority(value: unknown) {
+  return typeof value === 'string' && SERVICE_REQUEST_PRIORITIES.has(value) ? value : 'medium';
+}
+
+function normalizeIsoDate(value: unknown, fallback: string) {
+  if (typeof value !== 'string') return fallback;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? fallback : date.toISOString();
+}
+
+function addHoursIso(value: string, hours: number) {
+  const date = new Date(value);
+  date.setHours(date.getHours() + hours);
+  return date.toISOString();
+}
+
+export function buildClientPortalServiceRequestPayload(input: ClientPortalServiceRequestInput) {
+  const now = input.now ?? new Date().toISOString();
+  const scheduledStartAt = normalizeIsoDate(input.requestedForAt, now);
+  const title = toTrimmedString(input.title) || 'Solicitud de servicio del cliente';
+  const description = toTrimmedString(input.description);
+  const managementCompanyId = input.scope.managementCompanyId ? { managementCompanyId: input.scope.managementCompanyId } : {};
+
+  return {
+    accountId: input.scope.accountId,
+    buildingId: input.scope.buildingId,
+    customerId: input.scope.customerId,
+    ...managementCompanyId,
+    sourceServiceOrderId: input.sourceServiceOrderId,
+    dataSource: 'service_order' as const,
+    title,
+    description,
+    type: 'client_request',
+    priority: normalizePriority(input.priority),
+    status: 'unassigned' as const,
+    assignedTechnicianId: null,
+    recurrence: null,
+    seriesId: null,
+    scheduledStartAt,
+    scheduledEndAt: addHoursIso(scheduledStartAt, 1),
+    requestedBy: 'client_portal' as const,
+    requestedAt: now,
+    updatedAt: now,
+    issues: [],
+    attachments: [],
+    completionPhotos: [],
+    quoteVersions: [],
+    timeline: [
+      {
+        id: randomUUID(),
+        type: 'created' as const,
+        createdAt: now,
+        actorRole: 'client' as const,
+        summary: 'Solicitud creada desde portal cliente'
+      }
+    ]
+  };
+}
+
 function requirePermission(auth: AuthShape, permission: string) {
   if (!auth) throw new HttpsError('unauthenticated', 'Debe autenticarse.');
   const permissions = Array.isArray(auth.token?.permissions) ? (auth.token?.permissions as string[]) : [];
@@ -212,12 +287,7 @@ export const generateClientPortalToken = onCall(async (request) => {
   return { token };
 });
 
-export const validateClientPortalToken = onCall(async (request) => {
-  const token = request.data?.token as string | undefined;
-  if (!token) {
-    throw new HttpsError('invalid-argument', 'Token requerido.');
-  }
-
+async function validateClientPortalAccessToken(token: string) {
   try {
     const payload = jwt.verify(token, getPortalSecret(), { issuer: 'urbly-functions' }) as ClientPortalTokenPayload;
 
@@ -275,20 +345,55 @@ export const validateClientPortalToken = onCall(async (request) => {
       throw new HttpsError('permission-denied', 'Token revocado, desactualizado o fuera de alcance.');
     }
 
-    return {
-      valid: true,
-      serviceOrderId: payload.serviceOrderId,
-      accountId: scope.accountId,
-      buildingId: scope.buildingId,
-      customerId: payload.customerId,
-      managementCompanyId: scope.managementCompanyId ?? null,
-      serviceOrder: {
-        title: serviceOrder.title ?? '',
-        status: serviceOrder.status ?? 'draft'
-      }
-    };
+    return { payload, serviceOrder, scope };
   } catch (error) {
     if (error instanceof HttpsError) throw error;
     throw new HttpsError('permission-denied', 'Token invalido o expirado.');
   }
+}
+
+export const validateClientPortalToken = onCall(async (request) => {
+  const token = request.data?.token as string | undefined;
+  if (!token) {
+    throw new HttpsError('invalid-argument', 'Token requerido.');
+  }
+
+  const { payload, serviceOrder, scope } = await validateClientPortalAccessToken(token);
+
+  return {
+    valid: true,
+    serviceOrderId: payload.serviceOrderId,
+    accountId: scope.accountId,
+    buildingId: scope.buildingId,
+    customerId: payload.customerId,
+    managementCompanyId: scope.managementCompanyId ?? null,
+    serviceOrder: {
+      title: serviceOrder.title ?? '',
+      status: serviceOrder.status ?? 'draft'
+    }
+  };
+});
+
+export const createClientPortalServiceRequest = onCall(async (request) => {
+  const token = request.data?.token as string | undefined;
+  if (!token) {
+    throw new HttpsError('invalid-argument', 'Token requerido.');
+  }
+
+  const { payload, scope } = await validateClientPortalAccessToken(token);
+  const serviceRequestPayload = buildClientPortalServiceRequestPayload({
+    scope,
+    sourceServiceOrderId: payload.serviceOrderId,
+    title: request.data?.title,
+    description: request.data?.description,
+    priority: request.data?.priority,
+    requestedForAt: request.data?.requestedForAt
+  });
+
+  const docRef = await db.collection('service_orders').add(serviceRequestPayload);
+
+  return {
+    ok: true,
+    serviceOrderId: docRef.id
+  };
 });
