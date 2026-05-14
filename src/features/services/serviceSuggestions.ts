@@ -1,5 +1,5 @@
 import type { ServiceOrder } from '@/core/models/serviceOrder';
-import type { AiSuggestion } from '@/core/models/aiSuggestion';
+import { createAiSuggestion, type AiSuggestion } from '@/core/models/aiSuggestion';
 import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from './serviceOrderAi';
 
 export function buildServiceSuggestions(serviceOrder: ServiceOrder, t: (key: string, params?: Record<string, string | number | undefined>) => string): AiSuggestion[] {
@@ -7,23 +7,26 @@ export function buildServiceSuggestions(serviceOrder: ServiceOrder, t: (key: str
   const inputSummary = `${serviceOrder.title} | ${serviceOrder.status} | issues:${serviceOrder.issues?.length ?? 0}`;
 
   return [
-    {
+    createAiSuggestion({
       id: `${serviceOrder.id}-summary`,
-      type: 'summary',
+      kind: 'technical_summary',
+      title: 'Resumen técnico',
       content: buildServiceSummary(serviceOrder, t),
       trace: { generatedAt, module: 'services', roleScope: 'operator', inputSummary }
-    },
-    {
+    }),
+    createAiSuggestion({
       id: `${serviceOrder.id}-customer-message`,
-      type: 'customer_message',
+      kind: 'customer_message',
+      title: 'Mensaje al cliente',
       content: buildCustomerMessage(serviceOrder, t),
       trace: { generatedAt, module: 'services', roleScope: 'operator', inputSummary }
-    },
-    {
+    }),
+    createAiSuggestion({
       id: `${serviceOrder.id}-follow-up`,
-      type: 'follow_up',
+      kind: 'follow_up',
+      title: 'Follow-up sugerido',
       content: buildFollowUp(serviceOrder, t),
       trace: { generatedAt, module: 'services', roleScope: 'operator', inputSummary }
-    }
+    })
   ];
 }

@@ -367,37 +367,33 @@ When done, update this file:
 
 Current phase: Fase 4 — IA contextual
 
-Last completed task: Phase 3 final gate — Portal cliente tokenizado
+Last completed task: F4-T01 — Contrato de sugerencias IA
 
-- Status: done, listo para PR contra `develop`
-- Branch: `phase/3-client-portal`
-- Changelog: `docs/plans/phase-3-changelog.md`
+- Status: done
+- Branch: `feat/ai-suggestion-contract`
+- Commit: HEAD de `feat/ai-suggestion-contract` (`feat: definir contrato seguro de sugerencias ia`)
 - Files changed:
-  - `src/app/App.tsx`
-  - `src/features/portal/**`
-  - `functions/src/clientPortal.ts`
-  - `functions/src/index.ts`
-  - `src/lib/api/functions.ts`
-  - tests de portal cliente
+  - `src/core/models/aiSuggestion.ts`
+  - `src/core/models/__tests__/aiSuggestion.test.ts`
+  - `src/features/services/serviceSuggestions.ts`
+  - `docs/plans/urbly-atomic-task-list.md`
+  - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run lint` — pasa con 8 warnings preexistentes
+  - `npm run test:run -- src/core/models/__tests__/aiSuggestion.test.ts src/features/services/__tests__`
+  - `npm run test:run`
   - `npm run typecheck`
-  - `npm run test:run` — 81 passed, 20 skipped fuera de emulator normal
-  - `npm run test:coverage` — coverage gate pasa
-  - `npm run test:rules` — 20 passed con emulator Firestore/Storage
-  - `npm run build:minimum`
-- Notes: Portal cliente queda público/tokenizado, revocable, scoped server-side y con vistas de servicios/reportes/solicitudes.
+  - `npm run lint` — pasa con warnings preexistentes si aparecen
+- Notes: Las sugerencias IA quedan modeladas como `suggestion_only`, requieren aprobación humana y declaran como prohibidas las acciones `auto_save`, `auto_send` y `auto_mutate`.
 
 Next required step:
 
-Abrir PR grande de Fase 3 contra `develop`; después de merge/checks, iniciar F4-T01.
+Ejecutar F4-T02 — `AiSuggestionCard` reutilizable.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Abrir PR: `phase/3-client-portal` → `develop`.
-2. Esperar checks/review y merge autorizado.
-3. Crear `phase/4-contextual-ai` desde `develop` actualizado.
-4. Ejecutar F4-T01: contrato de sugerencias IA.
+1. Partir de `phase/4-contextual-ai` actualizado e integrar `feat/ai-suggestion-contract` si falta.
+2. Abrir `src/core/models/aiSuggestion.ts` para usar el contrato seguro.
+3. Crear componente reutilizable para renderizar sugerencias sin acciones automáticas de guardado/envío/mutación.
 
 ## 8. Archivos relacionados
 
