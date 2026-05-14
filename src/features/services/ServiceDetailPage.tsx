@@ -7,6 +7,7 @@ import PageHeader from '@/components/PageHeader';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';
 import Select from '@/components/Select';
+import AiSuggestionCard from '@/features/ai/AiSuggestionCard';
 import { useAuth } from '@/app/Auth';
 import { useList } from '@/lib/api/queries';
 import { assignTechnician } from '@/lib/api/serviceOrders';
@@ -18,7 +19,7 @@ import type { Employee } from '@/core/models/employee';
 import type { ManagementCompany } from '@/core/models/managementCompany';
 import type { AppUser } from '@/core/models/appUser';
 import { buildCustomerMessage, buildFollowUp, buildServiceSummary } from './serviceOrderAi';
-import { buildServiceSuggestions } from './serviceSuggestions';
+import { buildServiceTechnicalSummarySuggestion } from './serviceSuggestions';
 import { getServiceDailyProgress } from './serviceProgress';
 import { resolveTechnicianScope, scopeServiceOrdersForTechnician } from './technicianScope';
 import {
@@ -125,7 +126,7 @@ export default function ServiceDetailPage() {
   const dailyProgress = serviceOrder ? getServiceDailyProgress(serviceOrder) : [];
   const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder) : '';
-  const aiSuggestions = serviceOrder ? buildServiceSuggestions(serviceOrder, t) : [];
+  const aiTechnicalSummarySuggestion = serviceOrder ? buildServiceTechnicalSummarySuggestion(serviceOrder, t) : null;
   const backToServicesTarget = locationState?.fromPath ?? `/services${location.search}`;
   const listContext = locationState?.listContext;
   const currentPath = `${location.pathname}${location.search}`;
@@ -403,28 +404,19 @@ export default function ServiceDetailPage() {
 
       {!isTechnicianView ? (
         <>
-          <Card className="space-y-6 p-6">
-            <div>
-              <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">IA trace</div>
-              <h2 className="mt-3 text-xl font-semibold text-ink-900">Suggestions y trazabilidad</h2>
-              <p className="text-sm leading-6 text-ink-600">Salida sugerida por IA con contexto y metadata de generación.</p>
-            </div>
+          {aiTechnicalSummarySuggestion ? (
+            <Card className="space-y-6 p-6">
+              <div>
+                <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">IA contextual</div>
+                <h2 className="mt-3 text-xl font-semibold text-ink-900">Resumen técnico sugerido</h2>
+                <p className="text-sm leading-6 text-ink-600">
+                  Sugerencia contextual para revisar el servicio. No se guarda, envía ni modifica el servicio automáticamente.
+                </p>
+              </div>
 
-            <div className="grid gap-4 text-sm text-ink-700 xl:grid-cols-3">
-              {aiSuggestions.map((item) => (
-                <div key={item.id} className="rounded-3xl border border-fog-200 bg-white p-5">
-                  <p className="font-semibold text-ink-900">{item.type}</p>
-                  <p className="mt-3 whitespace-pre-wrap leading-6">{item.content}</p>
-                  <div className="mt-4 rounded-2xl bg-fog-50 p-3 text-xs text-ink-500">
-                    <p>Módulo: {item.trace.module}</p>
-                    <p>Rol: {item.trace.roleScope ?? 'n/a'}</p>
-                    <p>Generado: {item.trace.generatedAt}</p>
-                    <p>Input: {item.trace.inputSummary}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
+              <AiSuggestionCard suggestion={aiTechnicalSummarySuggestion} />
+            </Card>
+          ) : null}
 
           <Card className="space-y-6 p-6">
             <div>

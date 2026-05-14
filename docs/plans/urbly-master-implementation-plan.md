@@ -365,39 +365,39 @@ When done, update this file:
 
 ## 7. Estado actual de ejecución
 
-Current phase: Fase 4 — IA contextual
+Current phase: Fase 5 — UX/mobile/i18n
 
-Last completed task: Phase 3 final gate — Portal cliente tokenizado
+Last completed task: Phase 4 final gate — IA contextual suggestion-only
 
 - Status: done, listo para PR contra `develop`
-- Branch: `phase/3-client-portal`
-- Changelog: `docs/plans/phase-3-changelog.md`
+- Branch: `phase/4-contextual-ai`
+- Changelog: `docs/plans/phase-4-changelog.md`
 - Files changed:
-  - `src/app/App.tsx`
-  - `src/features/portal/**`
-  - `functions/src/clientPortal.ts`
-  - `functions/src/index.ts`
-  - `src/lib/api/functions.ts`
-  - tests de portal cliente
+  - `src/core/models/aiSuggestion.ts`
+  - `src/features/ai/**`
+  - `src/features/services/serviceSuggestions.ts`
+  - `src/features/services/ServiceDetailPage.tsx`
+  - `src/features/services/ServiceCloseoutPage.tsx`
+  - tests de sugerencias IA
 - Validations executed:
   - `npm run lint` — pasa con 8 warnings preexistentes
   - `npm run typecheck`
-  - `npm run test:run` — 81 passed, 20 skipped fuera de emulator normal
+  - `npm run test:run` — 92 passed, 20 skipped fuera de emulator normal
   - `npm run test:coverage` — coverage gate pasa
   - `npm run test:rules` — 20 passed con emulator Firestore/Storage
   - `npm run build:minimum`
-- Notes: Portal cliente queda público/tokenizado, revocable, scoped server-side y con vistas de servicios/reportes/solicitudes.
+- Notes: La IA queda limitada a sugerencias visibles para revisión humana; no guarda, no envía, no agenda ni muta automáticamente.
 
 Next required step:
 
-Abrir PR grande de Fase 3 contra `develop`; después de merge/checks, iniciar F4-T01.
+Abrir PR grande de Fase 4 contra `develop`; después de merge/checks, iniciar F5-T01.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Abrir PR: `phase/3-client-portal` → `develop`.
+1. Abrir PR: `phase/4-contextual-ai` → `develop`.
 2. Esperar checks/review y merge autorizado.
-3. Crear `phase/4-contextual-ai` desde `develop` actualizado.
-4. Ejecutar F4-T01: contrato de sugerencias IA.
+3. Crear `phase/5-ux-mobile-i18n` desde `develop` actualizado.
+4. Ejecutar F5-T01: bottom nav dinámico.
 
 ## 8. Archivos relacionados
 

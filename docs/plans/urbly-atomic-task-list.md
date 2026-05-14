@@ -8,9 +8,9 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 
 ## Estado global
 
-Current phase: Fase 3 — Portal cliente
-Current task: Fase 3 lista para gate final/changelog/PR
-Next agent start: partir de `phase/3-client-portal` actualizado, integrar `feat/client-service-requests` si falta y ejecutar gate final de Fase 3: changelog + PR contra `develop`.
+Current phase: Fase 5 — UX/mobile/i18n  
+Current task: Fase 4 lista para PR/merge; luego iniciar F5-T01  
+Next agent start: abrir PR `phase/4-contextual-ai` → `develop`; tras merge/checks, crear `phase/5-ux-mobile-i18n` desde `develop` actualizado y ejecutar F5-T01.
 
 ---
 
@@ -783,25 +783,108 @@ npm run build:minimum
 Branch de fase: `phase/4-contextual-ai`
 
 ## TASK F4-T01 — Contrato de sugerencias IA
-Status: pending
+Status: done
+Branch: `feat/ai-suggestion-contract`
+
+### Objective
+Definir un contrato reutilizable y seguro para sugerencias IA contextuales.
+
+### Context
+La IA solo puede sugerir; no puede guardar, enviar ni mutar estado sin acción humana explícita.
+
+### Files changed
+- `src/core/models/aiSuggestion.ts`
+- `src/core/models/__tests__/aiSuggestion.test.ts`
+- `src/features/services/serviceSuggestions.ts`
+
+### Completion notes
+- Agregado contrato `AiSuggestion` con `kind`, `title`, `trace` y `safety`.
+- Agregada política obligatoria `suggestion_only` con aprobación humana y acciones prohibidas `auto_save`, `auto_send`, `auto_mutate`.
+- Agregados guards `isAiSuggestion`, `isSuggestionOnlyPolicy`, `hasForbiddenAiSystemAction` y factory `createAiSuggestion`.
+- `serviceSuggestions` ahora crea sugerencias mediante el contrato seguro manteniendo compatibilidad temporal con `type`.
+- Commit: HEAD de `feat/ai-suggestion-contract` (`feat: definir contrato seguro de sugerencias ia`).
+- Validaciones: `npm run test:run -- src/core/models/__tests__/aiSuggestion.test.ts src/features/services/__tests__`, `npm run test:run`, `npm run typecheck`, `npm run lint`.
+- Siguiente agente: empezar F4-T02 creando `AiSuggestionCard` reutilizable basado en `src/core/models/aiSuggestion.ts`.
 
 ## TASK F4-T02 — AiSuggestionCard reutilizable
-Status: pending
+Status: done
+Branch: `feat/ai-suggestion-card`
+
+### Completion notes
+- Creado `AiSuggestionCard` reutilizable para renderizar contratos `AiSuggestion` con validación runtime mediante `isAiSuggestion`.
+- El componente marca explícitamente `Solo sugerencia` y `Requiere aprobación humana`.
+- Las acciones visibles se limitan a acciones humanas permitidas por `safety.allowedUserActions` y handlers explícitos; no muestra ni ejecuta guardado/envío/mutación automática.
+- Payloads malformados o inseguros se bloquean sin renderizar contenido sugerido.
+- `AiWorkspacePage` ahora usa `buildServiceSuggestions` + `AiSuggestionCard` para mostrar sugerencias con el contrato seguro.
+- Commit: HEAD de `feat/ai-suggestion-card` (`feat: agregar tarjeta segura de sugerencias ia`).
+- Validaciones: `npm run test:run -- src/features/ai/__tests__/AiSuggestionCard.test.tsx`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F4-T03 agregando resumen técnico sugerido en el detalle de servicio con `AiSuggestionCard`.
 
 ## TASK F4-T03 — Resumen técnico en detalle de servicio
-Status: pending
+Status: done
+Branch: `feat/service-technical-summary-suggestion`
+
+### Completion notes
+- Agregado helper `buildServiceTechnicalSummarySuggestion` que genera un contrato `AiSuggestion` `technical_summary` para `services.detail` con política `suggestion_only`.
+- `ServiceDetailPage` ahora renderiza el resumen técnico sugerido con `AiSuggestionCard`, mostrando trazabilidad y aprobación humana requerida.
+- La UI no guarda, envía ni muta el servicio automáticamente; solo muestra la sugerencia contextual.
+- Agregado test unitario `src/features/services/__tests__/serviceSuggestions.test.ts` para el contrato seguro del resumen técnico.
+- Commit: HEAD de `feat/service-technical-summary-suggestion` (`feat: agregar resumen tecnico sugerido en servicio`).
+- Validaciones: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F4-T04 agregando borrador de reporte en cierre con `AiSuggestionCard` en `src/features/services/ServiceCloseoutPage.tsx`.
 
 ## TASK F4-T04 — Borrador de reporte en cierre
-Status: pending
+Status: done
+Branch: `feat/service-report-draft-suggestion`
+
+### Completion notes
+- Agregado helper `buildServiceReportDraftSuggestion` que genera un contrato `AiSuggestion` `report_draft` para `services.closeout` con política `suggestion_only`, trazabilidad y plantilla `service-report-draft-v1`.
+- `ServiceCloseoutPage` ahora renderiza el borrador de reporte con `AiSuggestionCard` dentro del contexto de cierre.
+- La sugerencia no recibe handlers de acción: no guarda, no envía y no muta automáticamente; solo muestra contenido para aprobación humana.
+- Agregado test unitario en `src/features/services/__tests__/serviceSuggestions.test.ts` para validar contrato seguro del borrador de reporte.
+- Commit: HEAD de `feat/service-report-draft-suggestion` (`feat: agregar borrador de reporte sugerido`)
+- Validaciones: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F4-T05 agregando mensaje cliente sugerido sin envío automático con `AiSuggestionCard`.
 
 ## TASK F4-T05 — Mensaje cliente sugerido sin envío automático
-Status: pending
+Status: done
+Branch: `feat/client-message-suggestion`
+
+### Completion notes
+- Agregado helper `buildServiceCustomerMessageSuggestion` que genera un contrato `AiSuggestion` `customer_message` para `services.closeout` con política `suggestion_only`, trazabilidad y plantilla `customer-message-closeout-v1`.
+- `ServiceCloseoutPage` ahora renderiza el mensaje cliente sugerido con `AiSuggestionCard` dentro del bloque de comunicación de cierre.
+- La acción disponible es copiar para revisión/aprobación humana; no existe envío automático, guardado automático ni mutación del servicio.
+- Agregado test unitario en `src/features/services/__tests__/serviceSuggestions.test.ts` para validar contrato seguro, trazabilidad y ausencia de acción de envío.
+- Commit: HEAD de `feat/client-message-suggestion` (`feat: agregar mensaje cliente sugerido`)
+- Validaciones: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F4-T06 agregando detección de faltantes antes de cerrar con `AiSuggestionCard`.
 
 ## TASK F4-T06 — Detección de faltantes antes de cerrar
-Status: pending
+Status: done
+Branch: `feat/closeout-missing-items-suggestion`
+
+### Completion notes
+- Agregado helper `buildServiceMissingRequirementsSuggestion` que genera un contrato `AiSuggestion` `missing_requirements` para `services.closeout` con política `suggestion_only`, trazabilidad y plantilla `missing-requirements-closeout-v1`.
+- La detección revisa faltantes de observaciones de cierre, evidencia fotográfica final y checklist técnico desde el snapshot del reporte.
+- `ServiceCloseoutPage` renderiza la sugerencia con `AiSuggestionCard` antes de completar el cierre cuando el servicio aún no está completado.
+- No se agregó bloqueo automático, guardado automático, envío automático ni mutación automática; las validaciones existentes siguen siendo las únicas que pueden impedir cerrar.
+- Agregado test unitario en `src/features/services/__tests__/serviceSuggestions.test.ts` para validar contrato seguro, trazabilidad y acciones permitidas.
+- Commit: HEAD de `feat/closeout-missing-items-suggestion` (`feat: sugerir faltantes antes del cierre`)
+- Validaciones: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F4-T07 agregando follow-up sugerido con `AiSuggestionCard` sin guardado, envío ni mutación automática.
 
 ## TASK F4-T07 — Follow-up sugerido
-Status: pending
+Status: done
+Branch: `feat/service-follow-up-suggestion`
+
+### Completion notes
+- Agregado helper `buildServiceFollowUpSuggestion` que genera un contrato `AiSuggestion` `follow_up` para `services.closeout` con política `suggestion_only`, trazabilidad y plantilla `follow-up-closeout-v1`.
+- `ServiceCloseoutPage` renderiza el follow-up sugerido con `AiSuggestionCard` junto al cierre completado y en el bloque IA de cierre para servicios aún no completados.
+- No se agregó programación automática, guardado automático, envío automático ni mutación automática; la sugerencia no recibe handlers de acción en UI.
+- Agregado test unitario en `src/features/services/__tests__/serviceSuggestions.test.ts` para validar contrato seguro, trazabilidad y acciones permitidas.
+- Commit: HEAD de `feat/service-follow-up-suggestion` (`feat: agregar follow-up sugerido en cierre`)
+- Validaciones: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes), `npm run build:minimum` (pasa con avisos preexistentes de chunks circulares).
+- Fase 4 queda lista para gate final, changelog y PR contra `develop`.
 
 ---
 
