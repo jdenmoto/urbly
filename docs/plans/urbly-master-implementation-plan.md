@@ -407,16 +407,31 @@ Last completed task: F2-T01 — Quitar Scheduling del nav
   - `npm run lint` — pasa con 8 warnings preexistentes/no relacionados
 - Notes: `/scheduling` fue removido solo de la navegación visible. La ruta se mantiene sin redirect hasta F2-T02.
 
+Last completed task: F2-T02 — Redirigir `/scheduling` a `/services`
+
+- Status: done
+- Branch: `refactor/redirect-scheduling-route`
+- Commit: HEAD de `refactor/redirect-scheduling-route` (`refactor: redirigir scheduling a services`)
+- Files changed:
+  - `src/app/App.tsx`
+  - `docs/plans/urbly-atomic-task-list.md`
+  - `docs/plans/urbly-master-implementation-plan.md`
+- Validations executed:
+  - `npm run lint` — pasa con 8 warnings preexistentes/no relacionados
+  - `npm run typecheck`
+  - `npm run build:minimum`
+- Notes: `/scheduling` ahora redirige a `/services` con `replace`; se removió el lazy import de `SchedulingPage`. No se agregó test de routing porque no existen tests cercanos de routing/App y el cambio se mantuvo mínimo.
+
 Next required step:
 
-Ejecutar F2-T02 — Redirigir `/scheduling` a `/services`.
+Ejecutar F2-T03 — Migrar labels scheduling usados por services.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Partir de `phase/2-services-only` actualizado.
-2. Crear rama `refactor/redirect-scheduling-route`.
-3. Abrir `src/app/App.tsx`.
-4. Reemplazar la ruta `/scheduling` por `<Navigate to="/services" replace />` y remover el lazy import si queda sin uso.
+2. Crear rama `refactor/services-i18n-labels`.
+3. Abrir `public/locales/es.yaml`.
+4. Buscar usos de `scheduling.*` en archivos de services y migrar labels necesarios sin cambiar comportamiento.
 
 ## 8. Archivos relacionados
 
