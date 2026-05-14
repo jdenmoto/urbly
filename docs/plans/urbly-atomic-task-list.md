@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 5 — UX/mobile/i18n
-Current task: F5-T05 — Migrar copy hardcoded a es.yaml
-Next agent start: desde `phase/5-ux-mobile-i18n` actualizado con F5-T04 integrado, crear rama propia y ejecutar F5-T05.
+Current task: F5-T06 — Separar copy interno vs cliente
+Next agent start: desde `phase/5-ux-mobile-i18n` actualizado con F5-T05 integrado, crear rama propia y ejecutar F5-T06.
 
 ---
 
@@ -950,7 +950,17 @@ Branch: `feat/services-empty-states`
 - Siguiente agente: empezar F5-T05 migrando copy hardcoded restante a `public/locales/es.yaml`, con foco inicial en `src/features/services/ServicesPage.tsx`.
 
 ## TASK F5-T05 — Migrar copy hardcoded a es.yaml
-Status: pending
+Status: done
+Branch: `refactor/migrate-hardcoded-copy`
+
+### Completion notes
+- Migrado copy hardcoded focalizado de `ServicesPage` a `public/locales/es.yaml`, incluyendo CTAs, modales, filtros activos, asignación, edición, cancelación y avance diario.
+- Migrado copy visible obvio de portal cliente en `ClientServicesPage` y `ClientReportsPage`, reutilizando namespaces `client.portal.services` y `client.portal.reports`.
+- Agregado test de diccionario i18n para asegurar que `es.yaml` parsea correctamente y contiene claves críticas migradas.
+- Se corrigieron valores YAML con `:` sin comillas en descriptions de estados vacíos de Services para evitar fallos de parseo.
+- Commit: HEAD de `refactor/migrate-hardcoded-copy` (`refactor: migrar copy hardcoded a i18n`).
+- Validaciones: `npm run test:run -- src/lib/__tests__/i18nDictionary.test.ts src/features/services/__tests__/ServicesPage.emptyState.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 6 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F5-T06 separando copy interno vs cliente desde `public/locales/es.yaml`, `src/features/portal/ClientServicesPage.tsx` y `src/features/portal/ClientReportsPage.tsx`.
 
 ## TASK F5-T06 — Separar copy interno vs cliente
 Status: pending

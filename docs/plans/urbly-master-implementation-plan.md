@@ -367,34 +367,36 @@ When done, update this file:
 
 Current phase: Fase 5 — UX/mobile/i18n
 
-Last completed task: F5-T04 — Estados vacíos de Services
+Last completed task: F5-T05 — Migrar copy hardcoded a es.yaml
 
 - Status: done
-- Branch: `feat/services-empty-states`
-- Commit: HEAD de `feat/services-empty-states` (`feat: mejorar estados vacios de services`)
+- Branch: `refactor/migrate-hardcoded-copy`
+- Commit: HEAD de `refactor/migrate-hardcoded-copy` (`refactor: migrar copy hardcoded a i18n`)
 - Files changed:
   - `src/features/services/ServicesPage.tsx`
-  - `src/features/services/__tests__/ServicesPage.emptyState.test.ts`
+  - `src/features/portal/ClientServicesPage.tsx`
+  - `src/features/portal/ClientReportsPage.tsx`
+  - `src/lib/__tests__/i18nDictionary.test.ts`
   - `public/locales/es.yaml`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/features/services/__tests__/ServicesPage.emptyState.test.ts` — pasa
-  - `npm run test:run` — 105 passed, 20 skipped fuera de emulator normal
+  - `npm run test:run -- src/lib/__tests__/i18nDictionary.test.ts src/features/services/__tests__/ServicesPage.emptyState.test.ts` — pasa
+  - `npm run test:run` — 106 passed, 20 skipped fuera de emulator normal
   - `npm run typecheck` — pasa
   - `npm run lint` — pasa con 6 warnings preexistentes/no relacionados
-- Notes: `ServicesPage` diferencia estados vacíos para técnicos sin ruta asignada, servicios ocultos por filtros y operación sin servicios, manteniendo Services como entrada operativa y agregando acciones de limpiar filtros o crear servicio cuando corresponde.
+- Notes: se migró copy hardcoded focalizado de Services y portal cliente a `public/locales/es.yaml`, se agregaron claves `client.portal.services`/`client.portal.reports`, y se cubrió parseo de `es.yaml` con test dedicado.
 
 Next required step:
 
-Ejecutar F5-T05 — Migrar copy hardcoded a es.yaml.
+Ejecutar F5-T06 — Separar copy interno vs cliente.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/5-ux-mobile-i18n` actualizado con F5-T04 integrado.
-2. Crear una rama propia para F5-T05.
-3. Abrir `src/features/services/ServicesPage.tsx` y `public/locales/es.yaml`.
-4. Migrar copy hardcoded restante de Services a `es.yaml` sin cambiar flujo operativo ni reintroducir Scheduling como entrada visible.
+1. Partir de `phase/5-ux-mobile-i18n` actualizado con F5-T05 integrado.
+2. Crear una rama propia para F5-T06.
+3. Abrir `public/locales/es.yaml`, `src/features/portal/ClientServicesPage.tsx` y `src/features/portal/ClientReportsPage.tsx`.
+4. Separar copy interno vs cliente sin cambiar navegación ni alcance de datos del portal.
 
 ## 8. Archivos relacionados
 
