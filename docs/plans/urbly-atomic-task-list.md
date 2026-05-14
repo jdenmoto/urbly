@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 3 — Portal cliente
-Current task: F3-T03 — Validar relación token-service-customer-account
-Next agent start: partir de `phase/3-client-portal` actualizado, integrar/revisar F3-T02 si aplica, crear branch `fix/client-portal-token-scope` y abrir `functions/src/clientPortal.ts`.
+Current task: F3-T04 — Crear ClientServicesPage
+Next agent start: partir de `phase/3-client-portal` actualizado, integrar/revisar F3-T03 si aplica, crear branch `feat/client-services-page` y abrir `src/features/portal/**`.
 
 ---
 
@@ -697,13 +697,23 @@ npm --prefix functions run build
 
 ## TASK F3-T03 — Validar relación token-service-customer-account
 
-Status: pending  
+Status: done  
 Branch: `fix/client-portal-token-scope`
 
 ### Validation
 ```bash
+npm run test:run -- src/test/clientPortalScope.test.ts
 npm --prefix functions run build
 ```
+
+### Completion notes
+- `generateClientPortalToken` valida que el servicio pertenece al `activeAccountId` del operador antes de emitir el JWT.
+- El JWT y `clientPortalAccess` guardan `accountId`, `buildingId`, `customerId` y `managementCompanyId` para fijar el alcance del portal.
+- `validateClientPortalToken` recalcula la relación servicio/edificio/cliente/administración/cuenta y rechaza tokens cross-account, de otro cliente, de otro edificio o con versión/JTI fuera de alcance.
+- Agregado test unitario `src/test/clientPortalScope.test.ts` para scope válido, cliente incorrecto, building cross-account y cliente fuera de administración.
+- Commit: HEAD de `fix/client-portal-token-scope` (`fix: validar alcance del token del portal cliente`).
+- Validaciones: `npm run test:run -- src/test/clientPortalScope.test.ts`, `npm --prefix functions run build`.
+- Siguiente agente: empezar F3-T04 creando `ClientServicesPage` desde branch `feat/client-services-page`.
 
 ## TASK F3-T04 — Crear ClientServicesPage
 
