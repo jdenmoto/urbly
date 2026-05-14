@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 2 — Unificación Services/Scheduling  
-Current task: F2-T03 — Migrar labels scheduling usados por services
-Next agent start: partir de `phase/2-services-only` actualizado, crear `refactor/services-i18n-labels` y ejecutar F2-T03 en `public/locales/es.yaml` y archivos services que usen `scheduling.*`.
+Current task: F2-T04 — Aislar legacy scheduling no visible
+Next agent start: partir de `phase/2-services-only` actualizado, crear `refactor/isolate-scheduling-legacy` y ejecutar F2-T04 para aislar imports legacy de scheduling usados por services.
 
 ---
 
@@ -597,7 +597,7 @@ npm run typecheck
 
 ## TASK F2-T03 — Migrar labels scheduling usados por services
 
-Status: pending  
+Status: done
 Branch: `refactor/services-i18n-labels`
 
 ### Files allowed
@@ -609,6 +609,14 @@ Branch: `refactor/services-i18n-labels`
 npm run lint
 npm run typecheck
 ```
+
+### Completion notes
+- Agregadas labels propias bajo `services.types`, `services.issue.types` y `services.issue.categories` en `public/locales/es.yaml`.
+- Migrados helpers de presentación de services para resolver tipos y novedades desde `services.*`.
+- `ServiceCloseoutPage` dejó de referenciar labels `scheduling.*`; el bridge de cierre resuelve labels de novedades desde namespace services mientras el modal legacy sigue aislado para F2-T04.
+- Commit: HEAD de `refactor/services-i18n-labels` (`refactor: migrar labels de services`)
+- Validaciones: `npm run lint` pasa con 8 warnings preexistentes/no relacionados; `npm run typecheck`.
+- Siguiente agente: empezar F2-T04 aislando imports legacy de scheduling usados por services.
 
 ## TASK F2-T04 — Aislar legacy scheduling no visible
 
