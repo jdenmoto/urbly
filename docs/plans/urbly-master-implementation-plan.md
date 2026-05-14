@@ -365,41 +365,39 @@ When done, update this file:
 
 ## 7. Estado actual de ejecución
 
-Current phase: Fase 3 — Portal cliente
+Current phase: Fase 4 — IA contextual
 
-Last completed task: F3-T06 — Crear solicitudes desde portal
+Last completed task: Phase 3 final gate — Portal cliente tokenizado
 
-- Status: done
-- Branch: `feat/client-service-requests`
-- Commit: HEAD de `feat/client-service-requests` (`feat: crear solicitudes desde portal cliente`)
+- Status: done, listo para PR contra `develop`
+- Branch: `phase/3-client-portal`
+- Changelog: `docs/plans/phase-3-changelog.md`
 - Files changed:
+  - `src/app/App.tsx`
+  - `src/features/portal/**`
   - `functions/src/clientPortal.ts`
   - `functions/src/index.ts`
   - `src/lib/api/functions.ts`
-  - `src/features/portal/ClientSecurePortalPage.tsx`
-  - `src/test/clientPortalRequests.test.ts`
-  - `docs/plans/urbly-atomic-task-list.md`
-  - `docs/plans/urbly-master-implementation-plan.md`
+  - tests de portal cliente
 - Validations executed:
-  - `npm run test:run -- client portal requests`
-  - `npm run test:run -- src/test/clientPortalRequests.test.ts src/test/clientPortalScope.test.ts`
+  - `npm run lint` — pasa con 8 warnings preexistentes
   - `npm run typecheck`
-  - `npm --prefix functions run build`
+  - `npm run test:run` — 81 passed, 20 skipped fuera de emulator normal
+  - `npm run test:coverage` — coverage gate pasa
+  - `npm run test:rules` — 20 passed con emulator Firestore/Storage
   - `npm run build:minimum`
-  - `npm run lint` (pasa con 8 warnings preexistentes)
-- Notes: el portal tokenizado ahora puede crear solicitudes sin login interno mediante callable que valida token revocable y deriva `accountId`, `customerId`, `managementCompanyId` y `buildingId` del scope del token. La UI no envía ni puede sobrescribir alcance tenant/cliente.
+- Notes: Portal cliente queda público/tokenizado, revocable, scoped server-side y con vistas de servicios/reportes/solicitudes.
 
 Next required step:
 
-Cerrar Fase 3 con gate final, changelog y PR contra `develop`.
+Abrir PR grande de Fase 3 contra `develop`; después de merge/checks, iniciar F4-T01.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/3-client-portal` actualizado.
-2. Integrar `feat/client-service-requests` si todavía no está incorporada en la rama de fase.
-3. Ejecutar el gate completo de Fase 3.
-4. Crear o actualizar `docs/plans/phase-3-changelog.md`.
-5. Abrir PR grande de Fase 3 contra `develop`; no hacer merge sin revisión humana.
+1. Abrir PR: `phase/3-client-portal` → `develop`.
+2. Esperar checks/review y merge autorizado.
+3. Crear `phase/4-contextual-ai` desde `develop` actualizado.
+4. Ejecutar F4-T01: contrato de sugerencias IA.
 
 ## 8. Archivos relacionados
 
