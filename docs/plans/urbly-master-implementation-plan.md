@@ -365,111 +365,38 @@ When done, update this file:
 
 ## 7. Estado actual de ejecución
 
-Current phase: Fase 2 — Unificación Services/Scheduling
+Current phase: Fase 3 — Portal cliente
 
-Last completed task: Phase 1 final gate — Multitenancy + seguridad
+Last completed task: Phase 2 final gate — Services como entrada operativa
 
 - Status: done, listo para PR contra `develop`
-- Branch: `phase/1-multitenancy-security`
-- Changelog: `docs/plans/phase-1-changelog.md`
+- Branch: `phase/2-services-only`
+- Changelog: `docs/plans/phase-2-changelog.md`
 - Files changed:
-  - modelos/account memberships
-  - helpers de permisos por account
-  - migración `urbly-default`
-  - `firestore.rules`
-  - `storage.rules`
-  - `functions/src/serviceReports.ts`
-  - `functions/src/imports.ts`
-  - tests unitarios y de Firebase Rules
+  - `src/app/nav.ts`
+  - `src/app/App.tsx`
+  - `public/locales/es.yaml`
+  - `src/features/services/*`
+  - docs de plan
 - Validations executed:
   - `npm run lint` — pasa con 8 warnings preexistentes
   - `npm run typecheck`
-  - `npm run test:run` — 69 passed, 20 skipped fuera de emulator normal
-  - `npm run test:coverage` — coverage gate pasa; `serviceOrderPermissions.ts` al 100% branch coverage
+  - `npm run test:run` — 70 passed, 20 skipped fuera de emulator normal
+  - `npm run test:coverage` — coverage gate pasa
   - `npm run test:rules` — 20 passed con emulator Firestore/Storage
   - `npm run build:minimum`
-  - `npm audit` — 0 vulnerabilities reportadas
-  - `npm --prefix functions audit` — 0 vulnerabilities reportadas
-- Notes: Fase 1 queda lista para PR. No se hizo merge a `develop` porque GitHub exige PR/checks.
-
-Last completed task: F2-T01 — Quitar Scheduling del nav
-
-- Status: done
-- Branch: `refactor/remove-scheduling-nav`
-- Commit: HEAD de `refactor/remove-scheduling-nav` (`refactor: remover scheduling del nav`)
-- Files changed:
-  - `src/app/nav.ts`
-  - `docs/plans/urbly-atomic-task-list.md`
-  - `docs/plans/urbly-master-implementation-plan.md`
-- Validations executed:
-  - `npm run test:run -- nav` — no encontró tests nav existentes; Vitest terminó con code 1 por ausencia de archivos
-  - `npm run typecheck`
-  - `npm run lint` — pasa con 8 warnings preexistentes/no relacionados
-- Notes: `/scheduling` fue removido solo de la navegación visible. La ruta se mantiene sin redirect hasta F2-T02.
-
-Last completed task: F2-T02 — Redirigir `/scheduling` a `/services`
-
-- Status: done
-- Branch: `refactor/redirect-scheduling-route`
-- Commit: HEAD de `refactor/redirect-scheduling-route` (`refactor: redirigir scheduling a services`)
-- Files changed:
-  - `src/app/App.tsx`
-  - `docs/plans/urbly-atomic-task-list.md`
-  - `docs/plans/urbly-master-implementation-plan.md`
-- Validations executed:
-  - `npm run lint` — pasa con 8 warnings preexistentes/no relacionados
-  - `npm run typecheck`
-  - `npm run build:minimum`
-- Notes: `/scheduling` ahora redirige a `/services` con `replace`; se removió el lazy import de `SchedulingPage`. No se agregó test de routing porque no existen tests cercanos de routing/App y el cambio se mantuvo mínimo.
-
-Last completed task: F2-T03 — Migrar labels scheduling usados por services
-
-- Status: done
-- Branch: `refactor/services-i18n-labels`
-- Commit: HEAD de `refactor/services-i18n-labels` (`refactor: migrar labels de services`)
-- Files changed:
-  - `public/locales/es.yaml`
-  - `src/features/services/serviceOrderPresentation.ts`
-  - `src/features/services/serviceCloseoutBridge.ts`
-  - `src/features/services/ServiceCloseoutPage.tsx`
-  - `docs/plans/urbly-atomic-task-list.md`
-  - `docs/plans/urbly-master-implementation-plan.md`
-- Validations executed:
-  - `npm run lint` — pasa con 8 warnings preexistentes/no relacionados
-  - `npm run typecheck`
-- Notes: Services ahora resuelve tipos de servicio y labels de novedades desde `services.*`. No se removieron labels legacy `scheduling.*` porque el módulo legacy todavía las usa.
-
-Last completed task: F2-T04 — Aislar legacy scheduling no visible
-
-- Status: done
-- Branch: `refactor/isolate-scheduling-legacy`
-- Commit: HEAD de `refactor/isolate-scheduling-legacy` (`refactor: aislar scheduling legacy en services`)
-- Files changed:
-  - `src/features/services/legacySchedulingAdapter.tsx`
-  - `src/features/services/__tests__/legacySchedulingAdapter.test.ts`
-  - `src/features/services/ServicesPage.tsx`
-  - `src/features/services/ServiceCloseoutPage.tsx`
-  - `src/features/services/serviceCloseoutBridge.ts`
-  - `docs/plans/urbly-atomic-task-list.md`
-  - `docs/plans/urbly-master-implementation-plan.md`
-- Validations executed:
-  - `npm run lint` — pasa con 8 warnings preexistentes/no relacionados
-  - `npm run typecheck`
-  - `npm run test:run` — 70 passed, 20 skipped fuera de emulator normal
-  - `npm run build:minimum` — pasa; mantiene warnings preexistentes de `useLayoutEffect` SSR en test scheduling y chunks circulares Vite
-- Notes: Los imports directos desde Services hacia scheduling quedaron aislados en un adapter temporal. `ServiceCloseoutPage` usa tipo nativo `ServiceCloseoutItem`; el modal/hook legacy siguen encapsulados hasta su reemplazo por componentes nativos de Services. El redirect `/scheduling` → `/services` se preserva.
+- Notes: Fase 2 deja `/services` como entrada operativa visible y `/scheduling` redirigido/aislado como legacy. No se hizo merge a `develop` hasta pasar PR/checks.
 
 Next required step:
 
-Fase 2 queda lista para gate final, changelog y PR contra `develop`.
+Abrir PR grande de Fase 2 contra `develop`; después de merge/checks, iniciar Fase 3.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/2-services-only` actualizado.
-2. Integrar `refactor/isolate-scheduling-legacy` si aún no está integrado.
-3. Ejecutar gates finales de Fase 2 (`npm run lint`, `npm run typecheck`, `npm run test:run`, `npm run build:minimum`).
-4. Crear o actualizar `docs/plans/phase-2-changelog.md`.
-5. Abrir PR de `phase/2-services-only` contra `develop` sin hacer merge.
+1. Abrir PR: `phase/2-services-only` → `develop`.
+2. Esperar checks/review y merge autorizado.
+3. Crear branch de Fase 3 desde `develop` actualizado.
+4. Ejecutar primera tarea de portal cliente definida en `docs/plans/urbly-atomic-task-list.md`.
 
 ## 8. Archivos relacionados
 
