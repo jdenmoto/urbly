@@ -8,9 +8,9 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 
 ## Estado global
 
-Current phase: Fase 2 — Unificación Services/Scheduling  
-Current task: Phase 2 final gate/changelog/PR
-Next agent start: partir de `phase/2-services-only` actualizado, integrar `refactor/isolate-scheduling-legacy` si falta, ejecutar gates finales de fase, crear/actualizar `docs/plans/phase-2-changelog.md` y abrir PR contra `develop`.
+Current phase: Fase 3 — Portal cliente
+Current task: F3-T02 — JWT con jti/tokenVersion revocable
+Next agent start: partir de `phase/3-client-portal` actualizado, crear branch `fix/revocable-client-portal-token` y abrir `functions/src/clientPortal.ts`.
 
 ---
 
@@ -650,7 +650,7 @@ Branch de fase: `phase/3-client-portal`
 
 ## TASK F3-T01 — Sacar portal/access de ProtectedRoute
 
-Status: pending  
+Status: done
 Branch: `feat/public-portal-access-route`
 
 ### Objective
@@ -665,6 +665,13 @@ Permitir portal tokenizado sin login interno.
 npm run typecheck
 npm run build
 ```
+
+### Completion notes
+- `/portal/access` quedó como ruta pública de primer nivel, fuera del `ProtectedRoute` y del `AppLayout` interno.
+- Se preservaron las rutas internas `/portal`, `/portal/services` y `/portal/reports` bajo `RoleGuard`.
+- Commit: HEAD de `feat/public-portal-access-route` (`feat: publicar acceso tokenizado al portal`).
+- Validaciones: `npm run typecheck`, `npm run build` pasan. Build mantiene warnings preexistentes de chunks circulares.
+- Siguiente agente: empezar F3-T02 en `functions/src/clientPortal.ts` desde branch `fix/revocable-client-portal-token`.
 
 ## TASK F3-T02 — JWT con jti/tokenVersion revocable
 

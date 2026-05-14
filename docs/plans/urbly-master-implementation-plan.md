@@ -367,36 +367,30 @@ When done, update this file:
 
 Current phase: Fase 3 — Portal cliente
 
-Last completed task: Phase 2 final gate — Services como entrada operativa
+Last completed task: F3-T01 — Sacar portal/access de ProtectedRoute
 
-- Status: done, listo para PR contra `develop`
-- Branch: `phase/2-services-only`
-- Changelog: `docs/plans/phase-2-changelog.md`
+- Status: done
+- Branch: `feat/public-portal-access-route`
+- Commit: HEAD de `feat/public-portal-access-route` (`feat: publicar acceso tokenizado al portal`)
 - Files changed:
-  - `src/app/nav.ts`
   - `src/app/App.tsx`
-  - `public/locales/es.yaml`
-  - `src/features/services/*`
-  - docs de plan
+  - `docs/plans/urbly-atomic-task-list.md`
+  - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run lint` — pasa con 8 warnings preexistentes
   - `npm run typecheck`
-  - `npm run test:run` — 70 passed, 20 skipped fuera de emulator normal
-  - `npm run test:coverage` — coverage gate pasa
-  - `npm run test:rules` — 20 passed con emulator Firestore/Storage
-  - `npm run build:minimum`
-- Notes: Fase 2 deja `/services` como entrada operativa visible y `/scheduling` redirigido/aislado como legacy. No se hizo merge a `develop` hasta pasar PR/checks.
+  - `npm run build` — pasa; mantiene warnings preexistentes de chunks circulares
+- Notes: `/portal/access` ahora carga como ruta pública de primer nivel, sin `ProtectedRoute` ni `AppLayout` interno. Las rutas internas del portal permanecen protegidas por rol.
 
 Next required step:
 
-Abrir PR grande de Fase 2 contra `develop`; después de merge/checks, iniciar Fase 3.
+Ejecutar F3-T02 — JWT con `jti`/`tokenVersion` revocable.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Abrir PR: `phase/2-services-only` → `develop`.
-2. Esperar checks/review y merge autorizado.
-3. Crear branch de Fase 3 desde `develop` actualizado.
-4. Ejecutar primera tarea de portal cliente definida en `docs/plans/urbly-atomic-task-list.md`.
+1. Partir de `phase/3-client-portal` actualizado.
+2. Crear branch `fix/revocable-client-portal-token`.
+3. Abrir `functions/src/clientPortal.ts`.
+4. Implementar F3-T02 según `docs/plans/urbly-atomic-task-list.md` y validar `npm --prefix functions run build`.
 
 ## 8. Archivos relacionados
 
