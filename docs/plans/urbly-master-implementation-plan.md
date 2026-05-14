@@ -365,40 +365,36 @@ When done, update this file:
 
 ## 7. Estado actual de ejecución
 
-Current phase: Fase 5 — UX/mobile/i18n
+Current phase: Fase 6 — Reportes/PDF
 
-Last completed task: F5-T06 — Separar copy interno vs cliente
+Last completed task: F5-T07 — Ajustar navegación cliente
 
 - Status: done
-- Branch: `feat/separate-client-internal-copy`
-- Commit: este cambio (`feat: separar copy interno y cliente`)
+- Branch: `feat/adjust-client-navigation`
+- Commit: HEAD (`feat: ajustar navegacion cliente`)
 - Files changed:
-  - `public/locales/es.yaml`
-  - `src/features/portal/ClientServicesPage.tsx`
-  - `src/features/portal/ClientReportsPage.tsx`
-  - `src/features/portal/__tests__/clientPortalCopy.test.ts`
-  - `src/features/services/serviceOrderPresentation.ts`
-  - `src/features/services/serviceReport.ts`
+  - `src/app/nav.ts`
+  - `src/app/nav.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/lib/__tests__/i18nDictionary.test.ts` — pasa
-  - `npm run test:run -- src/features/portal/__tests__/clientPortalCopy.test.ts` — pasa
-  - `npm run test:run` — 108 passed, 20 skipped fuera de emulator normal
+  - `npm run test:run -- src/app/nav.test.ts` — pasa
+  - `npm run test:run` — pasa
   - `npm run typecheck` — pasa
-  - `npm run lint` — pasa con 6 warnings preexistentes/no relacionados
-- Notes: el portal cliente usa claves `client.portal.*` para copy visible y el reporte técnico cliente se genera con `buildClientTechnicalReport`, manteniendo el reporte operativo interno con defaults `services.*`.
+  - `npm run lint` — pasa con warnings preexistentes/no relacionados si aplican
+  - `npm run build:minimum` — pasa
+- Notes: la navegación móvil de `client` y `building_admin` queda limitada a `/portal`, `/portal/services` y `/portal/reports`; roles internos conservan `/services`; `/portal/services` usa el flag `services`, no el flag legacy `scheduling`.
 
 Next required step:
 
-Ejecutar F5-T07 — Ajustar navegación cliente.
+Ejecutar F6-T01 — Crear buildServiceReportSnapshot.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/5-ux-mobile-i18n` actualizado con F5-T06 integrado.
-2. Crear una rama propia para F5-T07.
-3. Revisar rutas y navegación de portal cliente sin modificar alcance de datos.
-4. Ajustar navegación cliente con pruebas enfocadas y mantener copy bajo `client.portal.*`.
+1. Partir de `phase/6-reports-pdf` o rama de fase equivalente actualizada con Fase 5 integrada.
+2. Crear una rama propia para F6-T01.
+3. Diseñar y probar `buildServiceReportSnapshot` como contrato compartido antes de migrar print/PDF.
+4. Mantener alcance mínimo: snapshot reutilizable, tests de contrato y sin cambios visuales no requeridos.
 
 ## 8. Archivos relacionados
 

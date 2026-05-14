@@ -8,9 +8,9 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 
 ## Estado global
 
-Current phase: Fase 5 — UX/mobile/i18n
-Current task: F5-T07 — Ajustar navegación cliente
-Next agent start: desde `phase/5-ux-mobile-i18n` actualizado con F5-T06 integrado, crear rama propia y ejecutar F5-T07.
+Current phase: Fase 6 — Reportes/PDF
+Current task: F6-T01 — Crear buildServiceReportSnapshot
+Next agent start: desde `phase/6-reports-pdf` o rama de fase equivalente actualizada con Fase 5 integrada, crear rama propia y ejecutar F6-T01.
 
 ---
 
@@ -976,7 +976,18 @@ Branch: `feat/separate-client-internal-copy`
 - Siguiente agente: empezar F5-T07 ajustando navegación cliente desde `phase/5-ux-mobile-i18n` actualizado con F5-T06 integrado.
 
 ## TASK F5-T07 — Ajustar navegación cliente
-Status: pending
+Status: done
+Branch: `feat/adjust-client-navigation`
+
+### Completion notes
+- Separada la navegación real de roles `client` y `building_admin` hacia rutas `/portal`, `/portal/services` y `/portal/reports`, sin exponer `/services` ni `/scheduling` en navegación móvil.
+- Services se mantiene como entrada operacional para roles internos (`operator`, `scheduler`, `admin`, etc.).
+- El acceso de portal servicios ya no depende del flag legacy `scheduling`; usa `services` para evitar acoplar navegación cliente con Scheduling.
+- Agregados tests enfocados en `src/app/nav.test.ts` para rutas cliente/portal, roles internos y flag legacy de Scheduling.
+- Commit: HEAD (`feat: ajustar navegacion cliente`).
+- Validaciones: `npm run test:run -- src/app/nav.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint`, `npm run build:minimum`.
+- Fase 5 lista para gate final/changelog/PR.
+- Siguiente agente: empezar F6-T01 creando `buildServiceReportSnapshot` desde la rama de Fase 6 actualizada con Fase 5 integrada.
 
 ---
 

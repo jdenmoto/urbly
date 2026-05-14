@@ -1,6 +1,6 @@
 import { Building2, Users, Landmark, LayoutDashboard, ShieldUser, Settings, Briefcase, Sparkles, FileText } from './navIcons';
 import { useI18n } from '@/lib/i18n';
-import { useFeatureFlags } from '@/lib/featureFlags';
+import { useFeatureFlags, type FeatureFlags } from '@/lib/featureFlags';
 import type { AppUserPermission, AppUserRole } from '@/core/models/appUser';
 
 export type NavItem = {
@@ -27,6 +27,8 @@ type NavAccess = {
   role: AppUserRole;
   permissions?: AppUserPermission[];
 };
+
+type NavTranslator = (key: string, params?: Record<string, string | number | undefined>) => string;
 
 const internalDashboardRoles: AppUserRole[] = ['owner', 'admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria'];
 
@@ -100,10 +102,7 @@ export function getDefaultRouteForRole(role: AppUserRole) {
   return '/';
 }
 
-export function useNavGroups(role: AppUserRole = 'view', permissions: AppUserPermission[] = []) {
-  const { t } = useI18n();
-  const { flags } = useFeatureFlags();
-
+export function getNavGroupsForRole(role: AppUserRole, permissions: AppUserPermission[], flags: FeatureFlags, t: NavTranslator) {
   if (role === 'building_admin' || role === 'client') {
     const groups: NavGroup[] = [
       {
@@ -111,7 +110,7 @@ export function useNavGroups(role: AppUserRole = 'view', permissions: AppUserPer
         description: t('nav.portal.section.description'),
         items: [
           { to: '/portal', label: t('nav.client.summary'), shortLabel: t('nav.short.dashboard'), icon: LayoutDashboard, enabled: flags.clientSummary, allow: routeAccess['/portal'], mobile: true, mobileOrder: 1 },
-          { to: '/portal/services', label: t('nav.portal.services'), shortLabel: t('nav.short.services'), icon: Briefcase, enabled: flags.scheduling, allow: routeAccess['/portal/services'], mobile: true, mobileOrder: 2 },
+          { to: '/portal/services', label: t('nav.portal.services'), shortLabel: t('nav.short.services'), icon: Briefcase, enabled: flags.services, allow: routeAccess['/portal/services'], mobile: true, mobileOrder: 2 },
           { to: '/portal/reports', label: t('nav.portal.reports'), shortLabel: t('nav.short.reports'), icon: FileText, enabled: flags.reports, allow: routeAccess['/portal/reports'], mobile: true, mobileOrder: 3 }
         ]
       }
@@ -183,6 +182,13 @@ export function useNavGroups(role: AppUserRole = 'view', permissions: AppUserPer
   }
 
   return [];
+}
+
+export function useNavGroups(role: AppUserRole = 'view', permissions: AppUserPermission[] = []) {
+  const { t } = useI18n();
+  const { flags } = useFeatureFlags();
+
+  return getNavGroupsForRole(role, permissions, flags, t);
 }
 
 export function useNavItems(role: AppUserRole = 'view', permissions: AppUserPermission[] = []) {
