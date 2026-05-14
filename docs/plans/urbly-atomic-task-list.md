@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 6 — Reportes/PDF
-Current task: F6-T02 — Migrar print frontend a snapshot
-Next agent start: desde `phase/6-reports-pdf` actualizada con F6-T01 integrado, crear rama propia y ejecutar F6-T02.
+Current task: F6-T03 — Migrar PDF function a snapshot
+Next agent start: desde `phase/6-reports-pdf` actualizada con F6-T02 integrado, crear rama propia y ejecutar F6-T03 sin cambiar la UI de impresión.
 
 ---
 
@@ -1010,11 +1010,23 @@ Validations:
 - `npm run lint` — pasa con 6 warnings preexistentes/no relacionados.
 
 ## TASK F6-T02 — Migrar print frontend a snapshot
-Status: pending
-Start from: rama de fase `phase/6-reports-pdf` con F6-T01 integrado; crear rama propia para migrar `ServiceReportPrintPage`/UI de impresión al snapshot sin tocar PDF function todavía.
+Status: done
+Branch: `feat/print-report-snapshot`
+Commit: HEAD (`refactor: usar snapshot en reporte imprimible`)
+Completion notes:
+- Agregado `buildPrintableServiceReportModel` en `src/features/services/serviceReport.ts` para derivar resumen, texto narrativo, evidencia y adjuntos desde `buildServiceReportSnapshot`.
+- `ServiceReportPrintPage` ahora consume el modelo imprimible basado en snapshot para título/estado/agenda, conteos, texto del reporte, fotos y adjuntos.
+- Se mantiene fuera de alcance la función PDF backend; queda reservada para F6-T03.
+Validations:
+- `npm run test:run -- src/features/services/__tests__/serviceReportPrint.test.ts` — pasa.
+- `npm run test:run` — pasa, con warnings SSR preexistentes en suite de scheduling.
+- `npm run typecheck` — pasa.
+- `npm run lint` — pasa con 6 warnings preexistentes/no relacionados.
+- `npm run build:minimum` — pasa, con warnings preexistentes de circular chunks Vite.
 
 ## TASK F6-T03 — Migrar PDF function a snapshot
 Status: pending
+Start from: rama de fase `phase/6-reports-pdf` con F6-T02 integrado; crear rama propia para migrar `functions/src/serviceReports.ts`/PDF al snapshot canónico sin reabrir la UI de impresión.
 
 ## TASK F6-T04 — Alinear narrativa IA al snapshot
 Status: pending

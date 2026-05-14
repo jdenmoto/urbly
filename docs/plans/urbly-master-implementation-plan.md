@@ -367,34 +367,35 @@ When done, update this file:
 
 Current phase: Fase 6 — Reportes/PDF
 
-Last completed task: F6-T01 — Crear buildServiceReportSnapshot
+Last completed task: F6-T02 — Migrar print frontend a snapshot
 
 - Status: done
-- Branch: `feat/service-report-snapshot`
-- Commit: HEAD (`feat: crear snapshot canonico de reporte`)
+- Branch: `feat/print-report-snapshot`
+- Commit: HEAD (`refactor: usar snapshot en reporte imprimible`)
 - Files changed:
-  - `src/features/services/serviceReportSnapshot.ts`
   - `src/features/services/serviceReport.ts`
-  - `src/features/services/__tests__/serviceReportSnapshot.test.ts`
+  - `src/features/services/ServiceReportPrintPage.tsx`
+  - `src/features/services/__tests__/serviceReportPrint.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/features/services/__tests__/serviceReportSnapshot.test.ts` — pasa
+  - `npm run test:run -- src/features/services/__tests__/serviceReportPrint.test.ts` — pasa
   - `npm run test:run` — pasa, con warnings SSR preexistentes/no relacionados en scheduling
   - `npm run typecheck` — pasa
   - `npm run lint` — pasa con 6 warnings preexistentes/no relacionados
-- Notes: `buildServiceReportSnapshot` queda como contrato puro/determinístico para identidad, contexto, agenda, asignados, resultados, evidencia, novedades, observaciones, recomendaciones/next steps, timestamps y labels de presentación. Print/PDF/IA no se migraron todavía por alcance de F6-T01.
+  - `npm run build:minimum` — pasa, con warnings preexistentes de circular chunks Vite
+- Notes: el frontend imprimible consume `buildPrintableServiceReportModel`, que deriva resumen, narrativa, evidencias y adjuntos desde `buildServiceReportSnapshot`. PDF backend e IA siguen fuera de alcance.
 
 Next required step:
 
-Ejecutar F6-T02 — Migrar print frontend a snapshot.
+Ejecutar F6-T03 — Migrar PDF function a snapshot.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/6-reports-pdf` con F6-T01 integrado.
-2. Crear una rama propia para F6-T02.
-3. Migrar `ServiceReportPrintPage` y la UI de impresión a consumir `buildServiceReportSnapshot`.
-4. Mantener fuera de alcance la función PDF backend, reservada para F6-T03.
+1. Partir de `phase/6-reports-pdf` con F6-T02 integrado.
+2. Crear una rama propia para F6-T03.
+3. Migrar `functions/src/serviceReports.ts`/generación PDF a consumir el snapshot canónico.
+4. Mantener fuera de alcance la narrativa IA, reservada para F6-T04.
 
 ## 8. Archivos relacionados
 
