@@ -1,16 +1,16 @@
 # Urbly — Atomic Task List for Qwen Execution
 
-Modelo ejecutor: `ollama/qwen2.5-coder:3b`  
-Base branch: `develop`  
+Modelo ejecutor: `ollama/qwen2.5-coder:3b`
+Base branch: `develop`
 Regla: una tarea = cambio pequeño, verificable, con contexto mínimo.
 
 Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea atómica salvo que el supervisor indique lo contrario.
 
 ## Estado global
 
-Current phase: Fase 5 — UX/mobile/i18n  
-Current task: Fase 4 lista para PR/merge; luego iniciar F5-T01  
-Next agent start: abrir PR `phase/4-contextual-ai` → `develop`; tras merge/checks, crear `phase/5-ux-mobile-i18n` desde `develop` actualizado y ejecutar F5-T01.
+Current phase: Fase 5 — UX/mobile/i18n
+Current task: F5-T02 — CTA móvil principal para técnico
+Next agent start: desde `phase/5-ux-mobile-i18n` actualizado, crear rama `feat/technician-mobile-primary-cta` y ejecutar F5-T02.
 
 ---
 
@@ -21,7 +21,7 @@ Branch de fase: `phase/0-tests-ci-base`
 ## TASK F0-T01 — Mock/env Firebase para Vitest
 
 Status: done
-Branch: `test/vitest-firebase-mock`  
+Branch: `test/vitest-firebase-mock`
 Model: `ollama/qwen2.5-coder:3b`
 
 ### Objective
@@ -76,7 +76,7 @@ Al terminar:
 ## TASK F0-T02 — Agregar test:run al CI
 
 Status: done
-Branch: `test/add-vitest-to-ci`  
+Branch: `test/add-vitest-to-ci`
 Model: `openai-codex/gpt-5.5`
 
 ### Objective
@@ -893,7 +893,18 @@ Branch: `feat/service-follow-up-suggestion`
 Branch de fase: `phase/5-ux-mobile-i18n`
 
 ## TASK F5-T01 — Bottom nav dinámico
-Status: pending
+Status: done
+Branch: `feat/dynamic-bottom-nav`
+
+### Completion notes
+- `BottomNav` ahora calcula columnas según cantidad real de ítems y no renderiza barra vacía.
+- La navegación móvil usa el mismo modelo filtrado por rol + permisos explícitos (`allowPermissions`) y recibe permisos desde `Auth`.
+- Se agregó soporte de navegación para roles confirmados `owner` y `technician`, manteniendo compatibilidad con `emergency_scheduler`.
+- Services queda como entrada operativa visible; clientes/building_admin conservan navegación separada bajo `/portal`.
+- Tests agregados en `src/app/nav.test.ts` para filtrado por rol, permisos, separación portal/operación y layout dinámico.
+- Commit: HEAD de `feat/dynamic-bottom-nav` (`feat: hacer dinamico el bottom nav`).
+- Validaciones: `npm run test:run -- src/app/nav.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 7 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F5-T02 creando CTA móvil principal para técnico.
 
 ## TASK F5-T02 — CTA móvil principal para técnico
 Status: pending

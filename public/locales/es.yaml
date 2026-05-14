@@ -1086,7 +1086,9 @@ users:
     view: Ver
     editor: Editor
     admin: Administrador
+    owner: Propietario
     building_admin: Admin edificio
+    technician: Tecnico
     emergency_scheduler: Emergencias
 scheduling:
   service:
