@@ -44,6 +44,65 @@ const statusTone: Record<string, string> = {
   cancelled: 'bg-rose-50 text-rose-700'
 };
 
+type ServicesEmptyStateAction = 'none' | 'clearFilters' | 'createService';
+
+type ServicesEmptyState = {
+  titleKey: string;
+  descriptionKey: string;
+  action: ServicesEmptyStateAction;
+  descriptionParams?: Record<string, string>;
+};
+
+export function hasActiveServiceFilters(filters: ServiceOrderFilters) {
+  return Boolean(filters.buildingId || filters.from || filters.to || filters.status);
+}
+
+export function getServicesEmptyState({
+  isTechnicianView,
+  hasActiveFilters,
+  scopedTotal,
+  selectedBuildingName,
+}: {
+  isTechnicianView: boolean;
+  hasActiveFilters: boolean;
+  scopedTotal: number;
+  selectedBuildingName: string | null;
+}): ServicesEmptyState {
+  const descriptionParams = { building: selectedBuildingName ?? 'todos los edificios' };
+
+  if (isTechnicianView) {
+    if (hasActiveFilters && scopedTotal > 0) {
+      return {
+        titleKey: 'services.empty.technician.filtered.title',
+        descriptionKey: 'services.empty.technician.filtered.description',
+        action: 'clearFilters',
+        descriptionParams,
+      };
+    }
+
+    return {
+      titleKey: 'services.empty.technician.title',
+      descriptionKey: 'services.empty.technician.description',
+      action: 'none',
+    };
+  }
+
+  if (hasActiveFilters && scopedTotal > 0) {
+    return {
+      titleKey: 'services.empty.filtered.title',
+      descriptionKey: 'services.empty.filtered.description',
+      action: 'clearFilters',
+      descriptionParams,
+    };
+  }
+
+  return {
+    titleKey: 'services.empty.title',
+    descriptionKey: 'services.empty.description',
+    action: scopedTotal > 0 ? 'clearFilters' : 'createService',
+  };
+}
+
 export default function ServicesPage() {
   const { t } = useI18n();
   const { role, user } = useAuth();
@@ -91,7 +150,6 @@ export default function ServicesPage() {
     const target = serviceOrders.find((item) => item.id === editId);
     if (!target) return;
     openEdit(target);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, serviceOrders]);
 
   useEffect(() => {
@@ -130,6 +188,7 @@ export default function ServicesPage() {
   const summary = useMemo(() => buildServiceOrderSummary(scopedServiceOrders), [scopedServiceOrders]);
 
   const filteredOrders = useMemo(() => filterServiceOrders(scopedServiceOrders, filters), [filters, scopedServiceOrders]);
+  const hasActiveFilters = hasActiveServiceFilters(filters);
 
   const recentOrders = useMemo(() => getRecentServiceOrders(filteredOrders), [filteredOrders]);
   const nextOpenOrder = useMemo(
@@ -143,6 +202,19 @@ export default function ServicesPage() {
   const agendaTitle = isTechnicianView ? t('services.technician.agenda.title') : t('services.agenda.title');
   const agendaSubtitle = isTechnicianView ? t('services.technician.agenda.subtitle') : t('services.agenda.subtitle');
   const normalizedAgendaTitle = agendaTitle === headerTitle ? 'Agenda operativa' : agendaTitle;
+  const emptyState = getServicesEmptyState({
+    isTechnicianView,
+    hasActiveFilters,
+    scopedTotal: scopedServiceOrders.length,
+    selectedBuildingName: selectedBuilding?.name ?? null,
+  });
+
+  const clearFilters = () => setFilters({ buildingId: '', from: '', to: '', status: '' });
+
+  const openQuickCreate = (prefill?: { buildingId?: string; type?: string; assignedTechnicianId?: string }) => {
+    setQuickCreatePrefill(prefill ?? (selectedBuilding ? { buildingId: selectedBuilding.id } : null));
+    setQuickCreateOpen(true);
+  };
 
   const statusLabel = (value: string) => getServiceOrderStatusLabel(t, value as Parameters<typeof getServiceOrderStatusLabel>[1]);
   const currentRoute = `${location.pathname}${currentSearch ? `?${currentSearch}` : ''}`;
@@ -225,12 +297,9 @@ export default function ServicesPage() {
         actions={!isTechnicianView ? (
           <Button
             type="button"
-            onClick={() => {
-              setQuickCreatePrefill(selectedBuilding ? { buildingId: selectedBuilding.id } : null);
-              setQuickCreateOpen(true);
-            }}
+            onClick={() => openQuickCreate()}
           >
-            Crear servicio rápido
+            {t('services.actions.quickCreate')}
           </Button>
         ) : null}
       />
@@ -346,7 +415,23 @@ export default function ServicesPage() {
         {isLoading ? (
           <p className="text-sm text-ink-600">{t('common.loading.default')}</p>
         ) : isTechnicianView && !currentEmployee ? null : recentOrders.length === 0 ? (
-          <EmptyState title={headerTitle} description={isTechnicianView ? t('technician.empty') : t('services.empty.default')} />
+          <EmptyState
+            title={t(emptyState.titleKey)}
+            description={t(emptyState.descriptionKey, emptyState.descriptionParams)}
+            action={emptyState.action === 'clearFilters' ? (
+              <button
+                type="button"
+                className="inline-flex items-center rounded-full border border-sky-200 bg-white px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-50"
+                onClick={clearFilters}
+              >
+                {t('services.empty.actions.clearFilters')}
+              </button>
+            ) : emptyState.action === 'createService' ? (
+              <Button type="button" onClick={() => openQuickCreate()}>
+                {t('services.empty.actions.createService')}
+              </Button>
+            ) : null}
+          />
         ) : (
           <div className="space-y-4">
             {recentOrders.map((order) => {
@@ -450,12 +535,11 @@ export default function ServicesPage() {
                       <button
                         className="inline-flex items-center rounded-full bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-700 transition hover:bg-violet-100"
                         onClick={() => {
-                          setQuickCreatePrefill({
+                          openQuickCreate({
                             buildingId: order.buildingId,
                             type: order.type,
                             assignedTechnicianId: order.assignedTechnicianId ?? '',
                           });
-                          setQuickCreateOpen(true);
                         }}
                       >
                         Duplicar en creación rápida

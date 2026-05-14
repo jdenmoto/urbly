@@ -265,8 +265,22 @@ services:
     soon: Esta area alojara agenda, detalle y cierre del nuevo flujo de servicios.
   empty:
     default: No hay servicios para los filtros seleccionados.
-    title: Sin servicios
-    description: No hay servicios para los filtros seleccionados.
+    title: Sin servicios activos
+    description: Crea la primera orden desde Services para mantener la operación centralizada.
+    filtered:
+      title: Sin resultados con estos filtros
+      description: Hay servicios disponibles, pero el filtro actual no muestra ninguno. Ajusta fechas, estado o edificio. Edificio: {building}.
+    technician:
+      title: Tu ruta está libre
+      description: No tienes servicios asignados visibles ahora. Cuando te asignen una orden, aparecerá aquí con acceso directo a detalle, avance y cierre.
+      filtered:
+        title: Nada visible en tu ruta filtrada
+        description: Tienes servicios asignados, pero el filtro actual no los muestra. Edificio: {building}. Limpia filtros para volver a tu cola técnica.
+    actions:
+      clearFilters: Limpiar filtros
+      createService: Crear servicio
+  actions:
+    quickCreate: Crear servicio rápido
   view:
     detail: Ver detalle
     closeout: Ver cierre
