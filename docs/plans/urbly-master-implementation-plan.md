@@ -365,43 +365,38 @@ When done, update this file:
 
 ## 7. Estado actual de ejecución
 
-Current phase: Fase 2 — Unificación Services/Scheduling
+Current phase: Fase 3 — Portal cliente
 
-Last completed task: Phase 1 final gate — Multitenancy + seguridad
+Last completed task: Phase 2 final gate — Services como entrada operativa
 
 - Status: done, listo para PR contra `develop`
-- Branch: `phase/1-multitenancy-security`
-- Changelog: `docs/plans/phase-1-changelog.md`
+- Branch: `phase/2-services-only`
+- Changelog: `docs/plans/phase-2-changelog.md`
 - Files changed:
-  - modelos/account memberships
-  - helpers de permisos por account
-  - migración `urbly-default`
-  - `firestore.rules`
-  - `storage.rules`
-  - `functions/src/serviceReports.ts`
-  - `functions/src/imports.ts`
-  - tests unitarios y de Firebase Rules
+  - `src/app/nav.ts`
+  - `src/app/App.tsx`
+  - `public/locales/es.yaml`
+  - `src/features/services/*`
+  - docs de plan
 - Validations executed:
   - `npm run lint` — pasa con 8 warnings preexistentes
   - `npm run typecheck`
-  - `npm run test:run` — 69 passed, 20 skipped fuera de emulator normal
-  - `npm run test:coverage` — coverage gate pasa; `serviceOrderPermissions.ts` al 100% branch coverage
+  - `npm run test:run` — 70 passed, 20 skipped fuera de emulator normal
+  - `npm run test:coverage` — coverage gate pasa
   - `npm run test:rules` — 20 passed con emulator Firestore/Storage
   - `npm run build:minimum`
-  - `npm audit` — 0 vulnerabilities reportadas
-  - `npm --prefix functions audit` — 0 vulnerabilities reportadas
-- Notes: Fase 1 queda lista para PR. No se hizo merge a `develop` porque GitHub exige PR/checks.
+- Notes: Fase 2 deja `/services` como entrada operativa visible y `/scheduling` redirigido/aislado como legacy. No se hizo merge a `develop` hasta pasar PR/checks.
 
 Next required step:
 
-Abrir PR grande de Fase 1 contra `develop`; después de merge/checks, iniciar F2-T01.
+Abrir PR grande de Fase 2 contra `develop`; después de merge/checks, iniciar Fase 3.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Abrir PR: `phase/1-multitenancy-security` → `develop`.
+1. Abrir PR: `phase/2-services-only` → `develop`.
 2. Esperar checks/review y merge autorizado.
-3. Crear/usar `phase/2-services-only` desde `develop` actualizado.
-4. Ejecutar F2-T01: quitar Scheduling del nav visible en `src/app/nav.ts`.
+3. Crear branch de Fase 3 desde `develop` actualizado.
+4. Ejecutar primera tarea de portal cliente definida en `docs/plans/urbly-atomic-task-list.md`.
 
 ## 8. Archivos relacionados
 

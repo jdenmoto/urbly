@@ -18,15 +18,17 @@ import { buildCustomerMessage, buildFollowUp } from './serviceOrderAi';
 import { buildTechnicalReport } from './serviceReport';
 import { generateServiceReportPdf } from '@/lib/api/functions';
 import { useToast } from '@/components/ToastProvider';
-import CompleteServiceModal from '@/features/scheduling/CompleteServiceModal';
 import {
+  CompleteServiceModal,
   mapServiceOrderToCloseoutItem,
+  type ServiceCloseoutItem,
+  useServiceCloseoutCompletion
+} from './legacySchedulingAdapter';
+import {
   resolveServiceIssueLabel,
   serviceIssueCategoryOptions,
-  serviceIssueTypeOptions,
-  useServiceCloseoutCompletion
+  serviceIssueTypeOptions
 } from './serviceCloseoutBridge';
-import type { SchedulingItem } from '@/features/scheduling/schedulingItem';
 import { getIssueCategoryLabel, getIssueTypeLabel, getServiceOrderStatusLabel } from './serviceOrderPresentation';
 
 type ServiceCloseoutLocationState = {
@@ -53,7 +55,7 @@ function getCloseoutDescription(status: string) {
     return 'El servicio ya quedó completado. Desde aquí puedes revisar la evidencia, validar el reporte y continuar con el post-cierre.';
   }
   if (status === 'in_progress') {
-    return 'Registra horas, checklist, fotos finales y novedades para cerrar el servicio sin volver a scheduling.';
+    return 'Registra horas, checklist, fotos finales y novedades para cerrar el servicio sin volver al agendamiento legado.';
   }
   return 'Este es el paso operativo para completar el servicio dentro de services. Registra el cierre antes de pasar a revisión o reporte.';
 }
@@ -116,7 +118,7 @@ export default function ServiceCloseoutPage() {
   const { serviceOrderId = '' } = useParams();
   const { data: serviceOrders = [] } = useOperationalServiceOrders();
   const locationState = (location.state as ServiceCloseoutLocationState | null) ?? null;
-  const [selected, setSelected] = useState<SchedulingItem | null>(null);
+  const [selected, setSelected] = useState<ServiceCloseoutItem | null>(null);
 
   const serviceOrder = useMemo(
     () => serviceOrders.find((item) => item.id === serviceOrderId) ?? null,
@@ -160,8 +162,8 @@ export default function ServiceCloseoutPage() {
     completion.startComplete(item);
   };
 
-  const resolveIssueLabel = (prefix: 'scheduling.issue.types' | 'scheduling.issueCategories', value: string) =>
-    resolveServiceIssueLabel(t, prefix, value);
+  const resolveIssueLabel = (prefix: string, value: string) =>
+    resolveServiceIssueLabel(t, prefix.endsWith('types') ? 'type' : 'category', value);
 
   const saveAttachments = async () => {
     if (!serviceOrder || !attachmentFiles.length) return;

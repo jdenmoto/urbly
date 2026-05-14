@@ -41,15 +41,15 @@ export function getServiceOrderPriorityPill(t: TranslateFn, priority: ServiceOrd
 }
 
 export function getServiceOrderTypeLabel(t: TranslateFn, type: string) {
-  return t(`scheduling.types.${type}`, { defaultValue: humanizeFallback(type) });
+  return t(`services.types.${type}`, { defaultValue: humanizeFallback(type) });
 }
 
 export function getIssueTypeLabel(t: TranslateFn, value: string) {
-  return t(`scheduling.issue.types.${value}`, { defaultValue: humanizeFallback(value) });
+  return t(`services.issue.types.${value}`, { defaultValue: humanizeFallback(value) });
 }
 
 export function getIssueCategoryLabel(t: TranslateFn, value: string) {
-  return t(`scheduling.issueCategories.${value}`, { defaultValue: humanizeFallback(value) });
+  return t(`services.issue.categories.${value}`, { defaultValue: humanizeFallback(value) });
 }
 
 export const serviceOrderPriorityTone: Record<ServiceOrder['priority'], string> = {

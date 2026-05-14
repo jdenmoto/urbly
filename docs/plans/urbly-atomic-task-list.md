@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 2 — Unificación Services/Scheduling  
-Current task: F2-T01 — Quitar Scheduling del nav  
-Next agent start: esperar PR/merge de Fase 1 a `develop`; luego crear/usar `phase/2-services-only` desde `develop` actualizado y ejecutar `refactor/remove-scheduling-nav`.
+Current task: Phase 2 final gate/changelog/PR
+Next agent start: partir de `phase/2-services-only` actualizado, integrar `refactor/isolate-scheduling-legacy` si falta, ejecutar gates finales de fase, crear/actualizar `docs/plans/phase-2-changelog.md` y abrir PR contra `develop`.
 
 ---
 
@@ -544,7 +544,7 @@ Branch de fase: `phase/2-services-only`
 
 ## TASK F2-T01 — Quitar Scheduling del nav
 
-Status: pending  
+Status: done
 Branch: `refactor/remove-scheduling-nav`
 
 ### Objective
@@ -560,9 +560,17 @@ npm run test:run -- nav
 npm run typecheck
 ```
 
+### Completion notes
+- Removido `/scheduling` de la navegación visible interna en `src/app/nav.ts`.
+- `/services` queda como entrada operativa visible y toma el orden móvil de operaciones.
+- La ruta `/scheduling` no se eliminó ni redirigió; queda para F2-T02.
+- Commit: HEAD de `refactor/remove-scheduling-nav` (`refactor: remover scheduling del nav`).
+- Validaciones: `npm run test:run -- nav` no encontró tests nav existentes y terminó con code 1 por ausencia de archivos; `npm run typecheck`; `npm run lint` pasa con 8 warnings preexistentes.
+- Siguiente agente: empezar F2-T02 en `src/app/App.tsx`, redirigiendo `/scheduling` a `/services`.
+
 ## TASK F2-T02 — Redirigir /scheduling a /services
 
-Status: pending  
+Status: done
 Branch: `refactor/redirect-scheduling-route`
 
 ### Files allowed
@@ -579,9 +587,17 @@ npm run lint
 npm run typecheck
 ```
 
+### Completion notes
+- Redirigida la ruta protegida `/scheduling` hacia `/services` con `replace` en `src/app/App.tsx`.
+- Removido el lazy import de `SchedulingPage` porque ya no se usa desde rutas principales.
+- No se agregó test de routing: no existen tests de routing/App cercanos en el proyecto y el scope se mantuvo mínimo.
+- Commit: HEAD de `refactor/redirect-scheduling-route` (`refactor: redirigir scheduling a services`).
+- Validaciones: `npm run lint` pasa con 8 warnings preexistentes/no relacionados; `npm run typecheck`; `npm run build:minimum`.
+- Siguiente agente: empezar F2-T03 en `public/locales/es.yaml` y archivos services que usen `scheduling.*`.
+
 ## TASK F2-T03 — Migrar labels scheduling usados por services
 
-Status: pending  
+Status: done
 Branch: `refactor/services-i18n-labels`
 
 ### Files allowed
@@ -594,9 +610,17 @@ npm run lint
 npm run typecheck
 ```
 
+### Completion notes
+- Agregadas labels propias bajo `services.types`, `services.issue.types` y `services.issue.categories` en `public/locales/es.yaml`.
+- Migrados helpers de presentación de services para resolver tipos y novedades desde `services.*`.
+- `ServiceCloseoutPage` dejó de referenciar labels `scheduling.*`; el bridge de cierre resuelve labels de novedades desde namespace services mientras el modal legacy sigue aislado para F2-T04.
+- Commit: HEAD de `refactor/services-i18n-labels` (`refactor: migrar labels de services`)
+- Validaciones: `npm run lint` pasa con 8 warnings preexistentes/no relacionados; `npm run typecheck`.
+- Siguiente agente: empezar F2-T04 aislando imports legacy de scheduling usados por services.
+
 ## TASK F2-T04 — Aislar legacy scheduling no visible
 
-Status: pending  
+Status: done  
 Branch: `refactor/isolate-scheduling-legacy`
 
 ### Objective
@@ -607,6 +631,16 @@ Mover/renombrar imports necesarios para que services no dependa mentalmente de s
 npm run test:run
 npm run build:minimum
 ```
+
+### Completion notes
+- Aislados los imports legacy de scheduling usados por Services en `src/features/services/legacySchedulingAdapter.tsx`.
+- `ServicesPage` y `ServiceCloseoutPage` ya no importan directamente desde `src/features/operations/scheduling` ni `src/features/scheduling`.
+- `ServiceCloseoutPage` usa `ServiceCloseoutItem` nativo de Services; se dejó el modal/hook legacy detrás del adapter temporal hasta reemplazarlos por componentes nativos.
+- Agregado test `legacySchedulingAdapter.test.ts` para cubrir el mapeo de `ServiceOrder` a closeout item.
+- Se preservó el redirect `/scheduling` → `/services` de F2-T02.
+- Commit: HEAD de `refactor/isolate-scheduling-legacy` (`refactor: aislar scheduling legacy en services`).
+- Validaciones: `npm run lint` pasa con 8 warnings preexistentes/no relacionados; `npm run typecheck`; `npm run test:run` — 70 passed, 20 skipped; `npm run build:minimum` pasa con warnings preexistentes de `useLayoutEffect` SSR y chunks circulares.
+- Fase 2 queda lista para gate final, changelog y PR contra `develop`.
 
 ---
 

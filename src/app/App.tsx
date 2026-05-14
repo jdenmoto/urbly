@@ -14,7 +14,6 @@ const EmployeesPage = lazy(() => import('@/features/employees/EmployeesPage'));
 const UsersPage = lazy(() => import('@/features/users/UsersPage'));
 const BuildingAdminPage = lazy(() => import('@/features/buildingAdmin/BuildingAdminPage'));
 const ServicesPage = lazy(() => import('@/features/services/ServicesPage'));
-const SchedulingPage = lazy(() => import('@/features/operations/scheduling/SchedulingPage'));
 const ServiceDetailPage = lazy(() => import('@/features/services/ServiceDetailPage'));
 const ServiceCloseoutPage = lazy(() => import('@/features/services/ServiceCloseoutPage'));
 const ServiceReportPrintPage = lazy(() => import('@/features/services/ServiceReportPrintPage'));
@@ -166,16 +165,7 @@ export default function App() {
               </RoleGuard>
             }
           />
-          <Route
-            path="scheduling"
-            element={
-              <RoleGuard allow={['admin', 'editor', 'view', 'supervisor', 'scheduler', 'operator', 'auditoria']}>
-                <FeatureGuard feature="scheduling">
-                  <SchedulingPage />
-                </FeatureGuard>
-              </RoleGuard>
-            }
-          />
+          <Route path="scheduling" element={<Navigate to="/services" replace />} />
           <Route
             path="notifications"
             element={
