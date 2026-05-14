@@ -1,7 +1,18 @@
+import type { ServiceOrderIssue, ServiceOrderPriority, ServiceOrderStatus } from '@/core/models/serviceOrder';
 import { formatServiceDateTime, getIssueCategoryLabel, getIssueTypeLabel, getServiceOrderPriorityLabel, getServiceOrderStatusLabel, getServiceOrderTypeLabel, type TranslateFn } from './serviceOrderPresentation';
-import type { ServiceOrderReportLike } from './serviceReport';
 
-export type ServiceOrderLike = ServiceOrderReportLike;
+export type ServiceOrderLike = {
+  title: string;
+  status: ServiceOrderStatus;
+  priority: ServiceOrderPriority;
+  type: string;
+  description?: string;
+  scheduledStartAt: string;
+  scheduledEndAt: string;
+  issues?: ServiceOrderIssue[];
+  timeline?: Array<{ summary: string; createdAt: string }>;
+  completionPhotos?: string[];
+};
 
 const defaultTranslate: TranslateFn = (key, params) => {
   const dictionaries: Record<string, string> = {

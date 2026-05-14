@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 6 — Reportes/PDF
-Current task: F6-T03 — Migrar PDF function a snapshot
-Next agent start: desde `phase/6-reports-pdf` actualizada con F6-T02 integrado, crear rama propia y ejecutar F6-T03 sin cambiar la UI de impresión.
+Current task: F6-T05 — Tests de contrato del snapshot
+Next agent start: desde `phase/6-reports-pdf` actualizada con F6-T04 integrado, crear rama propia y ejecutar F6-T05 sin reabrir print/PDF/IA salvo ajustes de contrato estrictamente necesarios.
 
 ---
 
@@ -1042,8 +1042,19 @@ Validations:
 - `npm run build:minimum` — pasa, con warnings preexistentes de chunks circulares Vite.
 
 ## TASK F6-T04 — Alinear narrativa IA al snapshot
-Status: pending
-Start from: rama de fase `phase/6-reports-pdf` actualizada con F6-T03 integrado; crear rama propia para alinear narrativa/sugerencias IA al snapshot canónico sin reabrir print ni PDF.
+Status: done
+Branch: `feat/ai-report-snapshot`
+Commit: HEAD (`refactor: alinear narrativa ia con snapshot`)
+Completion notes:
+- `buildTechnicalReport` ahora deriva el texto narrativo desde `buildServiceReportSnapshot`, compartiendo el mismo modelo canónico usado por print/PDF.
+- La sugerencia IA de borrador de reporte conserva modo `suggestion_only` y acciones prohibidas `auto_save`, `auto_send`, `auto_mutate`.
+- Agregado test enfocado para observaciones, checklist y siguientes pasos del snapshot, evitando campos ad hoc divergentes como conteo de timeline.
+Validations:
+- RED: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts` falló inicialmente porque el borrador seguía ignorando datos de `report` del snapshot.
+- `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts` — pasa.
+- `npm run test:run` — pasa, con warnings SSR preexistentes/no relacionados en scheduling.
+- `npm run typecheck` — pasa.
+- `npm run lint` — pasa con warnings preexistentes/no relacionados.
 
 ## TASK F6-T05 — Tests de contrato del snapshot
 Status: pending
