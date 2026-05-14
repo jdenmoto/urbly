@@ -367,42 +367,36 @@ When done, update this file:
 
 Current phase: Fase 5 — UX/mobile/i18n
 
-Last completed task: F5-T01 — Bottom nav dinámico
+Last completed task: F5-T02 — CTA móvil principal para técnico
 
 - Status: done
-- Branch: `feat/dynamic-bottom-nav`
-- Commit: HEAD de `feat/dynamic-bottom-nav` (`feat: hacer dinamico el bottom nav`)
+- Branch: `feat/mobile-technician-primary-cta`
+- Commit: HEAD de `feat/mobile-technician-primary-cta` (`feat: agregar cta movil tecnico`)
 - Files changed:
-  - `src/app/nav.ts`
-  - `src/app/nav.test.ts`
-  - `src/components/BottomNav.tsx`
-  - `src/components/Sidebar.tsx`
-  - `src/components/TopBar.tsx`
-  - `src/app/App.tsx`
-  - `src/app/Auth.tsx`
-  - `src/app/layouts/AppLayout.tsx`
-  - `src/core/models/appUser.ts`
-  - `src/features/users/UsersPage.tsx`
+  - `src/features/technician/TechnicianPrimaryMobileCta.tsx`
+  - `src/features/technician/__tests__/TechnicianPrimaryMobileCta.test.ts`
+  - `src/features/technician/TechnicianHomePage.tsx`
+  - `src/features/services/ServicesPage.tsx`
   - `public/locales/es.yaml`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/app/nav.test.ts` — pasa
-  - `npm run test:run` — 96 passed, 20 skipped fuera de emulator normal
+  - `npm run test:run -- src/features/technician/__tests__/TechnicianPrimaryMobileCta.test.ts` — pasa
+  - `npm run test:run` — 98 passed, 20 skipped fuera de emulator normal
   - `npm run typecheck` — pasa
   - `npm run lint` — pasa con 7 warnings preexistentes/no relacionados
-- Notes: `BottomNav` usa columnas dinámicas y el modelo de navegación filtra por rol + permisos; `Services` queda como entrada operativa y el portal cliente se mantiene separado bajo `/portal`.
+- Notes: el CTA móvil queda fijo sobre el bottom nav y mantiene Services como entrada operativa primaria para el técnico; `ServicesPage` reconoce `technician` y `emergency_scheduler` como roles técnicos.
 
 Next required step:
 
-Ejecutar F5-T02 — CTA móvil principal para técnico.
+Ejecutar F5-T03 — Mejorar TechnicianHomePage.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/5-ux-mobile-i18n` actualizado con F5-T01 integrado.
-2. Crear rama `feat/technician-mobile-primary-cta`.
-3. Abrir `src/features/technician/TechnicianHomePage.tsx`, `src/features/services/ServicesPage.tsx` y componentes móviles relacionados.
-4. Implementar F5-T02: CTA móvil principal para técnico.
+1. Partir de `phase/5-ux-mobile-i18n` actualizado con F5-T02 integrado.
+2. Crear una rama propia para F5-T03.
+3. Abrir `src/features/technician/TechnicianHomePage.tsx`, `src/features/technician/TechnicianPrimaryMobileCta.tsx` y copy relacionado en `public/locales/es.yaml`.
+4. Implementar F5-T03: mejorar la pantalla home del técnico sin ampliar el alcance fuera de la experiencia móvil/técnica.
 
 ## 8. Archivos relacionados
 

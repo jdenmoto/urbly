@@ -32,6 +32,7 @@ import {
   getServiceOrderTypeLabel,
   serviceOrderPriorityTone
 } from './serviceOrderPresentation';
+import TechnicianPrimaryMobileCta, { isTechnicianRole } from '@/features/technician/TechnicianPrimaryMobileCta';
 import { resolveTechnicianScope, scopeServiceOrdersForTechnician } from './technicianScope';
 
 const statusTone: Record<string, string> = {
@@ -111,7 +112,7 @@ export default function ServicesPage() {
     [employees, user?.uid, users],
   );
   const { currentEmployee } = technicianScope;
-  const isTechnicianView = role === 'emergency_scheduler';
+  const isTechnicianView = isTechnicianRole(role);
 
   const scopedServiceOrders = useMemo(() => {
     if (!isTechnicianView) return serviceOrders;
@@ -135,6 +136,7 @@ export default function ServicesPage() {
     () => recentOrders.find((item) => item.status !== 'completed' && item.status !== 'cancelled') ?? recentOrders[0] ?? null,
     [recentOrders]
   );
+  const nextOpenOrderBuilding = nextOpenOrder ? buildings.find((item) => item.id === nextOpenOrder.buildingId) : undefined;
   const currentSearch = searchParams.toString();
   const headerTitle = isTechnicianView ? t('services.technician.title') : t('services.title');
   const headerSubtitle = isTechnicianView ? t('services.technician.subtitle') : t('services.subtitle');
@@ -216,7 +218,7 @@ export default function ServicesPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-28 md:pb-0">
       <PageHeader
         title={headerTitle}
         subtitle={headerSubtitle}
@@ -232,6 +234,18 @@ export default function ServicesPage() {
           </Button>
         ) : null}
       />
+
+      {isTechnicianView ? (
+        <TechnicianPrimaryMobileCta
+          className="fixed inset-x-4 bottom-24 z-30"
+          serviceOrder={nextOpenOrder}
+          buildingName={nextOpenOrderBuilding?.name}
+          technicianName={currentEmployee?.fullName}
+          dailyProgressCount={nextOpenOrder ? getServiceDailyProgress(nextOpenOrder).length : 0}
+          issueCount={nextOpenOrder?.issues?.length ?? 0}
+          fromPath={currentRoute}
+        />
+      ) : null}
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label={t('services.status.scheduled')} value={summary.scheduled} hint={t('services.visible.count.hint')} />
