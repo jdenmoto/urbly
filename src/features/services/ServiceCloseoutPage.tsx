@@ -15,9 +15,13 @@ import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
 import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
-import { buildFollowUp } from './serviceOrderAi';
 import { buildTechnicalReport } from './serviceReport';
-import { buildServiceCustomerMessageSuggestion, buildServiceMissingRequirementsSuggestion, buildServiceReportDraftSuggestion } from './serviceSuggestions';
+import {
+  buildServiceCustomerMessageSuggestion,
+  buildServiceFollowUpSuggestion,
+  buildServiceMissingRequirementsSuggestion,
+  buildServiceReportDraftSuggestion,
+} from './serviceSuggestions';
 import { generateServiceReportPdf } from '@/lib/api/functions';
 import { useToast } from '@/components/ToastProvider';
 import {
@@ -138,9 +142,9 @@ export default function ServiceCloseoutPage() {
   const aiReportDraftSuggestion = serviceOrder ? buildServiceReportDraftSuggestion(serviceOrder, t) : null;
   const aiCustomerMessageSuggestion = serviceOrder ? buildServiceCustomerMessageSuggestion(serviceOrder, t) : null;
   const aiMissingRequirementsSuggestion = serviceOrder ? buildServiceMissingRequirementsSuggestion(serviceOrder) : null;
+  const aiFollowUpSuggestion = serviceOrder ? buildServiceFollowUpSuggestion(serviceOrder, t) : null;
   const aiReport = aiReportDraftSuggestion?.content ?? (serviceOrder ? buildTechnicalReport(serviceOrder, t) : '');
   const aiCustomerMessage = aiCustomerMessageSuggestion?.content ?? '';
-  const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder, t) : '';
   const qualityAnalysis = serviceOrder ? analyzeReportQuality(serviceOrder) : null;
   const detailTarget = locationState?.fromPath ?? `/services/${serviceOrderId}`;
   const primaryActionLabel = getCloseoutPrimaryAction(serviceOrder?.status ?? 'draft', locationState?.closeoutActionLabel);
@@ -346,6 +350,10 @@ export default function ServiceCloseoutPage() {
 
         {serviceOrder.status !== 'completed' && aiMissingRequirementsSuggestion ? (
           <AiSuggestionCard suggestion={aiMissingRequirementsSuggestion} />
+        ) : null}
+
+        {serviceOrder.status === 'completed' && aiFollowUpSuggestion ? (
+          <AiSuggestionCard suggestion={aiFollowUpSuggestion} />
         ) : null}
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -652,10 +660,11 @@ export default function ServiceCloseoutPage() {
                 <h3 className="text-sm font-semibold text-ink-900">{t('services.ai.customer.message.title')}</h3>
                 <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-ink-600">{aiCustomerMessage}</p>
               </div>
-              <div className="rounded-3xl border border-fog-200 bg-white p-5">
-                <h3 className="text-sm font-semibold text-ink-900">{t('services.ai.follow.up.title')}</h3>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-ink-600">{aiFollowUp}</p>
-              </div>
+              {aiFollowUpSuggestion && serviceOrder.status !== 'completed' ? (
+                <div className="rounded-3xl border border-fog-200 bg-white p-5">
+                  <AiSuggestionCard suggestion={aiFollowUpSuggestion} />
+                </div>
+              ) : null}
             </div>
           </Card>
         </>

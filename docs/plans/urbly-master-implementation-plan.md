@@ -367,11 +367,11 @@ When done, update this file:
 
 Current phase: Fase 4 — IA contextual
 
-Last completed task: F4-T06 — Detección de faltantes antes de cerrar
+Last completed task: F4-T07 — Follow-up sugerido
 
 - Status: done
-- Branch: `feat/closeout-missing-items-suggestion`
-- Commit: HEAD de `feat/closeout-missing-items-suggestion` (`feat: sugerir faltantes antes del cierre`)
+- Branch: `feat/service-follow-up-suggestion`
+- Commit: HEAD de `feat/service-follow-up-suggestion` (`feat: agregar follow-up sugerido en cierre`)
 - Files changed:
   - `src/features/services/ServiceCloseoutPage.tsx`
   - `src/features/services/serviceSuggestions.ts`
@@ -383,17 +383,18 @@ Last completed task: F4-T06 — Detección de faltantes antes de cerrar
   - `npm run test:run`
   - `npm run typecheck`
   - `npm run lint` — pasa con 8 warnings preexistentes
-- Notes: `ServiceCloseoutPage` muestra una sugerencia `missing_requirements` mediante `AiSuggestionCard` antes de cerrar servicios no completados. La detección revisa observaciones, evidencia fotográfica final y checklist técnico, pero solo informa: no guarda, no envía, no muta ni bloquea automáticamente el cierre.
+  - `npm run build:minimum` — pasa con avisos preexistentes de chunks circulares
+- Notes: `ServiceCloseoutPage` muestra una sugerencia `follow_up` mediante `AiSuggestionCard` cerca del cierre completado y en el bloque IA de cierre para servicios aún no completados. La sugerencia usa `AiSuggestion`, política `suggestion_only`, aprobación humana requerida y no guarda, agenda, envía ni muta automáticamente.
 
 Next required step:
 
-Ejecutar F4-T07 — Follow-up sugerido.
+Fase 4 queda lista para gate final, changelog y PR contra `develop`.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/4-contextual-ai` actualizado e integrar `feat/closeout-missing-items-suggestion` si falta.
-2. Abrir `src/features/services/serviceSuggestions.ts` y revisar el uso actual de `buildFollowUp` en `ServiceCloseoutPage`.
-3. Agregar follow-up sugerido usando `AiSuggestion` y `AiSuggestionCard`, manteniendo el comportamiento de solo sugerencia sin guardar, enviar ni mutar automáticamente.
+1. Partir de `phase/4-contextual-ai` actualizado e integrar `feat/service-follow-up-suggestion` si falta.
+2. Correr el gate final de Fase 4 (`npm run test:run`, `npm run typecheck`, `npm run lint`, `npm run build:minimum`).
+3. Crear o actualizar `docs/plans/phase-4-changelog.md` y abrir PR de Fase 4 contra `develop`.
 
 ## 8. Archivos relacionados
 
