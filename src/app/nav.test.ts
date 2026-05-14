@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { getBottomNavGridClass, getMobileNavItemsFromGroups, type NavGroup, type NavItem } from './nav';
+import { getBottomNavGridClass, getMobileNavItemsFromGroups, getNavGroupsForRole, type NavGroup, type NavItem } from './nav';
 import type { AppUserRole } from '@/core/models/appUser';
+import type { FeatureFlags } from '@/lib/featureFlags';
 
 const Icon = (() => null) as unknown as NavItem['icon'];
 
@@ -18,6 +19,29 @@ function item(label: string, overrides: Partial<NavGroup['items'][number]> = {})
 
 function groupsForRole(role: AppUserRole, groups: NavGroup[], permissions: string[] = []) {
   return getMobileNavItemsFromGroups(groups, { role, permissions: permissions as never[] });
+}
+
+const allFlagsOn: FeatureFlags = {
+  dashboard: true,
+  buildings: true,
+  management: true,
+  employees: true,
+  scheduling: true,
+  users: true,
+  settings: true,
+  services: true,
+  customers: true,
+  assets: true,
+  reports: true,
+  aiWorkspace: true,
+  technicianHome: true,
+  clientSummary: true
+};
+
+const t = (key: string) => key;
+
+function actualMobileRoutes(role: AppUserRole, flags: FeatureFlags = allFlagsOn) {
+  return getMobileNavItemsFromGroups(getNavGroupsForRole(role, [], flags, t), { role }).map((navItem) => navItem.to);
 }
 
 describe('mobile nav model', () => {
@@ -62,6 +86,28 @@ describe('mobile nav model', () => {
     ];
 
     expect(groupsForRole('client', groups).map((navItem) => navItem.to)).toEqual(['/portal', '/portal/services']);
+  });
+});
+
+describe('role navigation configuration', () => {
+  it('sends client roles to portal routes instead of operational Services or Scheduling', () => {
+    expect(actualMobileRoutes('client')).toEqual(['/portal', '/portal/services', '/portal/reports']);
+    expect(actualMobileRoutes('building_admin')).toEqual(['/portal', '/portal/services', '/portal/reports']);
+    expect(actualMobileRoutes('client')).not.toContain('/services');
+    expect(actualMobileRoutes('building_admin')).not.toContain('/scheduling');
+  });
+
+  it('keeps Services as operational navigation for internal roles', () => {
+    expect(actualMobileRoutes('operator')).toContain('/services');
+    expect(actualMobileRoutes('scheduler')).toContain('/services');
+    expect(actualMobileRoutes('admin')).toContain('/services');
+  });
+
+  it('does not couple the client portal services entry to the legacy Scheduling flag', () => {
+    const routes = actualMobileRoutes('client', { ...allFlagsOn, scheduling: false, services: true });
+
+    expect(routes).toContain('/portal/services');
+    expect(routes).not.toContain('/scheduling');
   });
 });
 
