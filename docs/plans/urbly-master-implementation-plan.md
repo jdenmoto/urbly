@@ -439,16 +439,37 @@ Last completed task: F2-T03 — Migrar labels scheduling usados por services
   - `npm run typecheck`
 - Notes: Services ahora resuelve tipos de servicio y labels de novedades desde `services.*`. No se removieron labels legacy `scheduling.*` porque el módulo legacy todavía las usa.
 
+Last completed task: F2-T04 — Aislar legacy scheduling no visible
+
+- Status: done
+- Branch: `refactor/isolate-scheduling-legacy`
+- Commit: HEAD de `refactor/isolate-scheduling-legacy` (`refactor: aislar scheduling legacy en services`)
+- Files changed:
+  - `src/features/services/legacySchedulingAdapter.tsx`
+  - `src/features/services/__tests__/legacySchedulingAdapter.test.ts`
+  - `src/features/services/ServicesPage.tsx`
+  - `src/features/services/ServiceCloseoutPage.tsx`
+  - `src/features/services/serviceCloseoutBridge.ts`
+  - `docs/plans/urbly-atomic-task-list.md`
+  - `docs/plans/urbly-master-implementation-plan.md`
+- Validations executed:
+  - `npm run lint` — pasa con 8 warnings preexistentes/no relacionados
+  - `npm run typecheck`
+  - `npm run test:run` — 70 passed, 20 skipped fuera de emulator normal
+  - `npm run build:minimum` — pasa; mantiene warnings preexistentes de `useLayoutEffect` SSR en test scheduling y chunks circulares Vite
+- Notes: Los imports directos desde Services hacia scheduling quedaron aislados en un adapter temporal. `ServiceCloseoutPage` usa tipo nativo `ServiceCloseoutItem`; el modal/hook legacy siguen encapsulados hasta su reemplazo por componentes nativos de Services. El redirect `/scheduling` → `/services` se preserva.
+
 Next required step:
 
-Ejecutar F2-T04 — Aislar legacy scheduling no visible.
+Fase 2 queda lista para gate final, changelog y PR contra `develop`.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Partir de `phase/2-services-only` actualizado.
-2. Crear rama `refactor/isolate-scheduling-legacy`.
-3. Revisar imports de `@/features/scheduling/*` dentro de `src/features/services/**`.
-4. Aislar dependencias legacy que todavía usa services sin cambiar comportamiento visible.
+2. Integrar `refactor/isolate-scheduling-legacy` si aún no está integrado.
+3. Ejecutar gates finales de Fase 2 (`npm run lint`, `npm run typecheck`, `npm run test:run`, `npm run build:minimum`).
+4. Crear o actualizar `docs/plans/phase-2-changelog.md`.
+5. Abrir PR de `phase/2-services-only` contra `develop` sin hacer merge.
 
 ## 8. Archivos relacionados
 

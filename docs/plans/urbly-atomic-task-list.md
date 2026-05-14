@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 2 — Unificación Services/Scheduling  
-Current task: F2-T04 — Aislar legacy scheduling no visible
-Next agent start: partir de `phase/2-services-only` actualizado, crear `refactor/isolate-scheduling-legacy` y ejecutar F2-T04 para aislar imports legacy de scheduling usados por services.
+Current task: Phase 2 final gate/changelog/PR
+Next agent start: partir de `phase/2-services-only` actualizado, integrar `refactor/isolate-scheduling-legacy` si falta, ejecutar gates finales de fase, crear/actualizar `docs/plans/phase-2-changelog.md` y abrir PR contra `develop`.
 
 ---
 
@@ -620,7 +620,7 @@ npm run typecheck
 
 ## TASK F2-T04 — Aislar legacy scheduling no visible
 
-Status: pending  
+Status: done  
 Branch: `refactor/isolate-scheduling-legacy`
 
 ### Objective
@@ -631,6 +631,16 @@ Mover/renombrar imports necesarios para que services no dependa mentalmente de s
 npm run test:run
 npm run build:minimum
 ```
+
+### Completion notes
+- Aislados los imports legacy de scheduling usados por Services en `src/features/services/legacySchedulingAdapter.tsx`.
+- `ServicesPage` y `ServiceCloseoutPage` ya no importan directamente desde `src/features/operations/scheduling` ni `src/features/scheduling`.
+- `ServiceCloseoutPage` usa `ServiceCloseoutItem` nativo de Services; se dejó el modal/hook legacy detrás del adapter temporal hasta reemplazarlos por componentes nativos.
+- Agregado test `legacySchedulingAdapter.test.ts` para cubrir el mapeo de `ServiceOrder` a closeout item.
+- Se preservó el redirect `/scheduling` → `/services` de F2-T02.
+- Commit: HEAD de `refactor/isolate-scheduling-legacy` (`refactor: aislar scheduling legacy en services`).
+- Validaciones: `npm run lint` pasa con 8 warnings preexistentes/no relacionados; `npm run typecheck`; `npm run test:run` — 70 passed, 20 skipped; `npm run build:minimum` pasa con warnings preexistentes de `useLayoutEffect` SSR y chunks circulares.
+- Fase 2 queda lista para gate final, changelog y PR contra `develop`.
 
 ---
 

@@ -4,7 +4,7 @@ import { assignTechnician, cancelServiceOrder, confirmServiceOrder } from '@/lib
 import { listServiceTypes } from '@/lib/serviceTypes';
 import Modal from '@/components/Modal';
 import Button from '@/components/Button';
-import CreateServiceOrderDrawer from '@/features/operations/scheduling/CreateServiceOrderDrawer';
+import { CreateServiceOrderDrawer } from './legacySchedulingAdapter';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import EmptyState from '@/components/EmptyState';
 import Input from '@/components/Input';
