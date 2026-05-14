@@ -70,6 +70,41 @@ describe('service AI suggestions', () => {
     expect(suggestion.safety.forbiddenSystemActions).toEqual(['auto_save', 'auto_send', 'auto_mutate']);
   });
 
+  it('builds the report draft from the canonical report snapshot data', () => {
+    const suggestion = buildServiceReportDraftSuggestion(
+      {
+        ...serviceOrder,
+        timeline: [
+          {
+            id: 'timeline-1',
+            type: 'note',
+            summary: 'Este evento no pertenece al modelo narrativo del reporte',
+            createdAt: '2026-05-13T13:15:00.000Z',
+            actorRole: 'technician',
+          },
+        ],
+        report: {
+          observations: 'Operación estable después de limpieza.',
+          checklist: {
+            pressure: 'ok',
+            noise: 'regular',
+          },
+        },
+        communication: {
+          followUpSuggestion: 'Monitorear presión semanalmente',
+        },
+      },
+      t
+    );
+
+    expect(suggestion.content).toContain('Observaciones: Operación estable después de limpieza.');
+    expect(suggestion.content).toContain('Checklist: Pressure: OK, Noise: Regular');
+    expect(suggestion.content).toContain('Siguientes pasos: Monitorear presión semanalmente');
+    expect(suggestion.content).not.toContain('Eventos de la línea de tiempo');
+    expect(suggestion.safety.mode).toBe('suggestion_only');
+    expect(suggestion.safety.forbiddenSystemActions).toEqual(['auto_save', 'auto_send', 'auto_mutate']);
+  });
+
   it('builds a suggestion-only customer message for service closeout without send action', () => {
     const suggestion = buildServiceCustomerMessageSuggestion(serviceOrder, t);
 

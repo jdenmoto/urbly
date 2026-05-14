@@ -367,37 +367,35 @@ When done, update this file:
 
 Current phase: Fase 6 — Reportes/PDF
 
-Last completed task: F6-T03 — Migrar PDF function a snapshot
+Last completed task: F6-T04 — Alinear narrativa IA al snapshot
 
 - Status: done
-- Branch: `feat/pdf-report-snapshot`
-- Commit: HEAD (`refactor: usar snapshot en pdf de servicio`)
+- Branch: `feat/ai-report-snapshot`
+- Commit: HEAD (`refactor: alinear narrativa ia con snapshot`)
 - Files changed:
-  - `functions/src/serviceReports.ts`
-  - `functions/src/serviceReportPdfModel.ts`
-  - `src/serviceReports.snapshot.test.ts`
+  - `src/features/services/serviceReport.ts`
+  - `src/features/services/serviceOrderAi.ts`
+  - `src/features/services/__tests__/serviceSuggestions.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - RED: `npm run test:run -- src/serviceReports.snapshot.test.ts` falló inicialmente por módulo faltante esperado
-  - `npm run test:run -- src/serviceReports.snapshot.test.ts` — pasa
+  - RED: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts` falló inicialmente porque el borrador seguía ignorando datos de `report` del snapshot
+  - `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts` — pasa
   - `npm run test:run` — pasa, con warnings SSR preexistentes/no relacionados en scheduling
   - `npm run typecheck` — pasa
-  - `npm --prefix functions run build` — pasa
-  - `npm run lint` — pasa con 6 warnings preexistentes/no relacionados
-  - `npm run build:minimum` — pasa, con warnings preexistentes de circular chunks Vite
-- Notes: el PDF backend consume un modelo derivado del contrato de snapshot mediante adaptador puro de Functions; se preservan los checks de autorización antes de generar el PDF. Narrativa IA sigue fuera de alcance.
+  - `npm run lint` — pasa con warnings preexistentes/no relacionados
+- Notes: la narrativa de `buildTechnicalReport` y el borrador IA de cierre ahora se derivan de `buildServiceReportSnapshot`; se mantiene `suggestion_only` sin `auto_save`, `auto_send` ni `auto_mutate`.
 
 Next required step:
 
-Ejecutar F6-T04 — Alinear narrativa IA al snapshot.
+Ejecutar F6-T05 — Tests de contrato del snapshot.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/6-reports-pdf` con F6-T03 integrado.
-2. Crear una rama propia para F6-T04.
-3. Alinear narrativa/sugerencias IA al snapshot canónico.
-4. Mantener fuera de alcance cambios nuevos en print/PDF salvo ajustes de contrato estrictamente necesarios.
+1. Partir de `phase/6-reports-pdf` con F6-T04 integrado.
+2. Crear una rama propia para F6-T05.
+3. Agregar tests de contrato del snapshot canónico entre consumidores clave.
+4. Mantener fuera de alcance cambios nuevos en print/PDF/IA salvo ajustes de contrato estrictamente necesarios.
 
 ## 8. Archivos relacionados
 

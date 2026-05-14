@@ -1,5 +1,4 @@
 import { renderTenantTemplate } from '@/lib/tenantTemplateEngine';
-import type { ServiceOrderPriority, ServiceOrderStatus } from '@/core/models/serviceOrder';
 import {
   buildServiceReportSnapshot,
   type ServiceReportSnapshot,
@@ -12,29 +11,13 @@ export {
 } from './serviceReportSnapshot';
 import {
   formatServiceDateTime,
-  getIssueCategoryLabel,
-  getIssueTypeLabel,
   getServiceOrderPriorityLabel,
   getServiceOrderStatusLabel,
   getServiceOrderTypeLabel,
   type TranslateFn
 } from './serviceOrderPresentation';
 
-type Issue = { type: string; category: string; description?: string };
-type TimelineEvent = { summary: string; createdAt: string };
-export type ServiceOrderReportLike = {
-  administrationId?: string | null;
-  title: string;
-  status: ServiceOrderStatus;
-  priority: ServiceOrderPriority;
-  type: string;
-  description?: string;
-  scheduledStartAt: string;
-  scheduledEndAt: string;
-  issues?: Issue[];
-  timeline?: TimelineEvent[];
-  completionPhotos?: string[];
-};
+export type ServiceOrderReportLike = ServiceReportSnapshotInput;
 
 const defaultTranslate: TranslateFn = (key, params) => {
   const dictionaries: Record<string, string> = {
@@ -158,26 +141,16 @@ export function buildTechnicalReport(
   t: TranslateFn = defaultTranslate,
   options: TechnicalReportCopyOptions = {}
 ) {
-  const issues = serviceOrder.issues ?? [];
-  const timelineCount = serviceOrder.timeline?.length ?? 0;
-  const photos = serviceOrder.completionPhotos?.length ?? 0;
-  const labelsKeyPrefix = options.labelsKeyPrefix;
-  const issueDetail = reportLabel(t, labelsKeyPrefix, 'issueDetail', 'Detalle de novedades');
+  const snapshot = buildServiceReportSnapshot(serviceOrder, {
+    t,
+    statusKeyPrefix: options.statusKeyPrefix,
+    priorityKeyPrefix: options.priorityKeyPrefix,
+    typeKeyPrefix: options.typeKeyPrefix,
+    issueTypeKeyPrefix: options.issueTypeKeyPrefix,
+    issueCategoryKeyPrefix: options.issueCategoryKeyPrefix,
+  });
 
-  return [
-    `${reportLabel(t, labelsKeyPrefix, 'service', 'Servicio')}: ${serviceOrder.title}`,
-    `${reportLabel(t, labelsKeyPrefix, 'type', 'Tipo')}: ${getServiceOrderTypeLabel(t, serviceOrder.type, options.typeKeyPrefix)}`,
-    `${reportLabel(t, labelsKeyPrefix, 'status', 'Estado')}: ${getServiceOrderStatusLabel(t, serviceOrder.status, options.statusKeyPrefix)}`,
-    `${reportLabel(t, labelsKeyPrefix, 'priority', 'Prioridad')}: ${getServiceOrderPriorityLabel(t, serviceOrder.priority, options.priorityKeyPrefix)}`,
-    `${reportLabel(t, labelsKeyPrefix, 'scheduledStart', 'Inicio programado')}: ${formatServiceDateTime(serviceOrder.scheduledStartAt)}`,
-    `${reportLabel(t, labelsKeyPrefix, 'scheduledEnd', 'Fin programado')}: ${formatServiceDateTime(serviceOrder.scheduledEndAt)}`,
-    `${reportLabel(t, labelsKeyPrefix, 'registeredIssues', 'Novedades registradas')}: ${issues.length}`,
-    `${reportLabel(t, labelsKeyPrefix, 'timelineEvents', 'Eventos de la línea de tiempo')}: ${timelineCount}`,
-    `${reportLabel(t, labelsKeyPrefix, 'photos', 'Evidencias fotográficas')}: ${photos}`,
-    issues.length
-      ? `${issueDetail}: ${issues.map((issue) => `${getIssueTypeLabel(t, issue.type, options.issueTypeKeyPrefix)}/${getIssueCategoryLabel(t, issue.category, options.issueCategoryKeyPrefix)}`).join(', ')}`
-      : `${issueDetail}: ${reportLabel(t, labelsKeyPrefix, 'noIssues', 'sin novedades registradas por ahora')}`
-  ].join('\n');
+  return buildSnapshotReportText(snapshot, t, options);
 }
 
 export function buildClientTechnicalReport(
