@@ -367,30 +367,30 @@ When done, update this file:
 
 Current phase: Fase 3 — Portal cliente
 
-Last completed task: F3-T01 — Sacar portal/access de ProtectedRoute
+Last completed task: F3-T02 — JWT con `jti`/`tokenVersion` revocable
 
 - Status: done
-- Branch: `feat/public-portal-access-route`
-- Commit: HEAD de `feat/public-portal-access-route` (`feat: publicar acceso tokenizado al portal`)
+- Branch: `fix/revocable-client-portal-token`
+- Commit: HEAD de `fix/revocable-client-portal-token` (`fix: hacer revocable token del portal cliente`)
 - Files changed:
-  - `src/app/App.tsx`
+  - `functions/src/clientPortal.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run typecheck`
-  - `npm run build` — pasa; mantiene warnings preexistentes de chunks circulares
-- Notes: `/portal/access` ahora carga como ruta pública de primer nivel, sin `ProtectedRoute` ni `AppLayout` interno. Las rutas internas del portal permanecen protegidas por rol.
+  - `npm --prefix functions run build`
+- Notes: los JWT del portal cliente ahora incluyen `jti`, `tokenVersion` y `version`. La generación incrementa la versión en `clientPortalAccess` y guarda el `activeTokenJti`; la validación rechaza tokens revocados, inactivos, con `revokedAt`, incluidos en `revokedTokenIds`, con `jti` distinto o con versión desactualizada.
 
 Next required step:
 
-Ejecutar F3-T02 — JWT con `jti`/`tokenVersion` revocable.
+Ejecutar F3-T03 — Validar relación token-service-customer-account.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Partir de `phase/3-client-portal` actualizado.
-2. Crear branch `fix/revocable-client-portal-token`.
-3. Abrir `functions/src/clientPortal.ts`.
-4. Implementar F3-T02 según `docs/plans/urbly-atomic-task-list.md` y validar `npm --prefix functions run build`.
+2. Integrar/revisar F3-T02 si la rama de fase aún no lo contiene.
+3. Crear branch `fix/client-portal-token-scope`.
+4. Abrir `functions/src/clientPortal.ts`.
+5. Implementar F3-T03 según `docs/plans/urbly-atomic-task-list.md` y validar `npm --prefix functions run build`.
 
 ## 8. Archivos relacionados
 
