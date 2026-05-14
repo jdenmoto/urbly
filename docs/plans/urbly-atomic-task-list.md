@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 4 — IA contextual
-Current task: F4-T07 — Follow-up sugerido
-Next agent start: partir de `phase/4-contextual-ai` actualizado e implementar F4-T07 agregando follow-up sugerido con `AiSuggestion` y `AiSuggestionCard`, sin guardar, enviar ni mutar automáticamente.
+Current task: Fase 4 final gate / changelog / PR
+Next agent start: partir de `phase/4-contextual-ai` actualizado, integrar `feat/service-follow-up-suggestion` si falta, correr gate final de Fase 4, crear/actualizar changelog y abrir PR contra `develop`.
 
 ---
 
@@ -874,7 +874,17 @@ Branch: `feat/closeout-missing-items-suggestion`
 - Siguiente agente: empezar F4-T07 agregando follow-up sugerido con `AiSuggestionCard` sin guardado, envío ni mutación automática.
 
 ## TASK F4-T07 — Follow-up sugerido
-Status: pending
+Status: done
+Branch: `feat/service-follow-up-suggestion`
+
+### Completion notes
+- Agregado helper `buildServiceFollowUpSuggestion` que genera un contrato `AiSuggestion` `follow_up` para `services.closeout` con política `suggestion_only`, trazabilidad y plantilla `follow-up-closeout-v1`.
+- `ServiceCloseoutPage` renderiza el follow-up sugerido con `AiSuggestionCard` junto al cierre completado y en el bloque IA de cierre para servicios aún no completados.
+- No se agregó programación automática, guardado automático, envío automático ni mutación automática; la sugerencia no recibe handlers de acción en UI.
+- Agregado test unitario en `src/features/services/__tests__/serviceSuggestions.test.ts` para validar contrato seguro, trazabilidad y acciones permitidas.
+- Commit: HEAD de `feat/service-follow-up-suggestion` (`feat: agregar follow-up sugerido en cierre`)
+- Validaciones: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes), `npm run build:minimum` (pasa con avisos preexistentes de chunks circulares).
+- Fase 4 queda lista para gate final, changelog y PR contra `develop`.
 
 ---
 

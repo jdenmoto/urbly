@@ -100,16 +100,27 @@ export function buildServiceMissingRequirementsSuggestion(serviceOrder: ServiceO
   });
 }
 
+export function buildServiceFollowUpSuggestion(serviceOrder: ServiceOrder, t: Translate): AiSuggestion {
+  return createAiSuggestion({
+    id: `${serviceOrder.id}-follow-up`,
+    kind: 'follow_up',
+    title: 'Follow-up sugerido',
+    content: buildFollowUp(serviceOrder, t),
+    trace: {
+      ...buildServiceSuggestionTrace(serviceOrder, 'services.closeout'),
+      policyId: 'suggestion-only-human-approval',
+      templateId: 'follow-up-closeout-v1',
+    },
+    safety: {
+      allowedUserActions: ['copy', 'dismiss', 'regenerate'],
+    },
+  });
+}
+
 export function buildServiceSuggestions(serviceOrder: ServiceOrder, t: Translate): AiSuggestion[] {
   return [
     buildServiceTechnicalSummarySuggestion(serviceOrder, t),
     buildServiceCustomerMessageSuggestion(serviceOrder, t),
-    createAiSuggestion({
-      id: `${serviceOrder.id}-follow-up`,
-      kind: 'follow_up',
-      title: 'Follow-up sugerido',
-      content: buildFollowUp(serviceOrder, t),
-      trace: buildServiceSuggestionTrace(serviceOrder, 'services')
-    })
+    buildServiceFollowUpSuggestion(serviceOrder, t),
   ];
 }

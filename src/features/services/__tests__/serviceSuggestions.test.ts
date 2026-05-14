@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { ServiceOrder } from '@/core/models/serviceOrder';
 import {
   buildServiceCustomerMessageSuggestion,
+  buildServiceFollowUpSuggestion,
   buildServiceMissingRequirementsSuggestion,
   buildServiceReportDraftSuggestion,
   buildServiceTechnicalSummarySuggestion,
@@ -101,6 +102,27 @@ describe('service AI suggestions', () => {
     expect(suggestion.content).toContain('Checklist técnico');
     expect(suggestion.trace.module).toBe('services.closeout');
     expect(suggestion.trace.templateId).toBe('missing-requirements-closeout-v1');
+    expect(suggestion.safety.mode).toBe('suggestion_only');
+    expect(suggestion.safety.requiresHumanApproval).toBe(true);
+    expect(suggestion.safety.allowedUserActions).toEqual(['copy', 'dismiss', 'regenerate']);
+    expect(suggestion.safety.forbiddenSystemActions).toEqual(['auto_save', 'auto_send', 'auto_mutate']);
+  });
+
+  it('builds a suggestion-only follow-up after service closeout without automatic mutation', () => {
+    const suggestion = buildServiceFollowUpSuggestion(
+      {
+        ...serviceOrder,
+        status: 'completed',
+        completionPhotos: ['https://example.com/photo.jpg'],
+      },
+      t
+    );
+
+    expect(suggestion.kind).toBe('follow_up');
+    expect(suggestion.title).toBe('Follow-up sugerido');
+    expect(suggestion.content).toContain('validar el tratamiento de las novedades');
+    expect(suggestion.trace.module).toBe('services.closeout');
+    expect(suggestion.trace.templateId).toBe('follow-up-closeout-v1');
     expect(suggestion.safety.mode).toBe('suggestion_only');
     expect(suggestion.safety.requiresHumanApproval).toBe(true);
     expect(suggestion.safety.allowedUserActions).toEqual(['copy', 'dismiss', 'regenerate']);
