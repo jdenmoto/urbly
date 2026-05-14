@@ -367,36 +367,34 @@ When done, update this file:
 
 Current phase: Fase 5 — UX/mobile/i18n
 
-Last completed task: F5-T02 — CTA móvil principal para técnico
+Last completed task: F5-T03 — Mejorar TechnicianHomePage
 
 - Status: done
-- Branch: `feat/mobile-technician-primary-cta`
-- Commit: HEAD de `feat/mobile-technician-primary-cta` (`feat: agregar cta movil tecnico`)
+- Branch: `feat/improve-technician-home`
+- Commit: HEAD de `feat/improve-technician-home` (`feat: mejorar home movil tecnico`)
 - Files changed:
-  - `src/features/technician/TechnicianPrimaryMobileCta.tsx`
-  - `src/features/technician/__tests__/TechnicianPrimaryMobileCta.test.ts`
   - `src/features/technician/TechnicianHomePage.tsx`
-  - `src/features/services/ServicesPage.tsx`
+  - `src/features/technician/__tests__/TechnicianHomePage.test.ts`
   - `public/locales/es.yaml`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/features/technician/__tests__/TechnicianPrimaryMobileCta.test.ts` — pasa
-  - `npm run test:run` — 98 passed, 20 skipped fuera de emulator normal
+  - `npm run test:run -- src/features/technician/__tests__/TechnicianHomePage.test.ts src/features/technician/__tests__/TechnicianPrimaryMobileCta.test.ts` — pasa
+  - `npm run test:run` — 101 passed, 20 skipped fuera de emulator normal
   - `npm run typecheck` — pasa
   - `npm run lint` — pasa con 7 warnings preexistentes/no relacionados
-- Notes: el CTA móvil queda fijo sobre el bottom nav y mantiene Services como entrada operativa primaria para el técnico; `ServicesPage` reconoce `technician` y `emergency_scheduler` como roles técnicos.
+- Notes: `TechnicianHomePage` prioriza órdenes activas (`in_progress`/`paused`) antes de la siguiente programada, mantiene Services como entrada operativa, agrega estados loading mínimos, badges de actual/siguiente y copy i18n para cola/acciones.
 
 Next required step:
 
-Ejecutar F5-T03 — Mejorar TechnicianHomePage.
+Ejecutar F5-T04 — Estados vacíos de Services.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/5-ux-mobile-i18n` actualizado con F5-T02 integrado.
-2. Crear una rama propia para F5-T03.
-3. Abrir `src/features/technician/TechnicianHomePage.tsx`, `src/features/technician/TechnicianPrimaryMobileCta.tsx` y copy relacionado en `public/locales/es.yaml`.
-4. Implementar F5-T03: mejorar la pantalla home del técnico sin ampliar el alcance fuera de la experiencia móvil/técnica.
+1. Partir de `phase/5-ux-mobile-i18n` actualizado con F5-T03 integrado.
+2. Crear una rama propia para F5-T04.
+3. Abrir `src/features/services/ServicesPage.tsx` y copy relacionado en `public/locales/es.yaml`.
+4. Implementar F5-T04: mejorar estados vacíos de Services sin cambiar el flujo operativo ni reintroducir Scheduling como entrada visible.
 
 ## 8. Archivos relacionados
 

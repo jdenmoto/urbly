@@ -560,6 +560,26 @@ technician:
     service:
       title: Siguiente servicio
       subtitle: Primer corte del inicio técnico usando órdenes de servicio.
+  active:
+    badge: En curso
+    service:
+      title: Servicio activo
+      subtitle: Continúa primero la orden que ya está en ejecución o pausada.
+    services:
+      summary: en ejecución ahora
+  open:
+    services:
+      summary: abiertos por ejecutar
+  queue:
+    title: Cola de trabajo
+    subtitle: Vista mínima del día para saber qué sigue y entrar rápido a cada orden.
+    current: Actual
+    next: Siguiente
+  actions:
+    openService: Abrir servicio
+    closeOrReport: Cerrar o reportar
+    detail: Detalle
+    progressCloseout: Avance / cierre
   missing:
     employee: No se encontro un tecnico asociado a este usuario.
   empty: No tienes servicios pendientes por ahora.

@@ -922,7 +922,18 @@ Branch: `feat/mobile-technician-primary-cta`
 - Siguiente agente: empezar F5-T03 mejorando `src/features/technician/TechnicianHomePage.tsx`.
 
 ## TASK F5-T03 — Mejorar TechnicianHomePage
-Status: pending
+Status: done
+Branch: `feat/improve-technician-home`
+
+### Completion notes
+- `TechnicianHomePage` ahora elige como orden primaria una activa (`in_progress`/`paused`) antes de la siguiente abierta programada.
+- Se mantiene Services como entrada operativa: CTA móvil y acciones siguen apuntando a `/services` y `/services/:id`.
+- Agregados loading skeletons mínimos, resumen de abiertos/en curso y badges de cola `Actual`/`Siguiente` para claridad móvil.
+- Copy nuevo agregado en `public/locales/es.yaml` para cola, acciones, estados activos y resumen.
+- Tests agregados en `src/features/technician/__tests__/TechnicianHomePage.test.ts` para selección de orden primaria y estados abiertos/activos.
+- Commit: HEAD de `feat/improve-technician-home` (`feat: mejorar home movil tecnico`).
+- Validaciones: `npm run test:run -- src/features/technician/__tests__/TechnicianHomePage.test.ts src/features/technician/__tests__/TechnicianPrimaryMobileCta.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 7 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F5-T04 mejorando estados vacíos de `src/features/services/ServicesPage.tsx`.
 
 ## TASK F5-T04 — Estados vacíos de Services
 Status: pending
