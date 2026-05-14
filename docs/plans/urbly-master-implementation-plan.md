@@ -367,11 +367,11 @@ When done, update this file:
 
 Current phase: Fase 4 — IA contextual
 
-Last completed task: F4-T05 — Mensaje cliente sugerido sin envío automático
+Last completed task: F4-T06 — Detección de faltantes antes de cerrar
 
 - Status: done
-- Branch: `feat/client-message-suggestion`
-- Commit: HEAD de `feat/client-message-suggestion` (`feat: agregar mensaje cliente sugerido`)
+- Branch: `feat/closeout-missing-items-suggestion`
+- Commit: HEAD de `feat/closeout-missing-items-suggestion` (`feat: sugerir faltantes antes del cierre`)
 - Files changed:
   - `src/features/services/ServiceCloseoutPage.tsx`
   - `src/features/services/serviceSuggestions.ts`
@@ -383,17 +383,17 @@ Last completed task: F4-T05 — Mensaje cliente sugerido sin envío automático
   - `npm run test:run`
   - `npm run typecheck`
   - `npm run lint` — pasa con 8 warnings preexistentes
-- Notes: `ServiceCloseoutPage` renderiza el mensaje cliente sugerido mediante `AiSuggestionCard` y el contrato `AiSuggestion`; la sugerencia queda marcada como `suggestion_only`, requiere copia/revisión/aprobación humana y no envía, guarda ni muta automáticamente.
+- Notes: `ServiceCloseoutPage` muestra una sugerencia `missing_requirements` mediante `AiSuggestionCard` antes de cerrar servicios no completados. La detección revisa observaciones, evidencia fotográfica final y checklist técnico, pero solo informa: no guarda, no envía, no muta ni bloquea automáticamente el cierre.
 
 Next required step:
 
-Ejecutar F4-T06 — Detección de faltantes antes de cerrar.
+Ejecutar F4-T07 — Follow-up sugerido.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/4-contextual-ai` actualizado e integrar `feat/client-message-suggestion` si falta.
-2. Abrir `src/features/services/ServiceCloseoutPage.tsx` y revisar `analyzeReportQuality` junto al bloque de Calidad IA.
-3. Agregar detección de faltantes antes de cerrar usando `AiSuggestion` y `AiSuggestionCard`, manteniendo el comportamiento de solo sugerencia sin guardar ni mutar automáticamente.
+1. Partir de `phase/4-contextual-ai` actualizado e integrar `feat/closeout-missing-items-suggestion` si falta.
+2. Abrir `src/features/services/serviceSuggestions.ts` y revisar el uso actual de `buildFollowUp` en `ServiceCloseoutPage`.
+3. Agregar follow-up sugerido usando `AiSuggestion` y `AiSuggestionCard`, manteniendo el comportamiento de solo sugerencia sin guardar, enviar ni mutar automáticamente.
 
 ## 8. Archivos relacionados
 

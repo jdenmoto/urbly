@@ -17,7 +17,7 @@ import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
 import { buildFollowUp } from './serviceOrderAi';
 import { buildTechnicalReport } from './serviceReport';
-import { buildServiceCustomerMessageSuggestion, buildServiceReportDraftSuggestion } from './serviceSuggestions';
+import { buildServiceCustomerMessageSuggestion, buildServiceMissingRequirementsSuggestion, buildServiceReportDraftSuggestion } from './serviceSuggestions';
 import { generateServiceReportPdf } from '@/lib/api/functions';
 import { useToast } from '@/components/ToastProvider';
 import {
@@ -137,6 +137,7 @@ export default function ServiceCloseoutPage() {
   const [attachmentUploading, setAttachmentUploading] = useState(false);
   const aiReportDraftSuggestion = serviceOrder ? buildServiceReportDraftSuggestion(serviceOrder, t) : null;
   const aiCustomerMessageSuggestion = serviceOrder ? buildServiceCustomerMessageSuggestion(serviceOrder, t) : null;
+  const aiMissingRequirementsSuggestion = serviceOrder ? buildServiceMissingRequirementsSuggestion(serviceOrder) : null;
   const aiReport = aiReportDraftSuggestion?.content ?? (serviceOrder ? buildTechnicalReport(serviceOrder, t) : '');
   const aiCustomerMessage = aiCustomerMessageSuggestion?.content ?? '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder, t) : '';
@@ -342,6 +343,10 @@ export default function ServiceCloseoutPage() {
             </div>
           )}
         </div>
+
+        {serviceOrder.status !== 'completed' && aiMissingRequirementsSuggestion ? (
+          <AiSuggestionCard suggestion={aiMissingRequirementsSuggestion} />
+        ) : null}
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-2xl border border-emerald-100 bg-white px-4 py-3">
