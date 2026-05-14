@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 2 — Unificación Services/Scheduling  
-Current task: F2-T02 — Redirigir /scheduling a /services
-Next agent start: partir de `phase/2-services-only` actualizado, crear `refactor/redirect-scheduling-route` y ejecutar F2-T02 en `src/app/App.tsx`.
+Current task: F2-T03 — Migrar labels scheduling usados por services
+Next agent start: partir de `phase/2-services-only` actualizado, crear `refactor/services-i18n-labels` y ejecutar F2-T03 en `public/locales/es.yaml` y archivos services que usen `scheduling.*`.
 
 ---
 
@@ -570,7 +570,7 @@ npm run typecheck
 
 ## TASK F2-T02 — Redirigir /scheduling a /services
 
-Status: pending  
+Status: done
 Branch: `refactor/redirect-scheduling-route`
 
 ### Files allowed
@@ -586,6 +586,14 @@ Branch: `refactor/redirect-scheduling-route`
 npm run lint
 npm run typecheck
 ```
+
+### Completion notes
+- Redirigida la ruta protegida `/scheduling` hacia `/services` con `replace` en `src/app/App.tsx`.
+- Removido el lazy import de `SchedulingPage` porque ya no se usa desde rutas principales.
+- No se agregó test de routing: no existen tests de routing/App cercanos en el proyecto y el scope se mantuvo mínimo.
+- Commit: HEAD de `refactor/redirect-scheduling-route` (`refactor: redirigir scheduling a services`).
+- Validaciones: `npm run lint` pasa con 8 warnings preexistentes/no relacionados; `npm run typecheck`; `npm run build:minimum`.
+- Siguiente agente: empezar F2-T03 en `public/locales/es.yaml` y archivos services que usen `scheduling.*`.
 
 ## TASK F2-T03 — Migrar labels scheduling usados por services
 
