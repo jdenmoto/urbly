@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 5 — UX/mobile/i18n
-Current task: F5-T03 — Mejorar TechnicianHomePage
-Next agent start: desde `phase/5-ux-mobile-i18n` actualizado con F5-T02 integrado, crear rama propia y ejecutar F5-T03.
+Current task: F5-T05 — Migrar copy hardcoded a es.yaml
+Next agent start: desde `phase/5-ux-mobile-i18n` actualizado con F5-T04 integrado, crear rama propia y ejecutar F5-T05.
 
 ---
 
@@ -936,7 +936,18 @@ Branch: `feat/improve-technician-home`
 - Siguiente agente: empezar F5-T04 mejorando estados vacíos de `src/features/services/ServicesPage.tsx`.
 
 ## TASK F5-T04 — Estados vacíos de Services
-Status: pending
+Status: done
+Branch: `feat/services-empty-states`
+
+### Completion notes
+- `ServicesPage` ahora calcula estados vacíos role-aware para técnicos y operación, diferenciando ruta técnica vacía, filtros que ocultan servicios y ausencia total de servicios.
+- Los estados vacíos mantienen Services como entrada operativa: técnicos no son enviados a Scheduling y operación puede crear el primer servicio desde el estado vacío.
+- Agregada acción para limpiar filtros cuando existen servicios ocultos por filtro, reutilizando el contexto de edificio actual cuando aplica.
+- Copy nuevo agregado en `public/locales/es.yaml` para estados vacíos y acciones de Services.
+- Tests agregados en `src/features/services/__tests__/ServicesPage.emptyState.test.ts` para selección de estado vacío y detección de filtros activos.
+- Commit: HEAD de `feat/services-empty-states` (`feat: mejorar estados vacios de services`).
+- Validaciones: `npm run test:run -- src/features/services/__tests__/ServicesPage.emptyState.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 6 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F5-T05 migrando copy hardcoded restante a `public/locales/es.yaml`, con foco inicial en `src/features/services/ServicesPage.tsx`.
 
 ## TASK F5-T05 — Migrar copy hardcoded a es.yaml
 Status: pending

@@ -367,34 +367,34 @@ When done, update this file:
 
 Current phase: Fase 5 — UX/mobile/i18n
 
-Last completed task: F5-T03 — Mejorar TechnicianHomePage
+Last completed task: F5-T04 — Estados vacíos de Services
 
 - Status: done
-- Branch: `feat/improve-technician-home`
-- Commit: HEAD de `feat/improve-technician-home` (`feat: mejorar home movil tecnico`)
+- Branch: `feat/services-empty-states`
+- Commit: HEAD de `feat/services-empty-states` (`feat: mejorar estados vacios de services`)
 - Files changed:
-  - `src/features/technician/TechnicianHomePage.tsx`
-  - `src/features/technician/__tests__/TechnicianHomePage.test.ts`
+  - `src/features/services/ServicesPage.tsx`
+  - `src/features/services/__tests__/ServicesPage.emptyState.test.ts`
   - `public/locales/es.yaml`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/features/technician/__tests__/TechnicianHomePage.test.ts src/features/technician/__tests__/TechnicianPrimaryMobileCta.test.ts` — pasa
-  - `npm run test:run` — 101 passed, 20 skipped fuera de emulator normal
+  - `npm run test:run -- src/features/services/__tests__/ServicesPage.emptyState.test.ts` — pasa
+  - `npm run test:run` — 105 passed, 20 skipped fuera de emulator normal
   - `npm run typecheck` — pasa
-  - `npm run lint` — pasa con 7 warnings preexistentes/no relacionados
-- Notes: `TechnicianHomePage` prioriza órdenes activas (`in_progress`/`paused`) antes de la siguiente programada, mantiene Services como entrada operativa, agrega estados loading mínimos, badges de actual/siguiente y copy i18n para cola/acciones.
+  - `npm run lint` — pasa con 6 warnings preexistentes/no relacionados
+- Notes: `ServicesPage` diferencia estados vacíos para técnicos sin ruta asignada, servicios ocultos por filtros y operación sin servicios, manteniendo Services como entrada operativa y agregando acciones de limpiar filtros o crear servicio cuando corresponde.
 
 Next required step:
 
-Ejecutar F5-T04 — Estados vacíos de Services.
+Ejecutar F5-T05 — Migrar copy hardcoded a es.yaml.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/5-ux-mobile-i18n` actualizado con F5-T03 integrado.
-2. Crear una rama propia para F5-T04.
-3. Abrir `src/features/services/ServicesPage.tsx` y copy relacionado en `public/locales/es.yaml`.
-4. Implementar F5-T04: mejorar estados vacíos de Services sin cambiar el flujo operativo ni reintroducir Scheduling como entrada visible.
+1. Partir de `phase/5-ux-mobile-i18n` actualizado con F5-T04 integrado.
+2. Crear una rama propia para F5-T05.
+3. Abrir `src/features/services/ServicesPage.tsx` y `public/locales/es.yaml`.
+4. Migrar copy hardcoded restante de Services a `es.yaml` sin cambiar flujo operativo ni reintroducir Scheduling como entrada visible.
 
 ## 8. Archivos relacionados
 
