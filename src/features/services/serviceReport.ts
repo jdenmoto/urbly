@@ -1,5 +1,10 @@
 import { renderTenantTemplate } from '@/lib/tenantTemplateEngine';
 import type { ServiceOrderPriority, ServiceOrderStatus } from '@/core/models/serviceOrder';
+export {
+  buildServiceReportSnapshot,
+  type ServiceReportSnapshot,
+  type ServiceReportSnapshotInput,
+} from './serviceReportSnapshot';
 import {
   formatServiceDateTime,
   getIssueCategoryLabel,
@@ -42,30 +47,6 @@ const defaultTranslate: TranslateFn = (key, params) => {
 
   return dictionaries[key] ?? String(params?.defaultValue ?? key);
 };
-
-export type ServiceReportSnapshot = {
-  observations: string;
-  issueCount: number;
-  attachmentCount: number;
-  photoCount: number;
-  checklistValues: string[];
-};
-
-export function buildServiceReportSnapshot(serviceOrder: {
-  report?: { observations?: string | null; checklist?: Record<string, string> | null } | null;
-  checklist?: Record<string, string> | null;
-  issues?: unknown[] | null;
-  attachments?: unknown[] | null;
-  completionPhotos?: unknown[] | null;
-}): ServiceReportSnapshot {
-  return {
-    observations: serviceOrder.report?.observations?.trim() ?? '',
-    issueCount: serviceOrder.issues?.length ?? 0,
-    attachmentCount: serviceOrder.attachments?.length ?? 0,
-    photoCount: serviceOrder.completionPhotos?.length ?? 0,
-    checklistValues: Object.values(serviceOrder.report?.checklist ?? serviceOrder.checklist ?? {})
-  };
-}
 
 type TechnicalReportCopyOptions = {
   labelsKeyPrefix?: string;

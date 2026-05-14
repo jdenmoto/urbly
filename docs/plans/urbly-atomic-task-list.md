@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 6 — Reportes/PDF
-Current task: F6-T01 — Crear buildServiceReportSnapshot
-Next agent start: desde `phase/6-reports-pdf` o rama de fase equivalente actualizada con Fase 5 integrada, crear rama propia y ejecutar F6-T01.
+Current task: F6-T02 — Migrar print frontend a snapshot
+Next agent start: desde `phase/6-reports-pdf` actualizada con F6-T01 integrado, crear rama propia y ejecutar F6-T02.
 
 ---
 
@@ -996,10 +996,22 @@ Branch: `feat/adjust-client-navigation`
 Branch de fase: `phase/6-reports-pdf`
 
 ## TASK F6-T01 — Crear buildServiceReportSnapshot
-Status: pending
+Status: done
+Branch: `feat/service-report-snapshot`
+Commit: HEAD (`feat: crear snapshot canonico de reporte`)
+Completion notes:
+- Creado `src/features/services/serviceReportSnapshot.ts` como contrato puro/determinístico para reporte técnico compartido.
+- El snapshot consolida identidad del servicio, contexto cuenta/cliente/edificio, estado/prioridad/tipo con labels, agenda, técnico/asignados, checklist/resultados, evidencias, novedades, observaciones, recomendaciones/next steps y timestamps.
+- `src/features/services/serviceReport.ts` reexporta el builder para mantener compatibilidad con consumidores existentes (`reportQuality`, sugerencias IA) sin migrar print/PDF todavía.
+Validations:
+- `npm run test:run -- src/features/services/__tests__/serviceReportSnapshot.test.ts` — pasa.
+- `npm run test:run` — pasa, con warnings SSR preexistentes en suite de scheduling.
+- `npm run typecheck` — pasa.
+- `npm run lint` — pasa con 6 warnings preexistentes/no relacionados.
 
 ## TASK F6-T02 — Migrar print frontend a snapshot
 Status: pending
+Start from: rama de fase `phase/6-reports-pdf` con F6-T01 integrado; crear rama propia para migrar `ServiceReportPrintPage`/UI de impresión al snapshot sin tocar PDF function todavía.
 
 ## TASK F6-T03 — Migrar PDF function a snapshot
 Status: pending

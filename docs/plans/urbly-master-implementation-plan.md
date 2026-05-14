@@ -367,34 +367,34 @@ When done, update this file:
 
 Current phase: Fase 6 — Reportes/PDF
 
-Last completed task: F5-T07 — Ajustar navegación cliente
+Last completed task: F6-T01 — Crear buildServiceReportSnapshot
 
 - Status: done
-- Branch: `feat/adjust-client-navigation`
-- Commit: HEAD (`feat: ajustar navegacion cliente`)
+- Branch: `feat/service-report-snapshot`
+- Commit: HEAD (`feat: crear snapshot canonico de reporte`)
 - Files changed:
-  - `src/app/nav.ts`
-  - `src/app/nav.test.ts`
+  - `src/features/services/serviceReportSnapshot.ts`
+  - `src/features/services/serviceReport.ts`
+  - `src/features/services/__tests__/serviceReportSnapshot.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/app/nav.test.ts` — pasa
-  - `npm run test:run` — pasa
+  - `npm run test:run -- src/features/services/__tests__/serviceReportSnapshot.test.ts` — pasa
+  - `npm run test:run` — pasa, con warnings SSR preexistentes/no relacionados en scheduling
   - `npm run typecheck` — pasa
-  - `npm run lint` — pasa con warnings preexistentes/no relacionados si aplican
-  - `npm run build:minimum` — pasa
-- Notes: la navegación móvil de `client` y `building_admin` queda limitada a `/portal`, `/portal/services` y `/portal/reports`; roles internos conservan `/services`; `/portal/services` usa el flag `services`, no el flag legacy `scheduling`.
+  - `npm run lint` — pasa con 6 warnings preexistentes/no relacionados
+- Notes: `buildServiceReportSnapshot` queda como contrato puro/determinístico para identidad, contexto, agenda, asignados, resultados, evidencia, novedades, observaciones, recomendaciones/next steps, timestamps y labels de presentación. Print/PDF/IA no se migraron todavía por alcance de F6-T01.
 
 Next required step:
 
-Ejecutar F6-T01 — Crear buildServiceReportSnapshot.
+Ejecutar F6-T02 — Migrar print frontend a snapshot.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/6-reports-pdf` o rama de fase equivalente actualizada con Fase 5 integrada.
-2. Crear una rama propia para F6-T01.
-3. Diseñar y probar `buildServiceReportSnapshot` como contrato compartido antes de migrar print/PDF.
-4. Mantener alcance mínimo: snapshot reutilizable, tests de contrato y sin cambios visuales no requeridos.
+1. Partir de `phase/6-reports-pdf` con F6-T01 integrado.
+2. Crear una rama propia para F6-T02.
+3. Migrar `ServiceReportPrintPage` y la UI de impresión a consumir `buildServiceReportSnapshot`.
+4. Mantener fuera de alcance la función PDF backend, reservada para F6-T03.
 
 ## 8. Archivos relacionados
 
