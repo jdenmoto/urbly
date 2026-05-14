@@ -18,15 +18,17 @@ import { buildCustomerMessage, buildFollowUp } from './serviceOrderAi';
 import { buildTechnicalReport } from './serviceReport';
 import { generateServiceReportPdf } from '@/lib/api/functions';
 import { useToast } from '@/components/ToastProvider';
-import CompleteServiceModal from '@/features/scheduling/CompleteServiceModal';
 import {
+  CompleteServiceModal,
   mapServiceOrderToCloseoutItem,
+  type ServiceCloseoutItem,
+  useServiceCloseoutCompletion
+} from './legacySchedulingAdapter';
+import {
   resolveServiceIssueLabel,
   serviceIssueCategoryOptions,
-  serviceIssueTypeOptions,
-  useServiceCloseoutCompletion
+  serviceIssueTypeOptions
 } from './serviceCloseoutBridge';
-import type { SchedulingItem } from '@/features/scheduling/schedulingItem';
 import { getIssueCategoryLabel, getIssueTypeLabel, getServiceOrderStatusLabel } from './serviceOrderPresentation';
 
 type ServiceCloseoutLocationState = {
@@ -116,7 +118,7 @@ export default function ServiceCloseoutPage() {
   const { serviceOrderId = '' } = useParams();
   const { data: serviceOrders = [] } = useOperationalServiceOrders();
   const locationState = (location.state as ServiceCloseoutLocationState | null) ?? null;
-  const [selected, setSelected] = useState<SchedulingItem | null>(null);
+  const [selected, setSelected] = useState<ServiceCloseoutItem | null>(null);
 
   const serviceOrder = useMemo(
     () => serviceOrders.find((item) => item.id === serviceOrderId) ?? null,
