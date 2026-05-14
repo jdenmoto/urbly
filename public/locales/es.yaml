@@ -570,6 +570,15 @@ technician:
     pill: Prioridad {value}
   mobile:
     badge: Vista movil
+  primary:
+    cta:
+      eyebrow: Acción principal
+      service: Continuar servicio
+      services: Ver mis servicios
+      servicesHint: Entra a Services para ver tu ruta técnica.
+      aria:
+        service: Abrir el siguiente servicio asignado
+        services: Abrir la lista de servicios asignados
   visible:
     services:
       hint: servicios visibles para el tecnico actual

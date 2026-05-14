@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 5 — UX/mobile/i18n
-Current task: F5-T02 — CTA móvil principal para técnico
-Next agent start: desde `phase/5-ux-mobile-i18n` actualizado, crear rama `feat/technician-mobile-primary-cta` y ejecutar F5-T02.
+Current task: F5-T03 — Mejorar TechnicianHomePage
+Next agent start: desde `phase/5-ux-mobile-i18n` actualizado con F5-T02 integrado, crear rama propia y ejecutar F5-T03.
 
 ---
 
@@ -907,7 +907,19 @@ Branch: `feat/dynamic-bottom-nav`
 - Siguiente agente: empezar F5-T02 creando CTA móvil principal para técnico.
 
 ## TASK F5-T02 — CTA móvil principal para técnico
-Status: pending
+Status: done
+Branch: `feat/mobile-technician-primary-cta`
+
+### Completion notes
+- Agregado `TechnicianPrimaryMobileCta` mobile-only como CTA fijo sobre el bottom nav.
+- El CTA mantiene Services como entrada operativa: abre `/services/:id` cuando hay siguiente orden y `/services` si no hay orden activa.
+- `TechnicianHomePage` y `ServicesPage` usan el CTA con contexto de retorno/lista para técnico.
+- `ServicesPage` reconoce el rol final `technician` además del legacy `emergency_scheduler` para la vista técnica.
+- Copy del CTA agregado en `public/locales/es.yaml`.
+- Tests agregados en `src/features/technician/__tests__/TechnicianPrimaryMobileCta.test.ts`.
+- Commit: HEAD de `feat/mobile-technician-primary-cta` (`feat: agregar cta movil tecnico`).
+- Validaciones: `npm run test:run -- src/features/technician/__tests__/TechnicianPrimaryMobileCta.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 7 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F5-T03 mejorando `src/features/technician/TechnicianHomePage.tsx`.
 
 ## TASK F5-T03 — Mejorar TechnicianHomePage
 Status: pending

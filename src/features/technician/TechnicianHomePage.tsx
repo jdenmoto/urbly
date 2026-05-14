@@ -11,6 +11,7 @@ import type { Employee } from '@/core/models/employee';
 import { useList } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
 import { useOperationalServiceOrders } from '@/features/services/useOperationalServiceOrders';
+import TechnicianPrimaryMobileCta from './TechnicianPrimaryMobileCta';
 import {
   formatServiceDateTime,
   getServiceOrderPriorityLabel,
@@ -42,11 +43,12 @@ export default function TechnicianHomePage() {
 
   const openOrders = assignedOrders.filter((item) => item.status !== 'completed' && item.status !== 'cancelled');
   const nextOrder = openOrders[0] ?? null;
+  const nextOrderBuildingName = nextOrder ? buildings.find((item) => item.id === nextOrder.buildingId)?.name : undefined;
   const todaysOrders = openOrders.slice(0, 5);
   const technicianListState = { fromPath: '/technician' };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-28 md:pb-0">
       <PageHeader
         title={t('technician.home.title')}
         subtitle={t('technician.home.subtitle')}
@@ -55,9 +57,17 @@ export default function TechnicianHomePage() {
             className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             to="/services"
           >
-            Ver mis servicios
+            {t('technician.primary.cta.services')}
           </Link>
         }
+      />
+
+      <TechnicianPrimaryMobileCta
+        className="fixed inset-x-4 bottom-24 z-30"
+        serviceOrder={nextOrder}
+        buildingName={nextOrderBuildingName}
+        technicianName={employee?.fullName}
+        fromPath="/technician"
       />
 
       <section className="grid gap-4 md:grid-cols-3">
