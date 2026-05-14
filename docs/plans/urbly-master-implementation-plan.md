@@ -365,38 +365,39 @@ When done, update this file:
 
 ## 7. Estado actual de ejecución
 
-Current phase: Fase 3 — Portal cliente
+Current phase: Fase 4 — IA contextual
 
-Last completed task: Phase 2 final gate — Services como entrada operativa
+Last completed task: Phase 3 final gate — Portal cliente tokenizado
 
 - Status: done, listo para PR contra `develop`
-- Branch: `phase/2-services-only`
-- Changelog: `docs/plans/phase-2-changelog.md`
+- Branch: `phase/3-client-portal`
+- Changelog: `docs/plans/phase-3-changelog.md`
 - Files changed:
-  - `src/app/nav.ts`
   - `src/app/App.tsx`
-  - `public/locales/es.yaml`
-  - `src/features/services/*`
-  - docs de plan
+  - `src/features/portal/**`
+  - `functions/src/clientPortal.ts`
+  - `functions/src/index.ts`
+  - `src/lib/api/functions.ts`
+  - tests de portal cliente
 - Validations executed:
   - `npm run lint` — pasa con 8 warnings preexistentes
   - `npm run typecheck`
-  - `npm run test:run` — 70 passed, 20 skipped fuera de emulator normal
+  - `npm run test:run` — 81 passed, 20 skipped fuera de emulator normal
   - `npm run test:coverage` — coverage gate pasa
   - `npm run test:rules` — 20 passed con emulator Firestore/Storage
   - `npm run build:minimum`
-- Notes: Fase 2 deja `/services` como entrada operativa visible y `/scheduling` redirigido/aislado como legacy. No se hizo merge a `develop` hasta pasar PR/checks.
+- Notes: Portal cliente queda público/tokenizado, revocable, scoped server-side y con vistas de servicios/reportes/solicitudes.
 
 Next required step:
 
-Abrir PR grande de Fase 2 contra `develop`; después de merge/checks, iniciar Fase 3.
+Abrir PR grande de Fase 3 contra `develop`; después de merge/checks, iniciar F4-T01.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Abrir PR: `phase/2-services-only` → `develop`.
+1. Abrir PR: `phase/3-client-portal` → `develop`.
 2. Esperar checks/review y merge autorizado.
-3. Crear branch de Fase 3 desde `develop` actualizado.
-4. Ejecutar primera tarea de portal cliente definida en `docs/plans/urbly-atomic-task-list.md`.
+3. Crear `phase/4-contextual-ai` desde `develop` actualizado.
+4. Ejecutar F4-T01: contrato de sugerencias IA.
 
 ## 8. Archivos relacionados
 

@@ -82,5 +82,25 @@ export async function generateClientPortalToken(params: { serviceOrderId: string
 export async function validateClientPortalToken(params: { token: string }) {
   const fn = httpsCallable(functions, 'validateClientPortalToken');
   const result = await fn(params);
-  return result.data as { valid: boolean; serviceOrderId: string; customerId: string; serviceOrder: { title: string; status: string } };
+  return result.data as {
+    valid: boolean;
+    serviceOrderId: string;
+    accountId: string;
+    buildingId: string;
+    customerId: string;
+    managementCompanyId: string | null;
+    serviceOrder: { title: string; status: string };
+  };
+}
+
+export async function createClientPortalServiceRequest(params: {
+  token: string;
+  title: string;
+  description?: string;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  requestedForAt?: string;
+}) {
+  const fn = httpsCallable(functions, 'createClientPortalServiceRequest');
+  const result = await fn(params);
+  return result.data as { ok: boolean; serviceOrderId: string };
 }

@@ -8,9 +8,9 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 
 ## Estado global
 
-Current phase: Fase 2 — Unificación Services/Scheduling  
-Current task: Phase 2 final gate/changelog/PR
-Next agent start: partir de `phase/2-services-only` actualizado, integrar `refactor/isolate-scheduling-legacy` si falta, ejecutar gates finales de fase, crear/actualizar `docs/plans/phase-2-changelog.md` y abrir PR contra `develop`.
+Current phase: Fase 3 — Portal cliente
+Current task: Fase 3 lista para gate final/changelog/PR
+Next agent start: partir de `phase/3-client-portal` actualizado, integrar `feat/client-service-requests` si falta y ejecutar gate final de Fase 3: changelog + PR contra `develop`.
 
 ---
 
@@ -20,7 +20,7 @@ Branch de fase: `phase/0-tests-ci-base`
 
 ## TASK F0-T01 — Mock/env Firebase para Vitest
 
-Status: done  
+Status: done
 Branch: `test/vitest-firebase-mock`  
 Model: `ollama/qwen2.5-coder:3b`
 
@@ -75,7 +75,7 @@ Al terminar:
 
 ## TASK F0-T02 — Agregar test:run al CI
 
-Status: done  
+Status: done
 Branch: `test/add-vitest-to-ci`  
 Model: `openai-codex/gpt-5.5`
 
@@ -126,7 +126,7 @@ Al terminar:
 
 ## TASK F0-T03 — Configurar cobertura Vitest 70/90
 
-Status: done  
+Status: done
 Branch: `test/configure-coverage-thresholds`
 
 ### Objective
@@ -236,7 +236,7 @@ Branch de fase: `phase/1-multitenancy-security`
 
 ## TASK F1-T01 — Definir tipos Account y Membership
 
-Status: done  
+Status: done
 Branch: `feat/account-membership-types`
 
 ### Objective
@@ -272,7 +272,7 @@ npm run test:run -- account appUser
 
 ## TASK F1-T02 — Crear helpers de permisos por account
 
-Status: done  
+Status: done
 Branch: `feat/account-permission-helpers`
 
 ### Objective
@@ -304,7 +304,7 @@ npm run typecheck
 
 ## TASK F1-T03 — Script idempotente default account
 
-Status: done  
+Status: done
 Branch: `feat/default-account-migration-script`
 
 ### Objective
@@ -371,7 +371,7 @@ npm run test:rules
 
 ## TASK F1-T05 — Reglas explícitas read para service_orders
 
-Status: done  
+Status: done
 Branch: `fix/service-orders-read-rules`
 
 ### Objective
@@ -433,7 +433,7 @@ npm run typecheck
 
 ## TASK F1-T07 — Storage Rules tenant-aware para evidencias
 
-Status: done  
+Status: done
 Branch: `fix/storage-evidence-account-rules`
 
 ### Objective
@@ -523,7 +523,7 @@ npm --prefix functions run build
 
 ## TASK F1-C01 — Corrección de cobertura serviceOrderPermissions
 
-Status: done  
+Status: done
 Branch: `test/service-order-permissions-coverage`
 
 ### Objective
@@ -620,7 +620,7 @@ npm run typecheck
 
 ## TASK F2-T04 — Aislar legacy scheduling no visible
 
-Status: done  
+Status: done
 Branch: `refactor/isolate-scheduling-legacy`
 
 ### Objective
@@ -650,7 +650,7 @@ Branch de fase: `phase/3-client-portal`
 
 ## TASK F3-T01 — Sacar portal/access de ProtectedRoute
 
-Status: pending  
+Status: done
 Branch: `feat/public-portal-access-route`
 
 ### Objective
@@ -666,9 +666,16 @@ npm run typecheck
 npm run build
 ```
 
+### Completion notes
+- `/portal/access` quedó como ruta pública de primer nivel, fuera del `ProtectedRoute` y del `AppLayout` interno.
+- Se preservaron las rutas internas `/portal`, `/portal/services` y `/portal/reports` bajo `RoleGuard`.
+- Commit: HEAD de `feat/public-portal-access-route` (`feat: publicar acceso tokenizado al portal`).
+- Validaciones: `npm run typecheck`, `npm run build` pasan. Build mantiene warnings preexistentes de chunks circulares.
+- Siguiente agente: empezar F3-T02 en `functions/src/clientPortal.ts` desde branch `fix/revocable-client-portal-token`.
+
 ## TASK F3-T02 — JWT con jti/tokenVersion revocable
 
-Status: pending  
+Status: done
 Branch: `fix/revocable-client-portal-token`
 
 ### Files allowed
@@ -679,30 +686,59 @@ Branch: `fix/revocable-client-portal-token`
 npm --prefix functions run build
 ```
 
+### Completion notes
+- `generateClientPortalToken` ahora emite JWT con `jti`, `tokenVersion` y `version`, con expiración de 7 días e issuer validado.
+- La generación incrementa `clientPortalAccess.tokenVersion` en transacción y guarda `activeTokenJti`, `active`, `revoked`, `revokedAt`, `customerId` y `tokenIssuedAt` en `service_orders/{serviceOrderId}`.
+- `validateClientPortalToken` rechaza tokens sin `jti`/versión, revocados, inactivos, con `revokedAt`, incluidos en `revokedTokenIds`, con `activeTokenJti` distinto o con `tokenVersion` desactualizado.
+- Tests automáticos dedicados no se agregaron porque no existe harness de Functions/callable para `clientPortal.ts` en esta fase; se validó con build TypeScript.
+- Commit: HEAD de `fix/revocable-client-portal-token` (`fix: hacer revocable token del portal cliente`).
+- Validación: `npm --prefix functions run build`.
+- Siguiente agente: empezar F3-T03 validando relación token-service-customer-account en `functions/src/clientPortal.ts` desde branch `fix/client-portal-token-scope`.
+
 ## TASK F3-T03 — Validar relación token-service-customer-account
 
-Status: pending  
+Status: done
 Branch: `fix/client-portal-token-scope`
 
 ### Validation
 ```bash
+npm run test:run -- src/test/clientPortalScope.test.ts
 npm --prefix functions run build
 ```
 
+### Completion notes
+- `generateClientPortalToken` valida que el servicio pertenece al `activeAccountId` del operador antes de emitir el JWT.
+- El JWT y `clientPortalAccess` guardan `accountId`, `buildingId`, `customerId` y `managementCompanyId` para fijar el alcance del portal.
+- `validateClientPortalToken` recalcula la relación servicio/edificio/cliente/administración/cuenta y rechaza tokens cross-account, de otro cliente, de otro edificio o con versión/JTI fuera de alcance.
+- Agregado test unitario `src/test/clientPortalScope.test.ts` para scope válido, cliente incorrecto, building cross-account y cliente fuera de administración.
+- Commit: HEAD de `fix/client-portal-token-scope` (`fix: validar alcance del token del portal cliente`).
+- Validaciones: `npm run test:run -- src/test/clientPortalScope.test.ts`, `npm --prefix functions run build`.
+- Siguiente agente: empezar F3-T04 creando `ClientServicesPage` desde branch `feat/client-services-page`.
+
 ## TASK F3-T04 — Crear ClientServicesPage
 
-Status: pending  
+Status: done
 Branch: `feat/client-services-page`
 
 ### Validation
 ```bash
+npm run test:run -- src/features/portal/__tests__/clientServices.test.ts
 npm run typecheck
 npm run build
 ```
 
+### Completion notes
+- Creada `ClientServicesPage` para `/portal/services` con estadísticas, filtros por todos/activos/completados y tarjetas de seguimiento visible para cliente.
+- Agregado helper `src/features/portal/clientServices.ts` para scope por administración, edificios visibles y servicios publicados al cliente, excluyendo borradores/cancelados.
+- `/portal/services` ahora carga la nueva página dedicada en lugar de reutilizar `BuildingAdminPage`; `/portal/reports` se mantiene sin cambios para F3-T05.
+- Agregados tests unitarios de selectores en `src/features/portal/__tests__/clientServices.test.ts`.
+- Commit: HEAD de `feat/client-services-page` (`feat: crear vista de servicios del portal cliente`).
+- Validaciones: `npm run test:run -- src/features/portal/__tests__/clientServices.test.ts`, `npm run typecheck`, `npm run build`.
+- Siguiente agente: empezar F3-T05 creando `ClientReportsPage` desde branch `feat/client-reports-page`.
+
 ## TASK F3-T05 — Crear ClientReportsPage
 
-Status: pending  
+Status: done
 Branch: `feat/client-reports-page`
 
 ### Validation
@@ -711,9 +747,18 @@ npm run typecheck
 npm run build
 ```
 
+### Completion notes
+- Creada `ClientReportsPage` para `/portal/reports` con estadísticas, lista de informes visibles, resumen técnico y PDFs adjuntos publicados dentro del alcance del cliente.
+- Agregado helper `src/features/portal/clientReports.ts` para derivar reportes visibles desde los servicios ya filtrados por portal y detectar adjuntos PDF.
+- `/portal/reports` ahora carga la nueva página dedicada en lugar de reutilizar `BuildingAdminPage`.
+- Ampliados tests unitarios de portal para cobertura de reportes visibles y detección de PDFs.
+- Commit: HEAD de `feat/client-reports-page` (`feat: crear vista de reportes del portal cliente`).
+- Validaciones: `npm run test:run -- src/features/portal/__tests__/clientServices.test.ts`, `npm run typecheck`, `npm run build`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F3-T06 creando solicitudes desde portal desde branch `feat/client-service-requests`.
+
 ## TASK F3-T06 — Crear solicitudes desde portal
 
-Status: pending  
+Status: done
 Branch: `feat/client-service-requests`
 
 ### Validation
@@ -721,6 +766,15 @@ Branch: `feat/client-service-requests`
 npm run test:run -- client portal requests
 npm run build:minimum
 ```
+
+### Completion notes
+- Agregada callable pública `createClientPortalServiceRequest` que valida el JWT revocable del portal antes de crear una solicitud en `service_orders`.
+- La solicitud queda ligada al `accountId`, `customerId`, `managementCompanyId` y `buildingId` resueltos desde el token; no acepta scope enviado por el cliente.
+- El portal seguro tokenizado permite crear una solicitud con título, detalle, prioridad y fecha sugerida.
+- Agregados tests unitarios `src/test/clientPortalRequests.test.ts` para payload seguro y saneamiento de entrada.
+- Commit: HEAD de `feat/client-service-requests` (`feat: crear solicitudes desde portal cliente`).
+- Validaciones: `npm run test:run -- client portal requests`, `npm run test:run -- src/test/clientPortalRequests.test.ts src/test/clientPortalScope.test.ts`, `npm run typecheck`, `npm --prefix functions run build`, `npm run build:minimum`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Fase 3 queda lista para gate final, changelog y PR contra `develop`.
 
 ---
 
