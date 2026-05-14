@@ -47,6 +47,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/__qa__/:role" element={<QaRoleEntryRedirect />} />
+        <Route path="/portal/access" element={<ClientSecurePortalPage />} />
         <Route
           path="/"
           element={
@@ -204,7 +205,6 @@ export default function App() {
               </RoleGuard>
             }
           />
-          <Route path="portal/access" element={<ClientSecurePortalPage />} />
           <Route
             path="portal"
             element={
