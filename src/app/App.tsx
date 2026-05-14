@@ -12,7 +12,6 @@ const BuildingsPage = lazy(() => import('@/features/buildings/BuildingsPage'));
 const ManagementPage = lazy(() => import('@/features/management/ManagementPage'));
 const EmployeesPage = lazy(() => import('@/features/employees/EmployeesPage'));
 const UsersPage = lazy(() => import('@/features/users/UsersPage'));
-const BuildingAdminPage = lazy(() => import('@/features/buildingAdmin/BuildingAdminPage'));
 const ServicesPage = lazy(() => import('@/features/services/ServicesPage'));
 const ServiceDetailPage = lazy(() => import('@/features/services/ServiceDetailPage'));
 const ServiceCloseoutPage = lazy(() => import('@/features/services/ServiceCloseoutPage'));
@@ -24,6 +23,7 @@ const AiWorkspacePage = lazy(() => import('@/features/ai/AiWorkspacePage'));
 const TechnicianHomePage = lazy(() => import('@/features/technician/TechnicianHomePage'));
 const ClientSummaryPage = lazy(() => import('@/features/portal/ClientSummaryPage'));
 const ClientServicesPage = lazy(() => import('@/features/portal/ClientServicesPage'));
+const ClientReportsPage = lazy(() => import('@/features/portal/ClientReportsPage'));
 const ClientSecurePortalPage = lazy(() => import('@/features/portal/ClientSecurePortalPage'));
 const GroupsSettingsPage = lazy(() => import('@/features/settings/GroupsSettingsPage'));
 const IssuesSettingsPage = lazy(() => import('@/features/settings/IssuesSettingsPage'));
@@ -228,7 +228,7 @@ export default function App() {
             path="portal/reports"
             element={
               <RoleGuard allow={['building_admin', 'client']}>
-                <BuildingAdminPage />
+                <ClientReportsPage />
               </RoleGuard>
             }
           />

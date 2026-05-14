@@ -367,14 +367,14 @@ When done, update this file:
 
 Current phase: Fase 3 — Portal cliente
 
-Last completed task: F3-T04 — Crear ClientServicesPage
+Last completed task: F3-T05 — Crear ClientReportsPage
 
 - Status: done
-- Branch: `feat/client-services-page`
-- Commit: HEAD de `feat/client-services-page` (`feat: crear vista de servicios del portal cliente`)
+- Branch: `feat/client-reports-page`
+- Commit: HEAD de `feat/client-reports-page` (`feat: crear vista de reportes del portal cliente`)
 - Files changed:
-  - `src/features/portal/ClientServicesPage.tsx`
-  - `src/features/portal/clientServices.ts`
+  - `src/features/portal/ClientReportsPage.tsx`
+  - `src/features/portal/clientReports.ts`
   - `src/features/portal/__tests__/clientServices.test.ts`
   - `src/app/App.tsx`
   - `docs/plans/urbly-atomic-task-list.md`
@@ -383,19 +383,20 @@ Last completed task: F3-T04 — Crear ClientServicesPage
   - `npm run test:run -- src/features/portal/__tests__/clientServices.test.ts`
   - `npm run typecheck`
   - `npm run build`
-- Notes: `/portal/services` ahora usa una página dedicada de portal cliente, con alcance por administración/edificios/cliente, filtros todos/activos/completados, exclusión de borradores/cancelados y tarjetas de seguimiento visible. El build mantiene los warnings circulares preexistentes de chunks.
+  - `npm run lint` (pasa con 8 warnings preexistentes)
+- Notes: `/portal/reports` ahora usa una página dedicada de portal cliente, con alcance por administración/edificios/cliente, lista de informes visibles, resumen técnico y PDFs adjuntos. El build mantiene los warnings circulares preexistentes de chunks.
 
 Next required step:
 
-Ejecutar F3-T05 — Crear ClientReportsPage.
+Ejecutar F3-T06 — Crear solicitudes desde portal.
 
 Primer punto de arranque para el siguiente agente:
 
 1. Partir de `phase/3-client-portal` actualizado.
-2. Integrar/revisar F3-T04 si la rama de fase aún no lo contiene.
-3. Crear branch `feat/client-reports-page`.
-4. Abrir `src/features/portal/**` y conectar la nueva vista de reportes del cliente.
-5. Implementar F3-T05 según `docs/plans/urbly-atomic-task-list.md` y validar `npm run typecheck` + `npm run build`.
+2. Integrar/revisar F3-T05 si la rama de fase aún no lo contiene.
+3. Crear branch `feat/client-service-requests`.
+4. Abrir `src/features/portal/**` y diseñar el flujo mínimo de creación de solicitudes del cliente.
+5. Implementar F3-T06 según `docs/plans/urbly-atomic-task-list.md` y validar `npm run test:run -- client portal requests` + `npm run build:minimum`.
 
 ## 8. Archivos relacionados
 

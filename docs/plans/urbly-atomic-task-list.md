@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 3 — Portal cliente
-Current task: F3-T05 — Crear ClientReportsPage
-Next agent start: partir de `phase/3-client-portal` actualizado, integrar/revisar F3-T04 si aplica, crear branch `feat/client-reports-page` y abrir `src/features/portal/**`.
+Current task: F3-T06 — Crear solicitudes desde portal
+Next agent start: partir de `phase/3-client-portal` actualizado, integrar/revisar F3-T05 si aplica, crear branch `feat/client-service-requests` y abrir `src/features/portal/**`.
 
 ---
 
@@ -20,7 +20,7 @@ Branch de fase: `phase/0-tests-ci-base`
 
 ## TASK F0-T01 — Mock/env Firebase para Vitest
 
-Status: done  
+Status: done
 Branch: `test/vitest-firebase-mock`  
 Model: `ollama/qwen2.5-coder:3b`
 
@@ -75,7 +75,7 @@ Al terminar:
 
 ## TASK F0-T02 — Agregar test:run al CI
 
-Status: done  
+Status: done
 Branch: `test/add-vitest-to-ci`  
 Model: `openai-codex/gpt-5.5`
 
@@ -126,7 +126,7 @@ Al terminar:
 
 ## TASK F0-T03 — Configurar cobertura Vitest 70/90
 
-Status: done  
+Status: done
 Branch: `test/configure-coverage-thresholds`
 
 ### Objective
@@ -236,7 +236,7 @@ Branch de fase: `phase/1-multitenancy-security`
 
 ## TASK F1-T01 — Definir tipos Account y Membership
 
-Status: done  
+Status: done
 Branch: `feat/account-membership-types`
 
 ### Objective
@@ -272,7 +272,7 @@ npm run test:run -- account appUser
 
 ## TASK F1-T02 — Crear helpers de permisos por account
 
-Status: done  
+Status: done
 Branch: `feat/account-permission-helpers`
 
 ### Objective
@@ -304,7 +304,7 @@ npm run typecheck
 
 ## TASK F1-T03 — Script idempotente default account
 
-Status: done  
+Status: done
 Branch: `feat/default-account-migration-script`
 
 ### Objective
@@ -371,7 +371,7 @@ npm run test:rules
 
 ## TASK F1-T05 — Reglas explícitas read para service_orders
 
-Status: done  
+Status: done
 Branch: `fix/service-orders-read-rules`
 
 ### Objective
@@ -433,7 +433,7 @@ npm run typecheck
 
 ## TASK F1-T07 — Storage Rules tenant-aware para evidencias
 
-Status: done  
+Status: done
 Branch: `fix/storage-evidence-account-rules`
 
 ### Objective
@@ -523,7 +523,7 @@ npm --prefix functions run build
 
 ## TASK F1-C01 — Corrección de cobertura serviceOrderPermissions
 
-Status: done  
+Status: done
 Branch: `test/service-order-permissions-coverage`
 
 ### Objective
@@ -620,7 +620,7 @@ npm run typecheck
 
 ## TASK F2-T04 — Aislar legacy scheduling no visible
 
-Status: done  
+Status: done
 Branch: `refactor/isolate-scheduling-legacy`
 
 ### Objective
@@ -675,7 +675,7 @@ npm run build
 
 ## TASK F3-T02 — JWT con jti/tokenVersion revocable
 
-Status: done  
+Status: done
 Branch: `fix/revocable-client-portal-token`
 
 ### Files allowed
@@ -697,7 +697,7 @@ npm --prefix functions run build
 
 ## TASK F3-T03 — Validar relación token-service-customer-account
 
-Status: done  
+Status: done
 Branch: `fix/client-portal-token-scope`
 
 ### Validation
@@ -717,7 +717,7 @@ npm --prefix functions run build
 
 ## TASK F3-T04 — Crear ClientServicesPage
 
-Status: done  
+Status: done
 Branch: `feat/client-services-page`
 
 ### Validation
@@ -738,7 +738,7 @@ npm run build
 
 ## TASK F3-T05 — Crear ClientReportsPage
 
-Status: pending  
+Status: done
 Branch: `feat/client-reports-page`
 
 ### Validation
@@ -746,6 +746,15 @@ Branch: `feat/client-reports-page`
 npm run typecheck
 npm run build
 ```
+
+### Completion notes
+- Creada `ClientReportsPage` para `/portal/reports` con estadísticas, lista de informes visibles, resumen técnico y PDFs adjuntos publicados dentro del alcance del cliente.
+- Agregado helper `src/features/portal/clientReports.ts` para derivar reportes visibles desde los servicios ya filtrados por portal y detectar adjuntos PDF.
+- `/portal/reports` ahora carga la nueva página dedicada en lugar de reutilizar `BuildingAdminPage`.
+- Ampliados tests unitarios de portal para cobertura de reportes visibles y detección de PDFs.
+- Commit: HEAD de `feat/client-reports-page` (`feat: crear vista de reportes del portal cliente`).
+- Validaciones: `npm run test:run -- src/features/portal/__tests__/clientServices.test.ts`, `npm run typecheck`, `npm run build`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F3-T06 creando solicitudes desde portal desde branch `feat/client-service-requests`.
 
 ## TASK F3-T06 — Crear solicitudes desde portal
 
