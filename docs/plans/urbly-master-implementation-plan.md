@@ -367,36 +367,38 @@ When done, update this file:
 
 Current phase: Fase 5 — UX/mobile/i18n
 
-Last completed task: F5-T05 — Migrar copy hardcoded a es.yaml
+Last completed task: F5-T06 — Separar copy interno vs cliente
 
 - Status: done
-- Branch: `refactor/migrate-hardcoded-copy`
-- Commit: HEAD de `refactor/migrate-hardcoded-copy` (`refactor: migrar copy hardcoded a i18n`)
+- Branch: `feat/separate-client-internal-copy`
+- Commit: este cambio (`feat: separar copy interno y cliente`)
 - Files changed:
-  - `src/features/services/ServicesPage.tsx`
+  - `public/locales/es.yaml`
   - `src/features/portal/ClientServicesPage.tsx`
   - `src/features/portal/ClientReportsPage.tsx`
-  - `src/lib/__tests__/i18nDictionary.test.ts`
-  - `public/locales/es.yaml`
+  - `src/features/portal/__tests__/clientPortalCopy.test.ts`
+  - `src/features/services/serviceOrderPresentation.ts`
+  - `src/features/services/serviceReport.ts`
   - `docs/plans/urbly-atomic-task-list.md`
   - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run test:run -- src/lib/__tests__/i18nDictionary.test.ts src/features/services/__tests__/ServicesPage.emptyState.test.ts` — pasa
-  - `npm run test:run` — 106 passed, 20 skipped fuera de emulator normal
+  - `npm run test:run -- src/lib/__tests__/i18nDictionary.test.ts` — pasa
+  - `npm run test:run -- src/features/portal/__tests__/clientPortalCopy.test.ts` — pasa
+  - `npm run test:run` — 108 passed, 20 skipped fuera de emulator normal
   - `npm run typecheck` — pasa
   - `npm run lint` — pasa con 6 warnings preexistentes/no relacionados
-- Notes: se migró copy hardcoded focalizado de Services y portal cliente a `public/locales/es.yaml`, se agregaron claves `client.portal.services`/`client.portal.reports`, y se cubrió parseo de `es.yaml` con test dedicado.
+- Notes: el portal cliente usa claves `client.portal.*` para copy visible y el reporte técnico cliente se genera con `buildClientTechnicalReport`, manteniendo el reporte operativo interno con defaults `services.*`.
 
 Next required step:
 
-Ejecutar F5-T06 — Separar copy interno vs cliente.
+Ejecutar F5-T07 — Ajustar navegación cliente.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/5-ux-mobile-i18n` actualizado con F5-T05 integrado.
-2. Crear una rama propia para F5-T06.
-3. Abrir `public/locales/es.yaml`, `src/features/portal/ClientServicesPage.tsx` y `src/features/portal/ClientReportsPage.tsx`.
-4. Separar copy interno vs cliente sin cambiar navegación ni alcance de datos del portal.
+1. Partir de `phase/5-ux-mobile-i18n` actualizado con F5-T06 integrado.
+2. Crear una rama propia para F5-T07.
+3. Revisar rutas y navegación de portal cliente sin modificar alcance de datos.
+4. Ajustar navegación cliente con pruebas enfocadas y mantener copy bajo `client.portal.*`.
 
 ## 8. Archivos relacionados
 

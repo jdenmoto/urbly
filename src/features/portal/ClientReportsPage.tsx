@@ -11,7 +11,7 @@ import type { ManagementCompany } from '@/core/models/managementCompany';
 import { useList } from '@/lib/api/queries';
 import { useI18n } from '@/lib/i18n';
 import { useOperationalServiceOrders } from '@/features/services/useOperationalServiceOrders';
-import { buildTechnicalReport } from '@/features/services/serviceReport';
+import { buildClientTechnicalReport } from '@/features/services/serviceReport';
 import {
   formatServiceDateTime,
   getServiceOrderStatusLabel
@@ -69,7 +69,7 @@ export default function ClientReportsPage() {
     return (
       <EmptyState
         title={t('client.portal.reports.title')}
-        description={t('portal.missing.access')}
+        description={t('client.portal.missing.access')}
       />
     );
   }
@@ -159,7 +159,11 @@ export default function ClientReportsPage() {
                     <div className="min-w-0 space-y-3">
                       <div className="flex flex-wrap gap-2">
                         <span className="rounded-full bg-fog-100 px-3 py-1 text-xs font-semibold text-ink-700">
-                          {getServiceOrderStatusLabel(t, serviceOrder.status)}
+                          {getServiceOrderStatusLabel(
+                            t,
+                            serviceOrder.status,
+                            'client.portal.services.status'
+                          )}
                         </span>
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${item.isFinal ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}
@@ -198,7 +202,7 @@ export default function ClientReportsPage() {
                       </div>
                       <div className="rounded-2xl bg-fog-50 p-3">
                         <p className="text-xs uppercase tracking-wide text-ink-500">
-                          {t('services.issues.label')}
+                          {t('client.portal.services.issues.label')}
                         </p>
                         <p className="mt-1 font-semibold text-ink-900">{item.issueCount}</p>
                       </div>
@@ -217,7 +221,7 @@ export default function ClientReportsPage() {
                         {t('client.portal.reports.summary.label')}
                       </p>
                       <pre className="mt-2 max-h-44 overflow-auto whitespace-pre-wrap text-sm leading-6 text-ink-700">
-                        {buildTechnicalReport(serviceOrder, t)}
+                        {buildClientTechnicalReport(serviceOrder, t)}
                       </pre>
                     </div>
                     <div className="rounded-2xl border border-fog-200 p-4">

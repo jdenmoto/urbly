@@ -67,28 +67,64 @@ export function buildServiceReportSnapshot(serviceOrder: {
   };
 }
 
-export function buildTechnicalReport(serviceOrder: ServiceOrderReportLike, t: TranslateFn = defaultTranslate) {
+type TechnicalReportCopyOptions = {
+  labelsKeyPrefix?: string;
+  statusKeyPrefix?: string;
+  priorityKeyPrefix?: string;
+  typeKeyPrefix?: string;
+  issueTypeKeyPrefix?: string;
+  issueCategoryKeyPrefix?: string;
+};
+
+function reportLabel(t: TranslateFn, keyPrefix: string | undefined, key: string, fallback: string) {
+  return keyPrefix ? t(`${keyPrefix}.${key}`, { defaultValue: fallback }) : fallback;
+}
+
+export function buildTechnicalReport(
+  serviceOrder: ServiceOrderReportLike,
+  t: TranslateFn = defaultTranslate,
+  options: TechnicalReportCopyOptions = {}
+) {
   const issues = serviceOrder.issues ?? [];
   const timelineCount = serviceOrder.timeline?.length ?? 0;
   const photos = serviceOrder.completionPhotos?.length ?? 0;
+  const labelsKeyPrefix = options.labelsKeyPrefix;
+  const issueDetail = reportLabel(t, labelsKeyPrefix, 'issueDetail', 'Detalle de novedades');
 
   return [
-    `Servicio: ${serviceOrder.title}`,
-    `Tipo: ${getServiceOrderTypeLabel(t, serviceOrder.type)}`,
-    `Estado: ${getServiceOrderStatusLabel(t, serviceOrder.status)}`,
-    `Prioridad: ${getServiceOrderPriorityLabel(t, serviceOrder.priority)}`,
-    `Inicio programado: ${formatServiceDateTime(serviceOrder.scheduledStartAt)}`,
-    `Fin programado: ${formatServiceDateTime(serviceOrder.scheduledEndAt)}`,
-    `Novedades registradas: ${issues.length}`,
-    `Eventos de la línea de tiempo: ${timelineCount}`,
-    `Evidencias fotográficas: ${photos}`,
+    `${reportLabel(t, labelsKeyPrefix, 'service', 'Servicio')}: ${serviceOrder.title}`,
+    `${reportLabel(t, labelsKeyPrefix, 'type', 'Tipo')}: ${getServiceOrderTypeLabel(t, serviceOrder.type, options.typeKeyPrefix)}`,
+    `${reportLabel(t, labelsKeyPrefix, 'status', 'Estado')}: ${getServiceOrderStatusLabel(t, serviceOrder.status, options.statusKeyPrefix)}`,
+    `${reportLabel(t, labelsKeyPrefix, 'priority', 'Prioridad')}: ${getServiceOrderPriorityLabel(t, serviceOrder.priority, options.priorityKeyPrefix)}`,
+    `${reportLabel(t, labelsKeyPrefix, 'scheduledStart', 'Inicio programado')}: ${formatServiceDateTime(serviceOrder.scheduledStartAt)}`,
+    `${reportLabel(t, labelsKeyPrefix, 'scheduledEnd', 'Fin programado')}: ${formatServiceDateTime(serviceOrder.scheduledEndAt)}`,
+    `${reportLabel(t, labelsKeyPrefix, 'registeredIssues', 'Novedades registradas')}: ${issues.length}`,
+    `${reportLabel(t, labelsKeyPrefix, 'timelineEvents', 'Eventos de la línea de tiempo')}: ${timelineCount}`,
+    `${reportLabel(t, labelsKeyPrefix, 'photos', 'Evidencias fotográficas')}: ${photos}`,
     issues.length
-      ? `Detalle de novedades: ${issues.map((issue) => `${getIssueTypeLabel(t, issue.type)}/${getIssueCategoryLabel(t, issue.category)}`).join(', ')}`
-      : 'Detalle de novedades: sin novedades registradas por ahora'
+      ? `${issueDetail}: ${issues.map((issue) => `${getIssueTypeLabel(t, issue.type, options.issueTypeKeyPrefix)}/${getIssueCategoryLabel(t, issue.category, options.issueCategoryKeyPrefix)}`).join(', ')}`
+      : `${issueDetail}: ${reportLabel(t, labelsKeyPrefix, 'noIssues', 'sin novedades registradas por ahora')}`
   ].join('\n');
 }
 
-export async function buildTenantAwareTechnicalReport(serviceOrder: ServiceOrderReportLike, t: TranslateFn = defaultTranslate) {
+export function buildClientTechnicalReport(
+  serviceOrder: ServiceOrderReportLike,
+  t: TranslateFn = defaultTranslate
+) {
+  return buildTechnicalReport(serviceOrder, t, {
+    labelsKeyPrefix: 'client.portal.reports.technicalReport',
+    statusKeyPrefix: 'client.portal.services.status',
+    priorityKeyPrefix: 'client.portal.services.priority',
+    typeKeyPrefix: 'client.portal.services.type',
+    issueTypeKeyPrefix: 'client.portal.services.issue.types',
+    issueCategoryKeyPrefix: 'client.portal.services.issue.categories'
+  });
+}
+
+export async function buildTenantAwareTechnicalReport(
+  serviceOrder: ServiceOrderReportLike,
+  t: TranslateFn = defaultTranslate
+) {
   const fallback = buildTechnicalReport(serviceOrder, t);
   const rendered = await renderTenantTemplate({
     administrationId: serviceOrder.administrationId ?? null,
