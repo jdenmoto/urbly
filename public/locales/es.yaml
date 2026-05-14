@@ -26,13 +26,14 @@ common:
   action:
     success: Accion completada
     error: Ocurrio un error
-  "yes": Si
-  "no":
-    default: "No"
+  'yes': Si
+  'no':
+    default: 'No'
     data: Sin datos
     results: Sin resultados
   view: Ver
   all: Todos
+  allBuildings: todos los edificios
   optional: Opcional
   select: Selecciona
   filters: Filtros
@@ -251,6 +252,76 @@ client:
         hint: servicios visibles en la siguiente ventana
     priority:
       pill: Prioridad {value}
+    nav:
+      summary: Resumen
+      services: Servicios
+      reports: Reportes
+    services:
+      title: Servicios del cliente
+      subtitle: Seguimiento operativo visible para cliente.
+      subtitleScoped: Servicios visibles para {administration}.
+      active:
+        hint: En seguimiento
+      completed:
+        hint: Histórico visible
+      urgent:
+        label: Prioridad urgente
+        hint: Requiere atención
+      evidence:
+        label: Evidencia
+        hint: Fotos publicadas
+      visibleOperation:
+        title: Operación visible
+        description: 'Lista filtrada por alcance del cliente: edificios asociados o servicios asignados directamente a la administración.'
+      filters:
+        all: Todos
+        active: Activos
+        completed: Completados
+      timeline:
+        completed: Servicio completado con entregables visibles para revisión.
+        inProgress: Equipo técnico trabajando con seguimiento activo.
+        default: Seguimiento operativo visible para cliente.
+      scheduled:
+        label: Programado
+      lastUpdate:
+        label: Última actualización
+      empty:
+        title: Sin servicios visibles
+        description: No hay servicios publicados para este filtro dentro del alcance del cliente.
+    reports:
+      title: Reportes del cliente
+      subtitle: Informes técnicos visibles para cliente.
+      subtitleScoped: Informes y PDFs visibles para {administration}.
+      visible:
+        label: Informes visibles
+        hint: Con cierre, evidencia o PDF
+      final:
+        label: Finalizados
+        hint: Completados o aprobados
+        badge: Informe final
+      pdfs:
+        label: PDFs adjuntos
+        hint: Documentos enlazados
+      deliverables:
+        title: Entregables técnicos
+        description: Lista limitada al alcance del cliente. Incluye informes generados desde servicios visibles y PDFs adjuntos publicados.
+      issues:
+        hint: Novedades documentadas en reportes visibles.
+      draft:
+        badge: Borrador visible
+      updatedAt: 'Actualizado: {date}'
+      photos:
+        count: '{count} fotos'
+      summary:
+        label: Resumen del informe
+      pdf:
+        available: PDFs disponibles
+        primary: PDF principal
+        numbered: PDF {number}
+        empty: Sin PDF adjunto. El resumen técnico queda visible en esta página.
+      empty:
+        title: Sin reportes visibles
+        description: Todavía no hay informes, PDFs o evidencia publicada para esta administración.
 services:
   title: Servicios
   subtitle: Flujo operativo basado en órdenes de servicio.
@@ -261,6 +332,9 @@ services:
     agenda:
       title: Cola técnica
       subtitle: Tus órdenes activas primero, con acceso directo a detalle y cierre.
+    nextAction:
+      eyebrow: Siguiente acción
+      description: Ve directo al detalle o entra al cierre técnico sin cargar módulos administrativos.
   coming:
     soon: Esta area alojara agenda, detalle y cierre del nuevo flujo de servicios.
   empty:
@@ -269,18 +343,63 @@ services:
     description: Crea la primera orden desde Services para mantener la operación centralizada.
     filtered:
       title: Sin resultados con estos filtros
-      description: Hay servicios disponibles, pero el filtro actual no muestra ninguno. Ajusta fechas, estado o edificio. Edificio: {building}.
+      description: 'Hay servicios disponibles, pero el filtro actual no muestra ninguno. Ajusta fechas, estado o edificio. Edificio: {building}.'
     technician:
       title: Tu ruta está libre
       description: No tienes servicios asignados visibles ahora. Cuando te asignen una orden, aparecerá aquí con acceso directo a detalle, avance y cierre.
       filtered:
         title: Nada visible en tu ruta filtrada
-        description: Tienes servicios asignados, pero el filtro actual no los muestra. Edificio: {building}. Limpia filtros para volver a tu cola técnica.
+        description: 'Tienes servicios asignados, pero el filtro actual no los muestra. Edificio: {building}. Limpia filtros para volver a tu cola técnica.'
     actions:
       clearFilters: Limpiar filtros
       createService: Crear servicio
   actions:
     quickCreate: Crear servicio rápido
+    openDetail: Abrir detalle
+    openCloseout: Ir al cierre
+    editService: Editar servicio
+    assignTechnician: Asignar técnico
+    reassignTechnician: Reasignar técnico
+    confirm: Confirmar
+    cancel: Cancelar
+    duplicateQuickCreate: Duplicar en creación rápida
+    registerDailyProgress: Registrar avance diario
+  assignment:
+    reason: Asignación operativa desde services
+    modal:
+      title: Asignar técnico
+    selectTechnician: Selecciona técnico
+    save: Guardar asignación
+  edit:
+    modal:
+      title: Editar servicio
+    selectType: Selecciona tipo
+    save: Guardar cambios
+  cancel:
+    modal:
+      title: Cancelar servicio
+    reason:
+      label: Motivo
+    confirm: Confirmar cancelación
+  dailyProgress:
+    count: '{count} avances diarios'
+    modal:
+      title: Registrar avance diario
+    percent:
+      label: '% completado'
+    hours:
+      label: Horas trabajadas
+    summary:
+      label: Resumen del avance
+    save: Guardar avance
+  filter:
+    active:
+      title: Filtro operativo activo
+      description: 'Estás viendo servicios del edificio {building}.'
+      clear: Limpiar filtro
+      next:
+        review: 'Siguiente paso sugerido: revisar el servicio más próximo o continuar su ejecución.'
+        empty: 'Siguiente paso sugerido: este edificio aún no muestra servicios visibles en el filtro actual.'
   view:
     detail: Ver detalle
     closeout: Ver cierre
@@ -291,6 +410,7 @@ services:
   context:
     title: Contexto del servicio
     subtitle: Información base para operar la orden de servicio sin entrar al agendamiento legado.
+    current: 'Contexto actual: {building}'
   building:
     label: Edificio
   customer:
@@ -334,7 +454,7 @@ services:
     title: Línea de tiempo operativa
     subtitle: Eventos derivados del agendamiento actual mientras se migra el dominio.
     empty: Este servicio todavía no tiene eventos registrados.
-    count: "Eventos de la línea de tiempo: {count}"
+    count: 'Eventos de la línea de tiempo: {count}'
     label: Línea de tiempo
   closeout:
     title: Cierre tecnico
@@ -348,9 +468,9 @@ services:
     title: Reporte actual
   evidence:
     title: Evidencia actual
-    count: "Fotos registradas: {count}"
+    count: 'Fotos registradas: {count}'
   issues:
-    count: "Novedades registradas: {count}"
+    count: 'Novedades registradas: {count}'
     label: Novedades
   communication:
     title: Comunicacion generada
@@ -500,7 +620,7 @@ mission:
         title: Carga del equipo
         subtitle: Balance rápido del equipo técnico para decidir asignaciones.
     assigned:
-      count: "{count} asignados"
+      count: '{count} asignados'
     alerts:
       title: Alertas operativas
       subtitle: Bloqueos, urgencias y vencimientos que necesitan intervención.
@@ -789,8 +909,8 @@ settings:
     value:
       label: Valor
   applies:
-    "yes": Aplica
-    "no": No aplica
+    'yes': Aplica
+    'no': No aplica
   recommended:
     dates:
       title: Fechas recomendadas
@@ -832,7 +952,7 @@ management:
     phone: Celular administrador delegado
   nit:
     default: NIT
-    format: "Formato NIT invalido (ej: 900123456-7)"
+    format: 'Formato NIT invalido (ej: 900123456-7)'
     placeholder: 900123456-7
     unique: El NIT ya existe
   address: Direccion
@@ -964,7 +1084,7 @@ buildings:
     default: Contrato
     required: Selecciona un contrato
     mismatch: El contrato no pertenece a la administracion seleccionada
-  "no":
+  'no':
     contract: Sin contrato
   types:
     edificio: Edificio
@@ -1005,7 +1125,7 @@ buildings:
       label: Entidad
     evaluated:
       rows: Filas evaluadas
-    "no":
+    'no':
       remote:
         summary: Sin resumen remoto
     detected:
@@ -1246,7 +1366,7 @@ scheduling:
       at: Fecha y hora inicial
     duration: Duracion estimada (min)
     resulting:
-      status: "Estado resultante:"
+      status: 'Estado resultante:'
     status:
       hint: Con tecnico asignado queda programado. Sin tecnico queda visible para asignacion desde la agenda.
     full:
@@ -1282,7 +1402,7 @@ scheduling:
   filters:
     title: Filtros
     subtitle: Filtra por tecnico, edificio, estado, tipo, prioridad y rango de fechas.
-    results: "{count} resultados"
+    results: '{count} resultados'
     technician: Tecnico
     building: Edificio
     status: Estado
@@ -1341,7 +1461,7 @@ scheduling:
       mensual: Mensual
       bimensual: Bimensual
       semestral: Semestral
-  "no":
+  'no':
     recurrence: No se repite
   create: Crear agendamiento
   update: Actualizar agendamiento
@@ -1455,7 +1575,7 @@ dashboard:
     title: Pendientes
     label: Pendiente
     empty: No hay pendientes vencidos.
-    count: "{count} pendientes"
+    count: '{count} pendientes'
     completed: Pendiente completado
     canceled: Pendiente cancelado
     cancel:
