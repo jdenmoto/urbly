@@ -392,16 +392,31 @@ Last completed task: Phase 1 final gate — Multitenancy + seguridad
   - `npm --prefix functions audit` — 0 vulnerabilities reportadas
 - Notes: Fase 1 queda lista para PR. No se hizo merge a `develop` porque GitHub exige PR/checks.
 
+Last completed task: F2-T01 — Quitar Scheduling del nav
+
+- Status: done
+- Branch: `refactor/remove-scheduling-nav`
+- Commit: HEAD de `refactor/remove-scheduling-nav` (`refactor: remover scheduling del nav`)
+- Files changed:
+  - `src/app/nav.ts`
+  - `docs/plans/urbly-atomic-task-list.md`
+  - `docs/plans/urbly-master-implementation-plan.md`
+- Validations executed:
+  - `npm run test:run -- nav` — no encontró tests nav existentes; Vitest terminó con code 1 por ausencia de archivos
+  - `npm run typecheck`
+  - `npm run lint` — pasa con 8 warnings preexistentes/no relacionados
+- Notes: `/scheduling` fue removido solo de la navegación visible. La ruta se mantiene sin redirect hasta F2-T02.
+
 Next required step:
 
-Abrir PR grande de Fase 1 contra `develop`; después de merge/checks, iniciar F2-T01.
+Ejecutar F2-T02 — Redirigir `/scheduling` a `/services`.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Abrir PR: `phase/1-multitenancy-security` → `develop`.
-2. Esperar checks/review y merge autorizado.
-3. Crear/usar `phase/2-services-only` desde `develop` actualizado.
-4. Ejecutar F2-T01: quitar Scheduling del nav visible en `src/app/nav.ts`.
+1. Partir de `phase/2-services-only` actualizado.
+2. Crear rama `refactor/redirect-scheduling-route`.
+3. Abrir `src/app/App.tsx`.
+4. Reemplazar la ruta `/scheduling` por `<Navigate to="/services" replace />` y remover el lazy import si queda sin uso.
 
 ## 8. Archivos relacionados
 

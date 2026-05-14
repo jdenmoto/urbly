@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 2 — Unificación Services/Scheduling  
-Current task: F2-T01 — Quitar Scheduling del nav  
-Next agent start: esperar PR/merge de Fase 1 a `develop`; luego crear/usar `phase/2-services-only` desde `develop` actualizado y ejecutar `refactor/remove-scheduling-nav`.
+Current task: F2-T02 — Redirigir /scheduling a /services
+Next agent start: partir de `phase/2-services-only` actualizado, crear `refactor/redirect-scheduling-route` y ejecutar F2-T02 en `src/app/App.tsx`.
 
 ---
 
@@ -544,7 +544,7 @@ Branch de fase: `phase/2-services-only`
 
 ## TASK F2-T01 — Quitar Scheduling del nav
 
-Status: pending  
+Status: done
 Branch: `refactor/remove-scheduling-nav`
 
 ### Objective
@@ -559,6 +559,14 @@ Eliminar `/scheduling` de navegación visible.
 npm run test:run -- nav
 npm run typecheck
 ```
+
+### Completion notes
+- Removido `/scheduling` de la navegación visible interna en `src/app/nav.ts`.
+- `/services` queda como entrada operativa visible y toma el orden móvil de operaciones.
+- La ruta `/scheduling` no se eliminó ni redirigió; queda para F2-T02.
+- Commit: HEAD de `refactor/remove-scheduling-nav` (`refactor: remover scheduling del nav`).
+- Validaciones: `npm run test:run -- nav` no encontró tests nav existentes y terminó con code 1 por ausencia de archivos; `npm run typecheck`; `npm run lint` pasa con 8 warnings preexistentes.
+- Siguiente agente: empezar F2-T02 en `src/app/App.tsx`, redirigiendo `/scheduling` a `/services`.
 
 ## TASK F2-T02 — Redirigir /scheduling a /services
 
