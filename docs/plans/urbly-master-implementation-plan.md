@@ -367,13 +367,13 @@ When done, update this file:
 
 Current phase: Fase 4 — IA contextual
 
-Last completed task: F4-T03 — Resumen técnico en detalle de servicio
+Last completed task: F4-T04 — Borrador de reporte en cierre
 
 - Status: done
-- Branch: `feat/service-technical-summary-suggestion`
-- Commit: HEAD de `feat/service-technical-summary-suggestion` (`feat: agregar resumen tecnico sugerido en servicio`)
+- Branch: `feat/service-report-draft-suggestion`
+- Commit: HEAD de `feat/service-report-draft-suggestion` (`feat: agregar borrador de reporte sugerido`)
 - Files changed:
-  - `src/features/services/ServiceDetailPage.tsx`
+  - `src/features/services/ServiceCloseoutPage.tsx`
   - `src/features/services/serviceSuggestions.ts`
   - `src/features/services/__tests__/serviceSuggestions.test.ts`
   - `docs/plans/urbly-atomic-task-list.md`
@@ -383,17 +383,17 @@ Last completed task: F4-T03 — Resumen técnico en detalle de servicio
   - `npm run test:run`
   - `npm run typecheck`
   - `npm run lint` — pasa con 8 warnings preexistentes
-- Notes: `ServiceDetailPage` renderiza el resumen técnico contextual mediante `AiSuggestionCard` y el contrato `AiSuggestion`; la sugerencia queda marcada como `suggestion_only`, requiere aprobación humana y no guarda, envía ni muta automáticamente.
+- Notes: `ServiceCloseoutPage` renderiza el borrador de reporte contextual mediante `AiSuggestionCard` y el contrato `AiSuggestion`; la sugerencia queda marcada como `suggestion_only`, requiere aprobación humana y no guarda, envía ni muta automáticamente.
 
 Next required step:
 
-Ejecutar F4-T04 — Borrador de reporte en cierre.
+Ejecutar F4-T05 — Mensaje cliente sugerido sin envío automático.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Partir de `phase/4-contextual-ai` actualizado e integrar `feat/service-technical-summary-suggestion` si falta.
-2. Abrir `src/features/services/ServiceCloseoutPage.tsx` y revisar el bloque de reporte/cierre técnico.
-3. Agregar borrador de reporte sugerido usando `AiSuggestion` y `AiSuggestionCard`, manteniendo el comportamiento de solo sugerencia sin guardar/enviar/mutar automáticamente.
+1. Partir de `phase/4-contextual-ai` actualizado e integrar `feat/service-report-draft-suggestion` si falta.
+2. Abrir `src/features/services/ServiceCloseoutPage.tsx` y revisar el bloque de IA/comunicación de cierre.
+3. Agregar mensaje cliente sugerido usando `AiSuggestion` y `AiSuggestionCard`, manteniendo el comportamiento de solo sugerencia sin enviar, guardar ni mutar automáticamente.
 
 ## 8. Archivos relacionados
 

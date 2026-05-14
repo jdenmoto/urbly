@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 4 — IA contextual
-Current task: F4-T04 — Borrador de reporte en cierre
-Next agent start: partir de `phase/4-contextual-ai` actualizado e implementar F4-T04 en `src/features/services/ServiceCloseoutPage.tsx` usando el contrato `AiSuggestion` y `AiSuggestionCard`, sin guardar/enviar/mutar automáticamente.
+Current task: F4-T05 — Mensaje cliente sugerido sin envío automático
+Next agent start: partir de `phase/4-contextual-ai` actualizado e implementar F4-T05 agregando mensaje cliente sugerido con `AiSuggestion` y `AiSuggestionCard`, sin enviar, guardar ni mutar automáticamente.
 
 ---
 
@@ -834,7 +834,17 @@ Branch: `feat/service-technical-summary-suggestion`
 - Siguiente agente: empezar F4-T04 agregando borrador de reporte en cierre con `AiSuggestionCard` en `src/features/services/ServiceCloseoutPage.tsx`.
 
 ## TASK F4-T04 — Borrador de reporte en cierre
-Status: pending
+Status: done
+Branch: `feat/service-report-draft-suggestion`
+
+### Completion notes
+- Agregado helper `buildServiceReportDraftSuggestion` que genera un contrato `AiSuggestion` `report_draft` para `services.closeout` con política `suggestion_only`, trazabilidad y plantilla `service-report-draft-v1`.
+- `ServiceCloseoutPage` ahora renderiza el borrador de reporte con `AiSuggestionCard` dentro del contexto de cierre.
+- La sugerencia no recibe handlers de acción: no guarda, no envía y no muta automáticamente; solo muestra contenido para aprobación humana.
+- Agregado test unitario en `src/features/services/__tests__/serviceSuggestions.test.ts` para validar contrato seguro del borrador de reporte.
+- Commit: HEAD de `feat/service-report-draft-suggestion` (`feat: agregar borrador de reporte sugerido`)
+- Validaciones: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 8 warnings preexistentes).
+- Siguiente agente: empezar F4-T05 agregando mensaje cliente sugerido sin envío automático con `AiSuggestionCard`.
 
 ## TASK F4-T05 — Mensaje cliente sugerido sin envío automático
 Status: pending

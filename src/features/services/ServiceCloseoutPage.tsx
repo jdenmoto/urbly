@@ -6,6 +6,7 @@ import { recordAuditEvent } from '@/lib/audit';
 import { createInternalNotification } from '@/lib/internalNotifications';
 import { useAuth } from '@/app/Auth';
 import Input from '@/components/Input';
+import AiSuggestionCard from '@/features/ai/AiSuggestionCard';
 import { uploadServiceAttachments } from './serviceAttachments';
 import { analyzeReportQuality } from './reportQuality';
 import Card from '@/components/Card';
@@ -16,6 +17,7 @@ import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
 import { buildCustomerMessage, buildFollowUp } from './serviceOrderAi';
 import { buildTechnicalReport } from './serviceReport';
+import { buildServiceReportDraftSuggestion } from './serviceSuggestions';
 import { generateServiceReportPdf } from '@/lib/api/functions';
 import { useToast } from '@/components/ToastProvider';
 import {
@@ -133,7 +135,8 @@ export default function ServiceCloseoutPage() {
   const [quoteFeedback, setQuoteFeedback] = useState('');
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const [attachmentUploading, setAttachmentUploading] = useState(false);
-  const aiReport = serviceOrder ? buildTechnicalReport(serviceOrder, t) : '';
+  const aiReportDraftSuggestion = serviceOrder ? buildServiceReportDraftSuggestion(serviceOrder, t) : null;
+  const aiReport = aiReportDraftSuggestion?.content ?? (serviceOrder ? buildTechnicalReport(serviceOrder, t) : '');
   const aiCustomerMessage = serviceOrder ? buildCustomerMessage(serviceOrder, t) : '';
   const aiFollowUp = serviceOrder ? buildFollowUp(serviceOrder, t) : '';
   const qualityAnalysis = serviceOrder ? analyzeReportQuality(serviceOrder) : null;
@@ -414,6 +417,8 @@ export default function ServiceCloseoutPage() {
             </div>
           </div>
         </div>
+
+        {aiReportDraftSuggestion ? <AiSuggestionCard suggestion={aiReportDraftSuggestion} /> : null}
 
         <div className="grid gap-4 xl:grid-cols-[1.35fr,0.95fr]">
           <div className="space-y-4 rounded-3xl border border-fog-200 bg-white p-5">
