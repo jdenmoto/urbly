@@ -1,5 +1,5 @@
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import type { ServiceOrder, ServiceOrderChecklistValue, ServiceOrderIssue, ServiceOrderReport } from '@/core/models/serviceOrder';
+import type { ServiceOrderChecklistValue, ServiceOrderIssue, ServiceOrderReport } from '@/core/models/serviceOrder';
 import type { SchedulingItem } from './schedulingItem';
 import { storage } from '@/lib/firebase/client';
 
@@ -132,8 +132,6 @@ export async function buildCompletionPayload(args: {
   const completionPhotoUrls = await uploadCompletionPhotos(schedulingItemId, completionPhotos);
 
   let payload: Record<string, unknown> = {
-    status: 'completed',
-    completedAt: new Date().toISOString(),
     report: {
       ...completionReport,
       checklist: normalizedChecklist

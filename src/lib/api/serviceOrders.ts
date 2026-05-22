@@ -155,6 +155,16 @@ export type ReopenServiceOrderInput = {
   reason: string;
 };
 
+export type CompletedServiceOrderPayload = {
+  status: 'completed';
+  completedAt: string;
+  report: ServiceOrderReport;
+  completionPhotos: string[];
+  issues?: ServiceOrderIssue[];
+  timeline: ServiceOrderTimelineEvent[];
+  updatedAt: string;
+};
+
 export type SchedulingServiceOrderStatus = 'programado' | 'confirmado' | 'completado' | 'cancelado';
 
 function mapSchedulingStatus(status: SchedulingServiceOrderStatus): ServiceOrderStatus {
@@ -786,7 +796,7 @@ export async function completeServiceOrder(input: CompleteServiceOrderInput) {
   });
 }
 
-export async function completeServiceOrderWithReport(input: CompleteServiceOrderWithReportInput) {
+export async function completeServiceOrderWithReport(input: CompleteServiceOrderWithReportInput): Promise<CompletedServiceOrderPayload> {
   assertNoCloseoutValidationErrors(validateServiceOrderCloseout(input));
 
   const completedAt = nowIso();
@@ -806,7 +816,7 @@ export async function completeServiceOrderWithReport(input: CompleteServiceOrder
     }),
   ]);
 
-  await updateDocById('service_orders', input.serviceOrder.id, {
+  const payload: CompletedServiceOrderPayload = {
     status: 'completed',
     completedAt,
     report: normalizedReport,
@@ -814,7 +824,10 @@ export async function completeServiceOrderWithReport(input: CompleteServiceOrder
     ...(issues.length ? { issues } : {}),
     timeline,
     ...buildUpdatedAt(),
-  });
+  };
+
+  await updateDocById('service_orders', input.serviceOrder.id, payload);
+  return payload;
 }
 
 export async function reopenServiceOrder(input: ReopenServiceOrderInput) {
