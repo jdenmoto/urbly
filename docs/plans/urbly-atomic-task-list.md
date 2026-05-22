@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 6 — Reportes/PDF
-Current task: F6-T05 — Tests de contrato del snapshot
-Next agent start: desde `phase/6-reports-pdf` actualizada con F6-T04 integrado, crear rama propia y ejecutar F6-T05 sin reabrir print/PDF/IA salvo ajustes de contrato estrictamente necesarios.
+Current task: F7-T01 — Crear completeServiceOrderWithReport
+Next agent start: desde `phase/6-reports-pdf` con F6-T05 integrado, preparar rama de Fase 7 y ejecutar F7-T01 sin reabrir reportes/PDF salvo dependencias estrictas del cierre canónico.
 
 ---
 
@@ -1057,7 +1057,27 @@ Validations:
 - `npm run lint` — pasa con warnings preexistentes/no relacionados.
 
 ## TASK F6-T05 — Tests de contrato del snapshot
-Status: pending
+Status: done
+Branch: `phase/6-reports-pdf`
+Commits:
+- `87aab8e` — `test: agregar contrato de snapshot de reporte`
+- `27b16de` — `fix: alinear defaults del snapshot de reporte`
+Completion notes:
+- Agregado `serviceReportSnapshot.contract.test.ts` para bloquear drift estructural entre el snapshot canónico frontend y el snapshot usado por el modelo PDF de Functions.
+- Cubierto caso completo con contexto, assignees, checklist, evidencias, novedades, recomendaciones, review y timestamps.
+- Cubierto caso degradado con datos vacíos/no normalizados para validar defaults compartidos: `Servicio`, `unknown`, `medium`, `draft`, arrays filtrados y next steps limpios.
+- El RED detectó drift real: Functions aplicaba defaults de title/type/priority/status pero el builder canónico frontend no.
+- Corregido `buildServiceReportSnapshot` para normalizar defaults antes de producir labels y contrato público.
+Validations:
+- RED: `npm run test:run -- src/features/services/__tests__/serviceReportSnapshot.contract.test.ts` falló por drift de defaults entre runtimes.
+- `npm run test:run -- src/features/services/__tests__/serviceReportSnapshot.contract.test.ts` — pasa.
+- `npm run test:run -- src/features/services/__tests__/serviceReportSnapshot.test.ts src/features/services/__tests__/serviceReportPrint.test.ts src/features/services/__tests__/serviceSuggestions.test.ts src/serviceReports.snapshot.test.ts` — pasa.
+- `npm run test:run` — pasa, 118 tests passed y 20 skipped.
+- `npm run typecheck` — pasa.
+- `npm run lint` — pasa con 6 warnings preexistentes/no relacionados.
+- `npm --prefix functions run build` — pasa.
+- `npm run build:minimum` — pasa, con warnings preexistentes de chunks circulares Vite.
+- Fase 6 queda lista para gate final/changelog/PR o para arrancar Fase 7 sobre cierre técnico canónico.
 
 ---
 
