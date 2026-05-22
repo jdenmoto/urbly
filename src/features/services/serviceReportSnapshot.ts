@@ -250,6 +250,9 @@ export function buildServiceReportSnapshot(
   const attachments = stringArray(serviceOrder.attachments);
   const issues = normalizeIssues(serviceOrder.issues, t, options);
   const observations = cleanText(report.observations);
+  const serviceType = cleanText(serviceOrder.type) || 'unknown';
+  const servicePriority = (cleanText(serviceOrder.priority) || 'medium') as ServiceOrderPriority;
+  const serviceStatus = (cleanText(serviceOrder.status) || 'draft') as ServiceOrderStatus;
   const recommendations = [
     ...arrayFromMaybe(report.recommendations),
     ...arrayFromMaybe(serviceOrder.recommendations),
@@ -263,14 +266,14 @@ export function buildServiceReportSnapshot(
   return {
     service: {
       id: serviceOrder.id,
-      title: serviceOrder.title,
+      title: cleanText(serviceOrder.title) || 'Servicio',
       description: cleanText(serviceOrder.description),
-      type: serviceOrder.type,
-      typeLabel: getServiceOrderTypeLabel(t, serviceOrder.type, options.typeKeyPrefix),
-      priority: serviceOrder.priority,
-      priorityLabel: getServiceOrderPriorityLabel(t, serviceOrder.priority, options.priorityKeyPrefix),
-      status: serviceOrder.status,
-      statusLabel: getServiceOrderStatusLabel(t, serviceOrder.status, options.statusKeyPrefix),
+      type: serviceType,
+      typeLabel: getServiceOrderTypeLabel(t, serviceType, options.typeKeyPrefix),
+      priority: servicePriority,
+      priorityLabel: getServiceOrderPriorityLabel(t, servicePriority, options.priorityKeyPrefix),
+      status: serviceStatus,
+      statusLabel: getServiceOrderStatusLabel(t, serviceStatus, options.statusKeyPrefix),
     },
     context: {
       accountId: nullableCleanText(serviceOrder.accountId),

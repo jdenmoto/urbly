@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildServiceReportSnapshot } from '@/features/services/serviceReportSnapshot';
+import {
+  buildServiceReportSnapshot,
+  type ServiceReportSnapshotInput,
+} from '@/features/services/serviceReportSnapshot';
 import { buildServiceReportPdfModel } from '../../../../functions/src/serviceReportPdfModel';
 
 function t(key: string, params?: Record<string, string | number>) {
@@ -116,7 +119,7 @@ describe('service report snapshot contract', () => {
         },
         nextSteps: '  Validar información faltante. ',
       },
-    };
+    } as unknown as ServiceReportSnapshotInput;
 
     const frontendSnapshot = buildServiceReportSnapshot(degradedServiceOrder, { t });
     const functionsSnapshot = buildServiceReportPdfModel(degradedServiceOrder, { t }).snapshot;
