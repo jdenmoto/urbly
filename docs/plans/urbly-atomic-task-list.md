@@ -9,8 +9,8 @@ Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea ató
 ## Estado global
 
 Current phase: Fase 6 — Reportes/PDF
-Current task: F7-T01 — Crear completeServiceOrderWithReport
-Next agent start: desde `phase/6-reports-pdf` con F6-T05 integrado, preparar rama de Fase 7 y ejecutar F7-T01 sin reabrir reportes/PDF salvo dependencias estrictas del cierre canónico.
+Current task: Fase 7 completada — siguiente fase pendiente por definir en plan maestro
+Next agent start: gate final/changelog/PR de `phase/7-technician-closeout`, o extender el plan maestro con la siguiente fase antes de implementar más alcance.
 
 ---
 
@@ -1086,25 +1086,74 @@ Validations:
 Branch de fase: `phase/7-technician-closeout`
 
 ## TASK F7-T01 — Crear completeServiceOrderWithReport
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `4094375` — `feat: crear cierre canonico de servicios`
+Completion notes:
+- Agregado comando canónico `completeServiceOrderWithReport` en `src/lib/api/serviceOrders.ts`.
+- El comando centraliza cierre, persistencia de reporte, evidencias, novedades, estado `completed`, `completedAt`, `updatedAt` y timeline.
 
 ## TASK F7-T02 — Validar checklist obligatorio
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `4094375` — `feat: crear cierre canonico de servicios`
+Completion notes:
+- Agregado `validateServiceOrderCloseout`.
+- Bloquea cierre sin checklist con error `missing_checklist`.
 
 ## TASK F7-T03 — Validar fotos obligatorias
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `4094375` — `feat: crear cierre canonico de servicios`
+Completion notes:
+- `validateServiceOrderCloseout` bloquea cierre sin evidencia final con error `missing_completion_photos`.
 
 ## TASK F7-T04 — Validar observaciones obligatorias
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `4094375` — `feat: crear cierre canonico de servicios`
+Completion notes:
+- `validateServiceOrderCloseout` normaliza y bloquea observaciones vacías con error `missing_observations`.
 
 ## TASK F7-T05 — Timeline completed y auditoría
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `4094375` — `feat: crear cierre canonico de servicios`
+Completion notes:
+- El cierre agrega evento timeline `completed` con actor técnico, `actorId`, nota opcional, timestamp y resumen `Servicio completado con reporte técnico`.
 
 ## TASK F7-T06 — Implementar reapertura por roles permitidos
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `4094375` — `feat: crear cierre canonico de servicios`
+Completion notes:
+- Agregado `reopenServiceOrder`.
+- Roles permitidos: `owner`, `admin`, `editor`, `supervisor`.
+- Reabre `completed` a `in_progress`, limpia `completedAt`, marca review como `changes_requested` y agrega timeline `resumed`.
 
 ## TASK F7-T07 — Eliminar bypasses status completed
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `b58819a` — `refactor: usar cierre canonico en flujo heredado`
+Completion notes:
+- `useSchedulingCompletion` deja de llamar `updateDocById('service_orders', ..., { status: 'completed' })`.
+- El flujo heredado de cierre sube evidencias y luego persiste mediante `completeServiceOrderWithReport`.
 
 ## TASK F7-T08 — Tests cierre válido/inválido
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commits:
+- `11978f1` — `test: agregar contrato de cierre canonico`
+- `3d1e14b` — `test: actualizar cierre semantico canonico`
+Completion notes:
+- Agregado `src/lib/api/__tests__/serviceOrderCloseout.test.ts`.
+- Cubiertos cierres inválidos por estado, checklist, fotos y observaciones.
+- Cubierto cierre válido con reporte, evidencia, issues, timeline y campos auditables.
+- Cubierta reapertura autorizada/no autorizada.
+Validations:
+- RED: `npm run test:run -- src/lib/api/__tests__/serviceOrderCloseout.test.ts` falló por funciones inexistentes.
+- `npm run test:run -- src/lib/api/__tests__/serviceOrderCloseout.test.ts src/lib/api/__tests__/serviceOrderActions.test.ts` — pasa.
+- `npm run test:run` — pasa, 121 tests passed y 20 skipped.
+- `npm run typecheck` — pasa.
+- `npm run lint` — pasa con warnings preexistentes/no relacionados.
+- `npm run build:minimum` — pasa, con warnings preexistentes de chunks circulares Vite.
