@@ -1,8 +1,8 @@
 # Urbly — Master Implementation Plan
 
-Estado: draft pendiente de cierre de decisiones críticas  
-Base branch: `develop`  
-Modelo ejecutor: `ollama/qwen2.5-coder:3b`  
+Estado: draft pendiente de cierre de decisiones críticas
+Base branch: `develop`
+Modelo ejecutor: `ollama/qwen2.5-coder:3b`
 Estrategia: tareas atómicas, concisas, autónomas, con PR grande por fase
 
 ## 0. Reglas operativas
@@ -41,7 +41,7 @@ Como la implementación será ejecutada por `ollama/qwen2.5-coder:3b`, cada tare
 - con validación clara
 - idealmente ejecutable en 20–45 minutos
 
-Prohibido crear tareas grandes tipo “implementar multitenancy completo”.  
+Prohibido crear tareas grandes tipo “implementar multitenancy completo”.
 Cada tarea debe modificar un área concreta y verificable.
 
 ## 2. Prioridad de producto confirmada
@@ -365,39 +365,37 @@ When done, update this file:
 
 ## 7. Estado actual de ejecución
 
-Current phase: Fase 5 — UX/mobile/i18n
+Current phase: Fase 6 — Reportes/PDF
 
-Last completed task: Phase 4 final gate — IA contextual suggestion-only
+Last completed task: F6-T04 — Alinear narrativa IA al snapshot
 
-- Status: done, listo para PR contra `develop`
-- Branch: `phase/4-contextual-ai`
-- Changelog: `docs/plans/phase-4-changelog.md`
+- Status: done
+- Branch: `feat/ai-report-snapshot`
+- Commit: HEAD (`refactor: alinear narrativa ia con snapshot`)
 - Files changed:
-  - `src/core/models/aiSuggestion.ts`
-  - `src/features/ai/**`
-  - `src/features/services/serviceSuggestions.ts`
-  - `src/features/services/ServiceDetailPage.tsx`
-  - `src/features/services/ServiceCloseoutPage.tsx`
-  - tests de sugerencias IA
+  - `src/features/services/serviceReport.ts`
+  - `src/features/services/serviceOrderAi.ts`
+  - `src/features/services/__tests__/serviceSuggestions.test.ts`
+  - `docs/plans/urbly-atomic-task-list.md`
+  - `docs/plans/urbly-master-implementation-plan.md`
 - Validations executed:
-  - `npm run lint` — pasa con 8 warnings preexistentes
-  - `npm run typecheck`
-  - `npm run test:run` — 92 passed, 20 skipped fuera de emulator normal
-  - `npm run test:coverage` — coverage gate pasa
-  - `npm run test:rules` — 20 passed con emulator Firestore/Storage
-  - `npm run build:minimum`
-- Notes: La IA queda limitada a sugerencias visibles para revisión humana; no guarda, no envía, no agenda ni muta automáticamente.
+  - RED: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts` falló inicialmente porque el borrador seguía ignorando datos de `report` del snapshot
+  - `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts` — pasa
+  - `npm run test:run` — pasa, con warnings SSR preexistentes/no relacionados en scheduling
+  - `npm run typecheck` — pasa
+  - `npm run lint` — pasa con warnings preexistentes/no relacionados
+- Notes: la narrativa de `buildTechnicalReport` y el borrador IA de cierre ahora se derivan de `buildServiceReportSnapshot`; se mantiene `suggestion_only` sin `auto_save`, `auto_send` ni `auto_mutate`.
 
 Next required step:
 
-Abrir PR grande de Fase 4 contra `develop`; después de merge/checks, iniciar F5-T01.
+Ejecutar F6-T05 — Tests de contrato del snapshot.
 
 Primer punto de arranque para el siguiente agente:
 
-1. Abrir PR: `phase/4-contextual-ai` → `develop`.
-2. Esperar checks/review y merge autorizado.
-3. Crear `phase/5-ux-mobile-i18n` desde `develop` actualizado.
-4. Ejecutar F5-T01: bottom nav dinámico.
+1. Partir de `phase/6-reports-pdf` con F6-T04 integrado.
+2. Crear una rama propia para F6-T05.
+3. Agregar tests de contrato del snapshot canónico entre consumidores clave.
+4. Mantener fuera de alcance cambios nuevos en print/PDF/IA salvo ajustes de contrato estrictamente necesarios.
 
 ## 8. Archivos relacionados
 

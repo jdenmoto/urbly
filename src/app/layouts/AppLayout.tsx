@@ -8,7 +8,7 @@ import ShellContextPanel from '@/components/ShellContextPanel';
 import useBreakpoint from '@/components/useBreakpoint';
 import { useAuth } from '@/app/Auth';
 
-const compactShellRoles = new Set(['emergency_scheduler', 'building_admin', 'client']);
+const compactShellRoles = new Set(['technician', 'emergency_scheduler', 'building_admin', 'client']);
 
 export default function AppLayout() {
   const location = useLocation();

@@ -1,13 +1,17 @@
 import type { Building } from '@/core/models/building';
 import type { Contract } from '@/core/models/contract';
 import type { ManagementCompany } from '@/core/models/managementCompany';
+import type { AccountRole } from '@/core/models/account';
 import type {
   ServiceOrder,
   ServiceOrderActorRole,
   ServiceOrderAssignmentRecord,
+  ServiceOrderChecklist,
+  ServiceOrderChecklistValue,
   ServiceOrderDataSource,
   ServiceOrderIssue,
   ServiceOrderPauseRecord,
+  ServiceOrderReport,
   ServiceOrderPriority,
   ServiceOrderRescheduleRecord,
   ServiceOrderStatus,
@@ -114,6 +118,21 @@ export type CompleteServiceOrderInput = {
   actorId?: string;
 };
 
+export type ServiceOrderCloseoutValidationCode =
+  | 'invalid_status'
+  | 'missing_checklist'
+  | 'missing_completion_photos'
+  | 'missing_observations';
+
+export type CompleteServiceOrderWithReportInput = {
+  serviceOrder: ServiceOrder;
+  report: ServiceOrderReport;
+  completionPhotos: string[];
+  issues?: ServiceOrderIssue[];
+  note?: string;
+  actorId?: string;
+};
+
 export type CancelServiceOrderInput = {
   serviceOrder: ServiceOrder;
   reason: string;
@@ -127,6 +146,23 @@ export type UpdateSeriesScopeInput = {
   seriesId?: string | null;
   recurrence?: string | null;
   actorId?: string;
+};
+
+export type ReopenServiceOrderInput = {
+  serviceOrder: ServiceOrder;
+  actorId?: string;
+  actorRole: AccountRole;
+  reason: string;
+};
+
+export type CompletedServiceOrderPayload = {
+  status: 'completed';
+  completedAt: string;
+  report: ServiceOrderReport;
+  completionPhotos: string[];
+  issues?: ServiceOrderIssue[];
+  timeline: ServiceOrderTimelineEvent[];
+  updatedAt: string;
 };
 
 export type SchedulingServiceOrderStatus = 'programado' | 'confirmado' | 'completado' | 'cancelado';
@@ -246,6 +282,40 @@ function buildPauseRecord(input: { reason: string; actorId?: string; note?: stri
   };
 }
 
+function cleanText(value?: string | null) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizeChecklistValue(value: unknown): ServiceOrderChecklistValue {
+  return value === 'ok' || value === 'regular' || value === 'malo' || value === 'na' ? value : 'na';
+}
+
+function normalizeReport(report: ServiceOrderReport): ServiceOrderReport {
+  return {
+    entryHour: cleanText(report.entryHour),
+    exitHour: cleanText(report.exitHour),
+    observations: cleanText(report.observations),
+    checklist: Object.fromEntries(
+      Object.entries(report.checklist ?? {}).map(([key, value]) => [key, normalizeChecklistValue(value)])
+    ) as ServiceOrderChecklist,
+  };
+}
+
+function normalizeCompletionIssues(issues: ServiceOrderIssue[] | undefined, createdAt: string) {
+  return (issues ?? []).map((issue) => ({
+    ...issue,
+    description: cleanText(issue.description) || undefined,
+    photos: Array.isArray(issue.photos) ? issue.photos.filter((photo): photo is string => typeof photo === 'string') : [],
+    createdAt: issue.createdAt ?? createdAt,
+  }));
+}
+
+function assertNoCloseoutValidationErrors(errors: ServiceOrderCloseoutValidationCode[]) {
+  if (errors.length) {
+    throw new Error(errors.join(','));
+  }
+}
+
 function resolveSchedulingStatus(assignedTechnicianId?: string | null) {
   return createServiceOrderStatus({ assignedTechnicianId: assignedTechnicianId ?? null, isDraft: false });
 }
@@ -256,6 +326,33 @@ function resolveRequiredTransition(
   context?: { assignedTechnicianId?: string | null; issueOutcome?: ServiceOrderIssueOutcome },
 ) {
   return resolveServiceOrderTransition(currentStatus, action, context) ?? (action === 'assign' ? 'scheduled' : null);
+}
+
+const SERVICE_REOPEN_ROLES = new Set<AccountRole>(['owner', 'admin', 'editor', 'supervisor']);
+
+export function validateServiceOrderCloseout(input: {
+  serviceOrder: ServiceOrder;
+  report: ServiceOrderReport;
+  completionPhotos: string[];
+}): ServiceOrderCloseoutValidationCode[] {
+  const errors: ServiceOrderCloseoutValidationCode[] = [];
+  const normalizedReport = normalizeReport(input.report);
+  const nextStatus = resolveServiceOrderTransition(input.serviceOrder.status, 'complete');
+
+  if (nextStatus !== 'completed') {
+    errors.push('invalid_status');
+  }
+  if (!Object.keys(normalizedReport.checklist ?? {}).length) {
+    errors.push('missing_checklist');
+  }
+  if (!input.completionPhotos.filter(Boolean).length) {
+    errors.push('missing_completion_photos');
+  }
+  if (!normalizedReport.observations) {
+    errors.push('missing_observations');
+  }
+
+  return errors;
 }
 
 export function enrichServiceOrder(serviceOrder: ServiceOrder, relations: ServiceOrderRelations = {}): ServiceOrder {
@@ -689,16 +786,29 @@ export async function reportServiceIssue(input: ReportServiceIssueInput) {
 }
 
 export async function completeServiceOrder(input: CompleteServiceOrderInput) {
-  const nextStatus = resolveRequiredTransition(input.serviceOrder.status, 'complete');
-  if (!nextStatus) throw new Error(`Cannot complete service order from status ${input.serviceOrder.status}`);
+  await completeServiceOrderWithReport({
+    serviceOrder: input.serviceOrder,
+    report: input.serviceOrder.report ?? {},
+    completionPhotos: input.serviceOrder.completionPhotos ?? [],
+    issues: input.serviceOrder.issues,
+    actorId: input.actorId,
+    note: input.note,
+  });
+}
+
+export async function completeServiceOrderWithReport(input: CompleteServiceOrderWithReportInput): Promise<CompletedServiceOrderPayload> {
+  assertNoCloseoutValidationErrors(validateServiceOrderCloseout(input));
 
   const completedAt = nowIso();
+  const normalizedReport = normalizeReport(input.report);
+  const completionPhotos = input.completionPhotos.filter((photo): photo is string => typeof photo === 'string' && photo.length > 0);
+  const issues = normalizeCompletionIssues(input.issues, completedAt);
   const timeline = appendTimelineEvents(input.serviceOrder, [
     buildTimelineEvent({
       type: 'completed',
       actorRole: 'technician',
       actorId: input.actorId,
-      summary: 'Servicio completado',
+      summary: 'Servicio completado con reporte técnico',
       metadata: {
         note: input.note,
       },
@@ -706,9 +816,54 @@ export async function completeServiceOrder(input: CompleteServiceOrderInput) {
     }),
   ]);
 
-  await updateDocById('service_orders', input.serviceOrder.id, {
-    status: nextStatus,
+  const payload: CompletedServiceOrderPayload = {
+    status: 'completed',
     completedAt,
+    report: normalizedReport,
+    completionPhotos,
+    ...(issues.length ? { issues } : {}),
+    timeline,
+    ...buildUpdatedAt(),
+  };
+
+  await updateDocById('service_orders', input.serviceOrder.id, payload);
+  return payload;
+}
+
+export async function reopenServiceOrder(input: ReopenServiceOrderInput) {
+  if (!SERVICE_REOPEN_ROLES.has(input.actorRole)) {
+    throw new Error('unauthorized_reopen');
+  }
+  if (input.serviceOrder.status !== 'completed') {
+    throw new Error(`Cannot reopen service order from status ${input.serviceOrder.status}`);
+  }
+
+  const reopenedAt = nowIso();
+  const reason = cleanText(input.reason);
+  const timeline = appendTimelineEvents(input.serviceOrder, [
+    buildTimelineEvent({
+      type: 'resumed',
+      actorRole: 'company',
+      actorId: input.actorId,
+      summary: 'Servicio reabierto para ajustes de cierre',
+      metadata: {
+        resumedAt: reopenedAt,
+        note: reason,
+      },
+      createdAt: reopenedAt,
+    }),
+  ]);
+
+  await updateDocById('service_orders', input.serviceOrder.id, {
+    status: 'in_progress',
+    completedAt: null,
+    review: {
+      ...(input.serviceOrder.review ?? {}),
+      status: 'changes_requested',
+      feedback: reason,
+      reviewerId: input.actorId,
+      reviewedAt: reopenedAt,
+    },
     timeline,
     ...buildUpdatedAt(),
   });

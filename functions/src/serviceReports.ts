@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { db } from './admin';
+import { buildServiceReportPdfModel, type TranslateFn } from './serviceReportPdfModel';
 
 type AuthShape = { uid?: string; token?: Record<string, unknown> } | null | undefined;
 type ServiceOrderData = Record<string, any>;
@@ -123,17 +124,24 @@ function formatDateTime(value?: string | null) {
   return date.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-function formatChecklistLabel(key: string) {
-  return key.replace(/[_-]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
-}
+const pdfLabelDictionary: Record<string, string> = {
+  'services.status.draft': 'Borrador',
+  'services.status.unassigned': 'Sin asignar',
+  'services.status.scheduled': 'Programado',
+  'services.status.confirmed': 'Confirmado',
+  'services.status.in.progress': 'En progreso',
+  'services.status.paused': 'Pausado',
+  'services.status.pending.review': 'Pendiente de revisión',
+  'services.status.requires.reschedule': 'Requiere reprogramación',
+  'services.status.completed': 'Completado',
+  'services.status.cancelled': 'Cancelado',
+  'services.priority.urgent': 'Urgente',
+  'services.priority.high': 'Alta',
+  'services.priority.medium': 'Media',
+  'services.priority.low': 'Baja',
+};
 
-function formatChecklistValue(value: string) {
-  if (value === 'ok') return 'OK';
-  if (value === 'regular') return 'Regular';
-  if (value === 'malo') return 'Malo';
-  if (value === 'na') return 'N/A';
-  return value;
-}
+const pdfTranslate: TranslateFn = (key, params) => pdfLabelDictionary[key] ?? String(params?.defaultValue ?? key);
 
 export const generateServiceReportPdf = onCall(async (request) => {
   requireAuth(request.auth);
@@ -146,6 +154,7 @@ export const generateServiceReportPdf = onCall(async (request) => {
 
   await assertCanGenerateServiceReportPdf(request.auth, serviceOrder);
 
+  const reportModel = buildServiceReportPdfModel({ id: serviceOrderId, ...serviceOrder }, { t: pdfTranslate });
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]);
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -158,39 +167,41 @@ export const generateServiceReportPdf = onCall(async (request) => {
   };
 
   draw('Reporte técnico base', 18, true);
-  draw(serviceOrder.title ?? 'Servicio', 14, true);
-  draw(`Tipo: ${serviceOrder.type ?? 'N/A'}`);
-  draw(`Estado: ${serviceOrder.status ?? 'N/A'}`);
-  draw(`Inicio: ${formatDateTime(serviceOrder.scheduledStartAt)}`);
-  draw(`Fin: ${formatDateTime(serviceOrder.scheduledEndAt)}`);
-  draw(`Técnico: ${serviceOrder.assignedTechnicianId ?? 'Sin asignar'}`);
+  draw(reportModel.title || 'Servicio', 14, true);
+  for (const [label, value] of reportModel.summaryRows) {
+    const formattedValue = label === 'Inicio' || label === 'Fin' ? formatDateTime(value) : value;
+    draw(`${label}: ${formattedValue || 'N/A'}`);
+  }
   draw('');
   draw('Descripción', 12, true);
-  draw(String(serviceOrder.description ?? 'Sin descripción'));
+  draw(reportModel.description || 'Sin descripción');
   draw('');
   draw('Reporte operativo', 12, true);
-  const report = (serviceOrder.report ?? {}) as Record<string, any>;
-  draw(`Hora entrada: ${report.entryHour ?? 'N/A'}`);
-  draw(`Hora salida: ${report.exitHour ?? 'N/A'}`);
-  draw(`Observaciones: ${report.observations ?? 'Sin observaciones.'}`);
-  const checklist = report.checklist && typeof report.checklist === 'object' ? report.checklist : {};
-  const checklistEntries = Object.entries(checklist as Record<string, string>);
-  if (!checklistEntries.length) {
+  for (const [label, value] of reportModel.operationalRows) {
+    draw(`${label}: ${value || (label === 'Observaciones' ? 'Sin observaciones.' : 'N/A')}`);
+  }
+  if (!reportModel.checklist.length) {
     draw('Checklist: sin ítems registrados.');
   } else {
     draw('Checklist:', 11, true);
-    for (const [key, value] of checklistEntries.slice(0, 20)) {
-      draw(`• ${formatChecklistLabel(key)}: ${formatChecklistValue(String(value))}`, 10);
+    for (const item of reportModel.checklist.slice(0, 20)) {
+      draw(`• ${item}`, 10);
     }
   }
   draw('');
   draw('Novedades', 12, true);
-  const issues = Array.isArray(serviceOrder.issues) ? serviceOrder.issues : [];
-  if (!issues.length) {
+  if (!reportModel.issues.length) {
     draw('Sin novedades registradas.');
   } else {
-    for (const issue of issues.slice(0, 10)) {
-      draw(`• ${issue.type ?? 'N/A'} / ${issue.category ?? 'N/A'}${issue.description ? `: ${issue.description}` : ''}`, 10);
+    for (const issue of reportModel.issues.slice(0, 10)) {
+      draw(`• ${issue}`, 10);
+    }
+  }
+  if (reportModel.nextSteps.length) {
+    draw('');
+    draw('Siguientes pasos', 12, true);
+    for (const step of reportModel.nextSteps.slice(0, 10)) {
+      draw(`• ${step}`, 10);
     }
   }
 

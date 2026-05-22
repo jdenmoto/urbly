@@ -295,8 +295,18 @@ describe('service order semantic actions', () => {
     );
   });
 
-  it('completes orders, preserves cancellation helper, and updates series scope', async () => {
-    const serviceOrder = buildServiceOrder({ status: 'in_progress', timeline: [] });
+  it('completes orders through the canonical report closeout, preserves cancellation helper, and updates series scope', async () => {
+    const serviceOrder = buildServiceOrder({
+      status: 'in_progress',
+      timeline: [],
+      report: {
+        entryHour: '08:00',
+        exitHour: '09:30',
+        observations: 'Checklist completo',
+        checklist: { pressure: 'ok' },
+      },
+      completionPhotos: ['photo-1'],
+    });
 
     await completeServiceOrder({ serviceOrder, actorId: 'tech-1', note: 'Checklist completo' });
     expect(updateDocById).toHaveBeenNthCalledWith(
@@ -306,7 +316,12 @@ describe('service order semantic actions', () => {
       expect.objectContaining({
         status: 'completed',
         completedAt: '2026-05-01T10:00:00.000Z',
-        timeline: [expect.objectContaining({ type: 'completed' })],
+        report: expect.objectContaining({
+          observations: 'Checklist completo',
+          checklist: { pressure: 'ok' },
+        }),
+        completionPhotos: ['photo-1'],
+        timeline: [expect.objectContaining({ type: 'completed', summary: 'Servicio completado con reporte técnico' })],
       }),
     );
 

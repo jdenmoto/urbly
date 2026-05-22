@@ -3,53 +3,76 @@ import type { ServiceOrder } from '@/core/models/serviceOrder';
 export type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
 function humanizeFallback(value: string) {
-  return value
-    .replace(/[_-]+/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+  return value.replace(/[_-]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-const priorityLabelKey: Record<string, string> = {
-  urgent: 'services.priority.urgent',
-  high: 'services.priority.high',
-  medium: 'services.priority.medium',
-  low: 'services.priority.low'
+const priorityLabelSuffix: Record<string, string> = {
+  urgent: 'urgent',
+  high: 'high',
+  medium: 'medium',
+  low: 'low'
 };
 
-const statusLabelKey: Record<ServiceOrder['status'], string> = {
-  draft: 'services.status.draft',
-  unassigned: 'services.status.unassigned',
-  scheduled: 'services.status.scheduled',
-  confirmed: 'services.status.confirmed',
-  in_progress: 'services.status.in.progress',
-  paused: 'services.status.paused',
-  pending_review: 'services.status.pending.review',
-  requires_reschedule: 'services.status.requires.reschedule',
-  completed: 'services.status.completed',
-  cancelled: 'services.status.cancelled'
+const statusLabelSuffix: Record<ServiceOrder['status'], string> = {
+  draft: 'draft',
+  unassigned: 'unassigned',
+  scheduled: 'scheduled',
+  confirmed: 'confirmed',
+  in_progress: 'in.progress',
+  paused: 'paused',
+  pending_review: 'pending.review',
+  requires_reschedule: 'requires.reschedule',
+  completed: 'completed',
+  cancelled: 'cancelled'
 };
 
-export function getServiceOrderStatusLabel(t: TranslateFn, status: ServiceOrder['status']) {
-  return t(statusLabelKey[status] ?? 'services.status.draft');
+export function getServiceOrderStatusLabel(
+  t: TranslateFn,
+  status: ServiceOrder['status'],
+  keyPrefix = 'services.status'
+) {
+  return t(`${keyPrefix}.${statusLabelSuffix[status] ?? statusLabelSuffix.draft}`);
 }
 
-export function getServiceOrderPriorityLabel(t: TranslateFn, priority: ServiceOrder['priority']) {
-  return t(priorityLabelKey[priority] ?? 'services.priority.medium');
+export function getServiceOrderPriorityLabel(
+  t: TranslateFn,
+  priority: ServiceOrder['priority'],
+  keyPrefix = 'services.priority'
+) {
+  return t(`${keyPrefix}.${priorityLabelSuffix[priority] ?? priorityLabelSuffix.medium}`);
 }
 
-export function getServiceOrderPriorityPill(t: TranslateFn, priority: ServiceOrder['priority'], key = 'services.priority.pill') {
-  return t(key, { value: getServiceOrderPriorityLabel(t, priority) });
+export function getServiceOrderPriorityPill(
+  t: TranslateFn,
+  priority: ServiceOrder['priority'],
+  key = 'services.priority.pill',
+  priorityLabelKeyPrefix = 'services.priority'
+) {
+  return t(key, { value: getServiceOrderPriorityLabel(t, priority, priorityLabelKeyPrefix) });
 }
 
-export function getServiceOrderTypeLabel(t: TranslateFn, type: string) {
-  return t(`services.types.${type}`, { defaultValue: humanizeFallback(type) });
+export function getServiceOrderTypeLabel(
+  t: TranslateFn,
+  type: string,
+  keyPrefix = 'services.types'
+) {
+  return t(`${keyPrefix}.${type}`, { defaultValue: humanizeFallback(type) });
 }
 
-export function getIssueTypeLabel(t: TranslateFn, value: string) {
-  return t(`services.issue.types.${value}`, { defaultValue: humanizeFallback(value) });
+export function getIssueTypeLabel(
+  t: TranslateFn,
+  value: string,
+  keyPrefix = 'services.issue.types'
+) {
+  return t(`${keyPrefix}.${value}`, { defaultValue: humanizeFallback(value) });
 }
 
-export function getIssueCategoryLabel(t: TranslateFn, value: string) {
-  return t(`services.issue.categories.${value}`, { defaultValue: humanizeFallback(value) });
+export function getIssueCategoryLabel(
+  t: TranslateFn,
+  value: string,
+  keyPrefix = 'services.issue.categories'
+) {
+  return t(`${keyPrefix}.${value}`, { defaultValue: humanizeFallback(value) });
 }
 
 export const serviceOrderPriorityTone: Record<ServiceOrder['priority'], string> = {

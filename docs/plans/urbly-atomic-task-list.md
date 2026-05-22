@@ -1,16 +1,16 @@
 # Urbly — Atomic Task List for Qwen Execution
 
-Modelo ejecutor: `ollama/qwen2.5-coder:3b`  
-Base branch: `develop`  
+Modelo ejecutor: `ollama/qwen2.5-coder:3b`
+Base branch: `develop`
 Regla: una tarea = cambio pequeño, verificable, con contexto mínimo.
 
 Este archivo es la cola operativa. Cada agente debe ejecutar solo una tarea atómica salvo que el supervisor indique lo contrario.
 
 ## Estado global
 
-Current phase: Fase 5 — UX/mobile/i18n  
-Current task: Fase 4 lista para PR/merge; luego iniciar F5-T01  
-Next agent start: abrir PR `phase/4-contextual-ai` → `develop`; tras merge/checks, crear `phase/5-ux-mobile-i18n` desde `develop` actualizado y ejecutar F5-T01.
+Current phase: Fase 6 — Reportes/PDF
+Current task: Fase 7 completada — siguiente fase pendiente por definir en plan maestro
+Next agent start: gate final/changelog/PR de `phase/7-technician-closeout`, o extender el plan maestro con la siguiente fase antes de implementar más alcance.
 
 ---
 
@@ -21,7 +21,7 @@ Branch de fase: `phase/0-tests-ci-base`
 ## TASK F0-T01 — Mock/env Firebase para Vitest
 
 Status: done
-Branch: `test/vitest-firebase-mock`  
+Branch: `test/vitest-firebase-mock`
 Model: `ollama/qwen2.5-coder:3b`
 
 ### Objective
@@ -76,7 +76,7 @@ Al terminar:
 ## TASK F0-T02 — Agregar test:run al CI
 
 Status: done
-Branch: `test/add-vitest-to-ci`  
+Branch: `test/add-vitest-to-ci`
 Model: `openai-codex/gpt-5.5`
 
 ### Objective
@@ -893,25 +893,101 @@ Branch: `feat/service-follow-up-suggestion`
 Branch de fase: `phase/5-ux-mobile-i18n`
 
 ## TASK F5-T01 — Bottom nav dinámico
-Status: pending
+Status: done
+Branch: `feat/dynamic-bottom-nav`
+
+### Completion notes
+- `BottomNav` ahora calcula columnas según cantidad real de ítems y no renderiza barra vacía.
+- La navegación móvil usa el mismo modelo filtrado por rol + permisos explícitos (`allowPermissions`) y recibe permisos desde `Auth`.
+- Se agregó soporte de navegación para roles confirmados `owner` y `technician`, manteniendo compatibilidad con `emergency_scheduler`.
+- Services queda como entrada operativa visible; clientes/building_admin conservan navegación separada bajo `/portal`.
+- Tests agregados en `src/app/nav.test.ts` para filtrado por rol, permisos, separación portal/operación y layout dinámico.
+- Commit: HEAD de `feat/dynamic-bottom-nav` (`feat: hacer dinamico el bottom nav`).
+- Validaciones: `npm run test:run -- src/app/nav.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 7 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F5-T02 creando CTA móvil principal para técnico.
 
 ## TASK F5-T02 — CTA móvil principal para técnico
-Status: pending
+Status: done
+Branch: `feat/mobile-technician-primary-cta`
+
+### Completion notes
+- Agregado `TechnicianPrimaryMobileCta` mobile-only como CTA fijo sobre el bottom nav.
+- El CTA mantiene Services como entrada operativa: abre `/services/:id` cuando hay siguiente orden y `/services` si no hay orden activa.
+- `TechnicianHomePage` y `ServicesPage` usan el CTA con contexto de retorno/lista para técnico.
+- `ServicesPage` reconoce el rol final `technician` además del legacy `emergency_scheduler` para la vista técnica.
+- Copy del CTA agregado en `public/locales/es.yaml`.
+- Tests agregados en `src/features/technician/__tests__/TechnicianPrimaryMobileCta.test.ts`.
+- Commit: HEAD de `feat/mobile-technician-primary-cta` (`feat: agregar cta movil tecnico`).
+- Validaciones: `npm run test:run -- src/features/technician/__tests__/TechnicianPrimaryMobileCta.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 7 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F5-T03 mejorando `src/features/technician/TechnicianHomePage.tsx`.
 
 ## TASK F5-T03 — Mejorar TechnicianHomePage
-Status: pending
+Status: done
+Branch: `feat/improve-technician-home`
+
+### Completion notes
+- `TechnicianHomePage` ahora elige como orden primaria una activa (`in_progress`/`paused`) antes de la siguiente abierta programada.
+- Se mantiene Services como entrada operativa: CTA móvil y acciones siguen apuntando a `/services` y `/services/:id`.
+- Agregados loading skeletons mínimos, resumen de abiertos/en curso y badges de cola `Actual`/`Siguiente` para claridad móvil.
+- Copy nuevo agregado en `public/locales/es.yaml` para cola, acciones, estados activos y resumen.
+- Tests agregados en `src/features/technician/__tests__/TechnicianHomePage.test.ts` para selección de orden primaria y estados abiertos/activos.
+- Commit: HEAD de `feat/improve-technician-home` (`feat: mejorar home movil tecnico`).
+- Validaciones: `npm run test:run -- src/features/technician/__tests__/TechnicianHomePage.test.ts src/features/technician/__tests__/TechnicianPrimaryMobileCta.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 7 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F5-T04 mejorando estados vacíos de `src/features/services/ServicesPage.tsx`.
 
 ## TASK F5-T04 — Estados vacíos de Services
-Status: pending
+Status: done
+Branch: `feat/services-empty-states`
+
+### Completion notes
+- `ServicesPage` ahora calcula estados vacíos role-aware para técnicos y operación, diferenciando ruta técnica vacía, filtros que ocultan servicios y ausencia total de servicios.
+- Los estados vacíos mantienen Services como entrada operativa: técnicos no son enviados a Scheduling y operación puede crear el primer servicio desde el estado vacío.
+- Agregada acción para limpiar filtros cuando existen servicios ocultos por filtro, reutilizando el contexto de edificio actual cuando aplica.
+- Copy nuevo agregado en `public/locales/es.yaml` para estados vacíos y acciones de Services.
+- Tests agregados en `src/features/services/__tests__/ServicesPage.emptyState.test.ts` para selección de estado vacío y detección de filtros activos.
+- Commit: HEAD de `feat/services-empty-states` (`feat: mejorar estados vacios de services`).
+- Validaciones: `npm run test:run -- src/features/services/__tests__/ServicesPage.emptyState.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 6 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F5-T05 migrando copy hardcoded restante a `public/locales/es.yaml`, con foco inicial en `src/features/services/ServicesPage.tsx`.
 
 ## TASK F5-T05 — Migrar copy hardcoded a es.yaml
-Status: pending
+Status: done
+Branch: `refactor/migrate-hardcoded-copy`
+
+### Completion notes
+- Migrado copy hardcoded focalizado de `ServicesPage` a `public/locales/es.yaml`, incluyendo CTAs, modales, filtros activos, asignación, edición, cancelación y avance diario.
+- Migrado copy visible obvio de portal cliente en `ClientServicesPage` y `ClientReportsPage`, reutilizando namespaces `client.portal.services` y `client.portal.reports`.
+- Agregado test de diccionario i18n para asegurar que `es.yaml` parsea correctamente y contiene claves críticas migradas.
+- Se corrigieron valores YAML con `:` sin comillas en descriptions de estados vacíos de Services para evitar fallos de parseo.
+- Commit: HEAD de `refactor/migrate-hardcoded-copy` (`refactor: migrar copy hardcoded a i18n`).
+- Validaciones: `npm run test:run -- src/lib/__tests__/i18nDictionary.test.ts src/features/services/__tests__/ServicesPage.emptyState.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint` (pasa con 6 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F5-T06 separando copy interno vs cliente desde `public/locales/es.yaml`, `src/features/portal/ClientServicesPage.tsx` y `src/features/portal/ClientReportsPage.tsx`.
 
 ## TASK F5-T06 — Separar copy interno vs cliente
-Status: pending
+Status: done
+Branch: `feat/separate-client-internal-copy`
+
+### Completion notes
+- Separado copy de portal cliente bajo `client.portal.*`, incluyendo acceso faltante, estados/prioridades/tipos visibles, novedades y etiquetas del resumen técnico cliente.
+- `ClientServicesPage` y `ClientReportsPage` dejaron de consumir claves internas `services.*` para copy visible al cliente.
+- Agregado `buildClientTechnicalReport` para reutilizar el reporte técnico con labels y namespaces cliente sin cambiar el reporte interno operativo.
+- Agregado test enfocado `clientPortalCopy.test.ts` para bloquear regresiones de copy interno en las páginas cliente y validar claves cliente requeridas en `es.yaml`.
+- Commit: este cambio (`feat: separar copy interno y cliente`).
+- Validaciones: `npm run test:run -- src/lib/__tests__/i18nDictionary.test.ts` (pasa), `npm run test:run -- src/features/portal/__tests__/clientPortalCopy.test.ts` (pasa), `npm run test:run` (108 passed, 20 skipped fuera de emulator normal), `npm run typecheck` (pasa), `npm run lint` (pasa con 6 warnings preexistentes/no relacionados).
+- Siguiente agente: empezar F5-T07 ajustando navegación cliente desde `phase/5-ux-mobile-i18n` actualizado con F5-T06 integrado.
 
 ## TASK F5-T07 — Ajustar navegación cliente
-Status: pending
+Status: done
+Branch: `feat/adjust-client-navigation`
+
+### Completion notes
+- Separada la navegación real de roles `client` y `building_admin` hacia rutas `/portal`, `/portal/services` y `/portal/reports`, sin exponer `/services` ni `/scheduling` en navegación móvil.
+- Services se mantiene como entrada operacional para roles internos (`operator`, `scheduler`, `admin`, etc.).
+- El acceso de portal servicios ya no depende del flag legacy `scheduling`; usa `services` para evitar acoplar navegación cliente con Scheduling.
+- Agregados tests enfocados en `src/app/nav.test.ts` para rutas cliente/portal, roles internos y flag legacy de Scheduling.
+- Commit: HEAD (`feat: ajustar navegacion cliente`).
+- Validaciones: `npm run test:run -- src/app/nav.test.ts`, `npm run test:run`, `npm run typecheck`, `npm run lint`, `npm run build:minimum`.
+- Fase 5 lista para gate final/changelog/PR.
+- Siguiente agente: empezar F6-T01 creando `buildServiceReportSnapshot` desde la rama de Fase 6 actualizada con Fase 5 integrada.
 
 ---
 
@@ -920,19 +996,88 @@ Status: pending
 Branch de fase: `phase/6-reports-pdf`
 
 ## TASK F6-T01 — Crear buildServiceReportSnapshot
-Status: pending
+Status: done
+Branch: `feat/service-report-snapshot`
+Commit: HEAD (`feat: crear snapshot canonico de reporte`)
+Completion notes:
+- Creado `src/features/services/serviceReportSnapshot.ts` como contrato puro/determinístico para reporte técnico compartido.
+- El snapshot consolida identidad del servicio, contexto cuenta/cliente/edificio, estado/prioridad/tipo con labels, agenda, técnico/asignados, checklist/resultados, evidencias, novedades, observaciones, recomendaciones/next steps y timestamps.
+- `src/features/services/serviceReport.ts` reexporta el builder para mantener compatibilidad con consumidores existentes (`reportQuality`, sugerencias IA) sin migrar print/PDF todavía.
+Validations:
+- `npm run test:run -- src/features/services/__tests__/serviceReportSnapshot.test.ts` — pasa.
+- `npm run test:run` — pasa, con warnings SSR preexistentes en suite de scheduling.
+- `npm run typecheck` — pasa.
+- `npm run lint` — pasa con 6 warnings preexistentes/no relacionados.
 
 ## TASK F6-T02 — Migrar print frontend a snapshot
-Status: pending
+Status: done
+Branch: `feat/print-report-snapshot`
+Commit: HEAD (`refactor: usar snapshot en reporte imprimible`)
+Completion notes:
+- Agregado `buildPrintableServiceReportModel` en `src/features/services/serviceReport.ts` para derivar resumen, texto narrativo, evidencia y adjuntos desde `buildServiceReportSnapshot`.
+- `ServiceReportPrintPage` ahora consume el modelo imprimible basado en snapshot para título/estado/agenda, conteos, texto del reporte, fotos y adjuntos.
+- Se mantiene fuera de alcance la función PDF backend; queda reservada para F6-T03.
+Validations:
+- `npm run test:run -- src/features/services/__tests__/serviceReportPrint.test.ts` — pasa.
+- `npm run test:run` — pasa, con warnings SSR preexistentes en suite de scheduling.
+- `npm run typecheck` — pasa.
+- `npm run lint` — pasa con 6 warnings preexistentes/no relacionados.
+- `npm run build:minimum` — pasa, con warnings preexistentes de circular chunks Vite.
 
 ## TASK F6-T03 — Migrar PDF function a snapshot
-Status: pending
+Status: done
+Branch: `feat/pdf-report-snapshot`
+Commit: HEAD (`refactor: usar snapshot en pdf de servicio`)
+Completion notes:
+- Agregado `functions/src/serviceReportPdfModel.ts` como adaptador puro de Functions alineado por contrato con `buildServiceReportSnapshot` para evitar importar TS frontend desde Cloud Functions.
+- `generateServiceReportPdf` ahora construye el contenido del PDF desde `buildServiceReportPdfModel`, preservando los checks de autorización de Fase 1 antes de generar el PDF.
+- Agregado test de contrato `src/serviceReports.snapshot.test.ts` que compara el modelo PDF con el snapshot canónico del frontend en campos de resumen, operación, checklist, novedades y siguientes pasos.
+Validations:
+- RED: `npm run test:run -- src/serviceReports.snapshot.test.ts` falló inicialmente por módulo faltante esperado.
+- `npm run test:run -- src/serviceReports.snapshot.test.ts` — pasa.
+- `npm run test:run` — pasa, con warnings SSR preexistentes/no relacionados en scheduling.
+- `npm run typecheck` — pasa.
+- `npm --prefix functions run build` — pasa.
+- `npm run lint` — pasa con 6 warnings preexistentes/no relacionados.
+- `npm run build:minimum` — pasa, con warnings preexistentes de chunks circulares Vite.
 
 ## TASK F6-T04 — Alinear narrativa IA al snapshot
-Status: pending
+Status: done
+Branch: `feat/ai-report-snapshot`
+Commit: HEAD (`refactor: alinear narrativa ia con snapshot`)
+Completion notes:
+- `buildTechnicalReport` ahora deriva el texto narrativo desde `buildServiceReportSnapshot`, compartiendo el mismo modelo canónico usado por print/PDF.
+- La sugerencia IA de borrador de reporte conserva modo `suggestion_only` y acciones prohibidas `auto_save`, `auto_send`, `auto_mutate`.
+- Agregado test enfocado para observaciones, checklist y siguientes pasos del snapshot, evitando campos ad hoc divergentes como conteo de timeline.
+Validations:
+- RED: `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts` falló inicialmente porque el borrador seguía ignorando datos de `report` del snapshot.
+- `npm run test:run -- src/features/services/__tests__/serviceSuggestions.test.ts` — pasa.
+- `npm run test:run` — pasa, con warnings SSR preexistentes/no relacionados en scheduling.
+- `npm run typecheck` — pasa.
+- `npm run lint` — pasa con warnings preexistentes/no relacionados.
 
 ## TASK F6-T05 — Tests de contrato del snapshot
-Status: pending
+Status: done
+Branch: `phase/6-reports-pdf`
+Commits:
+- `87aab8e` — `test: agregar contrato de snapshot de reporte`
+- `27b16de` — `fix: alinear defaults del snapshot de reporte`
+Completion notes:
+- Agregado `serviceReportSnapshot.contract.test.ts` para bloquear drift estructural entre el snapshot canónico frontend y el snapshot usado por el modelo PDF de Functions.
+- Cubierto caso completo con contexto, assignees, checklist, evidencias, novedades, recomendaciones, review y timestamps.
+- Cubierto caso degradado con datos vacíos/no normalizados para validar defaults compartidos: `Servicio`, `unknown`, `medium`, `draft`, arrays filtrados y next steps limpios.
+- El RED detectó drift real: Functions aplicaba defaults de title/type/priority/status pero el builder canónico frontend no.
+- Corregido `buildServiceReportSnapshot` para normalizar defaults antes de producir labels y contrato público.
+Validations:
+- RED: `npm run test:run -- src/features/services/__tests__/serviceReportSnapshot.contract.test.ts` falló por drift de defaults entre runtimes.
+- `npm run test:run -- src/features/services/__tests__/serviceReportSnapshot.contract.test.ts` — pasa.
+- `npm run test:run -- src/features/services/__tests__/serviceReportSnapshot.test.ts src/features/services/__tests__/serviceReportPrint.test.ts src/features/services/__tests__/serviceSuggestions.test.ts src/serviceReports.snapshot.test.ts` — pasa.
+- `npm run test:run` — pasa, 118 tests passed y 20 skipped.
+- `npm run typecheck` — pasa.
+- `npm run lint` — pasa con 6 warnings preexistentes/no relacionados.
+- `npm --prefix functions run build` — pasa.
+- `npm run build:minimum` — pasa, con warnings preexistentes de chunks circulares Vite.
+- Fase 6 queda lista para gate final/changelog/PR o para arrancar Fase 7 sobre cierre técnico canónico.
 
 ---
 
@@ -941,25 +1086,74 @@ Status: pending
 Branch de fase: `phase/7-technician-closeout`
 
 ## TASK F7-T01 — Crear completeServiceOrderWithReport
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `4094375` — `feat: crear cierre canonico de servicios`
+Completion notes:
+- Agregado comando canónico `completeServiceOrderWithReport` en `src/lib/api/serviceOrders.ts`.
+- El comando centraliza cierre, persistencia de reporte, evidencias, novedades, estado `completed`, `completedAt`, `updatedAt` y timeline.
 
 ## TASK F7-T02 — Validar checklist obligatorio
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `4094375` — `feat: crear cierre canonico de servicios`
+Completion notes:
+- Agregado `validateServiceOrderCloseout`.
+- Bloquea cierre sin checklist con error `missing_checklist`.
 
 ## TASK F7-T03 — Validar fotos obligatorias
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `4094375` — `feat: crear cierre canonico de servicios`
+Completion notes:
+- `validateServiceOrderCloseout` bloquea cierre sin evidencia final con error `missing_completion_photos`.
 
 ## TASK F7-T04 — Validar observaciones obligatorias
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `4094375` — `feat: crear cierre canonico de servicios`
+Completion notes:
+- `validateServiceOrderCloseout` normaliza y bloquea observaciones vacías con error `missing_observations`.
 
 ## TASK F7-T05 — Timeline completed y auditoría
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `4094375` — `feat: crear cierre canonico de servicios`
+Completion notes:
+- El cierre agrega evento timeline `completed` con actor técnico, `actorId`, nota opcional, timestamp y resumen `Servicio completado con reporte técnico`.
 
 ## TASK F7-T06 — Implementar reapertura por roles permitidos
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `4094375` — `feat: crear cierre canonico de servicios`
+Completion notes:
+- Agregado `reopenServiceOrder`.
+- Roles permitidos: `owner`, `admin`, `editor`, `supervisor`.
+- Reabre `completed` a `in_progress`, limpia `completedAt`, marca review como `changes_requested` y agrega timeline `resumed`.
 
 ## TASK F7-T07 — Eliminar bypasses status completed
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commit: `b58819a` — `refactor: usar cierre canonico en flujo heredado`
+Completion notes:
+- `useSchedulingCompletion` deja de llamar `updateDocById('service_orders', ..., { status: 'completed' })`.
+- El flujo heredado de cierre sube evidencias y luego persiste mediante `completeServiceOrderWithReport`.
 
 ## TASK F7-T08 — Tests cierre válido/inválido
-Status: pending
+Status: done
+Branch: `phase/7-technician-closeout`
+Commits:
+- `11978f1` — `test: agregar contrato de cierre canonico`
+- `3d1e14b` — `test: actualizar cierre semantico canonico`
+Completion notes:
+- Agregado `src/lib/api/__tests__/serviceOrderCloseout.test.ts`.
+- Cubiertos cierres inválidos por estado, checklist, fotos y observaciones.
+- Cubierto cierre válido con reporte, evidencia, issues, timeline y campos auditables.
+- Cubierta reapertura autorizada/no autorizada.
+Validations:
+- RED: `npm run test:run -- src/lib/api/__tests__/serviceOrderCloseout.test.ts` falló por funciones inexistentes.
+- `npm run test:run -- src/lib/api/__tests__/serviceOrderCloseout.test.ts src/lib/api/__tests__/serviceOrderActions.test.ts` — pasa.
+- `npm run test:run` — pasa, 121 tests passed y 20 skipped.
+- `npm run typecheck` — pasa.
+- `npm run lint` — pasa con warnings preexistentes/no relacionados.
+- `npm run build:minimum` — pasa, con warnings preexistentes de chunks circulares Vite.

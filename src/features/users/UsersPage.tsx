@@ -23,7 +23,7 @@ import { createAppUser, updateAppUser, setAppUserDisabled, deleteAppUser } from 
 import { useToast } from '@/components/ToastProvider';
 import { EditIcon, TrashIcon, PowerIcon } from '@/components/ActionIcons';
 
-const roleOptions = ['view', 'editor', 'admin', 'building_admin', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria', 'client'] as const satisfies readonly AppUserRole[];
+const roleOptions = ['view', 'editor', 'admin', 'owner', 'building_admin', 'technician', 'emergency_scheduler', 'supervisor', 'scheduler', 'operator', 'auditoria', 'client'] as const satisfies readonly AppUserRole[];
 
 type FormValues = {
   email: string;

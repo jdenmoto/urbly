@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { updateDocById } from '@/lib/api/firestore';
 import type { SchedulingItem } from './schedulingItem';
+import { completeServiceOrderWithReport } from '@/lib/api/serviceOrders';
+import type { ServiceOrder, ServiceOrderIssue, ServiceOrderReport, ServiceOrderStatus } from '@/core/models/serviceOrder';
 import {
   buildCompletionPayload,
   buildNormalizedChecklist,
@@ -9,6 +10,39 @@ import {
   type CompletionReport,
   type IssueDraft
 } from './schedulingCompletion';
+
+function mapSchedulingItemStatus(status: SchedulingItem['status']): ServiceOrderStatus {
+  if (status === 'programado') return 'scheduled';
+  if (status === 'completado') return 'completed';
+  if (status === 'cancelado') return 'cancelled';
+  return 'in_progress';
+}
+
+function mapSchedulingItemToServiceOrder(item: SchedulingItem): ServiceOrder {
+  return {
+    id: item.id,
+    dataSource: 'service_order',
+    buildingId: item.buildingId,
+    title: item.title,
+    description: item.description,
+    type: item.type,
+    priority: 'medium',
+    status: mapSchedulingItemStatus(item.status),
+    scheduledStartAt: item.startAt,
+    scheduledEndAt: item.endAt,
+    assignedTechnicianId: item.employeeId ?? null,
+    recurrence: item.recurrence ?? null,
+    seriesId: item.seriesId ?? null,
+    cancelReason: item.cancelReason ?? null,
+    cancelNote: item.cancelNote ?? null,
+    completedAt: item.completedAt ?? null,
+    issues: item.issues ?? [],
+    completionPhotos: item.completionPhotos ?? [],
+    report: item.completionReport,
+    timeline: [],
+    createdAt: item.createdAt,
+  };
+}
 
 export default function useSchedulingCompletion({
   t,
@@ -197,7 +231,12 @@ export default function useSchedulingCompletion({
         completionReport,
         normalizedChecklist
       });
-      await updateDocById('service_orders', completeTarget.id, payload);
+      const completedPayload = await completeServiceOrderWithReport({
+        serviceOrder: mapSchedulingItemToServiceOrder(completeTarget),
+        report: payload.report as ServiceOrderReport,
+        completionPhotos: payload.completionPhotos as string[],
+        issues: payload.issues as ServiceOrderIssue[] | undefined,
+      });
       await invalidateScheduling();
       toast(t('scheduling.toast.completed'), 'success');
       if (selected?.id === completeTarget.id) {
@@ -206,10 +245,10 @@ export default function useSchedulingCompletion({
           return {
             ...prev,
             status: 'completado',
-            completedAt: payload.completedAt as string,
-            issues: payload.issues as SchedulingItem['issues'],
-            completionPhotos: payload.completionPhotos as SchedulingItem['completionPhotos'],
-            completionReport: payload.report as SchedulingItem['completionReport']
+            completedAt: completedPayload.completedAt,
+            issues: completedPayload.issues as SchedulingItem['issues'],
+            completionPhotos: completedPayload.completionPhotos,
+            completionReport: completedPayload.report
           };
         });
       }

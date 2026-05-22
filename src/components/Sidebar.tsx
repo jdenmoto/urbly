@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from './ActionIcons
 import { useState } from 'react';
 
 const roleLabelKey: Record<string, string> = {
+  owner: 'roles.company',
   admin: 'roles.company',
   editor: 'roles.company',
   view: 'roles.company',
@@ -14,15 +15,16 @@ const roleLabelKey: Record<string, string> = {
   scheduler: 'roles.operations',
   operator: 'roles.operations',
   auditoria: 'roles.audit',
+  technician: 'roles.technician',
   emergency_scheduler: 'roles.technician',
   building_admin: 'roles.client',
   client: 'roles.client'
 };
 
 export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
-  const { logout, role } = useAuth();
+  const { logout, role, permissions } = useAuth();
   const { t } = useI18n();
-  const navGroups = useNavGroups(role);
+  const navGroups = useNavGroups(role, permissions);
   const [sectionOpen, setSectionOpen] = useState<Record<string, boolean>>({
     calendar: false
   });
