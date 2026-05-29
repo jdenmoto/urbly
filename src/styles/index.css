@@ -38,7 +38,25 @@ body {
 :where(button, a, input, select, textarea):focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
   transition: box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+:where([role='button'], [tabindex='0']):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+@media (forced-colors: active) {
+  :where(button, a, input, select, textarea, [role='button'], [tabindex='0']):focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
 }
 
 .fc {
