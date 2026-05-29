@@ -5,6 +5,7 @@ import Badge from '@/components/Badge';
 import Button from '@/components/Button';
 import type { AiAllowedUserAction, AiSuggestion, AiSuggestionKind } from '@/core/models/aiSuggestion';
 import { isAiSuggestion } from '@/core/models/aiSuggestion';
+import { useI18n } from '@/lib/i18n';
 
 type AiSuggestionActionHandlers = Partial<Record<AiAllowedUserAction, (suggestion: AiSuggestion) => void>>;
 
@@ -14,27 +15,27 @@ type AiSuggestionCardProps = {
   className?: string;
 };
 
-const kindLabel: Record<AiSuggestionKind, string> = {
-  technical_summary: 'Resumen técnico',
-  report_draft: 'Borrador de reporte',
-  customer_message: 'Mensaje cliente',
-  missing_requirements: 'Faltantes detectados',
-  follow_up: 'Follow-up',
-};
-
-const actionLabel: Record<AiAllowedUserAction, string> = {
-  copy: 'Copiar',
-  insert_draft: 'Insertar como borrador',
-  dismiss: 'Descartar',
-  regenerate: 'Regenerar',
-};
-
 export default function AiSuggestionCard({ suggestion, actions, className }: AiSuggestionCardProps) {
+  const { t } = useI18n();
+  const kindLabel: Record<AiSuggestionKind, string> = {
+    technical_summary: t('ai.card.kind.technical.summary'),
+    report_draft: t('ai.card.kind.report.draft'),
+    customer_message: t('ai.card.kind.customer.message'),
+    missing_requirements: t('ai.card.kind.missing.requirements'),
+    follow_up: t('ai.card.kind.follow.up'),
+  };
+  const actionLabel: Record<AiAllowedUserAction, string> = {
+    copy: t('ai.card.action.copy'),
+    insert_draft: t('ai.card.action.insert.draft'),
+    dismiss: t('ai.card.action.dismiss'),
+    regenerate: t('ai.card.action.regenerate'),
+  };
+
   if (!isAiSuggestion(suggestion)) {
     return (
       <article className={clsx('rounded-3xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800 shadow-sm', className)}>
-        <p className="font-semibold">Sugerencia IA bloqueada</p>
-        <p className="mt-2 leading-6">El contenido no cumple el contrato seguro de IA y no se muestra.</p>
+        <p className="font-semibold">{t('ai.card.blocked.title')}</p>
+        <p className="mt-2 leading-6">{t('ai.card.blocked.subtitle')}</p>
       </article>
     );
   }
@@ -46,13 +47,13 @@ export default function AiSuggestionCard({ suggestion, actions, className }: AiS
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className="bg-violet-50 text-violet-700">IA</Badge>
-            <Badge tone="warning">Solo sugerencia</Badge>
+            <Badge className="bg-violet-50 text-violet-700">{t('ai.card.badge.ai')}</Badge>
+            <Badge tone="warning">{t('ai.card.badge.suggestion.only')}</Badge>
             <Badge tone="neutral">{kindLabel[suggestion.kind]}</Badge>
           </div>
           <div>
             <h3 className="text-lg font-semibold text-ink-900">{suggestion.title}</h3>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink-500">Requiere aprobación humana</p>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink-500">{t('ai.card.human.approval.required')}</p>
           </div>
         </div>
 
@@ -72,12 +73,12 @@ export default function AiSuggestionCard({ suggestion, actions, className }: AiS
       </div>
 
       <div className="mt-4 grid gap-3 text-xs text-ink-600 md:grid-cols-3">
-        <TraceItem label="Módulo" value={suggestion.trace.module} />
-        <TraceItem label="Generado" value={formatGeneratedAt(suggestion.trace.generatedAt)} />
-        <TraceItem label="Entrada" value={suggestion.trace.inputSummary} />
-        {suggestion.trace.roleScope ? <TraceItem label="Rol" value={suggestion.trace.roleScope} /> : null}
-        {suggestion.trace.templateId ? <TraceItem label="Plantilla" value={suggestion.trace.templateId} /> : null}
-        {suggestion.trace.policyId ? <TraceItem label="Política" value={suggestion.trace.policyId} /> : null}
+        <TraceItem label={t('ai.card.trace.module')} value={suggestion.trace.module} />
+        <TraceItem label={t('ai.card.trace.generated')} value={formatGeneratedAt(suggestion.trace.generatedAt)} />
+        <TraceItem label={t('ai.card.trace.input')} value={suggestion.trace.inputSummary} />
+        {suggestion.trace.roleScope ? <TraceItem label={t('ai.card.trace.role')} value={suggestion.trace.roleScope} /> : null}
+        {suggestion.trace.templateId ? <TraceItem label={t('ai.card.trace.template')} value={suggestion.trace.templateId} /> : null}
+        {suggestion.trace.policyId ? <TraceItem label={t('ai.card.trace.policy')} value={suggestion.trace.policyId} /> : null}
       </div>
     </article>
   );
