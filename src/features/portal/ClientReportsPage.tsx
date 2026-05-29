@@ -207,7 +207,7 @@ export default function ClientReportsPage() {
                         <p className="mt-1 font-semibold text-ink-900">{item.issueCount}</p>
                       </div>
                       <div className="rounded-2xl bg-fog-50 p-3">
-                        <p className="text-xs uppercase tracking-wide text-ink-500">PDFs</p>
+                        <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.reports.pdf.label')}</p>
                         <p className="mt-1 font-semibold text-ink-900">
                           {item.pdfAttachments.length}
                         </p>
