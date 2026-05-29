@@ -6,7 +6,7 @@ export function GlassPanel({ children, className }: PropsWithChildren<{ classNam
   return (
     <div
       className={clsx(
-        'rounded-[28px] border border-white/55 bg-white/70 p-5 shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl',
+        'rounded-[var(--radius-panel)] border border-white/55 bg-white/70 p-5 shadow-[var(--shadow-panel)] backdrop-blur-xl',
         className
       )}
     >
