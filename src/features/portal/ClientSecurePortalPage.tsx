@@ -10,19 +10,7 @@ import { useI18n } from '@/lib/i18n';
 import { useSearchParams } from 'react-router-dom';
 import { formatServiceDateTime, getServiceOrderStatusLabel } from '@/features/services/serviceOrderPresentation';
 
-const quoteStatusLabel: Record<string, string> = {
-  draft: 'Borrador',
-  pending_internal_review: 'En revisión interna',
-  changes_requested: 'Ajustes solicitados',
-  approved: 'Aprobada'
-};
-
-const requestPriorityOptions = [
-  { value: 'medium', label: 'Normal' },
-  { value: 'high', label: 'Alta' },
-  { value: 'urgent', label: 'Urgente' },
-  { value: 'low', label: 'Baja' }
-] as const;
+const requestPriorityValues = ['medium', 'high', 'urgent', 'low'] as const;
 
 export default function ClientSecurePortalPage() {
   const { t } = useI18n();
@@ -32,14 +20,14 @@ export default function ClientSecurePortalPage() {
   const [error, setError] = useState('');
   const [requestTitle, setRequestTitle] = useState('');
   const [requestDescription, setRequestDescription] = useState('');
-  const [requestPriority, setRequestPriority] = useState<(typeof requestPriorityOptions)[number]['value']>('medium');
+  const [requestPriority, setRequestPriority] = useState<(typeof requestPriorityValues)[number]>('medium');
   const [requestedForAt, setRequestedForAt] = useState('');
   const [requestStatus, setRequestStatus] = useState<{ kind: 'idle' | 'submitting' | 'success' | 'error'; message?: string }>({ kind: 'idle' });
 
   useEffect(() => {
     let cancelled = false;
     if (!token) {
-      setError('Token faltante.');
+      setError(t('client.portal.secure.error.token.missing'));
       return;
     }
     void validateClientPortalToken({ token })
@@ -48,12 +36,12 @@ export default function ClientSecurePortalPage() {
         setValidated({ serviceOrderId: result.serviceOrderId, customerId: result.customerId });
       })
       .catch(() => {
-        if (!cancelled) setError('Token inválido o expirado.');
+        if (!cancelled) setError(t('client.portal.secure.error.token.invalid'));
       });
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, t]);
 
   const { data: serviceOrders = [] } = useOperationalServiceOrders();
   const serviceOrder = serviceOrders.find((item) => item.id === validated?.serviceOrderId);
@@ -69,7 +57,7 @@ export default function ClientSecurePortalPage() {
 
   async function submitClientRequest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setRequestStatus({ kind: 'submitting', message: 'Creando solicitud...' });
+    setRequestStatus({ kind: 'submitting', message: t('client.portal.secure.request.submitting.message') });
     try {
       const result = await createClientPortalServiceRequest({
         token,
@@ -78,64 +66,74 @@ export default function ClientSecurePortalPage() {
         priority: requestPriority,
         requestedForAt: requestedForAt ? new Date(requestedForAt).toISOString() : undefined
       });
-      setRequestStatus({ kind: 'success', message: `Solicitud creada: ${result.serviceOrderId}` });
+      setRequestStatus({ kind: 'success', message: t('client.portal.secure.request.success', { id: result.serviceOrderId }) });
       setRequestTitle('');
       setRequestDescription('');
       setRequestPriority('medium');
       setRequestedForAt('');
     } catch {
-      setRequestStatus({ kind: 'error', message: 'No se pudo crear la solicitud. Verifica el token o intenta de nuevo.' });
+      setRequestStatus({ kind: 'error', message: t('client.portal.secure.request.error') });
     }
   }
 
   if (error) {
-    return <EmptyState title="Portal de cliente" description={error} />;
+    return <EmptyState title={t('client.portal.secure.title')} description={error} />;
   }
 
   if (!validated || !serviceOrder) {
-    return <div className="p-8 text-sm text-ink-600">Validando acceso seguro...</div>;
+    return <div className="p-8 text-sm text-ink-600">{t('client.portal.secure.validating')}</div>;
   }
 
   const technicalReport = buildTechnicalReport(serviceOrder, t);
+  const quoteStatusLabel: Record<string, string> = {
+    draft: t('client.portal.secure.quote.status.draft'),
+    pending_internal_review: t('client.portal.secure.quote.status.pending.internal.review'),
+    changes_requested: t('client.portal.secure.quote.status.changes.requested'),
+    approved: t('client.portal.secure.quote.status.approved')
+  };
+  const requestPriorityOptions = requestPriorityValues.map((value) => ({
+    value,
+    label: t(`client.portal.secure.request.priority.${value}`)
+  }));
 
   return (
     <div className="space-y-6 p-6">
       <PageHeader
-        title="Portal seguro de cliente"
-        subtitle="Consulta controlada de estado, cotización y reporte técnico del servicio compartido."
+        title={t('client.portal.secure.title')}
+        subtitle={t('client.portal.secure.subtitle')}
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Estado actual" value={getServiceOrderStatusLabel(t, serviceOrder.status)} hint="Último estado visible" />
-        <StatCard label="Novedades" value={serviceOrder.issues.length} hint="Incidencias registradas" />
-        <StatCard label="Evidencia" value={serviceOrder.completionPhotos.length} hint="Fotos disponibles" />
-        <StatCard label="Cotización" value={latestQuote ? `V${latestQuote.version}` : '—'} hint={latestQuote ? quoteStatusLabel[latestQuote.status] ?? latestQuote.status : 'Sin publicación'} />
+        <StatCard label={t('client.portal.secure.metrics.status.label')} value={getServiceOrderStatusLabel(t, serviceOrder.status)} hint={t('client.portal.secure.metrics.status.hint')} />
+        <StatCard label={t('client.portal.secure.metrics.issues.label')} value={serviceOrder.issues.length} hint={t('client.portal.secure.metrics.issues.hint')} />
+        <StatCard label={t('client.portal.secure.metrics.evidence.label')} value={serviceOrder.completionPhotos.length} hint={t('client.portal.secure.metrics.evidence.hint')} />
+        <StatCard label={t('client.portal.secure.metrics.quote.label')} value={latestQuote ? `V${latestQuote.version}` : '—'} hint={latestQuote ? quoteStatusLabel[latestQuote.status] ?? latestQuote.status : t('client.portal.secure.metrics.quote.empty')} />
       </section>
 
       <Card className="space-y-4 p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-ink-900">Servicio compartido</h2>
-            <p className="mt-1 text-sm text-ink-600">Resumen mínimo para ubicar el servicio y su avance visible.</p>
+            <h2 className="text-lg font-semibold text-ink-900">{t('client.portal.secure.shared.service.title')}</h2>
+            <p className="mt-1 text-sm text-ink-600">{t('client.portal.secure.shared.service.subtitle')}</p>
           </div>
           <div className="rounded-2xl bg-fog-50 px-4 py-3 text-sm text-ink-600">
-            <p className="text-xs uppercase tracking-wide text-ink-500">Programado para</p>
+            <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.secure.shared.service.scheduled.for')}</p>
             <p className="mt-1 font-semibold text-ink-900">{formatServiceDateTime(serviceOrder.scheduledStartAt)}</p>
           </div>
         </div>
         <div className="grid gap-4 lg:grid-cols-[1.2fr,1fr]">
           <div className="rounded-3xl border border-fog-200 bg-white p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-ink-500">Servicio</p>
+            <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.secure.shared.service.service.label')}</p>
             <p className="mt-1 text-lg font-semibold text-ink-900">{serviceOrder.title}</p>
-            <p className="mt-2 text-sm text-ink-600">{serviceOrder.description || 'Sin descripción ampliada.'}</p>
+            <p className="mt-2 text-sm text-ink-600">{serviceOrder.description || t('client.portal.secure.shared.service.no.description')}</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             <div className="rounded-3xl border border-fog-200 bg-white p-4 shadow-sm">
-              <p className="text-xs uppercase tracking-wide text-ink-500">Estado visible</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.secure.shared.service.visible.status')}</p>
               <p className="mt-1 font-semibold text-ink-900">{getServiceOrderStatusLabel(t, serviceOrder.status)}</p>
             </div>
             <div className="rounded-3xl border border-fog-200 bg-white p-4 shadow-sm">
-              <p className="text-xs uppercase tracking-wide text-ink-500">Última actualización</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.secure.shared.service.last.update')}</p>
               <p className="mt-1 font-semibold text-ink-900">{formatServiceDateTime(latestTimeline[0]?.createdAt ?? serviceOrder.updatedAt ?? serviceOrder.scheduledStartAt)}</p>
             </div>
           </div>
@@ -144,15 +142,15 @@ export default function ClientSecurePortalPage() {
 
       <Card className="space-y-4 p-6">
         <div>
-          <h2 className="text-lg font-semibold text-ink-900">Crear solicitud de servicio</h2>
+          <h2 className="text-lg font-semibold text-ink-900">{t('client.portal.secure.request.title')}</h2>
           <p className="mt-1 text-sm text-ink-600">
-            La solicitud queda vinculada al mismo cliente, cuenta y edificio autorizados por este acceso seguro.
+            {t('client.portal.secure.request.subtitle')}
           </p>
         </div>
         <form className="grid gap-4 lg:grid-cols-[1fr,0.35fr]" onSubmit={submitClientRequest}>
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-ink-700" htmlFor="client-request-title">
-              Título de la solicitud
+              {t('client.portal.secure.request.fields.title.label')}
             </label>
             <input
               id="client-request-title"
@@ -160,10 +158,10 @@ export default function ClientSecurePortalPage() {
               value={requestTitle}
               onChange={(event) => setRequestTitle(event.target.value)}
               maxLength={120}
-              placeholder="Ej. Fuga en zona común"
+              placeholder={t('client.portal.secure.request.fields.title.placeholder')}
             />
             <label className="block text-sm font-semibold text-ink-700" htmlFor="client-request-description">
-              Detalle
+              {t('client.portal.secure.request.fields.description.label')}
             </label>
             <textarea
               id="client-request-description"
@@ -171,12 +169,12 @@ export default function ClientSecurePortalPage() {
               value={requestDescription}
               onChange={(event) => setRequestDescription(event.target.value)}
               maxLength={1200}
-              placeholder="Describe qué ocurre, ubicación exacta y cualquier restricción de acceso."
+              placeholder={t('client.portal.secure.request.fields.description.placeholder')}
             />
           </div>
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-ink-700" htmlFor="client-request-priority">
-              Prioridad
+              {t('client.portal.secure.request.fields.priority')}
             </label>
             <select
               id="client-request-priority"
@@ -189,7 +187,7 @@ export default function ClientSecurePortalPage() {
               ))}
             </select>
             <label className="block text-sm font-semibold text-ink-700" htmlFor="client-request-date">
-              Fecha sugerida
+              {t('client.portal.secure.request.fields.suggested.date')}
             </label>
             <input
               id="client-request-date"
@@ -203,7 +201,7 @@ export default function ClientSecurePortalPage() {
               disabled={requestStatus.kind === 'submitting'}
               className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {requestStatus.kind === 'submitting' ? 'Creando...' : 'Crear solicitud'}
+              {requestStatus.kind === 'submitting' ? t('client.portal.secure.request.submitting.short') : t('client.portal.secure.request.submit')}
             </button>
             {requestStatus.message ? (
               <p className={`rounded-2xl p-3 text-sm ${requestStatus.kind === 'error' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
@@ -217,44 +215,44 @@ export default function ClientSecurePortalPage() {
       <div className="grid gap-4 xl:grid-cols-[0.95fr,1.05fr]">
         <Card className="space-y-4 p-6">
           <div>
-            <h2 className="text-lg font-semibold text-ink-900">Última cotización</h2>
-            <p className="mt-1 text-sm text-ink-600">Versión más reciente publicada para consulta controlada.</p>
+            <h2 className="text-lg font-semibold text-ink-900">{t('client.portal.secure.quote.title')}</h2>
+            <p className="mt-1 text-sm text-ink-600">{t('client.portal.secure.quote.subtitle')}</p>
           </div>
           {latestQuote ? (
             <div className="rounded-2xl border border-fog-200 bg-white p-4 text-sm text-ink-700 shadow-sm">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-ink-500">Versión</p>
+                  <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.secure.quote.fields.version')}</p>
                   <p className="mt-1 font-semibold text-ink-900">{latestQuote.version}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-ink-500">Estado</p>
+                  <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.secure.quote.fields.status')}</p>
                   <p className="mt-1 font-semibold text-ink-900">{quoteStatusLabel[latestQuote.status] ?? latestQuote.status}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-ink-500">Monto</p>
+                  <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.secure.quote.fields.amount')}</p>
                   <p className="mt-1 font-semibold text-ink-900">{latestQuote.amount} {latestQuote.currency}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-ink-500">Creada</p>
+                  <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.secure.quote.fields.created')}</p>
                   <p className="mt-1 font-semibold text-ink-900">{formatServiceDateTime(latestQuote.createdAt)}</p>
                 </div>
               </div>
               <div className="mt-4 rounded-2xl bg-fog-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-ink-500">Alcance</p>
+                <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.secure.quote.fields.scope')}</p>
                 <p className="mt-1 text-ink-700">{latestQuote.scope}</p>
                 {latestQuote.notes ? <p className="mt-3 text-ink-600">{latestQuote.notes}</p> : null}
               </div>
             </div>
           ) : (
-            <EmptyState title="Sin cotización" description="Todavía no hay una cotización publicada para este servicio." />
+            <EmptyState title={t('client.portal.secure.quote.empty.title')} description={t('client.portal.secure.quote.empty.description')} />
           )}
         </Card>
 
         <Card className="space-y-4 p-6">
           <div>
-            <h2 className="text-lg font-semibold text-ink-900">Trazabilidad visible</h2>
-            <p className="mt-1 text-sm text-ink-600">Eventos compartidos y evidencia mínima disponible para este servicio.</p>
+            <h2 className="text-lg font-semibold text-ink-900">{t('client.portal.secure.traceability.title')}</h2>
+            <p className="mt-1 text-sm text-ink-600">{t('client.portal.secure.traceability.subtitle')}</p>
           </div>
           {latestTimeline.length ? (
             <div className="space-y-3">
@@ -263,7 +261,7 @@ export default function ClientSecurePortalPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="font-semibold text-ink-900">{event.summary}</p>
-                      <p className="mt-1 text-sm text-ink-600">{event.actorRole === 'technician' ? 'Equipo técnico' : event.actorRole === 'company' ? 'Operación' : 'Sistema'}</p>
+                      <p className="mt-1 text-sm text-ink-600">{event.actorRole === 'technician' ? t('client.portal.secure.traceability.actor.technician') : event.actorRole === 'company' ? t('client.portal.secure.traceability.actor.operations') : t('client.portal.secure.traceability.actor.system')}</p>
                     </div>
                     <p className="text-sm text-ink-500">{formatServiceDateTime(event.createdAt)}</p>
                   </div>
@@ -271,16 +269,16 @@ export default function ClientSecurePortalPage() {
               ))}
             </div>
           ) : (
-            <EmptyState title="Sin trazabilidad ampliada" description="Este acceso seguro muestra solo la base mínima disponible para este servicio." />
+            <EmptyState title={t('client.portal.secure.traceability.empty.title')} description={t('client.portal.secure.traceability.empty.description')} />
           )}
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl bg-fog-50 p-4 text-sm text-ink-600">
-              <p className="text-xs uppercase tracking-wide text-ink-500">Evidencia</p>
-              <p className="mt-1 font-semibold text-ink-900">{serviceOrder.completionPhotos.length} fotos</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.secure.traceability.evidence')}</p>
+              <p className="mt-1 font-semibold text-ink-900">{t('client.portal.secure.traceability.photos.count', { count: serviceOrder.completionPhotos.length })}</p>
             </div>
             <div className="rounded-2xl bg-fog-50 p-4 text-sm text-ink-600">
-              <p className="text-xs uppercase tracking-wide text-ink-500">Novedades</p>
-              <p className="mt-1 font-semibold text-ink-900">{serviceOrder.issues.length} registradas</p>
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.secure.traceability.issues')}</p>
+              <p className="mt-1 font-semibold text-ink-900">{t('client.portal.secure.traceability.issuesCount', { count: serviceOrder.issues.length })}</p>
             </div>
           </div>
         </Card>
@@ -288,8 +286,8 @@ export default function ClientSecurePortalPage() {
 
       <Card className="space-y-4 p-6">
         <div>
-          <h2 className="text-lg font-semibold text-ink-900">Reporte técnico</h2>
-          <p className="mt-1 text-sm text-ink-600">Vista legible del informe consolidado para este servicio.</p>
+          <h2 className="text-lg font-semibold text-ink-900">{t('client.portal.secure.technical.report.title')}</h2>
+          <p className="mt-1 text-sm text-ink-600">{t('client.portal.secure.technical.report.subtitle')}</p>
         </div>
         <pre className="whitespace-pre-wrap rounded-2xl bg-fog-50 p-4 text-sm text-ink-700">{technicalReport}</pre>
       </Card>

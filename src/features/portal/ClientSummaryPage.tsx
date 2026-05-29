@@ -94,10 +94,10 @@ export default function ClientSummaryPage() {
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label={t('client.portal.active.services')} value={summary.active} hint="Seguimiento en curso" />
-        <StatCard label={t('client.portal.completed.services')} value={summary.completed} hint="Histórico reciente" />
-        <StatCard label={t('client.portal.buildings.count')} value={scopedBuildings.length} hint="Cobertura visible" />
-        <StatCard label="Informes listos" value={summary.reportsReady} hint="Con evidencia o cierre visible" />
+        <StatCard label={t('client.portal.active.services')} value={summary.active} hint={t('client.portal.metrics.active.hint')} />
+        <StatCard label={t('client.portal.completed.services')} value={summary.completed} hint={t('client.portal.metrics.completed.hint')} />
+        <StatCard label={t('client.portal.buildings.count')} value={scopedBuildings.length} hint={t('client.portal.metrics.buildings.hint')} />
+        <StatCard label={t('client.portal.metrics.ready.reports.label')} value={summary.reportsReady} hint={t('client.portal.metrics.ready.reports.hint')} />
       </section>
 
       <Card className="space-y-6 p-6">
@@ -107,8 +107,8 @@ export default function ClientSummaryPage() {
               {t('client.portal.client.view.badge')}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-ink-900">Próximos servicios</h2>
-              <p className="max-w-2xl text-sm leading-6 text-ink-600">Lo siguiente que deberías tener en el radar sin entrar al backoffice.</p>
+              <h2 className="text-xl font-semibold text-ink-900">{t('client.portal.upcoming.card.title')}</h2>
+              <p className="max-w-2xl text-sm leading-6 text-ink-600">{t('client.portal.upcoming.card.subtitle')}</p>
             </div>
           </div>
           <div className="rounded-2xl border border-fog-200 bg-fog-50 px-4 py-3 text-sm text-ink-600">
@@ -135,11 +135,11 @@ export default function ClientSummaryPage() {
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <div className="rounded-2xl bg-fog-50 p-4 text-sm text-ink-600">
-                      <p className="text-xs uppercase tracking-wide text-ink-500">Estado</p>
+                      <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.fields.status')}</p>
                       <p className="mt-1 font-semibold text-ink-900">{getServiceOrderStatusLabel(t, serviceOrder.status)}</p>
                     </div>
                     <div className="rounded-2xl bg-fog-50 p-4 text-sm text-ink-600">
-                      <p className="text-xs uppercase tracking-wide text-ink-500">Novedades</p>
+                      <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.fields.issues')}</p>
                       <p className="mt-1 font-semibold text-ink-900">{serviceOrder.issues.length}</p>
                     </div>
                   </div>
@@ -156,11 +156,11 @@ export default function ClientSummaryPage() {
         <Card className="space-y-4 p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-ink-900">Trazabilidad reciente</h2>
-              <p className="text-sm leading-6 text-ink-600">Últimos movimientos visibles para entender estado, evidencia y siguiente revisión.</p>
+              <h2 className="text-xl font-semibold text-ink-900">{t('client.portal.traceability.title')}</h2>
+              <p className="text-sm leading-6 text-ink-600">{t('client.portal.traceability.subtitle')}</p>
             </div>
             <Link className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" to="/portal/services">
-              Ver operación
+              {t('client.portal.traceability.action')}
             </Link>
           </div>
           {summary.recent.length ? (
@@ -188,20 +188,20 @@ export default function ClientSummaryPage() {
                       </div>
                       <div className="grid gap-2 text-sm text-ink-600 sm:grid-cols-2 lg:w-[20rem]">
                         <div className="rounded-2xl bg-fog-50 p-3">
-                          <p className="text-xs uppercase tracking-wide text-ink-500">Última actualización</p>
+                          <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.traceability.last.update')}</p>
                           <p className="mt-1 font-semibold text-ink-900">{formatServiceDateTime(getLastVisibleUpdate(serviceOrder))}</p>
                         </div>
                         <div className="rounded-2xl bg-fog-50 p-3">
-                          <p className="text-xs uppercase tracking-wide text-ink-500">Informe visible</p>
-                          <p className="mt-1 font-semibold text-ink-900">{serviceOrder.status === 'completed' || serviceOrder.completionPhotos.length ? 'Disponible' : 'En preparación'}</p>
+                          <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.traceability.visible.report')}</p>
+                          <p className="mt-1 font-semibold text-ink-900">{serviceOrder.status === 'completed' || serviceOrder.completionPhotos.length ? t('client.portal.traceability.report.ready') : t('client.portal.traceability.report.preparing')}</p>
                         </div>
                         <div className="rounded-2xl bg-fog-50 p-3">
-                          <p className="text-xs uppercase tracking-wide text-ink-500">Evidencia</p>
-                          <p className="mt-1 font-semibold text-ink-900">{serviceOrder.completionPhotos.length} fotos</p>
+                          <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.traceability.evidence')}</p>
+                          <p className="mt-1 font-semibold text-ink-900">{t('client.portal.traceability.photos.count', { count: serviceOrder.completionPhotos.length })}</p>
                         </div>
                         <div className="rounded-2xl bg-fog-50 p-3">
-                          <p className="text-xs uppercase tracking-wide text-ink-500">Traza</p>
-                          <p className="mt-1 font-semibold text-ink-900">{latestTimelineEvent ? 'Actualizada' : 'Base mínima'}</p>
+                          <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.traceability.trace.label')}</p>
+                          <p className="mt-1 font-semibold text-ink-900">{latestTimelineEvent ? t('client.portal.traceability.trace.updated') : t('client.portal.traceability.trace.base')}</p>
                         </div>
                       </div>
                     </div>
@@ -210,18 +210,18 @@ export default function ClientSummaryPage() {
               })}
             </div>
           ) : (
-            <EmptyState title="Trazabilidad reciente" description={t('client.portal.empty')} />
+            <EmptyState title={t('client.portal.traceability.title')} description={t('client.portal.empty')} />
           )}
         </Card>
 
         <Card className="space-y-4 p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-ink-900">Cobertura por edificio</h2>
-              <p className="text-sm leading-6 text-ink-600">Acceso rápido para ubicar sedes activas y las que ya tienen entregables visibles.</p>
+              <h2 className="text-xl font-semibold text-ink-900">{t('client.portal.building.coverage.title')}</h2>
+              <p className="text-sm leading-6 text-ink-600">{t('client.portal.building.coverage.subtitle')}</p>
             </div>
             <Link className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" to="/portal/reports">
-              Ver reportes
+              {t('client.portal.building.coverage.action')}
             </Link>
           </div>
           {scopedBuildings.length ? (
@@ -233,14 +233,14 @@ export default function ClientSummaryPage() {
                 return (
                   <div key={building.id} className="rounded-3xl border border-fog-200 bg-white p-4 shadow-sm">
                     <p className="font-semibold text-ink-900">{building.name}</p>
-                    <p className="text-sm text-ink-600">{building.addressText || 'Sin dirección registrada'}</p>
+                    <p className="text-sm text-ink-600">{building.addressText || t('client.portal.building.coverage.no.address')}</p>
                     <div className="mt-3 grid gap-2 text-sm text-ink-600 sm:grid-cols-2">
                       <div className="rounded-2xl bg-fog-50 p-3">
-                        <p className="text-xs uppercase tracking-wide text-ink-500">Servicios activos</p>
+                        <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.building.coverage.active.services')}</p>
                         <p className="mt-1 font-semibold text-ink-900">{activeCount}</p>
                       </div>
                       <div className="rounded-2xl bg-fog-50 p-3">
-                        <p className="text-xs uppercase tracking-wide text-ink-500">Informes visibles</p>
+                        <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.building.coverage.visible.reports')}</p>
                         <p className="mt-1 font-semibold text-ink-900">{reportCount}</p>
                       </div>
                     </div>
@@ -249,7 +249,7 @@ export default function ClientSummaryPage() {
               })}
             </div>
           ) : (
-            <EmptyState title="Cobertura por edificio" description={t('portal.buildings.empty.hint')} />
+            <EmptyState title={t('client.portal.building.coverage.title')} description={t('portal.buildings.empty.hint')} />
           )}
         </Card>
       </div>

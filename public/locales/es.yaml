@@ -242,9 +242,23 @@ client:
       services: Servicios completados
     buildings:
       count: Edificios
+    metrics:
+      active:
+        hint: Seguimiento en curso
+      completed:
+        hint: Histórico reciente
+      buildings:
+        hint: Cobertura visible
+      ready:
+        reports:
+          label: Informes listos
+          hint: Con evidencia o cierre visible
     upcoming:
       title: Proximos servicios
       subtitle: Primer corte del resumen cliente basado en órdenes de servicio.
+      card:
+        title: Próximos servicios
+        subtitle: Lo siguiente que deberías tener en el radar sin entrar al backoffice.
     empty: No hay próximos servicios programados.
     client:
       view:
@@ -254,6 +268,38 @@ client:
         hint: servicios visibles en la siguiente ventana
     priority:
       pill: Prioridad {value}
+    fields:
+      status: Estado
+      issues: Novedades
+    traceability:
+      title: Trazabilidad reciente
+      subtitle: Últimos movimientos visibles para entender estado, evidencia y siguiente revisión.
+      action: Ver operación
+      last:
+        update: Última actualización
+      visible:
+        report: Informe visible
+      report:
+        ready: Disponible
+        preparing: En preparación
+      evidence: Evidencia
+      photos:
+        count: '{count} fotos'
+      trace:
+        label: Traza
+        updated: Actualizada
+        base: Base mínima
+    building:
+      coverage:
+        title: Cobertura por edificio
+        subtitle: Acceso rápido para ubicar sedes activas y las que ya tienen entregables visibles.
+        action: Ver reportes
+        no:
+          address: Sin dirección registrada
+        active:
+          services: Servicios activos
+        visible:
+          reports: Informes visibles
     nav:
       summary: Resumen
       services: Servicios
@@ -372,6 +418,7 @@ client:
         issueDetail: Detalle de novedades
         noIssues: sin novedades visibles por ahora
       pdf:
+        label: PDFs
         available: PDFs disponibles
         primary: PDF principal
         numbered: PDF {number}
@@ -379,6 +426,104 @@ client:
       empty:
         title: Sin reportes visibles
         description: Todavía no hay informes, PDFs o evidencia publicada para esta administración.
+    secure:
+      title: Portal seguro del cliente
+      subtitle: Acceso validado para seguimiento puntual del servicio compartido.
+      validating: Validando acceso seguro...
+      error:
+        token:
+          missing: Token faltante.
+          invalid: Token inválido o expirado.
+      metrics:
+        status:
+          label: Estado
+          hint: Estado visible del servicio
+        issues:
+          label: Novedades
+          hint: Novedades visibles registradas
+        evidence:
+          label: Evidencia
+          hint: Fotos publicadas
+        quote:
+          label: Cotización
+          empty: Sin cotización publicada
+      shared:
+        service:
+          title: Servicio compartido
+          subtitle: Resumen visible del servicio asociado a este enlace seguro.
+          scheduled:
+            for: Programado para
+          service:
+            label: Servicio
+          no:
+            description: Sin descripción disponible.
+          visible:
+            status: Estado visible
+          last:
+            update: Última actualización
+      request:
+        title: Crear solicitud de servicio
+        subtitle: La solicitud queda vinculada al mismo cliente, cuenta y edificio autorizados por este acceso seguro.
+        submitting:
+          message: Creando solicitud...
+          short: Creando...
+        submit: Crear solicitud
+        success: Solicitud creada ({id}).
+        error: No fue posible crear la solicitud.
+        priority:
+          medium: Normal
+          high: Alta
+          urgent: Urgente
+          low: Baja
+        fields:
+          title:
+            label: Título de la solicitud
+            placeholder: Ej. Fuga en zona común
+          description:
+            label: Detalle
+            placeholder: Describe qué ocurre, ubicación exacta y cualquier restricción de acceso.
+          priority: Prioridad
+          suggested:
+            date: Fecha sugerida
+      quote:
+        title: Última cotización
+        subtitle: Versión más reciente publicada para consulta controlada.
+        fields:
+          version: Versión
+          status: Estado
+          amount: Monto
+          created: Creada
+          scope: Alcance
+        status:
+          draft: Borrador
+          pending:
+            internal:
+              review: En revisión interna
+          changes:
+            requested: Ajustes solicitados
+          approved: Aprobada
+        empty:
+          title: Sin cotización
+          description: Todavía no hay una cotización publicada para este servicio.
+      traceability:
+        title: Trazabilidad visible
+        subtitle: Eventos compartidos y evidencia mínima disponible para este servicio.
+        actor:
+          technician: Equipo técnico
+          operations: Operación
+          system: Sistema
+        evidence: Evidencia
+        photos:
+          count: '{count} fotos'
+        issues: Novedades
+        issuesCount: '{count} registradas'
+        empty:
+          title: Sin trazabilidad ampliada
+          description: Este acceso seguro muestra solo la base mínima disponible para este servicio.
+      technical:
+        report:
+          title: Reporte técnico
+          subtitle: Vista legible del informe consolidado para este servicio.
 services:
   title: Servicios
   subtitle: Flujo operativo basado en órdenes de servicio.
