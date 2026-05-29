@@ -29,6 +29,8 @@ export default function TopBar() {
   const [openNotifications, setOpenNotifications] = useState(false);
   const notificationsDesktopRef = useRef<HTMLDivElement | null>(null);
   const notificationsMobileRef = useRef<HTMLDivElement | null>(null);
+  const notificationsDesktopPanelRef = useRef<HTMLDivElement | null>(null);
+  const notificationsMobilePanelRef = useRef<HTMLDivElement | null>(null);
   const { data: notifications = [] } = useList<InternalNotification>('internalNotifications', 'internal_notifications');
   const navGroups = useNavGroups(role, permissions);
   const currentItem = navGroups.flatMap((group) => group.items).find((item) => item.to === location.pathname);
@@ -38,6 +40,12 @@ export default function TopBar() {
 
   useEffect(() => {
     if (!openNotifications) return;
+
+    const activePanel = notificationsDesktopPanelRef.current ?? notificationsMobilePanelRef.current;
+    const firstFocusable = activePanel?.querySelector<HTMLElement>(
+      'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+    );
+    firstFocusable?.focus();
 
     function onPointerDown(event: MouseEvent) {
       const target = event.target as Node;
@@ -54,11 +62,35 @@ export default function TopBar() {
       }
     }
 
+    function onTabCycle(event: KeyboardEvent) {
+      if (event.key !== 'Tab') return;
+      const panel = notificationsDesktopPanelRef.current ?? notificationsMobilePanelRef.current;
+      if (!panel) return;
+      const focusable = Array.from(
+        panel.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')
+      );
+      if (!focusable.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
     document.addEventListener('mousedown', onPointerDown);
     document.addEventListener('keydown', onEscape);
+    document.addEventListener('keydown', onTabCycle);
     return () => {
       document.removeEventListener('mousedown', onPointerDown);
       document.removeEventListener('keydown', onEscape);
+      document.removeEventListener('keydown', onTabCycle);
     };
   }, [openNotifications]);
 
@@ -90,7 +122,7 @@ export default function TopBar() {
               {t('notifications.empty.title')} {unreadCount ? `(${unreadCount})` : ''}
             </button>
             {openNotifications ? (
-              <div className="absolute right-0 z-40 mt-2 w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-3 shadow-xl" role="dialog" aria-label={t('notifications.title')}>
+              <div ref={notificationsMobilePanelRef} tabIndex={-1} className="absolute right-0 z-40 mt-2 w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-3 shadow-xl" role="dialog" aria-label={t('notifications.title')}>
                 <div className="mb-2 flex items-center justify-between gap-2 px-1">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t('notifications.title')}</p>
                   <Link className="text-xs font-semibold text-slate-700 hover:text-slate-900" to="/notifications" onClick={() => setOpenNotifications(false)}>
@@ -138,7 +170,7 @@ export default function TopBar() {
               {t('notifications.empty.title')} {unreadCount ? `(${unreadCount})` : ''}
             </button>
             {openNotifications ? (
-              <div className="absolute right-0 mt-2 w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-3 shadow-xl" role="dialog" aria-label={t('notifications.title')}>
+              <div ref={notificationsDesktopPanelRef} tabIndex={-1} className="absolute right-0 mt-2 w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-3 shadow-xl" role="dialog" aria-label={t('notifications.title')}>
                 <div className="mb-2 flex items-center justify-between gap-2 px-1">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t('notifications.title')}</p>
                   <Link className="text-xs font-semibold text-slate-700 hover:text-slate-900" to="/notifications" onClick={() => setOpenNotifications(false)}>
