@@ -6,20 +6,20 @@ import { buildPrintableServiceReportModel } from './serviceReport';
 import { useOperationalServiceOrders } from './useOperationalServiceOrders';
 import { useI18n } from '@/lib/i18n';
 
-function getReportFlowTitle(status: string) {
-  if (status === 'completed') return 'Reporte final del servicio';
-  if (status === 'in_progress') return 'Borrador operativo del reporte';
-  return 'Formato base de reporte';
+function getReportFlowTitle(status: string, t: (key: string, params?: Record<string, string | number>) => string) {
+  if (status === 'completed') return t('services.print.flow.title.completed');
+  if (status === 'in_progress') return t('services.print.flow.title.in.progress');
+  return t('services.print.flow.title.default');
 }
 
-function getReportFlowHint(status: string) {
-  if (status === 'completed') return 'Salida final para impresión y revisión con evidencia consolidada.';
-  if (status === 'in_progress') return 'Todavía puedes volver al cierre técnico para completar evidencia y observaciones antes de imprimir.';
-  return 'Úsalo como referencia del entregable que quedará disponible al cerrar el servicio.';
+function getReportFlowHint(status: string, t: (key: string, params?: Record<string, string | number>) => string) {
+  if (status === 'completed') return t('services.print.flow.hint.completed');
+  if (status === 'in_progress') return t('services.print.flow.hint.in.progress');
+  return t('services.print.flow.hint.default');
 }
 
-function formatDateTime(value?: string | null) {
-  if (!value) return 'No disponible';
+function formatDateTime(value: string | null | undefined, t: (key: string, params?: Record<string, string | number>) => string) {
+  if (!value) return t('common.not.available');
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
   return date.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
@@ -32,11 +32,11 @@ type ServiceReportPrintLocationState = {
   serviceStatus?: string;
 };
 
-function getBackToFlowLabel(locationState: ServiceReportPrintLocationState | null) {
-  if (locationState?.fromPath?.startsWith('/technician')) return 'Volver al panel técnico';
-  if (locationState?.fromCloseout) return 'Volver al cierre';
-  if (locationState?.fromDetail) return 'Volver al detalle';
-  return 'Volver al flujo';
+function getBackToFlowLabel(locationState: ServiceReportPrintLocationState | null, t: (key: string, params?: Record<string, string | number>) => string) {
+  if (locationState?.fromPath?.startsWith('/technician')) return t('services.print.back.technician');
+  if (locationState?.fromCloseout) return t('services.print.back.closeout');
+  if (locationState?.fromDetail) return t('services.print.back.detail');
+  return t('services.print.back.default');
 }
 
 export default function ServiceReportPrintPage() {
@@ -48,7 +48,7 @@ export default function ServiceReportPrintPage() {
   const locationState = (location.state as ServiceReportPrintLocationState | null) ?? null;
 
   if (!serviceOrder) {
-    return <EmptyState title="Vista imprimible" description="Servicio no encontrado." />;
+    return <EmptyState title={t('services.print.empty.title')} description={t('services.print.empty.description')} />;
   }
 
   const printableReport = buildPrintableServiceReportModel(serviceOrder, t);
@@ -59,17 +59,17 @@ export default function ServiceReportPrintPage() {
     <div className="mx-auto max-w-4xl space-y-6 bg-white p-8 text-slate-900">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div>
-          <h1 className="text-2xl font-semibold">{getReportFlowTitle(serviceOrder.status)}</h1>
-          <p className="text-sm text-slate-600">{getReportFlowHint(serviceOrder.status)}</p>
+          <h1 className="text-2xl font-semibold">{getReportFlowTitle(serviceOrder.status, t)}</h1>
+          <p className="text-sm text-slate-600">{getReportFlowHint(serviceOrder.status, t)}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Link
             to={backTarget}
             className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
           >
-            {getBackToFlowLabel(locationState)}
+            {getBackToFlowLabel(locationState, t)}
           </Link>
-          <Button onClick={() => window.print()}>Imprimir</Button>
+          <Button onClick={() => window.print()}>{t('services.print.actions.print')}</Button>
         </div>
       </div>
 
@@ -77,17 +77,17 @@ export default function ServiceReportPrintPage() {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <h2 className="text-lg font-semibold">{printableReport.summary.title}</h2>
-            <p className="mt-1 text-sm text-slate-600">Estado: {printableReport.summary.statusLabel}</p>
-            <p className="text-sm text-slate-600">Ventana: {formatDateTime(printableReport.summary.scheduledStartAt)} → {formatDateTime(printableReport.summary.scheduledEndAt)}</p>
+            <p className="mt-1 text-sm text-slate-600">{t('services.print.summary.status')}: {printableReport.summary.statusLabel}</p>
+            <p className="text-sm text-slate-600">{t('services.print.summary.window')}: {formatDateTime(printableReport.summary.scheduledStartAt, t)} → {formatDateTime(printableReport.summary.scheduledEndAt, t)}</p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-            <p className="font-semibold text-slate-900">Flujo services</p>
+            <p className="font-semibold text-slate-900">{t('services.print.flow.block.title')}</p>
             <p>
               {locationState?.fromCloseout
-                ? 'Llegaste desde cierre técnico. Si algo falta, vuelve al cierre antes de imprimir la versión final.'
+                ? t('services.print.flow.block.from.closeout')
                 : locationState?.fromDetail
-                  ? 'Llegaste desde detalle. Desde aquí puedes revisar el formato final y volver al cierre si aún falta evidencia.'
-                  : 'Esta vista hace parte del flujo operativo principal de services.'}
+                  ? t('services.print.flow.block.from.detail')
+                  : t('services.print.flow.block.default')}
             </p>
           </div>
         </div>
@@ -95,38 +95,38 @@ export default function ServiceReportPrintPage() {
 
       <section className="grid gap-4 xl:grid-cols-3">
         <div className="rounded-2xl border border-slate-200 p-5">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Evidencia final</p>
+          <p className="text-xs uppercase tracking-wide text-slate-500">{t('services.print.metrics.evidence.title')}</p>
           <p className="mt-2 text-2xl font-semibold text-slate-900">{printableReport.summary.photoCount}</p>
-          <p className="text-sm text-slate-600">fotos registradas</p>
+          <p className="text-sm text-slate-600">{t('services.print.metrics.evidence.hint')}</p>
         </div>
         <div className="rounded-2xl border border-slate-200 p-5">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Novedades</p>
+          <p className="text-xs uppercase tracking-wide text-slate-500">{t('services.print.metrics.issues.title')}</p>
           <p className="mt-2 text-2xl font-semibold text-slate-900">{printableReport.summary.issueCount}</p>
-          <p className="text-sm text-slate-600">hallazgos documentados</p>
+          <p className="text-sm text-slate-600">{t('services.print.metrics.issues.hint')}</p>
         </div>
         <div className="rounded-2xl border border-slate-200 p-5">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Adjuntos</p>
+          <p className="text-xs uppercase tracking-wide text-slate-500">{t('services.print.metrics.attachments.title')}</p>
           <p className="mt-2 text-2xl font-semibold text-slate-900">{printableReport.summary.attachmentCount}</p>
-          <p className="text-sm text-slate-600">documentos asociados</p>
+          <p className="text-sm text-slate-600">{t('services.print.metrics.attachments.hint')}</p>
         </div>
       </section>
 
       <section className="rounded-2xl border border-slate-200 p-6">
-        <h2 className="text-lg font-semibold">Reporte</h2>
+        <h2 className="text-lg font-semibold">{t('services.print.report.title')}</h2>
         <pre className="mt-4 whitespace-pre-wrap text-sm text-slate-800">{printableReport.reportText}</pre>
       </section>
 
       <section className="rounded-2xl border border-slate-200 p-6">
-        <h2 className="text-lg font-semibold">Adjuntos y evidencias</h2>
+        <h2 className="text-lg font-semibold">{t('services.print.attachments.section.title')}</h2>
         {(printableReport.attachments.length || printableReport.photos.length) ? (
           <div className="mt-4 space-y-5">
             {printableReport.photos.length ? (
               <div>
-                <p className="text-sm font-semibold text-slate-800">Fotos de cierre</p>
+                <p className="text-sm font-semibold text-slate-800">{t('services.print.attachments.photos.title')}</p>
                 <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {printableReport.photos.map((url, index) => (
                     <a key={`photo-${index}`} href={url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl border border-slate-200">
-                      <img src={url} alt={`Foto cierre ${index + 1}`} className="h-24 w-full object-cover" loading="lazy" />
+                      <img src={url} alt={t('services.print.attachments.photos.alt', { index: index + 1 })} className="h-24 w-full object-cover" loading="lazy" />
                     </a>
                   ))}
                 </div>
@@ -135,11 +135,11 @@ export default function ServiceReportPrintPage() {
 
             {printableReport.attachments.length ? (
               <div>
-                <p className="text-sm font-semibold text-slate-800">Adjuntos</p>
+                <p className="text-sm font-semibold text-slate-800">{t('services.print.attachments.list.title')}</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
                   {printableReport.attachments.map((url, index) => (
                     <li key={`attachment-${index}`}>
-                      <a href={url} target="_blank" rel="noreferrer" className="underline">Adjunto {index + 1}</a>
+                      <a href={url} target="_blank" rel="noreferrer" className="underline">{t('services.print.attachments.list.item', { index: index + 1 })}</a>
                     </li>
                   ))}
                 </ul>
@@ -147,7 +147,7 @@ export default function ServiceReportPrintPage() {
             ) : null}
           </div>
         ) : (
-          <p className="mt-4 text-sm text-slate-500">Sin adjuntos registrados.</p>
+          <p className="mt-4 text-sm text-slate-500">{t('services.print.attachments.empty')}</p>
         )}
       </section>
     </div>
