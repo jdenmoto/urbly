@@ -199,7 +199,8 @@ export default function ClientSummaryPage() {
                       <div className="grid gap-2 text-sm text-ink-600 sm:grid-cols-2 lg:w-[20rem]">
                         <div className="rounded-2xl bg-fog-50 p-3">
                           <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.traceability.last.update')}</p>
-                          <p className="mt-1 font-semibold text-ink-900">{formatServiceDateTime(getLastVisibleUpdate(serviceOrder))}</p>
+                          <p className="mt-1 text-xs text-ink-600">{t('client.portal.traceability.updated.at')}</p>
+                          <p className="font-semibold text-ink-900">{formatServiceDateTime(getLastVisibleUpdate(serviceOrder))}</p>
                         </div>
                         <div className="rounded-2xl bg-fog-50 p-3">
                           <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.traceability.visible.report')}</p>

@@ -292,6 +292,8 @@ client:
         default: 'Estado actual: {status}.'
       last:
         update: Última actualización
+      updated:
+        at: Fecha visible
       visible:
         report: Informe visible
       report:
@@ -525,6 +527,8 @@ client:
       traceability:
         title: Trazabilidad visible
         subtitle: Eventos compartidos y evidencia mínima disponible para este servicio.
+        updated:
+          label: Actualizado
         actor:
           technician: Equipo técnico
           operations: Operación

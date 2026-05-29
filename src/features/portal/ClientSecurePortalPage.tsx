@@ -263,7 +263,10 @@ export default function ClientSecurePortalPage() {
                       <p className="font-semibold text-ink-900">{event.summary}</p>
                       <p className="mt-1 text-sm text-ink-600">{event.actorRole === 'technician' ? t('client.portal.secure.traceability.actor.technician') : event.actorRole === 'company' ? t('client.portal.secure.traceability.actor.operations') : t('client.portal.secure.traceability.actor.system')}</p>
                     </div>
-                    <p className="text-sm text-ink-500">{formatServiceDateTime(event.createdAt)}</p>
+                    <div className="text-right">
+                      <p className="text-xs uppercase tracking-wide text-ink-500">{t('client.portal.secure.traceability.updated.label')}</p>
+                      <p className="text-sm text-ink-600">{formatServiceDateTime(event.createdAt)}</p>
+                    </div>
                   </div>
                 </div>
               ))}
