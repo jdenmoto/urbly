@@ -647,6 +647,19 @@ mission:
       assign: Asignar técnico
       quote: Crear cotización
       contract: Implementar contrato
+      cards:
+        active:
+          title: Servicios activos
+          hint: Abrir casos en curso y entrar rápido a detalle o cierre.
+        agenda:
+          title: Agenda operativa
+          hint: Revisar servicios programados y confirmados para la jornada.
+        buildings:
+          title: Edificios
+          hint: Entrar al contexto técnico y contractual del portafolio.
+        reports:
+          title: Reportes
+          hint: Seguir cierres completados y entregables visibles al cliente.
     active:
       services:
         default: Servicios activos
