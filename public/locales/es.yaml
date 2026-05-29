@@ -981,6 +981,9 @@ mission:
 ai:
   title: IA operativa
   subtitle: Asistente transversal para informes, mensajes y seguimiento.
+  disclaimer:
+    title: La IA solo sugiere, nunca ejecuta cambios por sí sola.
+    description: Cada sugerencia requiere validación humana antes de copiarla, insertarla o compartirla con clientes.
   coming:
     soon: Aqui se integraran acciones de IA con foco en ahorro operativo real.
   workspace:
