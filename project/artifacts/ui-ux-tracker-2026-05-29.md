@@ -11,7 +11,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 | U0 Baseline/contrato | done | designer | 2026-05-29 | 2026-05-29 | docs/implementation/urbly-v2/ui-ux-visual-contract-v1.md | no |
 | U1 i18n/copy hardening | done | designer+developer | 2026-05-29 | 2026-05-29 | docs/implementation/urbly-v2/u1-t01-hardcoded-copy-audit-2026-05-29.md | no |
 | U2 shell/nav | done | designer+developer | 2026-05-29 | 2026-05-29 | docs/implementation/urbly-v2/u2-t05-iconography-policy-2026-05-29.md | no |
-| U3 técnico móvil | pending | designer+developer | - | - | - | no |
+| U3 técnico móvil | in_progress | designer+developer | 2026-05-29 | - | project/runs/2026-05-29-u3-t01-technician-5s-scan.md | no |
 | U4 portal cliente | pending | designer+developer | - | - | - | no |
 | U5 ai workspace | pending | designer+developer | - | - | - | no |
 | U6 accesibilidad | pending | designer+developer | - | - | - | no |
@@ -35,7 +35,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 - [x] U2-T03 labels/descr por rol
 - [x] U2-T04 topbar responsive
 - [x] U2-T05 iconografía
-- [ ] U3-T01 home técnico 5s scan
+- [x] U3-T01 home técnico 5s scan
 - [ ] U3-T02 sticky CTA móvil
 - [ ] U3-T03 cards cola técnica
 - [ ] U3-T04 feedback acciones
