@@ -1,7 +1,7 @@
 # Urbly — UI/UX Tracker
 
 Fecha base: 2026-05-29
-Estado: activo
+Estado: completado
 Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.md`
 
 ## Tablero de ejecución
@@ -15,7 +15,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 | U4 portal cliente | done | designer+developer | 2026-05-29 | 2026-05-29 | project/runs/2026-05-29-u4-t05-secure-narrative.md | no |
 | U5 ai workspace | done | designer+developer | 2026-05-29 | 2026-05-29 | project/runs/2026-05-29-u5-t04-ai-services-alignment.md | no |
 | U6 accesibilidad | done | designer+developer | 2026-05-29 | 2026-05-29 | project/runs/2026-05-29-u6-t05-keyboard-qa.md | no |
-| U7 cierre/verificación | pending | verify | - | - | - | no |
+| U7 cierre/verificación | done | designer+verify | 2026-05-29 | 2026-05-29 | project/artifacts/ui-ux-changelog-2026-05-29.md | no |
 
 ## Lista atómica (checklist)
 
@@ -54,10 +54,10 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 - [x] U6-T03 contraste etiquetas
 - [x] U6-T04 keyboard en overlays
 - [x] U6-T05 QA teclado rutas críticas
-- [ ] U7-T01 validación técnica final
-- [ ] U7-T02 changelog UI/UX
-- [ ] U7-T03 evidencia before/after
-- [ ] U7-T04 handoff a verify
+- [x] U7-T01 validación técnica final
+- [x] U7-T02 changelog UI/UX
+- [x] U7-T03 evidencia before/after
+- [x] U7-T04 handoff a verify
 
 ## Riesgos / bloqueos
 
