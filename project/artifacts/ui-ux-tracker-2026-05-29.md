@@ -14,7 +14,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 | U3 técnico móvil | done | designer+developer | 2026-05-29 | 2026-05-29 | project/runs/2026-05-29-u3-t05-tap-targets.md | no |
 | U4 portal cliente | done | designer+developer | 2026-05-29 | 2026-05-29 | project/runs/2026-05-29-u4-t05-secure-narrative.md | no |
 | U5 ai workspace | done | designer+developer | 2026-05-29 | 2026-05-29 | project/runs/2026-05-29-u5-t04-ai-services-alignment.md | no |
-| U6 accesibilidad | pending | designer+developer | - | - | - | no |
+| U6 accesibilidad | in_progress | designer+developer | 2026-05-29 | - | project/runs/2026-05-29-u6-t01-focus-visible-global.md | no |
 | U7 cierre/verificación | pending | verify | - | - | - | no |
 
 ## Lista atómica (checklist)
@@ -49,7 +49,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 - [x] U5-T02 disclaimers IA
 - [x] U5-T03 cards de sugerencias
 - [x] U5-T04 alineación con services
-- [ ] U6-T01 focus-visible
+- [x] U6-T01 focus-visible
 - [ ] U6-T02 semántica botones/listas
 - [ ] U6-T03 contraste etiquetas
 - [ ] U6-T04 keyboard en overlays
