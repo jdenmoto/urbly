@@ -1,10 +1,11 @@
 import type { SVGProps } from 'react';
 
 const base = 'currentColor';
+const strokeWidth = 1.7;
 
 export function LayoutDashboard(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
       <rect x="3" y="3" width="8" height="8" rx="2" />
       <rect x="13" y="3" width="8" height="5" rx="2" />
       <rect x="13" y="10" width="8" height="11" rx="2" />
@@ -15,7 +16,7 @@ export function LayoutDashboard(props: SVGProps<SVGSVGElement>) {
 
 export function Building2(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
       <rect x="3" y="3" width="8" height="18" rx="2" />
       <rect x="13" y="7" width="8" height="14" rx="2" />
       <path d="M7 7h2M7 11h2M7 15h2M17 11h2M17 15h2" />
@@ -25,7 +26,7 @@ export function Building2(props: SVGProps<SVGSVGElement>) {
 
 export function Landmark(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M3 10l9-6 9 6" />
       <path d="M5 10v10M19 10v10" />
       <path d="M8 10v10M12 10v10M16 10v10" />
@@ -36,7 +37,7 @@ export function Landmark(props: SVGProps<SVGSVGElement>) {
 
 export function Users(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M16 11a4 4 0 1 0-8 0" />
       <path d="M4 20a6 6 0 0 1 16 0" />
       <path d="M17 8a3 3 0 1 0-2-2" />
@@ -46,7 +47,7 @@ export function Users(props: SVGProps<SVGSVGElement>) {
 
 export function CalendarDays(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
       <rect x="3" y="4" width="18" height="18" rx="2" />
       <path d="M16 2v4M8 2v4M3 10h18" />
       <path d="M8 14h2M12 14h2M16 14h2" />
@@ -56,7 +57,7 @@ export function CalendarDays(props: SVGProps<SVGSVGElement>) {
 
 export function ShieldUser(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M12 2l7 3v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V5l7-3z" />
       <path d="M9 11a3 3 0 1 0 6 0" />
       <path d="M7 18a5 5 0 0 1 10 0" />
@@ -66,7 +67,7 @@ export function ShieldUser(props: SVGProps<SVGSVGElement>) {
 
 export function Settings(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
       <circle cx="12" cy="12" r="3.5" />
       <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 1 1 7.1 3.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V2a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z" />
     </svg>
@@ -75,7 +76,7 @@ export function Settings(props: SVGProps<SVGSVGElement>) {
 
 export function Briefcase(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
       <rect x="3" y="7" width="18" height="13" rx="2" />
       <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
       <path d="M3 12h18" />
@@ -85,7 +86,7 @@ export function Briefcase(props: SVGProps<SVGSVGElement>) {
 
 export function Sparkles(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8L12 3z" />
       <path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z" />
       <path d="M5 14l.9 2.1L8 17l-2.1.9L5 20l-.9-2.1L2 17l2.1-.9L5 14z" />
@@ -95,7 +96,7 @@ export function Sparkles(props: SVGProps<SVGSVGElement>) {
 
 export function FileText(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke={base} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
       <path d="M14 3v5h5" />
       <path d="M9 13h6M9 17h6M9 9h2" />
