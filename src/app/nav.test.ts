@@ -109,6 +109,16 @@ describe('role navigation configuration', () => {
     expect(routes).toContain('/portal/services');
     expect(routes).not.toContain('/scheduling');
   });
+
+  it('uses role-specific operations descriptions for internal roles', () => {
+    const supervisorGroups = getNavGroupsForRole('supervisor', [], allFlagsOn, t);
+    const auditGroups = getNavGroupsForRole('auditoria', [], allFlagsOn, t);
+    const operatorGroups = getNavGroupsForRole('operator', [], allFlagsOn, t);
+
+    expect(supervisorGroups[0]?.description).toBe('nav.operations.section.description.supervisor');
+    expect(auditGroups[0]?.description).toBe('nav.operations.section.description.audit');
+    expect(operatorGroups[0]?.description).toBe('nav.operations.section.description.operations');
+  });
 });
 
 describe('bottom nav layout', () => {

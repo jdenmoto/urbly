@@ -138,7 +138,11 @@ nav:
   operations:
     section:
       default: Operación diaria
-      description: Servicios, seguimiento y acciones prioritarias del día.
+      description:
+        default: Servicios, seguimiento y acciones prioritarias del día.
+        operations: Servicios, asignación y respuesta operativa en tiempo real.
+        supervisor: Visibilidad operativa y control de desvíos para decisiones de supervisión.
+        audit: Trazabilidad operativa, evidencias y señales de cumplimiento para auditoría.
   portfolio:
     section:
       default: Portafolio y cuentas
