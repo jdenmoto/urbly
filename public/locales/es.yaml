@@ -1027,6 +1027,8 @@ technician:
   issues:
     detected: Novedades
     label: Novedades
+  progress:
+    label: Avances
   next:
     service:
       title: Siguiente servicio

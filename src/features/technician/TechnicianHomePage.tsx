@@ -325,6 +325,20 @@ export default function TechnicianHomePage() {
                     <p className="mt-3 text-lg font-semibold text-ink-900">{order.title}</p>
                     <p className="text-sm text-ink-600">{getBuildingName(order.buildingId)}</p>
                     <p className="text-sm text-ink-500">{formatServiceDateTime(order.scheduledStartAt)}</p>
+                    <div className="mt-3 grid gap-2 text-xs text-ink-600 sm:grid-cols-3">
+                      <div className="rounded-xl bg-fog-50 px-3 py-2">
+                        <p className="uppercase tracking-wide text-ink-500">{t('technician.status.label')}</p>
+                        <p className="mt-1 font-semibold text-ink-900">{getServiceOrderStatusLabel(t, order.status)}</p>
+                      </div>
+                      <div className="rounded-xl bg-fog-50 px-3 py-2">
+                        <p className="uppercase tracking-wide text-ink-500">{t('technician.issues.label')}</p>
+                        <p className="mt-1 font-semibold text-ink-900">{order.issues.length}</p>
+                      </div>
+                      <div className="rounded-xl bg-fog-50 px-3 py-2">
+                        <p className="uppercase tracking-wide text-ink-500">{t('technician.progress.label')}</p>
+                        <p className="mt-1 font-semibold text-ink-900">{order.timeline.length}</p>
+                      </div>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-3">
                     <Link
