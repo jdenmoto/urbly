@@ -448,6 +448,16 @@ client:
     secure:
       title: Portal seguro del cliente
       subtitle: Acceso validado para seguimiento puntual del servicio compartido.
+      control:
+        badge: Acceso controlado
+        title: Tienes visibilidad segura del servicio compartido
+        description: Este enlace solo muestra información autorizada para tu seguimiento y te permite crear solicitudes relacionadas a este servicio.
+      nextAction:
+        label: Siguiente acción recomendada
+        completed: Revisa informe y evidencia. Si falta algo, crea una solicitud de seguimiento.
+        inProgress: Mantén este seguimiento abierto hasta el próximo evento visible del equipo técnico.
+        scheduled: Verifica fecha programada y prepara acceso/logística para la visita.
+        default: Revisa estado y trazabilidad. Si necesitas cambios, crea una solicitud desde este portal.
       validating: Validando acceso seguro...
       error:
         token:

@@ -12,6 +12,13 @@ import { formatServiceDateTime, getServiceOrderStatusLabel } from '@/features/se
 
 const requestPriorityValues = ['medium', 'high', 'urgent', 'low'] as const;
 
+function getSecureNextActionKey(status: string) {
+  if (status === 'completed') return 'client.portal.secure.nextAction.completed';
+  if (status === 'in_progress') return 'client.portal.secure.nextAction.inProgress';
+  if (status === 'scheduled' || status === 'confirmed') return 'client.portal.secure.nextAction.scheduled';
+  return 'client.portal.secure.nextAction.default';
+}
+
 export default function ClientSecurePortalPage() {
   const { t } = useI18n();
   const [params] = useSearchParams();
@@ -102,6 +109,26 @@ export default function ClientSecurePortalPage() {
         title={t('client.portal.secure.title')}
         subtitle={t('client.portal.secure.subtitle')}
       />
+
+      <Card className="space-y-3 border border-sky-100 bg-sky-50/60 p-6">
+        <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
+          {t('client.portal.secure.control.badge')}
+        </p>
+        <h2 className="text-lg font-semibold text-ink-900">
+          {t('client.portal.secure.control.title')}
+        </h2>
+        <p className="text-sm leading-6 text-ink-700">
+          {t('client.portal.secure.control.description')}
+        </p>
+        <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3">
+          <p className="text-xs uppercase tracking-wide text-ink-500">
+            {t('client.portal.secure.nextAction.label')}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-ink-900">
+            {t(getSecureNextActionKey(serviceOrder.status))}
+          </p>
+        </div>
+      </Card>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label={t('client.portal.secure.metrics.status.label')} value={getServiceOrderStatusLabel(t, serviceOrder.status)} hint={t('client.portal.secure.metrics.status.hint')} />
