@@ -150,6 +150,54 @@ export default function TechnicianHomePage() {
         fromPath="/technician"
       />
 
+      {!isLoading && primaryOrder ? (
+        <Card className="space-y-4 border border-emerald-200 bg-emerald-50/50 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{t('technician.scan.eyebrow')}</p>
+              <p className="text-lg font-semibold text-emerald-900">{primaryOrder.title}</p>
+            </div>
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${serviceOrderPriorityTone[primaryOrder.priority]}`}>
+              {getServiceOrderPriorityPill(t, primaryOrder.priority, 'technician.priority.pill')}
+            </span>
+          </div>
+          <div className="grid gap-3 text-sm md:grid-cols-3">
+            <div className="rounded-2xl bg-white px-4 py-3">
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.scan.status')}</p>
+              <p className="mt-1 font-semibold text-ink-900">{getServiceOrderStatusLabel(t, primaryOrder.status)}</p>
+            </div>
+            <div className="rounded-2xl bg-white px-4 py-3">
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.scan.when')}</p>
+              <p className="mt-1 font-semibold text-ink-900">{formatServiceDateTime(primaryOrder.scheduledStartAt)}</p>
+            </div>
+            <div className="rounded-2xl bg-white px-4 py-3">
+              <p className="text-xs uppercase tracking-wide text-ink-500">{t('technician.scan.where')}</p>
+              <p className="mt-1 font-semibold text-ink-900">{getBuildingName(primaryOrder.buildingId)}</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              className="inline-flex items-center rounded-full bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800"
+              to={`/services/${primaryOrder.id}`}
+              state={{
+                fromServices: true,
+                ...technicianListState,
+                listContext: buildServiceListContext(primaryOrder, getBuildingName(primaryOrder.buildingId), technicianName)
+              }}
+            >
+              {t('technician.scan.primary.action')}
+            </Link>
+            <Link
+              className="inline-flex items-center rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+              to={`/services/${primaryOrder.id}/closeout`}
+              state={technicianListState}
+            >
+              {t('technician.scan.secondary.action')}
+            </Link>
+          </div>
+        </Card>
+      ) : null}
+
       <section className="grid gap-4 md:grid-cols-3">
         <StatCard label={t('technician.assigned.services')} value={assignedOrders.length} />
         <StatCard label={t('technician.pending.services')} value={openOrders.length} />

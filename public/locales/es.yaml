@@ -1070,6 +1070,15 @@ technician:
       aria:
         service: Abrir el siguiente servicio asignado
         services: Abrir la lista de servicios asignados
+  scan:
+    eyebrow: Escaneo rápido
+    status: Estado
+    when: Cuándo
+    where: Dónde
+    primary:
+      action: Abrir servicio
+    secondary:
+      action: Ir al cierre
   visible:
     services:
       hint: servicios visibles para el tecnico actual
