@@ -464,6 +464,36 @@ services:
     title: Detalle del servicio
     subtitle: Primer corte de la vista dedicada para contexto e historial.
     empty: No se encontro el servicio solicitado.
+    arrival:
+      eyebrow: Contexto de llegada
+      title: Llegaste desde el listado operativo de servicios
+      back:
+        to:
+          filters: Volver al mismo filtro
+    daily:
+      progress:
+        label: Avances diarios
+    reported:
+      issues:
+        label: Novedades reportadas
+    primary:
+      action:
+        eyebrow: Acción principal
+    report:
+      and:
+        output:
+          eyebrow: Reporte y salida final
+    ai:
+      context:
+        badge: IA contextual
+        title: Resumen técnico sugerido
+  daily:
+    progress:
+      title: Avances diarios
+      subtitle: Seguimiento operativo para servicios largos en ejecución.
+      empty:
+        title: Sin avances diarios
+        description: Este servicio aún no registra seguimiento diario.
   context:
     title: Contexto del servicio
     subtitle: Información base para operar la orden de servicio sin entrar al agendamiento legado.
@@ -523,6 +553,59 @@ services:
       hint: estado actual para cierre y reporte
   report:
     title: Reporte actual
+  print:
+    empty:
+      title: Vista imprimible
+      description: Servicio no encontrado.
+    actions:
+      print: Imprimir
+    back:
+      technician: Volver al panel técnico
+      closeout: Volver al cierre
+      detail: Volver al detalle
+      default: Volver al flujo
+    flow:
+      title:
+        completed: Reporte final del servicio
+        in:
+          progress: Borrador operativo del reporte
+        default: Formato base de reporte
+      hint:
+        completed: Salida final para impresión y revisión con evidencia consolidada.
+        in:
+          progress: Todavía puedes volver al cierre técnico para completar evidencia y observaciones antes de imprimir.
+        default: Úsalo como referencia del entregable que quedará disponible al cerrar el servicio.
+      block:
+        title: Flujo services
+        from:
+          closeout: Llegaste desde cierre técnico. Si algo falta, vuelve al cierre antes de imprimir la versión final.
+          detail: Llegaste desde detalle. Desde aquí puedes revisar el formato final y volver al cierre si aún falta evidencia.
+        default: Esta vista hace parte del flujo operativo principal de services.
+    summary:
+      status: Estado
+      window: Ventana
+    metrics:
+      evidence:
+        title: Evidencia final
+        hint: fotos registradas
+      issues:
+        title: Novedades
+        hint: hallazgos documentados
+      attachments:
+        title: Adjuntos
+        hint: documentos asociados
+    report:
+      title: Reporte
+    attachments:
+      section:
+        title: Adjuntos y evidencias
+      photos:
+        title: Fotos de cierre
+        alt: Foto cierre {index}
+      list:
+        title: Adjuntos
+        item: Adjunto {index}
+      empty: Sin adjuntos registrados.
   evidence:
     title: Evidencia actual
     count: 'Fotos registradas: {count}'

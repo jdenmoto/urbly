@@ -188,7 +188,7 @@ export default function ServiceDetailPage() {
                   setAssignOpen(true);
                 }}
               >
-                {serviceOrder.assignedTechnicianId ? 'Reasignar técnico' : 'Asignar técnico'}
+                {serviceOrder.assignedTechnicianId ? t('services.actions.reassignTechnician') : t('services.actions.assignTechnician')}
               </button>
             ) : null}
             {!isTechnicianView ? (
@@ -208,33 +208,33 @@ export default function ServiceDetailPage() {
         <Card className="space-y-4 border border-sky-200 bg-sky-50 p-6">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">Contexto de llegada</p>
-              <h2 className="mt-2 text-lg font-semibold text-sky-950">Llegaste desde el listado operativo de servicios</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">{t('services.detail.arrival.eyebrow')}</p>
+              <h2 className="mt-2 text-lg font-semibold text-sky-950">{t('services.detail.arrival.title')}</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-sky-900">{getRecommendedNextStep(serviceOrder.status)}</p>
             </div>
             <Link
               className="inline-flex items-center rounded-full border border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-sky-800 transition hover:bg-sky-100"
               to={backToServicesTarget}
             >
-              Volver al mismo filtro
+              {t('services.detail.arrival.back.to.filters')}
             </Link>
           </div>
 
           <div className="grid gap-3 text-sm text-sky-950 md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3">
-              <p className="text-xs uppercase tracking-wide text-sky-700">Edificio</p>
+              <p className="text-xs uppercase tracking-wide text-sky-700">{t('services.building.label')}</p>
               <p className="mt-1 font-semibold">{listContext?.buildingName ?? building?.name ?? t('common.no.data')}</p>
             </div>
             <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3">
-              <p className="text-xs uppercase tracking-wide text-sky-700">Técnico</p>
+              <p className="text-xs uppercase tracking-wide text-sky-700">{t('services.technician.label')}</p>
               <p className="mt-1 font-semibold">{listContext?.technicianName ?? technician?.fullName ?? t('common.unassigned')}</p>
             </div>
             <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3">
-              <p className="text-xs uppercase tracking-wide text-sky-700">Avances diarios</p>
+              <p className="text-xs uppercase tracking-wide text-sky-700">{t('services.detail.daily.progress.label')}</p>
               <p className="mt-1 font-semibold">{listContext?.dailyProgressCount ?? dailyProgress.length}</p>
             </div>
             <div className="rounded-2xl border border-sky-100 bg-white px-4 py-3">
-              <p className="text-xs uppercase tracking-wide text-sky-700">Novedades reportadas</p>
+              <p className="text-xs uppercase tracking-wide text-sky-700">{t('services.detail.reported.issues.label')}</p>
               <p className="mt-1 font-semibold">{listContext?.issueCount ?? serviceOrder.issues.length}</p>
             </div>
           </div>
@@ -245,7 +245,7 @@ export default function ServiceDetailPage() {
         <Card className="space-y-4 border border-emerald-200 bg-emerald-50 p-6">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">Acción principal</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">{t('services.detail.primary.action.eyebrow')}</p>
               <h2 className="mt-2 text-lg font-semibold text-emerald-950">{getCloseoutActionLabel(serviceOrder.status)}</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-emerald-900">{getCloseoutActionHint(serviceOrder.status)}</p>
             </div>
@@ -263,7 +263,7 @@ export default function ServiceDetailPage() {
           <Card className="space-y-4 border border-slate-200 bg-white p-6">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Reporte y salida final</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{t('services.detail.report.and.output.eyebrow')}</p>
               <h2 className="mt-2 text-lg font-semibold text-ink-900">{getReportActionLabel(serviceOrder.status)}</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-600">{getReportActionHint(serviceOrder.status)}</p>
             </div>
@@ -381,8 +381,8 @@ export default function ServiceDetailPage() {
 
       <Card className="space-y-4 p-6">
         <div>
-          <h2 className="text-lg font-semibold text-ink-900">Avances diarios</h2>
-          <p className="text-sm text-ink-600">Seguimiento operativo para servicios largos en ejecución.</p>
+          <h2 className="text-lg font-semibold text-ink-900">{t('services.daily.progress.title')}</h2>
+          <p className="text-sm text-ink-600">{t('services.daily.progress.subtitle')}</p>
         </div>
         {dailyProgress.length ? (
           <div className="space-y-3">
@@ -398,7 +398,7 @@ export default function ServiceDetailPage() {
             ))}
           </div>
         ) : (
-          <EmptyState title="Sin avances diarios" description="Este servicio aún no registra seguimiento diario." />
+          <EmptyState title={t('services.daily.progress.empty.title')} description={t('services.daily.progress.empty.description')} />
         )}
       </Card>
 
@@ -407,8 +407,8 @@ export default function ServiceDetailPage() {
           {aiTechnicalSummarySuggestion ? (
             <Card className="space-y-6 p-6">
               <div>
-                <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">IA contextual</div>
-                <h2 className="mt-3 text-xl font-semibold text-ink-900">Resumen técnico sugerido</h2>
+                <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">{t('services.detail.ai.context.badge')}</div>
+                <h2 className="mt-3 text-xl font-semibold text-ink-900">{t('services.detail.ai.context.title')}</h2>
                 <p className="text-sm leading-6 text-ink-600">
                   Sugerencia contextual para revisar el servicio. No se guarda, envía ni modifica el servicio automáticamente.
                 </p>
@@ -445,17 +445,17 @@ export default function ServiceDetailPage() {
         </>
       ) : null}
 
-      <Modal open={assignOpen} title="Asignar técnico" onClose={() => setAssignOpen(false)}>
+      <Modal open={assignOpen} title={t('services.assignment.modal.title')} onClose={() => setAssignOpen(false)}>
         <div className="space-y-4">
           <Select value={assignTechnicianId} onChange={(event) => setAssignTechnicianId(event.target.value)}>
-            <option value="">Selecciona técnico</option>
+            <option value="">{t('services.assignment.selectTechnician')}</option>
             {employees.map((employee) => (
               <option key={employee.id} value={employee.id}>
                 {employee.fullName}
               </option>
             ))}
           </Select>
-          <Button onClick={() => void submitAssignment()} disabled={!assignTechnicianId}>Guardar asignación</Button>
+          <Button onClick={() => void submitAssignment()} disabled={!assignTechnicianId}>{t('services.assignment.save')}</Button>
         </div>
       </Modal>
     </div>
