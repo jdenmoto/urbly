@@ -17,12 +17,25 @@ describe('i18n dictionary', () => {
     readFileSync(resolve(process.cwd(), 'public/locales/es.yaml'), 'utf8')
   ) as Record<string, unknown>;
 
-  it('parses es.yaml and includes migrated service/portal copy keys', () => {
+  it('parses es.yaml and includes migrated service/portal/ai copy keys', () => {
     expect(getValue(dictionary, 'services.actions.openDetail')).toBe('Abrir detalle');
     expect(getValue(dictionary, 'services.dailyProgress.modal.title')).toBe(
       'Registrar avance diario'
     );
     expect(getValue(dictionary, 'client.portal.services.title')).toBe('Servicios del cliente');
     expect(getValue(dictionary, 'client.portal.reports.title')).toBe('Reportes del cliente');
+    expect(getValue(dictionary, 'client.portal.secure.title')).toBe('Portal seguro del cliente');
+    expect(getValue(dictionary, 'client.portal.secure.request.submit')).toBe(
+      'Crear solicitud'
+    );
+    expect(getValue(dictionary, 'client.portal.secure.quote.fields.status')).toBe('Estado');
+    expect(getValue(dictionary, 'client.portal.secure.traceability.actor.technician')).toBe(
+      'Equipo técnico'
+    );
+    expect(getValue(dictionary, 'ai.card.badge.suggestion.only')).toBe('Solo sugerencia');
+    expect(getValue(dictionary, 'ai.card.action.insert.draft')).toBe(
+      'Insertar como borrador'
+    );
+    expect(getValue(dictionary, 'ai.card.trace.policy')).toBe('Política');
   });
 });
