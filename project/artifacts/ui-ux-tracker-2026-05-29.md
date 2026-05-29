@@ -33,7 +33,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 - [x] U2-T01 búsqueda global real o explicit disabled
 - [x] U2-T02 notificaciones robustas
 - [x] U2-T03 labels/descr por rol
-- [ ] U2-T04 topbar responsive
+- [x] U2-T04 topbar responsive
 - [ ] U2-T05 iconografía
 - [ ] U3-T01 home técnico 5s scan
 - [ ] U3-T02 sticky CTA móvil
