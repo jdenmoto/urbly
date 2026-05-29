@@ -38,7 +38,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 - [x] U3-T01 home técnico 5s scan
 - [x] U3-T02 sticky CTA móvil
 - [x] U3-T03 cards cola técnica
-- [ ] U3-T04 feedback acciones
+- [x] U3-T04 feedback acciones
 - [ ] U3-T05 QA tap targets
 - [ ] U4-T01 copy cliente
 - [ ] U4-T02 prioridades resumen cliente

@@ -1049,6 +1049,7 @@ technician:
     current: Actual
     next: Siguiente
   actions:
+    recommended: Acción recomendada
     openService: Abrir servicio
     closeOrReport: Cerrar o reportar
     detail: Detalle

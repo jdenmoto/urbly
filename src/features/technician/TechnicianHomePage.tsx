@@ -126,6 +126,9 @@ export default function TechnicianHomePage() {
 
   const getBuildingName = (buildingId: string) => buildings.find((item) => item.id === buildingId)?.name ?? t('common.no.data');
   const technicianName = employee?.fullName ?? t('common.no.data');
+  const primaryActionClass = 'inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 active:scale-[0.98]';
+  const closeoutActionClass = 'inline-flex items-center rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 active:scale-[0.98]';
+  const secondaryActionClass = 'inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 active:scale-[0.98]';
 
   return (
     <div className="space-y-8 pb-[calc(10rem+env(safe-area-inset-bottom))] md:pb-0">
@@ -269,21 +272,26 @@ export default function TechnicianHomePage() {
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
+              <span className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+                {t('technician.actions.recommended')}
+              </span>
               <Link
-                className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
+                className={primaryActionClass}
                 to={`/services/${primaryOrder.id}`}
                 state={{
                   fromServices: true,
                   ...technicianListState,
                   listContext: buildServiceListContext(primaryOrder, getBuildingName(primaryOrder.buildingId), technicianName)
                 }}
+                aria-label={t('technician.actions.openService')}
               >
                 {t('technician.actions.openService')}
               </Link>
               <Link
-                className="inline-flex items-center rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                className={closeoutActionClass}
                 to={`/services/${primaryOrder.id}/closeout`}
                 state={technicianListState}
+                aria-label={t('technician.actions.closeOrReport')}
               >
                 {t('technician.actions.closeOrReport')}
               </Link>
@@ -342,20 +350,22 @@ export default function TechnicianHomePage() {
                   </div>
                   <div className="flex flex-wrap gap-3">
                     <Link
-                      className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      className={secondaryActionClass}
                       to={`/services/${order.id}`}
                       state={{
                         fromServices: true,
                         ...technicianListState,
                         listContext: buildServiceListContext(order, getBuildingName(order.buildingId), technicianName)
                       }}
+                      aria-label={t('technician.actions.detail')}
                     >
                       {t('technician.actions.detail')}
                     </Link>
                     <Link
-                      className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
+                      className={`${closeoutActionClass} border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 focus-visible:ring-amber-200`}
                       to={`/services/${order.id}/closeout`}
                       state={technicianListState}
+                      aria-label={t('technician.actions.progressCloseout')}
                     >
                       {t('technician.actions.progressCloseout')}
                     </Link>
