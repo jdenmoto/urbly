@@ -38,7 +38,7 @@ export default function TechnicianPrimaryMobileCta({
   return (
     <div className={clsx('md:hidden', className)}>
       <Link
-        className="block rounded-[24px] border border-emerald-200 bg-emerald-600 px-4 py-3 text-white shadow-[0_16px_44px_rgba(16,185,129,0.32)] transition hover:bg-emerald-700"
+        className="block min-h-11 rounded-[24px] border border-emerald-200 bg-emerald-600 px-4 py-3 text-white shadow-[0_16px_44px_rgba(16,185,129,0.32)] transition hover:bg-emerald-700"
         to={target}
         state={serviceOrder ? {
           fromServices: true,
