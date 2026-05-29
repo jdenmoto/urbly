@@ -27,9 +27,11 @@ function getLastVisibleUpdate(serviceOrder: ServiceOrder) {
 function getTraceabilitySummary(serviceOrder: ServiceOrder, t: (key: string, params?: Record<string, string | number>) => string) {
   const latestTimelineEvent = serviceOrder.timeline?.length ? serviceOrder.timeline[serviceOrder.timeline.length - 1] : null;
   if (latestTimelineEvent?.summary) return latestTimelineEvent.summary;
-  if (serviceOrder.status === 'completed') return 'Servicio completado y listo para revisar evidencia e informe.';
-  if (serviceOrder.status === 'in_progress') return 'Servicio en curso con seguimiento activo.';
-  return `Estado actual: ${getServiceOrderStatusLabel(t, serviceOrder.status)}.`;
+  if (serviceOrder.status === 'completed') return t('client.portal.traceability.summary.completed');
+  if (serviceOrder.status === 'in_progress') return t('client.portal.traceability.summary.inProgress');
+  return t('client.portal.traceability.summary.default', {
+    status: getServiceOrderStatusLabel(t, serviceOrder.status)
+  });
 }
 
 export default function ClientSummaryPage() {
@@ -73,7 +75,7 @@ export default function ClientSummaryPage() {
   }, [scopedServiceOrders]);
 
   if (!administrationId) {
-    return <EmptyState title={t('client.portal.summary.title')} description={t('portal.missing.access')} />;
+    return <EmptyState title={t('client.portal.summary.title')} description={t('client.portal.missing.access')} />;
   }
 
   return (
@@ -84,10 +86,10 @@ export default function ClientSummaryPage() {
         actions={
           <>
             <Link className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" to="/portal/services">
-              Ver servicios
+              {t('client.portal.actions.view.services')}
             </Link>
             <Link className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800" to="/portal/reports">
-              Ver informes
+              {t('client.portal.actions.view.reports')}
             </Link>
           </>
         }
@@ -249,7 +251,7 @@ export default function ClientSummaryPage() {
               })}
             </div>
           ) : (
-            <EmptyState title={t('client.portal.building.coverage.title')} description={t('portal.buildings.empty.hint')} />
+            <EmptyState title={t('client.portal.building.coverage.title')} description={t('client.portal.building.coverage.empty.hint')} />
           )}
         </Card>
       </div>
