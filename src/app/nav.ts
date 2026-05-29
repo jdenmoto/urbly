@@ -135,10 +135,18 @@ export function getNavGroupsForRole(role: AppUserRole, permissions: AppUserPermi
   }
 
   if (internalDashboardRoles.includes(role)) {
+    const operationsDescriptionKey = role === 'auditoria'
+      ? 'nav.operations.section.description.audit'
+      : role === 'supervisor'
+        ? 'nav.operations.section.description.supervisor'
+        : role === 'operator' || role === 'scheduler'
+          ? 'nav.operations.section.description.operations'
+          : 'nav.operations.section.description.default';
+
     const groups: NavGroup[] = [
       {
         label: t('nav.operations.section.default'),
-        description: t('nav.operations.section.description'),
+        description: t(operationsDescriptionKey),
         items: [
           { to: '/', label: t('nav.dashboard'), shortLabel: t('nav.short.dashboard'), icon: LayoutDashboard, enabled: flags.dashboard, allow: routeAccess['/'], mobile: true, mobileOrder: 1 },
           { to: '/services', label: t('nav.services'), shortLabel: t('nav.short.services'), icon: Briefcase, enabled: flags.services, allow: routeAccess['/services'], mobile: true, mobileOrder: 2 },
