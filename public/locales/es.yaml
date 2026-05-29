@@ -261,6 +261,9 @@ client:
         reports:
           label: Informes listos
           hint: Con evidencia o cierre visible
+      upcoming:
+        label: Próximas visitas
+        hint: Servicios agendados inmediatos
     upcoming:
       title: Proximos servicios
       subtitle: Primer corte del resumen cliente basado en órdenes de servicio.
