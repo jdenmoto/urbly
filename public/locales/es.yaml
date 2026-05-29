@@ -975,6 +975,41 @@ ai:
       hint: sugerencias visibles en este corte operativo
   priority:
     pill: Prioridad {value}
+  card:
+    blocked:
+      title: Sugerencia IA bloqueada
+      subtitle: El contenido no cumple el contrato seguro de IA y no se muestra.
+    badge:
+      ai: IA
+      suggestion:
+        only: Solo sugerencia
+    kind:
+      technical:
+        summary: Resumen técnico
+      report:
+        draft: Borrador de reporte
+      customer:
+        message: Mensaje cliente
+      missing:
+        requirements: Faltantes detectados
+      follow:
+        up: Follow-up
+    action:
+      copy: Copiar
+      insert:
+        draft: Insertar como borrador
+      dismiss: Descartar
+      regenerate: Regenerar
+    human:
+      approval:
+        required: Requiere aprobación humana
+    trace:
+      module: Módulo
+      generated: Generado
+      input: Entrada
+      role: Rol
+      template: Plantilla
+      policy: Política
 technician:
   home:
     title: Hoy
