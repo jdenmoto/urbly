@@ -12,7 +12,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 | U1 i18n/copy hardening | done | designer+developer | 2026-05-29 | 2026-05-29 | docs/implementation/urbly-v2/u1-t01-hardcoded-copy-audit-2026-05-29.md | no |
 | U2 shell/nav | done | designer+developer | 2026-05-29 | 2026-05-29 | docs/implementation/urbly-v2/u2-t05-iconography-policy-2026-05-29.md | no |
 | U3 técnico móvil | done | designer+developer | 2026-05-29 | 2026-05-29 | project/runs/2026-05-29-u3-t05-tap-targets.md | no |
-| U4 portal cliente | in_progress | designer+developer | 2026-05-29 | - | project/runs/2026-05-29-u4-t03-traceability-readable.md | no |
+| U4 portal cliente | in_progress | designer+developer | 2026-05-29 | - | project/runs/2026-05-29-u4-t04-building-report-cards.md | no |
 | U5 ai workspace | pending | designer+developer | - | - | - | no |
 | U6 accesibilidad | pending | designer+developer | - | - | - | no |
 | U7 cierre/verificación | pending | verify | - | - | - | no |
@@ -43,7 +43,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 - [x] U4-T01 copy cliente
 - [x] U4-T02 prioridades resumen cliente
 - [x] U4-T03 trazabilidad reciente
-- [ ] U4-T04 cobertura por edificio
+- [x] U4-T04 cobertura por edificio
 - [ ] U4-T05 secure portal narrative
 - [ ] U5-T01 semántica visual IA
 - [ ] U5-T02 disclaimers IA
