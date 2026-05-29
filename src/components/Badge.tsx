@@ -7,10 +7,10 @@ type BadgeProps = HTMLAttributes<HTMLSpanElement> & {
 
 export default function Badge({ tone = 'neutral', className, ...props }: BadgeProps) {
   const tones = {
-    neutral: 'bg-fog-100 text-ink-700',
-    success: 'bg-emerald-100 text-emerald-700',
-    warning: 'bg-amber-100 text-amber-700',
-    danger: 'bg-rose-100 text-rose-700'
+    neutral: 'bg-fog-200 text-ink-900',
+    success: 'bg-emerald-200 text-emerald-900',
+    warning: 'bg-amber-200 text-amber-900',
+    danger: 'bg-rose-200 text-rose-900'
   };
   return (
     <span className={clsx('rounded-full px-3 py-1 text-xs font-semibold', tones[tone], className)} {...props} />
