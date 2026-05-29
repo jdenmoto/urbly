@@ -42,6 +42,11 @@ export default function AiWorkspacePage() {
       <PageHeader title={t('ai.title')} subtitle={t('ai.subtitle')} />
 
       <Card className="space-y-6 p-6">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <p className="font-semibold">{t('ai.disclaimer.title')}</p>
+          <p className="mt-1 leading-6">{t('ai.disclaimer.description')}</p>
+        </div>
+
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-2">
             <div className="inline-flex rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
