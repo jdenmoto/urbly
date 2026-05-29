@@ -58,6 +58,9 @@ export default function ClientSummaryPage() {
   }, [scopedBuildings, serviceOrders]);
 
   const summary = useMemo(() => {
+    const urgent = scopedServiceOrders.filter(
+      (item) => item.status !== 'completed' && item.status !== 'cancelled' && item.priority === 'urgent'
+    ).length;
     const active = scopedServiceOrders.filter((item) => item.status !== 'completed' && item.status !== 'cancelled').length;
     const completed = scopedServiceOrders.filter((item) => item.status === 'completed').length;
     const reportsReady = scopedServiceOrders.filter(
@@ -71,7 +74,7 @@ export default function ClientSummaryPage() {
       .sort((a, b) => new Date(getLastVisibleUpdate(b)).getTime() - new Date(getLastVisibleUpdate(a)).getTime())
       .slice(0, 5);
 
-    return { active, completed, reportsReady, upcoming, recent };
+    return { urgent, active, completed, reportsReady, upcoming, recent };
   }, [scopedServiceOrders]);
 
   if (!administrationId) {
@@ -96,10 +99,15 @@ export default function ClientSummaryPage() {
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label={t('client.portal.active.services')} value={summary.active} hint={t('client.portal.metrics.active.hint')} />
-        <StatCard label={t('client.portal.completed.services')} value={summary.completed} hint={t('client.portal.metrics.completed.hint')} />
-        <StatCard label={t('client.portal.buildings.count')} value={scopedBuildings.length} hint={t('client.portal.metrics.buildings.hint')} />
         <StatCard label={t('client.portal.metrics.ready.reports.label')} value={summary.reportsReady} hint={t('client.portal.metrics.ready.reports.hint')} />
+        <StatCard label={t('client.portal.services.urgent.label')} value={summary.urgent} hint={t('client.portal.services.urgent.hint')} />
+        <StatCard label={t('client.portal.active.services')} value={summary.active} hint={t('client.portal.metrics.active.hint')} />
+        <StatCard label={t('client.portal.buildings.count')} value={scopedBuildings.length} hint={t('client.portal.metrics.buildings.hint')} />
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
+        <StatCard label={t('client.portal.completed.services')} value={summary.completed} hint={t('client.portal.metrics.completed.hint')} />
+        <StatCard label={t('client.portal.metrics.upcoming.label')} value={summary.upcoming.length} hint={t('client.portal.metrics.upcoming.hint')} />
       </section>
 
       <Card className="space-y-6 p-6">
