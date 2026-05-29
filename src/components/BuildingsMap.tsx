@@ -113,12 +113,18 @@ export default function BuildingsMap({ buildings, ready }: { buildings: Building
   return (
     <>
       {expanded ? (
-        <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setExpanded(false)} />
+        <button
+          type="button"
+          aria-label={t('common.close')}
+          className="fixed inset-0 z-40 bg-black/40"
+          onClick={() => setExpanded(false)}
+        />
       ) : null}
-      <div className={wrapperClasses} onClick={(event) => event.stopPropagation()}>
+      <div className={wrapperClasses}>
         <div className="flex items-center justify-between border-b border-fog-200 px-4 py-3 text-sm font-semibold text-ink-800">
           <span>{t('buildings.map.title')}</span>
           <button
+            type="button"
             className="text-xs font-semibold text-ink-600 underline"
             onClick={() => setExpanded((prev) => !prev)}
           >
