@@ -4,6 +4,36 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { createAiSuggestion, type AiSuggestion } from '@/core/models/aiSuggestion';
 import AiSuggestionCard from '@/features/ai/AiSuggestionCard';
 
+const i18nMap: Record<string, string> = {
+  'ai.card.blocked.title': 'Sugerencia IA bloqueada',
+  'ai.card.blocked.subtitle': 'El contenido no cumple el contrato seguro de IA y no se muestra.',
+  'ai.card.badge.ai': 'IA',
+  'ai.card.badge.suggestion.only': 'Solo sugerencia',
+  'ai.card.kind.technical.summary': 'Resumen técnico',
+  'ai.card.kind.report.draft': 'Borrador de reporte',
+  'ai.card.kind.customer.message': 'Mensaje cliente',
+  'ai.card.kind.missing.requirements': 'Faltantes detectados',
+  'ai.card.kind.follow.up': 'Follow-up',
+  'ai.card.action.copy': 'Copiar',
+  'ai.card.action.insert.draft': 'Insertar como borrador',
+  'ai.card.action.dismiss': 'Descartar',
+  'ai.card.action.regenerate': 'Regenerar',
+  'ai.card.human.approval.required': 'Requiere aprobación humana',
+  'ai.card.trace.module': 'Módulo',
+  'ai.card.trace.generated': 'Generado',
+  'ai.card.trace.input': 'Entrada',
+  'ai.card.trace.role': 'Rol',
+  'ai.card.trace.template': 'Plantilla',
+  'ai.card.trace.policy': 'Política',
+};
+
+vi.mock('@/lib/i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => i18nMap[key] ?? key,
+    loading: false
+  })
+}));
+
 function makeSuggestion(): AiSuggestion {
   return createAiSuggestion({
     id: 'ai-1',
