@@ -183,6 +183,9 @@ export default function ClientReportsPage() {
                         <p className="text-sm text-ink-600">
                           {building?.name ?? t('common.no.data')}
                         </p>
+                        <p className="text-sm text-ink-500">
+                          {building?.addressText || t('client.portal.building.coverage.no.address')}
+                        </p>
                         <p className="mt-2 text-sm text-ink-500">
                           {t('client.portal.reports.updatedAt', {
                             date: formatServiceDateTime(item.lastUpdatedAt)
