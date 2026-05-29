@@ -44,7 +44,7 @@ export default function AiWorkspacePage() {
       <Card className="space-y-6 p-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-2">
-            <div className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
+            <div className="inline-flex rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
               {t('ai.workspace.badge')}
             </div>
             <div>

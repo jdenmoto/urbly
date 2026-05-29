@@ -43,11 +43,11 @@ export default function AiSuggestionCard({ suggestion, actions, className }: AiS
   const availableActions = suggestion.safety.allowedUserActions.filter((action) => Boolean(actions?.[action]));
 
   return (
-    <article className={clsx('rounded-3xl border border-violet-100 bg-white p-5 shadow-sm', className)}>
+    <article className={clsx('rounded-3xl border border-fog-200 bg-white p-5 shadow-sm', className)}>
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className="bg-violet-50 text-violet-700">{t('ai.card.badge.ai')}</Badge>
+            <Badge className="bg-sky-50 text-sky-700">{t('ai.card.badge.ai')}</Badge>
             <Badge tone="warning">{t('ai.card.badge.suggestion.only')}</Badge>
             <Badge tone="neutral">{kindLabel[suggestion.kind]}</Badge>
           </div>
