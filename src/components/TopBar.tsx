@@ -51,7 +51,13 @@ export default function TopBar() {
           <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
             {roleBadgeKey[role] ? t(roleBadgeKey[role]) : t('common.tagline')}
           </div>
-          <button className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
+          <button
+            type="button"
+            aria-disabled
+            disabled
+            title={t('common.not.available')}
+            className="cursor-not-allowed rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm"
+          >
             {t('shell.global.search.placeholder')}
           </button>
           <div className="relative">
