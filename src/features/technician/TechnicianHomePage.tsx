@@ -128,7 +128,7 @@ export default function TechnicianHomePage() {
   const technicianName = employee?.fullName ?? t('common.no.data');
 
   return (
-    <div className="space-y-8 pb-28 md:pb-0">
+    <div className="space-y-8 pb-[calc(10rem+env(safe-area-inset-bottom))] md:pb-0">
       <PageHeader
         title={t('technician.home.title')}
         subtitle={t('technician.home.subtitle')}
@@ -143,7 +143,7 @@ export default function TechnicianHomePage() {
       />
 
       <TechnicianPrimaryMobileCta
-        className="fixed inset-x-4 bottom-24 z-30"
+        className="fixed inset-x-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-30 md:bottom-24"
         serviceOrder={primaryOrder}
         buildingName={primaryOrderBuildingName}
         technicianName={employee?.fullName}
