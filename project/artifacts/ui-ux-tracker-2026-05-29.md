@@ -10,7 +10,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 |---|---|---|---|---|---|---|
 | U0 Baseline/contrato | done | designer | 2026-05-29 | 2026-05-29 | docs/implementation/urbly-v2/ui-ux-visual-contract-v1.md | no |
 | U1 i18n/copy hardening | done | designer+developer | 2026-05-29 | 2026-05-29 | docs/implementation/urbly-v2/u1-t01-hardcoded-copy-audit-2026-05-29.md | no |
-| U2 shell/nav | pending | designer+developer | - | - | - | no |
+| U2 shell/nav | in_progress | designer+developer | 2026-05-29 | - | project/runs/2026-05-29-u2-t01-global-search-explicit.md | no |
 | U3 técnico móvil | pending | designer+developer | - | - | - | no |
 | U4 portal cliente | pending | designer+developer | - | - | - | no |
 | U5 ai workspace | pending | designer+developer | - | - | - | no |
@@ -30,7 +30,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 - [x] U1-T04 portal i18n
 - [x] U1-T05 technician/ai i18n
 - [x] U1-T06 tests i18n
-- [ ] U2-T01 búsqueda global real o explicit disabled
+- [x] U2-T01 búsqueda global real o explicit disabled
 - [ ] U2-T02 notificaciones robustas
 - [ ] U2-T03 labels/descr por rol
 - [ ] U2-T04 topbar responsive
