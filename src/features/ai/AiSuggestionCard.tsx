@@ -41,6 +41,20 @@ export default function AiSuggestionCard({ suggestion, actions, className }: AiS
   }
 
   const availableActions = suggestion.safety.allowedUserActions.filter((action) => Boolean(actions?.[action]));
+  const quickFacts = [
+    {
+      label: t('ai.card.quick.kind'),
+      value: kindLabel[suggestion.kind],
+    },
+    {
+      label: t('ai.card.quick.actions.label'),
+      value: t('ai.card.quick.actions.count', { count: suggestion.safety.allowedUserActions.length }),
+    },
+    {
+      label: t('ai.card.quick.policy'),
+      value: suggestion.trace.policyId ?? t('common.no.data'),
+    },
+  ];
 
   return (
     <article className={clsx('rounded-3xl border border-fog-200 bg-white p-5 shadow-sm', className)}>
@@ -66,6 +80,15 @@ export default function AiSuggestionCard({ suggestion, actions, className }: AiS
             ))}
           </div>
         ) : null}
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        {quickFacts.map((item) => (
+          <div key={item.label} className="rounded-2xl border border-fog-200 bg-fog-50 px-3 py-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-500">{item.label}</p>
+            <p className="mt-1 text-sm font-semibold text-ink-900">{item.value}</p>
+          </div>
+        ))}
       </div>
 
       <div className="mt-4 rounded-2xl bg-fog-50 p-4 text-sm leading-6 text-ink-700">

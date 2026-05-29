@@ -1044,6 +1044,12 @@ ai:
       role: Rol
       template: Plantilla
       policy: Política
+    quick:
+      kind: Tipo
+      actions:
+        label: Acciones
+        count: '{count} disponibles'
+      policy: Política
 technician:
   home:
     title: Hoy
