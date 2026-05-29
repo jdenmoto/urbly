@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/app/Auth';
 import { useList } from '@/lib/api/queries';
@@ -27,12 +27,36 @@ export default function TopBar() {
   const location = useLocation();
   const { role, permissions, user } = useAuth();
   const [openNotifications, setOpenNotifications] = useState(false);
+  const notificationsRef = useRef<HTMLDivElement | null>(null);
   const { data: notifications = [] } = useList<InternalNotification>('internalNotifications', 'internal_notifications');
   const navGroups = useNavGroups(role, permissions);
   const currentItem = navGroups.flatMap((group) => group.items).find((item) => item.to === location.pathname);
   const scopedNotifications = useMemo(() => notifications.filter((item) => !item.userId || item.userId === user?.uid).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()), [notifications, user?.uid]);
   const unreadCount = scopedNotifications.filter((item) => !item.read).length;
   const currentGroup = navGroups.find((group) => group.items.some((item) => item.to === location.pathname));
+
+  useEffect(() => {
+    if (!openNotifications) return;
+
+    function onPointerDown(event: MouseEvent) {
+      if (!notificationsRef.current?.contains(event.target as Node)) {
+        setOpenNotifications(false);
+      }
+    }
+
+    function onEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setOpenNotifications(false);
+      }
+    }
+
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onEscape);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onEscape);
+    };
+  }, [openNotifications]);
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-[#f7f9fc]/92 px-4 py-4 backdrop-blur-xl">
@@ -60,15 +84,32 @@ export default function TopBar() {
           >
             {t('shell.global.search.placeholder')}
           </button>
-          <div className="relative">
-            <button className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm" onClick={() => setOpenNotifications((v) => !v)}>
+          <div ref={notificationsRef} className="relative">
+            <button
+              type="button"
+              aria-expanded={openNotifications}
+              aria-haspopup="dialog"
+              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm"
+              onClick={() => setOpenNotifications((v) => !v)}
+            >
               {t('notifications.empty.title')} {unreadCount ? `(${unreadCount})` : ''}
             </button>
             {openNotifications ? (
-              <div className="absolute right-0 mt-2 w-96 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
-                <div className="space-y-2">
+              <div className="absolute right-0 mt-2 w-96 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl" role="dialog" aria-label={t('notifications.title')}>
+                <div className="mb-2 flex items-center justify-between gap-2 px-1">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t('notifications.title')}</p>
+                  <Link className="text-xs font-semibold text-slate-700 hover:text-slate-900" to="/notifications" onClick={() => setOpenNotifications(false)}>
+                    {t('common.view')}
+                  </Link>
+                </div>
+                <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
                   {scopedNotifications.length ? scopedNotifications.slice(0, 8).map((item) => (
-                    <button key={item.id} className="block w-full rounded-xl border border-slate-100 px-3 py-3 text-left hover:bg-slate-50" onClick={() => void markInternalNotificationRead(item.id)}>
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="block w-full rounded-xl border border-slate-100 px-3 py-3 text-left hover:bg-slate-50"
+                      onClick={() => void markInternalNotificationRead(item.id)}
+                    >
                       <p className="text-sm font-semibold text-slate-900">{item.title}</p>
                       <p className="mt-1 text-xs text-slate-600">{item.message}</p>
                     </button>
