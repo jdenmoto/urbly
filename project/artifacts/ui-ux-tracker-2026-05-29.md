@@ -13,7 +13,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 | U2 shell/nav | done | designer+developer | 2026-05-29 | 2026-05-29 | docs/implementation/urbly-v2/u2-t05-iconography-policy-2026-05-29.md | no |
 | U3 técnico móvil | done | designer+developer | 2026-05-29 | 2026-05-29 | project/runs/2026-05-29-u3-t05-tap-targets.md | no |
 | U4 portal cliente | done | designer+developer | 2026-05-29 | 2026-05-29 | project/runs/2026-05-29-u4-t05-secure-narrative.md | no |
-| U5 ai workspace | in_progress | designer+developer | 2026-05-29 | - | project/runs/2026-05-29-u5-t03-ai-card-scan.md | no |
+| U5 ai workspace | done | designer+developer | 2026-05-29 | 2026-05-29 | project/runs/2026-05-29-u5-t04-ai-services-alignment.md | no |
 | U6 accesibilidad | pending | designer+developer | - | - | - | no |
 | U7 cierre/verificación | pending | verify | - | - | - | no |
 
@@ -48,7 +48,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 - [x] U5-T01 semántica visual IA
 - [x] U5-T02 disclaimers IA
 - [x] U5-T03 cards de sugerencias
-- [ ] U5-T04 alineación con services
+- [x] U5-T04 alineación con services
 - [ ] U6-T01 focus-visible
 - [ ] U6-T02 semántica botones/listas
 - [ ] U6-T03 contraste etiquetas
