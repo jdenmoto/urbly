@@ -27,7 +27,8 @@ export default function TopBar() {
   const location = useLocation();
   const { role, permissions, user } = useAuth();
   const [openNotifications, setOpenNotifications] = useState(false);
-  const notificationsRef = useRef<HTMLDivElement | null>(null);
+  const notificationsDesktopRef = useRef<HTMLDivElement | null>(null);
+  const notificationsMobileRef = useRef<HTMLDivElement | null>(null);
   const { data: notifications = [] } = useList<InternalNotification>('internalNotifications', 'internal_notifications');
   const navGroups = useNavGroups(role, permissions);
   const currentItem = navGroups.flatMap((group) => group.items).find((item) => item.to === location.pathname);
@@ -39,7 +40,10 @@ export default function TopBar() {
     if (!openNotifications) return;
 
     function onPointerDown(event: MouseEvent) {
-      if (!notificationsRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const inDesktop = notificationsDesktopRef.current?.contains(target) ?? false;
+      const inMobile = notificationsMobileRef.current?.contains(target) ?? false;
+      if (!inDesktop && !inMobile) {
         setOpenNotifications(false);
       }
     }
@@ -60,7 +64,7 @@ export default function TopBar() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-[#f7f9fc]/92 px-4 py-4 backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{currentGroup?.label ?? t('common.panel.title')}</p>
@@ -70,6 +74,45 @@ export default function TopBar() {
           </div>
           <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950">{currentItem?.label ?? t('common.panel.title')}</p>
           <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500">{currentGroup?.description ?? t('common.panel.subtitle')}</p>
+        </div>
+        <div className="flex items-center gap-2 md:hidden">
+          <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+            {roleBadgeKey[role] ? t(roleBadgeKey[role]) : t('common.tagline')}
+          </div>
+          <div ref={notificationsMobileRef} className="relative">
+            <button
+              type="button"
+              aria-expanded={openNotifications}
+              aria-haspopup="dialog"
+              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm"
+              onClick={() => setOpenNotifications((v) => !v)}
+            >
+              {t('notifications.empty.title')} {unreadCount ? `(${unreadCount})` : ''}
+            </button>
+            {openNotifications ? (
+              <div className="absolute right-0 z-40 mt-2 w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-3 shadow-xl" role="dialog" aria-label={t('notifications.title')}>
+                <div className="mb-2 flex items-center justify-between gap-2 px-1">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t('notifications.title')}</p>
+                  <Link className="text-xs font-semibold text-slate-700 hover:text-slate-900" to="/notifications" onClick={() => setOpenNotifications(false)}>
+                    {t('common.view')}
+                  </Link>
+                </div>
+                <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+                  {scopedNotifications.length ? scopedNotifications.slice(0, 8).map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="block w-full rounded-xl border border-slate-100 px-3 py-3 text-left hover:bg-slate-50"
+                      onClick={() => void markInternalNotificationRead(item.id)}
+                    >
+                      <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                      <p className="mt-1 text-xs text-slate-600">{item.message}</p>
+                    </button>
+                  )) : <p className="text-sm text-slate-500">{t('notifications.empty.none')}</p>}
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
         <div className="hidden items-center gap-2 md:flex">
           <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
@@ -84,7 +127,7 @@ export default function TopBar() {
           >
             {t('shell.global.search.placeholder')}
           </button>
-          <div ref={notificationsRef} className="relative">
+          <div ref={notificationsDesktopRef} className="relative">
             <button
               type="button"
               aria-expanded={openNotifications}
@@ -95,7 +138,7 @@ export default function TopBar() {
               {t('notifications.empty.title')} {unreadCount ? `(${unreadCount})` : ''}
             </button>
             {openNotifications ? (
-              <div className="absolute right-0 mt-2 w-96 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl" role="dialog" aria-label={t('notifications.title')}>
+              <div className="absolute right-0 mt-2 w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-3 shadow-xl" role="dialog" aria-label={t('notifications.title')}>
                 <div className="mb-2 flex items-center justify-between gap-2 px-1">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t('notifications.title')}</p>
                   <Link className="text-xs font-semibold text-slate-700 hover:text-slate-900" to="/notifications" onClick={() => setOpenNotifications(false)}>
