@@ -990,6 +990,9 @@ ai:
     title: Sugerencias operativas
     subtitle: Acciones sugeridas para destrabar seguimiento, comunicación y cierre operativo.
     badge: Espacio de trabajo IA
+    action:
+      viewService: Ver servicio
+      goCloseout: Ir a cierre
   suggestion:
     urgent: Prioriza este servicio, prepara mensaje al cliente y define seguimiento inmediato.
     issues: Resume las novedades, deja listo el informe y valida si hace falta seguimiento técnico.

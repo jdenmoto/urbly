@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import Card from '@/components/Card';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
@@ -74,6 +75,20 @@ export default function AiWorkspacePage() {
                     </div>
                     <p className="mt-3 text-lg font-semibold text-ink-900">{item.title}</p>
                     <p className="mt-1 text-sm text-ink-600">{item.suggestion}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      className="inline-flex min-h-11 items-center rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                      to={`/services/${item.id}`}
+                    >
+                      {t('ai.workspace.action.viewService')}
+                    </Link>
+                    <Link
+                      className="inline-flex min-h-11 items-center rounded-full bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                      to={`/services/${item.id}/closeout`}
+                    >
+                      {t('ai.workspace.action.goCloseout')}
+                    </Link>
                   </div>
                 </div>
                 <div className="mt-4 grid gap-3 xl:grid-cols-3">
