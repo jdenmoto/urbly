@@ -25,7 +25,7 @@ Referencia: `docs/implementation/urbly-v2/ui-ux-plan-implementacion-2026-05-29.m
 - [x] U0-T04 estados canónicos
 - [x] U0-T05 checklist QA visual
 - [x] U1-T01 auditoría strings hardcodeados
-- [ ] U1-T02 dashboard i18n
+- [x] U1-T02 dashboard i18n
 - [ ] U1-T03 services i18n
 - [ ] U1-T04 portal i18n
 - [ ] U1-T05 technician/ai i18n

@@ -125,8 +125,8 @@ export default function DashboardPage() {
           <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left transition hover:-translate-y-0.5" to="/services">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-slate-900">Servicios activos</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">Abrir casos en curso y entrar rápido a detalle o cierre.</p>
+                <p className="text-sm font-semibold text-slate-900">{t('mission.control.quick.cards.active.title')}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{t('mission.control.quick.cards.active.hint')}</p>
               </div>
               <StatusPill tone="info">{data.active.length}</StatusPill>
             </div>
@@ -134,8 +134,8 @@ export default function DashboardPage() {
           <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left transition hover:-translate-y-0.5" to="/services?status=scheduled">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-slate-900">Agenda operativa</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">Revisar servicios programados y confirmados para la jornada.</p>
+                <p className="text-sm font-semibold text-slate-900">{t('mission.control.quick.cards.agenda.title')}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{t('mission.control.quick.cards.agenda.hint')}</p>
               </div>
               <StatusPill tone="warning">{data.agenda.length}</StatusPill>
             </div>
@@ -143,8 +143,8 @@ export default function DashboardPage() {
           <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left transition hover:-translate-y-0.5" to="/buildings">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-slate-900">Edificios</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">Entrar al contexto técnico y contractual del portafolio.</p>
+                <p className="text-sm font-semibold text-slate-900">{t('mission.control.quick.cards.buildings.title')}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{t('mission.control.quick.cards.buildings.hint')}</p>
               </div>
               <StatusPill>{data.buildingsCount}</StatusPill>
             </div>
@@ -152,8 +152,8 @@ export default function DashboardPage() {
           <Link className="rounded-2xl border border-white/70 bg-white/75 px-4 py-4 text-left transition hover:-translate-y-0.5" to="/reports">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-slate-900">Reportes</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">Seguir cierres completados y entregables visibles al cliente.</p>
+                <p className="text-sm font-semibold text-slate-900">{t('mission.control.quick.cards.reports.title')}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{t('mission.control.quick.cards.reports.hint')}</p>
               </div>
               <StatusPill tone="success">{data.completed.length}</StatusPill>
             </div>
