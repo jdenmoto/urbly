@@ -25,7 +25,8 @@ describe('client portal copy separation', () => {
   it('keeps client portal pages on client-facing namespaces instead of internal service copy keys', () => {
     const pages = [
       readProjectFile('src/features/portal/ClientServicesPage.tsx'),
-      readProjectFile('src/features/portal/ClientReportsPage.tsx')
+      readProjectFile('src/features/portal/ClientReportsPage.tsx'),
+      readProjectFile('src/features/portal/ClientSummaryPage.tsx')
     ].join('\n');
 
     expect(pages).not.toContain("t('services.");

@@ -240,6 +240,10 @@ client:
       subtitle: Vista inicial del portal cliente para seguimiento operativo.
     coming:
       soon: Aquí vivirá la nueva vista de resumen para clientes con estado general, próximos mantenimientos e informes.
+    actions:
+      view:
+        services: Ver servicios
+        reports: Ver informes
     active:
       services: Servicios activos
     completed:
@@ -279,6 +283,10 @@ client:
       title: Trazabilidad reciente
       subtitle: Últimos movimientos visibles para entender estado, evidencia y siguiente revisión.
       action: Ver operación
+      summary:
+        completed: Servicio completado y listo para revisar evidencia e informe.
+        inProgress: Servicio en curso con seguimiento activo.
+        default: 'Estado actual: {status}.'
       last:
         update: Última actualización
       visible:
@@ -304,6 +312,8 @@ client:
           services: Servicios activos
         visible:
           reports: Informes visibles
+        empty:
+          hint: No hay edificios visibles para tu acceso actual.
     nav:
       summary: Resumen
       services: Servicios
