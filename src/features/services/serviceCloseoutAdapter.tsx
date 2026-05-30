@@ -1,14 +1,10 @@
-import CreateServiceOrderDrawer from '@/features/operations/scheduling/CreateServiceOrderDrawer';
-import CompleteServiceModal from '@/features/scheduling/CompleteServiceModal';
-import useSchedulingCompletion from '@/features/scheduling/useSchedulingCompletion';
+import CreateServiceOrderDrawer from './CreateServiceOrderDrawer';
 import type { ServiceOrder, ServiceOrderIssue, ServiceOrderReport } from '@/core/models/serviceOrder';
+import CompleteServiceModal from './CompleteServiceModal';
+import useServiceCloseoutCompletion from './useServiceCloseoutCompletion';
 
 /**
- * Temporary quarantine for legacy scheduling pieces still reused by Services.
- *
- * `/services` is the visible operational flow. This adapter keeps the remaining
- * scheduling implementation details out of Services pages until the closeout
- * modal and quick-create drawer are replaced by native Services components.
+ * Service closeout adapter for `/services` operational flow.
  */
 export { CreateServiceOrderDrawer, CompleteServiceModal };
 
@@ -69,4 +65,4 @@ export function mapServiceOrderToCloseoutItem(serviceOrder: ServiceOrder): Servi
   };
 }
 
-export const useServiceCloseoutCompletion = useSchedulingCompletion;
+export { useServiceCloseoutCompletion };
