@@ -10,4 +10,4 @@ Esta carpeta guarda documentación útil como contexto, pero no es la mejor fuen
 Si necesitas decidir qué hacer ahora, empieza por:
 1. `docs/getting-started/current-status.md`
 2. `docs/implementation/current-implementation-debt.md`
-3. `docs/implementation/urbly-v2/`
+3. `docs/implementation/current-implementation-plan.md`

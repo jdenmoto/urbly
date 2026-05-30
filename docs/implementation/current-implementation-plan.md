@@ -1,43 +1,47 @@
-# Urbly — Plan vigente (Fase 2 Agendamiento)
+# Urbly — Plan vigente de implementación
 
-Fecha: 2026-04-29
+Fecha: 2026-05-30
 Estado: en ejecución
 
-## Objetivo
-Cerrar completamente el flujo de agendamiento operativo en `develop`, corrigiendo fallos funcionales en ambiente desplegado y completando los faltantes de producto, seguridad y datos.
+## Objetivo de la fase actual
+Consolidar la operación sobre `service_orders` con cierre técnico 100% nativo en `services`, reporte unificado y pipeline de staging estable (deploy + seed + smoke).
 
-## Bloques de ejecución
+## Fase A — Estabilidad CI/CD (prioridad máxima)
+1. Corregir `deploy-develop.yml` para que `seed:users` reciba credenciales en formato compatible (`FIREBASE_SERVICE_ACCOUNT_PATH` o fallback equivalente).
+2. Endurecer `scripts/seed-demo-users.mjs` para aceptar la misma estrategia de credenciales usada por `seed-firestore` y `clear-firestore`.
+3. Ejecutar validación completa en staging: `firestore:clear` -> `seed:all` -> `seed:smoke`.
+4. Documentar precondiciones de secrets en workflows (`FIREBASE_SERVICE_ACCOUNT`, `FIREBASE_PROJECT_ID`, `SEED_DEMO_PASSWORD`).
 
-### Bloque 1 — Riesgo crítico operativo (prioridad máxima)
-1. Storage/Evidencia: corregir permisos y rutas de subida para `service-orders/*`.
-2. Asignación/Reasignación usable: flujo claro desde listado y detalle.
-3. Vista técnico confiable: garantizar visibilidad de órdenes asignadas.
-4. Checklist + cierre completo: diligenciamiento, validación y persistencia estables.
+## Fase B — Cierre técnico nativo en services
+1. Retirar dependencia transicional de `serviceCloseoutBridge` sobre piezas `scheduling`.
+2. Mover lógica de cierre y helpers necesarios al namespace de `services`.
+3. Alinear rutas, naming y contratos para que el flujo final no dependa de compatibilidad legacy.
 
-### Bloque 2 — Flujo completo de producto
-5. Edición completa funcional: crear/editar en flujo único operativo.
-6. Tipos de servicio: campo seleccionable conectado a catálogo real (`settings/service_types`).
-7. Confirmación/reprogramación/cancelación: cubrir acciones y transiciones en UX y dominio.
+## Fase C — Reporte único (closeout/print/PDF)
+1. Definir un contrato de salida único para reporte de servicio.
+2. Reusar el contrato en:
+   - `serviceReport.ts` (narrativa operativa),
+   - `ServiceReportPrintPage.tsx` (impresión),
+   - `functions/src/serviceReports.ts` (PDF backend).
+3. Agregar validaciones de consistencia para evitar divergencia entre formatos.
 
-### Bloque 3 — UX/UI y coherencia de experiencia
-8. Header/navegación: eliminar duplicados y limpiar jerarquía.
-9. Consistencia visual y de interacción: estados vacíos, mensajes, CTA, errores.
-10. Branding base: favicon y validación en deploy.
-
-### Bloque 4 — CI/Seed para develop siempre usable
-11. Pipeline develop: reset + seed mínimo operativo en cada despliegue.
-12. Seed y limpieza: scripts idempotentes y consistentes con modelo actual.
-13. Smoke checks post-seed: validaciones automáticas mínimas de datos críticos.
-
-## Otras implementaciones necesarias (pendientes transversales)
-- Unificar salida de reporte entre closeout, vista imprimible y PDF backend.
-- Reducir dependencia residual del namespace `scheduling` en cierre técnico.
-- Resolver naming/data legacy (`appointments`, alias transicionales) sin romper operación.
-- Validar que técnico y operación interna compartan el mismo criterio de identidad en asignación.
+## Fase D — Limpieza residual y guardrails
+1. Eliminar residuos `appointments/scheduling` sin uso real.
+2. Conservar solo alias de compatibilidad estrictamente necesarios y con fecha de retiro.
+3. Actualizar documentación técnica para reflejar arquitectura actual (sin flujo principal legacy).
 
 ## Definición de terminado (DoD)
-- Flujo completo: crear → asignar → confirmar/reprogramar → ejecutar → cerrar → reportar.
-- Sin errores de permisos en subida de evidencia.
-- Técnico ve y opera sus servicios asignados correctamente.
-- CI develop deja ambiente funcional con datos mínimos en cada corrida.
-- `npm run build:minimum` y pruebas críticas en verde.
+- Deploy staging verde con seed completo (`seed:all`) y `seed:smoke` en verde.
+- Cierre técnico ejecutado solo con componentes/lógica de `services`.
+- Reporte funcionalmente consistente entre vista operativa, imprimible y PDF.
+- Sin referencias legacy en flujo principal de operación.
+- `npm run build:minimum`, `npm run test:run`, `npm run lint` en verde (warnings preexistentes documentados).
+
+## Estado de ejecución (2026-05-30)
+- [x] A1 Workflow staging credenciales seed
+- [x] A2 Hardening `seed-demo-users.mjs`
+- [ ] A3 Validación staging remota (`seed:all` + `seed:smoke` en GitHub Actions)
+- [x] B1 Desacople de cierre técnico de `features/scheduling`
+- [x] B2 Retiro de naming/puente legacy remanente en cierre
+- [x] C1 Contrato único de reporte closeout/print/PDF
+- [x] D1 Limpieza residual de referencias legacy

@@ -1,16 +1,12 @@
 # Implementación
 
-## Leer en este orden
-1. `final-pr-summary-2026-04-28.md`
-2. `current-implementation-plan.md`
-3. `current-executable-sprints.md`
-4. `current-atomic-subagent-tasks.md`
-5. `current-implementation-debt.md`
-6. `urbly-v2/design.md`
+Documentación vigente y accionable para la ejecución actual.
 
-## Objetivo
-Separar claramente:
-- plan operativo vigente
-- deuda actual y accionable
-- contexto estratégico que todavía sirve
-- documentación histórica
+## Leer en este orden
+1. `current-implementation-plan.md`
+2. `current-implementation-debt.md`
+
+## Regla de mantenimiento
+- Mantener aquí solo plan y deuda vigentes.
+- Mover o borrar documentos de fases cerradas para evitar ruido operativo.
+- Cada actualización del plan debe reflejar estado real de CI/CD, producto y deuda.
