@@ -7,24 +7,37 @@ dotenv.config({ path: path.resolve('.env') });
 dotenv.config({ path: path.resolve('.env.local'), override: true });
 
 const projectId = process.env.FIREBASE_PROJECT_ID;
-const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || process.env.GOOGLE_APPLICATION_CREDENTIALS;
 const demoPassword = process.env.SEED_DEMO_PASSWORD || 'UrblyDemo2026!';
+const inlineServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
 
-if (!projectId || !serviceAccountPath) {
-  console.error('Missing env vars: FIREBASE_PROJECT_ID and FIREBASE_SERVICE_ACCOUNT_PATH');
+if (!projectId || (!serviceAccountPath && !inlineServiceAccount)) {
+  console.error(
+    'Missing env vars: FIREBASE_PROJECT_ID and one of FIREBASE_SERVICE_ACCOUNT_PATH, GOOGLE_APPLICATION_CREDENTIALS or FIREBASE_SERVICE_ACCOUNT'
+  );
   process.exit(1);
 }
 
-const absolutePath = path.resolve(serviceAccountPath);
-if (!fs.existsSync(absolutePath)) {
-  console.error(`Service account file not found: ${absolutePath}`);
-  process.exit(1);
+let serviceAccount;
+if (inlineServiceAccount) {
+  try {
+    serviceAccount = JSON.parse(inlineServiceAccount);
+  } catch {
+    console.error('Invalid FIREBASE_SERVICE_ACCOUNT JSON');
+    process.exit(1);
+  }
+} else {
+  const absolutePath = path.resolve(serviceAccountPath);
+  if (!fs.existsSync(absolutePath)) {
+    console.error(`Service account file not found: ${absolutePath}`);
+    process.exit(1);
+  }
+  serviceAccount = JSON.parse(fs.readFileSync(absolutePath, 'utf-8'));
 }
 
-const serviceAccount = JSON.parse(fs.readFileSync(absolutePath, 'utf-8'));
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  projectId
+  projectId: projectId || serviceAccount.project_id
 });
 
 const auth = admin.auth();
