@@ -29,7 +29,7 @@ import {
   mapServiceOrderToCloseoutItem,
   type ServiceCloseoutItem,
   useServiceCloseoutCompletion
-} from './legacySchedulingAdapter';
+} from './serviceCloseoutAdapter';
 import {
   resolveServiceIssueLabel,
   serviceIssueCategoryOptions,

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ServiceOrder } from '@/core/models/serviceOrder';
-import { mapServiceOrderToCloseoutItem } from '../legacySchedulingAdapter';
+import { mapServiceOrderToCloseoutItem } from '../serviceCloseoutAdapter';
 
-describe('legacy scheduling adapter for services', () => {
-  it('maps a service order into the closeout item expected by the temporary legacy modal', () => {
+describe('service closeout adapter', () => {
+  it('maps a service order into the closeout item expected by the closeout modal', () => {
     const serviceOrder: ServiceOrder = {
       id: 'so-legacy-1',
       buildingId: 'building-1',

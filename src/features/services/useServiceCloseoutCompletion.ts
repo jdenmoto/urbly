@@ -1,0 +1,329 @@
+import { useMemo, useState } from 'react';
+import { completeServiceOrderWithReport } from '@/lib/api/serviceOrders';
+import type { ServiceOrder, ServiceOrderIssue, ServiceOrderReport, ServiceOrderStatus } from '@/core/models/serviceOrder';
+import {
+  buildCompletionPayload,
+  buildNormalizedChecklist,
+  hasMinTwoPhotos,
+  validateCompletion,
+  type CompletionReport,
+  type IssueDraft
+} from './serviceCompletion';
+
+export type ServiceCloseoutStatus = 'programado' | 'confirmado' | 'completado' | 'cancelado';
+
+export type ServiceCloseoutItem = {
+  id: string;
+  source: 'service_order';
+  sourceId: string;
+  buildingId: string;
+  title: string;
+  description?: string;
+  startAt: string;
+  endAt: string;
+  status: ServiceCloseoutStatus;
+  type: string;
+  employeeId?: string | null;
+  recurrence?: string | null;
+  seriesId?: string | null;
+  cancelReason?: string | null;
+  cancelNote?: string | null;
+  completedAt?: string | null;
+  issues?: ServiceOrderIssue[];
+  completionPhotos?: string[];
+  completionReport?: ServiceOrderReport;
+  createdAt?: string;
+};
+
+function mapCloseoutItemStatus(status: ServiceCloseoutItem['status']): ServiceOrderStatus {
+  if (status === 'programado') return 'scheduled';
+  if (status === 'completado') return 'completed';
+  if (status === 'cancelado') return 'cancelled';
+  return 'in_progress';
+}
+
+function mapCloseoutItemToServiceOrder(item: ServiceCloseoutItem): ServiceOrder {
+  return {
+    id: item.id,
+    dataSource: 'service_order',
+    buildingId: item.buildingId,
+    title: item.title,
+    description: item.description,
+    type: item.type,
+    priority: 'medium',
+    status: mapCloseoutItemStatus(item.status),
+    scheduledStartAt: item.startAt,
+    scheduledEndAt: item.endAt,
+    assignedTechnicianId: item.employeeId ?? null,
+    recurrence: item.recurrence ?? null,
+    seriesId: item.seriesId ?? null,
+    cancelReason: item.cancelReason ?? null,
+    cancelNote: item.cancelNote ?? null,
+    completedAt: item.completedAt ?? null,
+    issues: item.issues ?? [],
+    completionPhotos: item.completionPhotos ?? [],
+    report: item.completionReport,
+    timeline: [],
+    createdAt: item.createdAt,
+  };
+}
+
+export default function useServiceCloseoutCompletion({
+  t,
+  toast,
+  invalidateScheduling,
+  selected,
+  setSelected
+}: {
+  t: (key: string) => string;
+  toast: (message: string, type: 'success' | 'error') => void;
+  invalidateScheduling: () => Promise<unknown> | unknown;
+  selected: ServiceCloseoutItem | null;
+  setSelected: React.Dispatch<React.SetStateAction<ServiceCloseoutItem | null>>;
+}) {
+  const [completeTarget, setCompleteTarget] = useState<ServiceCloseoutItem | null>(null);
+  const [hasIssues, setHasIssues] = useState<'yes' | 'no' | ''>('');
+  const [issues, setIssues] = useState<IssueDraft[]>([]);
+  const [issueDraft, setIssueDraft] = useState<IssueDraft>({
+    id: '',
+    type: '',
+    category: '',
+    description: '',
+    photos: []
+  });
+  const [issueError, setIssueError] = useState<string | null>(null);
+  const [completeSubmitting, setCompleteSubmitting] = useState(false);
+  const [completionPhotos, setCompletionPhotos] = useState<File[]>([]);
+  const [completionReport, setCompletionReport] = useState<CompletionReport>({
+    entryHour: '',
+    exitHour: '',
+    observations: '',
+    checklist: {}
+  });
+  const [group1Units, setGroup1Units] = useState<number[]>([1]);
+  const [groupPanelsOpen, setGroupPanelsOpen] = useState({ grupo1: false, grupo2: false, grupo3: false });
+  const [bombaPanelsOpen, setBombaPanelsOpen] = useState<Record<number, boolean>>({ 1: true });
+
+  const timeHourOptions = useMemo(() => Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0')), []);
+  const timeMinuteOptions = useMemo(() => Array.from({ length: 12 }, (_, index) => String(index * 5).padStart(2, '0')), []);
+
+  const completionChecklistGroups = useMemo(
+    () => ({
+      grupo2: [
+        'bornera_control',
+        'bornera_fuerza',
+        'breaker_totalizador',
+        'coraza_cableado_control',
+        'coraza_cableado_motores',
+        'tablero_control'
+      ],
+      grupo3: [
+        'valvula_flotadora',
+        'diametro',
+        'alarma',
+        'demarcacion_registros',
+        'instalacion_hidraulica',
+        'instruciones_manejo',
+        'pintura'
+      ]
+    }) as const,
+    []
+  );
+
+  const completionChecklistItems = useMemo(
+    () => [
+      'alternador_contactos_auxiliares',
+      'anclaje_base_estructural',
+      'cargador_automatico_aire',
+      'contactor_consumo_motor',
+      'guardamotor_calibracion',
+      'lampara_senalizacion',
+      'manometros',
+      'membrana',
+      'transductor',
+      'diafragma',
+      'organizacion_cableado_tanque',
+      'presostatos',
+      'regulador_nivel',
+      'rele_bimetalico_calibracion',
+      'rodamientos',
+      'selector',
+      'sello_mecanico',
+      'tanque_hidroacumulador',
+      'temporizador',
+      'terminales_bornera_motor',
+      'tornilleria_base_motor',
+      'variador',
+      'voltaje',
+      ...completionChecklistGroups.grupo2,
+      ...completionChecklistGroups.grupo3
+    ],
+    [completionChecklistGroups]
+  );
+
+  const completionChecklistGroup1 = useMemo(
+    () =>
+      completionChecklistItems.filter(
+        (item) =>
+          !completionChecklistGroups.grupo2.includes(item as (typeof completionChecklistGroups.grupo2)[number]) &&
+          !completionChecklistGroups.grupo3.includes(item as (typeof completionChecklistGroups.grupo3)[number])
+      ),
+    [completionChecklistGroups, completionChecklistItems]
+  );
+
+  const getTimeParts = (value: string) => {
+    const [hour = '', minute = ''] = value.split(':');
+    return { hour, minute };
+  };
+
+  const setReportTimePart = (field: 'entryHour' | 'exitHour', part: 'hour' | 'minute', nextValue: string) => {
+    setCompletionReport((prev) => {
+      const current = getTimeParts(prev[field]);
+      const hour = part === 'hour' ? nextValue : current.hour;
+      const minute = part === 'minute' ? nextValue : current.minute;
+      return {
+        ...prev,
+        [field]: hour || minute ? `${hour}:${minute}` : ''
+      };
+    });
+  };
+
+  const makeGroup1Key = (unit: number, item: string) => `bomba_${unit}__${item}`;
+  const makeGroup1RedKey = (unit: number, item: string) => `${makeGroup1Key(unit, item)}__red_distribucion`;
+  const formatChecklistLabel = (value: string) =>
+    value
+      .split('_')
+      .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+      .join(' ');
+
+  const startComplete = (serviceOrderItem: ServiceCloseoutItem) => {
+    setCompleteTarget(serviceOrderItem);
+    setHasIssues('');
+    setIssues([]);
+    setIssueDraft({ id: '', type: '', category: '', description: '', photos: [] });
+    setIssueError(null);
+    setCompletionPhotos([]);
+    setCompletionReport({ entryHour: '', exitHour: '', observations: '', checklist: {} });
+    setGroup1Units([1]);
+    setGroupPanelsOpen({ grupo1: false, grupo2: false, grupo3: false });
+    setBombaPanelsOpen({ 1: true });
+  };
+
+  const addIssue = () => {
+    setIssueError(null);
+    if (!issueDraft.type || !issueDraft.category) {
+      setIssueError(t('scheduling.issue.required'));
+      return;
+    }
+    if (!hasMinTwoPhotos(issueDraft.photos)) {
+      setIssueError(t('scheduling.issue.photos.required'));
+      return;
+    }
+    const id = issueDraft.id || (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}`);
+    setIssues((prev) => [...prev, { ...issueDraft, id }]);
+    setIssueDraft({ id: '', type: '', category: '', description: '', photos: [] });
+  };
+
+  const removeIssue = (id: string) => {
+    setIssues((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const completeService = async () => {
+    if (!completeTarget) return;
+    const completionError = validateCompletion({ t, hasIssues, issues, completionPhotos, completionReport });
+    if (completionError) {
+      setIssueError(completionError);
+      return;
+    }
+
+    const normalizedChecklist = buildNormalizedChecklist({
+      completionReport,
+      completionChecklistItems,
+      completionChecklistGroup1: [...completionChecklistGroup1],
+      group1Units,
+      makeGroup1Key,
+      makeGroup1RedKey
+    });
+
+    setCompleteSubmitting(true);
+    try {
+      const payload = await buildCompletionPayload({
+        serviceOrderId: completeTarget.id,
+        hasIssues,
+        issues,
+        completionPhotos,
+        completionReport,
+        normalizedChecklist
+      });
+      const completedPayload = await completeServiceOrderWithReport({
+        serviceOrder: mapCloseoutItemToServiceOrder(completeTarget),
+        report: payload.report as ServiceOrderReport,
+        completionPhotos: payload.completionPhotos as string[],
+        issues: payload.issues as ServiceOrderIssue[] | undefined,
+      });
+      await invalidateScheduling();
+      toast(t('scheduling.toast.completed'), 'success');
+      if (selected?.id === completeTarget.id) {
+        setSelected((prev) => {
+          if (!prev || prev.id !== completeTarget.id) return prev;
+          return {
+            ...prev,
+            status: 'completado',
+            completedAt: completedPayload.completedAt,
+            issues: completedPayload.issues as ServiceCloseoutItem['issues'],
+            completionPhotos: completedPayload.completionPhotos,
+            completionReport: completedPayload.report
+          };
+        });
+      }
+      setCompleteTarget(null);
+    } catch (error) {
+      const firebaseMessage =
+        typeof error === 'object' && error !== null && 'code' in error
+          ? `Firebase Storage (${String((error as { code?: unknown }).code)})`
+          : '';
+      const detail = error instanceof Error ? error.message : '';
+      const message = [firebaseMessage, detail].filter(Boolean).join(': ');
+      toast(message || t('common.action.error'), 'error');
+    } finally {
+      setCompleteSubmitting(false);
+    }
+  };
+
+  return {
+    completeTarget,
+    setCompleteTarget,
+    hasIssues,
+    setHasIssues,
+    issues,
+    issueDraft,
+    setIssueDraft,
+    issueError,
+    setIssueError,
+    completeSubmitting,
+    completionPhotos,
+    setCompletionPhotos,
+    completionReport,
+    setCompletionReport,
+    timeHourOptions,
+    timeMinuteOptions,
+    getTimeParts,
+    setReportTimePart,
+    group1Units,
+    setGroup1Units,
+    groupPanelsOpen,
+    setGroupPanelsOpen,
+    bombaPanelsOpen,
+    setBombaPanelsOpen,
+    completionChecklistGroups,
+    completionChecklistItems,
+    completionChecklistGroup1,
+    makeGroup1Key,
+    makeGroup1RedKey,
+    formatChecklistLabel,
+    startComplete,
+    addIssue,
+    removeIssue,
+    completeService
+  };
+}
