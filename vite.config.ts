@@ -33,18 +33,8 @@ export default defineConfig({
             }
           }
 
-          if (id.includes('/src/features/scheduling/')) {
-            return 'feature-scheduling';
-          }
-          if (id.includes('/src/features/buildings/')) {
-            return 'feature-buildings';
-          }
-          if (id.includes('/src/features/management/')) {
-            return 'feature-management';
-          }
-          if (id.includes('/src/features/services/')) {
-            return 'feature-services';
-          }
+          // Keep feature chunking automatic to avoid fragile init order
+          // across strongly-coupled modules.
         }
       }
     }
